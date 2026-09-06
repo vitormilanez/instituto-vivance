@@ -17,7 +17,8 @@
     "asana:authorize": "node scripts/asana-vivance.mjs authorize",
     "asana:complete": "node scripts/asana-vivance.mjs complete",
     "asana:status": "node scripts/asana-vivance.mjs status",
-    "asana:backlog": "node scripts/asana-vivance.mjs seed-backlog"
+    "asana:backlog": "node scripts/asana-vivance.mjs seed-backlog",
+    "admin:local": "node scripts/create-local-admin.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

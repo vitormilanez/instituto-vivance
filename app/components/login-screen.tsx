@@ -19,6 +19,7 @@ const DEMO_PASSWORD = 'Vivans@2026';
 const demoAccounts = [
   {
     username: 'dr.guilherme',
+    password: DEMO_PASSWORD,
     name: 'Dr. Guilherme',
     role: 'Profissional',
     initials: 'GM',
@@ -26,10 +27,19 @@ const demoAccounts = [
   },
   {
     username: 'marina',
+    password: DEMO_PASSWORD,
     name: 'Marina',
     role: 'Paciente',
     initials: 'MC',
     Icon: User,
+  },
+  {
+    username: 'admin.vivans',
+    password: 'VivansLocal@2026',
+    name: 'Admin VIVANCE',
+    role: 'Administrador',
+    initials: 'AV',
+    Icon: ShieldCheck,
   },
 ] as const;
 
@@ -41,9 +51,9 @@ export function LoginScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  function selectAccount(accountUsername: string) {
+  function selectAccount(accountUsername: string, accountPassword: string) {
     setUsername(accountUsername);
-    setPassword(DEMO_PASSWORD);
+    setPassword(accountPassword);
     setError('');
   }
 
@@ -81,13 +91,13 @@ export function LoginScreen() {
 
   const accounts = (
     <div className="grid gap-2.5">
-      {demoAccounts.map(({ username: accountUsername, name, role, initials, Icon }) => {
+      {demoAccounts.map(({ username: accountUsername, password: accountPassword, name, role, initials, Icon }) => {
         const selected = username === accountUsername;
         return (
           <button
             key={accountUsername}
             type="button"
-            onClick={() => selectAccount(accountUsername)}
+            onClick={() => selectAccount(accountUsername, accountPassword)}
             aria-pressed={selected}
             className="group flex min-h-[62px] w-full cursor-pointer items-center gap-3 rounded-2xl border border-white/15 bg-white/[0.08] px-3.5 text-left text-white transition-colors hover:bg-white/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8cbaf2] lg:min-h-[68px]"
           >

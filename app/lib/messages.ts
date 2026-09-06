@@ -38,6 +38,7 @@ const ALLOWED_CONTEXTS = new Set<ConversationContext>([
 ]);
 
 async function getConversationAccess(user: AppUser, patientId: string) {
+  if (user.role !== 'patient' && user.role !== 'professional') return null;
   await ensureDemoAccounts();
 
   if (user.role === 'patient' && user.patientId !== patientId) return null;

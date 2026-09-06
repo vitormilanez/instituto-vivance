@@ -4,7 +4,7 @@ import { getD1 } from '@/db';
 export const SESSION_COOKIE_NAME = 'vivans_session';
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
-export type AppRole = 'professional' | 'patient';
+export type AppRole = 'professional' | 'patient' | 'admin';
 
 export type AppUser = {
   id: string;
@@ -43,6 +43,16 @@ const DEMO_USERS = [
     patientId: 'pac-demo-001',
     passwordHash: 'F4Uo5u7NoukBzedBOpAPTFZSKlWp4XK4ASfcwTUpD9w',
     passwordSalt: 'q9ipglxgH6K0i68ib-OPgQ',
+    passwordIterations: PASSWORD_ITERATIONS,
+  },
+  {
+    id: 'usr-admin.vivans',
+    username: 'admin.vivans',
+    displayName: 'Administrador VIVANCE',
+    role: 'admin',
+    patientId: null,
+    passwordHash: 'BxC5CTA5OPxkrgqCCmZyGnTaqWvSfRLQXztl3joen7Q',
+    passwordSalt: 'qmduQLkJSt33dFNWqYkGUQ',
     passwordIterations: PASSWORD_ITERATIONS,
   },
 ] as const;
@@ -123,16 +133,7 @@ export async function ensureDemoAccounts() {
             password_hash, password_salt, password_iterations,
             status, created_at, updated_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)
-          ON CONFLICT(id) DO UPDATE SET
-            username = excluded.username,
-            display_name = excluded.display_name,
-            role = excluded.role,
-            patient_id = excluded.patient_id,
-            password_hash = excluded.password_hash,
-            password_salt = excluded.password_salt,
-            password_iterations = excluded.password_iterations,
-            status = excluded.status,
-            updated_at = excluded.updated_at`,
+          ON CONFLICT DO NOTHING`,
         )
         .bind(
           user.id,
@@ -169,9 +170,9 @@ export async function ensureDemoAccounts() {
       .prepare(
         `INSERT OR IGNORE INTO conversations (
           id, relationship_id, created_at, last_message_at
-        ) VALUES (?, ?, ?, NULL)`,
+        ) SELECT ?, id, ?, NULL FROM care_relationships WHERE id = ?`,
       )
-      .bind('conversation-dr-guilherme-marina', 'care-dr-guilherme-marina', createdAt),
+      .bind('conversation-dr-guilherme-marina', createdAt, 'care-dr-guilherme-marina'),
   ]);
 }
 
@@ -281,5 +282,12 @@ export async function destroySession(token: string | undefined) {
 }
 
 export function homeForUser(user: AppUser) {
-  return user.role === 'professional' ? '/medico' : `/paciente/${user.patientId ?? 'pac-demo-001'}`;
+  return user.role === 'admin' ? '/admin' : user.role === 'professional' ? '/medico' : `/paciente/${user.patientId ?? 'pac-demo-001'}`;
+}
+
+export async function hashPassword(password: string) {
+  const salt = bytesToBase64Url(crypto.getRandomValues(new Uint8Array(16)));
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: base64UrlToBytes(salt), iterations: PASSWORD_ITERATIONS }, key, 256);
+  return { hash: bytesToBase64Url(new Uint8Array(bits)), salt, iterations: PASSWORD_ITERATIONS };
 }

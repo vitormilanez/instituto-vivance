@@ -17,7 +17,7 @@ function isSameOrigin(request: Request) {
 }
 
 function isValidPatientId(value: string) {
-  return /^pac-demo-[0-9]{3}$/u.test(value);
+  return /^(?:pac-demo-[0-9]{3}|pac-[0-9a-f-]{36})$/u.test(value);
 }
 
 export async function GET(request: Request) {

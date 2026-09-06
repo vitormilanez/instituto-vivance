@@ -29,6 +29,13 @@
       "when": 1788709780349,
       "tag": "0003_daily_exodus",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788732065199,
+      "tag": "0004_chief_the_fallen",
+      "breakpoints": true
     }
   ]
 }

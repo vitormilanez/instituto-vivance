@@ -11,6 +11,8 @@ web
 - Profissionais de saúde responsáveis por acompanhar pessoas em jornadas de emagrecimento e envelhecimento saudável.
 - Pacientes convidados para registrar contexto, acompanhar um plano publicado e conversar com a equipe dentro do protótipo.
 
+- Administradores do instituto responsáveis por cadastros, acessos e vínculos de cuidado, sem permissão clínica automática.
+
 ## Product Purpose
 
 A VIVANCE organiza o cuidado ao longo do tempo: `coleta -> resumo -> revisão médica -> orientação -> acompanhamento`. O produto deve reduzir o tempo necessário para o profissional entender o contexto de uma pessoa, revisar as fontes e preparar a próxima conversa, mantendo todas as decisões clínicas sob responsabilidade humana.

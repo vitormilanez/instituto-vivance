@@ -55,7 +55,7 @@ export function getDemoPatient(patientId: string) {
 }
 
 export function getDefaultEncounterId(patientId: string) {
-  return getDemoPatient(patientId)?.defaultEncounterId ?? DEFAULT_ENCOUNTER_ID;
+  return getDemoPatient(patientId)?.defaultEncounterId ?? `enc-${patientId}`;
 }
 
 export function getDoctorView(section: string): DoctorView | null {
@@ -111,5 +111,5 @@ export function getPatientPreConsultationHref(patientId: string, encounterId: st
 }
 
 export function encounterBelongsToPatient(patientId: string, encounterId: string) {
-  return getDemoPatient(patientId)?.defaultEncounterId === encounterId;
+  return (Boolean(getDemoPatient(patientId)) || /^pac-[0-9a-f-]{36}$/u.test(patientId)) && getDefaultEncounterId(patientId) === encounterId;
 }

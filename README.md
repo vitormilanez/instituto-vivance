@@ -1,4 +1,4 @@
-# Instituto Vivans
+# Instituto VIVANCE
 
 Protótipo de uma plataforma de cuidado contínuo para emagrecimento e envelhecimento saudável. O produto organiza a jornada antes, durante e depois da consulta, reduz a fragmentação das informações e usa IA para preparar contexto, estruturar acompanhamentos e destacar situações que merecem revisão do médico.
 
@@ -107,3 +107,18 @@ npm run build
 8. Conduzir um piloto pequeno com dados controlados antes de qualquer escala.
 
 O plano de extração seletiva do protótipo Skip está documentado em [`PLANO_APROVEITAMENTO_SKIP.md`](./PLANO_APROVEITAMENTO_SKIP.md).
+
+
+## Administração local
+
+A área `/admin` gerencia pacientes, médicos, administradores, vínculos, acesso e dados do instituto. O cadastro pode ser preparado com acesso bloqueado e liberado depois. Não há envio automático de convite ou senha.
+
+Depois das migrações locais, execute `npm run admin:local`. A conta demonstrativa é `admin.vivans`, com senha `VivansLocal@2026`. O script aceita `VIVANS_ADMIN_USERNAME` e `VIVANS_ADMIN_PASSWORD`; usa apenas o banco **local** e preserva contas existentes. Ele não faz parte do login, do build ou da publicação.
+
+- O vínculo pode começar pela ficha do paciente ou pela ficha do médico, inclusive com seleção de vários pacientes.
+- Há um médico responsável ativo por paciente. Transferências e encerramentos exigem motivo e são gravados de forma atômica, com controle de edição concorrente.
+- Cada transferência abre uma nova conversa e um acompanhamento vazio. Os registros anteriores ficam preservados no vínculo anterior, sem compartilhamento automático. A consulta desses registros encerrados não faz parte desta entrega.
+- Novos pacientes entram com dados próprios, podem enviar informações e conversar; o médico responsável encontra seus pacientes e pode revisar e publicar retornos.
+- O Admin não recebe permissões clínicas. Bloquear uma conta ou redefinir sua senha encerra as sessões; bloquear um médico exige resolver os vínculos ativos primeiro.
+- O histórico registra autoria, data, origem/destino e motivo dos vínculos. Senhas, mensagens e conteúdo clínico não são copiados para o histórico administrativo.
+- Cadastros, acessos, vínculos e configurações são persistidos em D1. O ambiente continua destinado a validação com dados fictícios.

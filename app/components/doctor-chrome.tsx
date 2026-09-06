@@ -163,10 +163,10 @@ function useCollapsibleChrome() {
   };
 }
 
-export function DoctorChrome() {
+export function DoctorChrome({ displayName = 'Dr. Guilherme Martins', demo = true }: { displayName?: string; demo?: boolean }) {
   const pathname = usePathname();
   const activeView = getDoctorViewFromPathname(pathname);
-  const routeContext = getRouteContext(pathname);
+  const routeContext = demo ? getRouteContext(pathname) : { title: 'Acompanhamento', context: displayName, backHref: null };
   const { collapsed, onFocusCapture, onBlurCapture, onMenuToggle } = useCollapsibleChrome();
 
   return (
@@ -211,6 +211,7 @@ export function DoctorChrome() {
           </div>
 
           <div className="doctor-chrome-actions flex shrink-0 items-center gap-2 sm:gap-3">
+            {demo && <>
             <Link
               href="/medico/pacientes"
               aria-label={`${doctorDemoCohortSummary.activePatients} pacientes acompanhados, ${doctorDemoCohortSummary.checkInsOnTime} com check-ins em dia e ${doctorDemoCohortSummary.checkInsToReview} para revisar. Abrir pacientes.`}
@@ -239,13 +240,14 @@ export function DoctorChrome() {
               <Bell aria-hidden="true" size={20} />
               <span className="absolute right-1.5 top-1.5 grid size-4 place-items-center rounded-full bg-[#124da0] text-[9px] font-bold text-white">3</span>
             </button>
+            </>}
 
             <div
-              aria-label="Perfil atual: Dr. Guilherme Martins, médico"
+              aria-label={`Perfil atual: ${displayName}, médico`}
               className="doctor-chrome-expanded-only pointer-events-auto hidden min-h-11 items-center gap-2.5 rounded-xl px-1.5 text-left transition-colors hover:bg-[#edf3fb] min-[1500px]:flex"
             >
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[#061b3e] text-[11px] font-bold text-white">GM</span>
-              <span><strong className="block text-xs text-[#071a3a]">Dr. Guilherme Martins</strong><span className="block text-[11px] text-[#61718a]">Médico</span></span>
+              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[#061b3e] text-[11px] font-bold text-white">{displayName.replace(/^Dr[a]?\.\s*/u, '').split(' ').slice(0, 2).map(part => part[0]).join('')}</span>
+              <span><strong className="block text-xs text-[#071a3a]">{displayName}</strong><span className="block text-[11px] text-[#61718a]">Médico</span></span>
             </div>
 
             <LogoutButton compact className="pointer-events-auto hidden text-[#405675] hover:bg-[#edf3fb] hover:text-[#071a3a] lg:inline-flex" />
@@ -258,13 +260,13 @@ export function DoctorChrome() {
                 <List aria-hidden="true" size={21} weight="bold" />
               </summary>
               <div className="vivance-glass-menu absolute right-0 top-12 z-50 w-64 rounded-xl p-2 shadow-[0_20px_48px_rgba(3,19,45,0.3)]">
-                <Link href="/medico/mensagens" className="flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#79a8df]">
+                {demo && <Link href="/medico/mensagens" className="flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#79a8df]">
                   <Bell aria-hidden="true" size={18} />
                   3 notificações
-                </Link>
-                <div className="mt-2 flex min-h-12 items-center gap-2.5 border-t border-white/12 px-3 pt-2 text-white/80" aria-label="Perfil atual: Dr. Guilherme Martins, médico">
-                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold text-white">GM</span>
-                  <span><strong className="block text-xs text-white">Dr. Guilherme Martins</strong><span className="block text-[11px]">Médico</span></span>
+                </Link>}
+                <div className="mt-2 flex min-h-12 items-center gap-2.5 border-t border-white/12 px-3 pt-2 text-white/80" aria-label={`Perfil atual: ${displayName}, médico`}>
+                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold text-white">{displayName.replace(/^Dr[a]?\.\s*/u, '').split(' ').slice(0, 2).map(part => part[0]).join('')}</span>
+                  <span><strong className="block text-xs text-white">{displayName}</strong><span className="block text-[11px]">Médico</span></span>
                 </div>
                 <LogoutButton className="mt-1 w-full justify-start text-white/90 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#79a8df]" />
               </div>
@@ -275,7 +277,7 @@ export function DoctorChrome() {
 
       <div className="doctor-chrome-navigation pointer-events-none lg:hidden">
         <nav aria-label="Navegação principal do médico" className="floating-navigation-glass pointer-events-auto grid w-full max-w-[760px] grid-cols-6 items-stretch gap-1 rounded-[22px] p-1.5">
-          {doctorNavigation.map((item) => {
+          {doctorNavigation.filter(item => demo || ['Visão geral', 'Pacientes'].includes(item.label)).map((item) => {
             const Icon = navigationIcons[item.label];
             const active = item.label === activeView;
             return (

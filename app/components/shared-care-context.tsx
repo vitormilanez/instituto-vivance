@@ -27,7 +27,7 @@ export function SharedCareProvider({ children }: { children: ReactNode }) {
     for (const cycle of incoming) {
       const key = cycleKey(cycle.patientId, cycle.encounterId);
       const previous = current.current[key];
-      next[key] = previous && previous.revision > cycle.revision ? previous : cycle;
+      next[key] = previous && previous.relationshipId === cycle.relationshipId && previous.revision > cycle.revision ? previous : cycle;
     }
     current.current = next; setCycles(next);
   }, []);
@@ -74,7 +74,7 @@ export function SharedCareProvider({ children }: { children: ReactNode }) {
       const payload = JSON.stringify({ command, args });
       const previous = failed.current.get(key);
       const mutation: CycleMutation = previous?.payload === payload ? previous.mutation
-        : { patientId, encounterId, revision: cycle.revision, command, args, requestId: crypto.randomUUID() };
+        : { patientId, encounterId, relationshipId: cycle.relationshipId, revision: cycle.revision, command, args, requestId: crypto.randomUUID() };
       failed.current.set(key, { payload, mutation });
       const response = await fetch('/api/care-cycles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(mutation), signal: AbortSignal.timeout(20_000) });
       const data = await response.json() as { cycle: CareCycle; result: T; error?: string };

@@ -20,11 +20,13 @@ export interface CareSubmission {
   publishedFeedback: string | null; publishedAt: string | null;
 }
 export interface CareCycle {
+  relationshipId?: string;
   patientId: string; encounterId: string; revision: number;
   care: SharedCare; exams: ClinicalExamDocument[]; submissions: CareSubmission[];
 }
 export type CycleCommand = CoreCareCommand | 'sharePatientExam' | 'approveExam' | 'submitInformation' | 'reviewInformation' | 'publishFeedback';
 export interface CycleMutation {
+  relationshipId?: string;
   patientId: string; encounterId: string; revision: number; requestId: string;
   command: CycleCommand; args: unknown[];
 }
@@ -35,8 +37,8 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 export function validCycleMutation(value: unknown): value is CycleMutation {
-  return isRecord(value) && typeof value.patientId === 'string' && /^pac-demo-\d{3}$/u.test(value.patientId)
-    && typeof value.encounterId === 'string' && /^enc-demo-\d{3}$/u.test(value.encounterId)
+  return isRecord(value) && typeof value.patientId === 'string' && /^(?:pac-demo-\d{3}|pac-[0-9a-f-]{36})$/u.test(value.patientId)
+    && typeof value.encounterId === 'string' && /^(?:enc-demo-\d{3}|enc-pac-[0-9a-f-]{36})$/u.test(value.encounterId)
     && Number.isSafeInteger(value.revision) && Number(value.revision) >= 0
     && typeof value.requestId === 'string' && /^[a-zA-Z0-9-]{16,80}$/u.test(value.requestId)
     && [...coreCareCommands, 'sharePatientExam', 'approveExam', 'submitInformation', 'reviewInformation', 'publishFeedback'].includes(value.command as CycleCommand)
