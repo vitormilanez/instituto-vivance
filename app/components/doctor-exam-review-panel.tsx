@@ -11,9 +11,11 @@ import { useMemo, useState } from 'react';
 import {
   useClinicalIntelligence,
   type ClinicalExamDocument,
+  type ClinicalExamField,
   type ExtractionConfidence,
 } from './clinical-intelligence-context';
 import { cn, Status } from './shared';
+import { examReviewPresentation, selectPatientExams } from './care-workflow';
 
 const confidencePresentation: Record<ExtractionConfidence, { label: string; className: string }> = {
   high: { label: 'Leitura alta', className: 'bg-[#e7f4ef] text-[#17624e]' },
@@ -22,6 +24,7 @@ const confidencePresentation: Record<ExtractionConfidence, { label: string; clas
 };
 
 function formatExamDate(value: string) {
+  if (!value) return 'Coleta não informada';
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: 'short',
@@ -63,6 +66,7 @@ function ExamSourceCard({ exam }: { exam: ClinicalExamDocument }) {
       </dl>
 
       {exam.note ? <p className="border-t border-[#e7edf5] px-4 py-3 text-xs leading-5 text-[#61718a]">Observação: {exam.note}</p> : null}
+      {exam.attachmentId ? <a href={`/api/care-files/${encodeURIComponent(exam.attachmentId)}`} className="flex min-h-12 items-center justify-center px-4 text-sm font-bold text-[#124da0] underline">Baixar documento original</a> : null}
       <details className="group border-t border-[#dbe4f0] bg-white">
         <summary className="flex min-h-12 cursor-pointer list-none items-center justify-center px-4 text-sm font-bold text-[#124da0] transition-colors hover:bg-[#edf3fb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#124da0]">
           Conferir transcrição do original
@@ -78,7 +82,7 @@ function ExamSourceCard({ exam }: { exam: ClinicalExamDocument }) {
                 </dd>
               </div>
             ))}
-          </dl> : <p className="mt-3 rounded-xl bg-[#f7faff] p-3 text-xs font-semibold leading-5 text-[#50627f]">Nenhum campo foi extraído porque a assistência de IA não estava autorizada neste contexto.</p>}
+          </dl> : <p className="mt-3 rounded-xl bg-[#f7faff] p-3 text-xs font-semibold leading-5 text-[#50627f]">Nenhuma extração automática foi realizada. Confira o arquivo original; a leitura manual não cria resultados laboratoriais.</p>}
         </div>
       </details>
     </aside>
@@ -99,18 +103,23 @@ export function DoctorExamReviewPanel({
     careRelationships,
     patientContexts,
     activeConfiguration,
-    updateExamField,
     approveExam,
   } = useClinicalIntelligence();
   const patientExams = useMemo(
-    () => exams
-      .filter((exam) => exam.patientId === patientId)
-      .toSorted((left, right) => right.receivedAtIso.localeCompare(left.receivedAtIso)),
+    () => selectPatientExams(exams, patientId),
     [exams, patientId],
   );
   const firstPendingId = patientExams.find((exam) => exam.reviewStatus === 'awaiting_review')?.id;
   const [selectedExamId, setSelectedExamId] = useState(firstPendingId ?? patientExams[0]?.id ?? '');
   const [approvalError, setApprovalError] = useState('');
+  const [drafts, setDrafts] = useState<Record<string, ClinicalExamField[]>>({});
+  const [saving, setSaving] = useState(false);
+  const updateExamField = (examId: string, fieldId: string, patch: Partial<ClinicalExamField>) => {
+    if (saving) return;
+    const exam = patientExams.find((item) => item.id === examId);
+    if (!exam || exam.reviewStatus === 'approved') return;
+    setDrafts((current) => ({ ...current, [examId]: (current[examId] ?? exam.fields).map((field) => field.id === fieldId ? { ...field, ...patch } : field) }));
+  };
   const relationship = careRelationships.find((item) => item.patientId === patientId);
   const patientContext = patientContexts.find((item) => item.patientId === patientId);
   const examAnalysisPolicy = activeConfiguration.modules.find((module) => module.id === 'exam_analysis');
@@ -139,9 +148,10 @@ export function DoctorExamReviewPanel({
     );
   }
 
-  const selectedExam = patientExams.find((exam) => exam.id === selectedExamId)
+  const sourceExam = patientExams.find((exam) => exam.id === selectedExamId)
     ?? patientExams.find((exam) => exam.id === firstPendingId)
     ?? patientExams[0];
+  const selectedExam = sourceExam && { ...sourceExam, fields: sourceExam.reviewStatus === 'awaiting_review' ? drafts[sourceExam.id] ?? sourceExam.fields : sourceExam.fields };
   if (!selectedExam) {
     return (
       <section aria-labelledby={`exam-review-title-${patientId}`} className="vivance-panel overflow-hidden rounded-2xl">
@@ -195,20 +205,23 @@ export function DoctorExamReviewPanel({
     .filter((snapshot) => snapshot.moduleId === 'exam_analysis')
     .toSorted((left, right) => right.governedAtIso.localeCompare(left.governedAtIso))[0];
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
+    if (saving) return;
     setApprovalError('');
     if (!canApprove) {
       setApprovalError('Revise valor e unidade de todos os campos incluídos.');
       return;
     }
     try {
-      approveExam(selectedExam.id);
+      setSaving(true);
+      await approveExam(selectedExam.id, selectedExam.fields);
+      setDrafts((current) => { const next = { ...current }; delete next[selectedExam.id]; return next; });
       onNotify(isManualDocumentReview
         ? 'Leitura manual registrada. O documento foi revisado sem gerar dados para a IA.'
         : 'Exame aprovado. Os dados confirmados já estão disponíveis no histórico do acompanhamento e na Central da IA.');
     } catch (error) {
       setApprovalError(error instanceof Error ? error.message : 'Não foi possível aprovar este exame.');
-    }
+    } finally { setSaving(false); }
   };
 
   return (
@@ -217,8 +230,8 @@ export function DoctorExamReviewPanel({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
-              <Status tone={selectedExam.reviewStatus === 'approved' ? 'green' : 'amber'}>
-                {selectedExam.reviewStatus === 'approved' ? `Revisado · v${selectedExam.reviewVersion}` : 'Exame aguardando revisão'}
+              <Status tone={examReviewPresentation(selectedExam).tone}>
+                {examReviewPresentation(selectedExam).label}
               </Status>
               <Status tone="blue">{selectedExam.patientName} ↔ {selectedExam.doctorName}</Status>
             </div>
@@ -263,14 +276,12 @@ export function DoctorExamReviewPanel({
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-sm font-bold text-[#071a3a]">Governança da análise</p>
-              <Status tone={appliedGovernance || governanceAvailable ? 'green' : 'amber'}>{appliedGovernance ? 'Versão preservada' : governanceAvailable ? 'Diretriz vigente' : 'Modo manual'}</Status>
+              <Status tone={appliedGovernance ? 'green' : 'amber'}>{appliedGovernance ? 'Versão preservada' : 'Conferência médica manual'}</Status>
             </div>
             <p className="mt-1 text-xs leading-5 text-[#50627f]">
               {appliedGovernance
                 ? `${appliedGovernance.moduleLabel} · ${appliedGovernance.knowledgeReference} v${appliedGovernance.knowledgeVersion} · configuração v${appliedGovernance.configurationVersion}`
-                : governanceAvailable && governingSource
-                  ? `${examAnalysisPolicy?.label} · ${governingSource.reference} v${governingSource.version} · configuração global v${activeConfiguration.version}`
-                  : 'Nenhuma análise assistida será produzida sem módulo e diretriz ativos. A conferência médica dos dados permanece disponível.'}
+                : 'Esta revisão confirma os dados conferidos pelo médico. Não registra uma nova execução de IA nem valida as diretrizes configuradas no protótipo.'}
             </p>
             {examAnalysisPolicy ? <p className="mt-1 text-[11px] leading-5 text-[#61718a]">Objetivo: {examAnalysisPolicy.feedbackGoal}</p> : null}
           </div>
@@ -377,7 +388,7 @@ export function DoctorExamReviewPanel({
             </p>
             <button
               type="button"
-              disabled={!canApprove}
+              disabled={!canApprove || saving}
               onClick={handleApprove}
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#03132d] px-5 text-sm font-bold text-white transition-colors hover:bg-[#082553] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#124da0] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-[#91a0b5]"
             >

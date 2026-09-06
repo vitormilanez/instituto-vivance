@@ -253,10 +253,10 @@ export function DoctorPatientCheckInReview({
   const SourceIcon = checkIn.mode === 'voice' ? Microphone : FileText;
   const historyHref = getPatientDossierHref(patientId);
 
-  const registerReading = () => {
+  const registerReading = async () => {
     if (isReviewed) return;
     try {
-      const review = reviewCheckIn(checkIn.id);
+      const review = await reviewCheckIn(checkIn.id);
       setHasError(false);
       setFeedback(`Leitura humana registrada em ${review.reviewedAt}.`);
     } catch (error) {

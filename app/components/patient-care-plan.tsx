@@ -1,7 +1,23 @@
 'use client';
 
+import { useState } from 'react';
+import { useCareDemo } from './care-demo-store';
 import type { CarePlanVersion } from './care-demo-types';
-import { cn, Heading, Status } from './shared';
+import { getDefaultEncounterId } from './demo-routes';
+import { cn,Heading,Status } from './shared';
+
+export function SharedPatientCarePlan({ patientId }: { patientId: string }) {
+  const { latestPublishedCarePlan, confirmedActionIds, confirmCarePlanAction } = useCareDemo(patientId, getDefaultEncounterId(patientId));
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  return <div className="p-5 sm:p-6"><p role="status" className="text-sm text-[#60766f]">{busy ? 'Salvando confirmação…' : message}</p><PatientCarePlan plan={latestPublishedCarePlan} confirmedActionIds={confirmedActionIds} onConfirm={async (actionId, completed) => {
+    if (busy || !latestPublishedCarePlan) return;
+    setBusy(true); setMessage('');
+    try { await confirmCarePlanAction(latestPublishedCarePlan.id, actionId, completed); setMessage('Confirmação salva no acompanhamento.'); }
+    catch (error) { setMessage(error instanceof Error ? error.message : 'Não foi possível salvar.'); }
+    finally { setBusy(false); }
+  }} /></div>;
+}
 
 export function PatientCarePlan({
   plan,
@@ -42,7 +58,7 @@ export function PatientCarePlan({
             <div><p className="text-sm font-bold text-[#17372f]">Foco deste ciclo</p><p className="mt-2 max-w-2xl text-base font-semibold leading-6 text-[#405d54]">{plan.objective}</p></div>
             <Status tone="green">Versão publicada</Status>
           </div>
-          <div className="mt-6 flex items-center justify-between gap-4"><div><p className="text-sm font-bold text-[#17372f]">Seus passos</p><p className="mt-1 text-xs text-[#698078]">{completed} de {visibleActions.length} registrados nesta sessão</p></div><span className="text-2xl font-semibold text-[#0b7b68]">{completion}%</span></div>
+          <div className="mt-6 flex items-center justify-between gap-4"><div><p className="text-sm font-bold text-[#17372f]">Seus passos</p><p className="mt-1 text-xs text-[#698078]">{completed} de {visibleActions.length} registrados no acompanhamento</p></div><span className="text-2xl font-semibold text-[#0b7b68]">{completion}%</span></div>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#e3ebe7]"><div className="h-full rounded-full bg-[#0b7b68] transition-[width]" style={{ width: `${completion}%` }} /></div>
           <div className="mt-6 space-y-3">
             {visibleActions.map((action) => {

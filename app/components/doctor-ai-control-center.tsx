@@ -30,7 +30,7 @@ import {
   type PatientAiContextStatus,
 } from './clinical-intelligence-context';
 import { cn, Status } from './shared';
-import { doctorDemoCohortSummary } from './demo-routes';
+import { ClinicalPolicyWorkflow } from './clinical-policy-workflow';
 
 type CentralTab = 'knowledge' | 'modules' | 'data' | 'rules';
 
@@ -139,7 +139,8 @@ export function DoctorAiControlCenter() {
   const {
     hydrated,
     exams,
-    knowledgeSources,
+    knowledgeSources: publishedKnowledgeSources,
+    policy,
     careRelationships,
     patientContexts,
     activeConfiguration,
@@ -157,24 +158,22 @@ export function DoctorAiControlCenter() {
     toggleCapability,
     updateModulePolicy,
     togglePatientAi,
-    saveConfiguration,
   } = useClinicalIntelligence();
   const [activeTab, setActiveTab] = useState<CentralTab>('knowledge');
   const [formOpen, setFormOpen] = useState(false);
   const [knowledgeForm, setKnowledgeForm] = useState<AddKnowledgeSourceInput>(emptyKnowledgeForm);
   const [message, setMessage] = useState('');
   const [formError, setFormError] = useState('');
+  const knowledgeSources = policy.candidate.knowledgeSources;
 
-  const approvedExams = exams.filter((exam) => exam.reviewStatus === 'approved');
-  const pendingExams = exams.filter((exam) => exam.reviewStatus === 'awaiting_review');
-  const activeKnowledge = knowledgeSources.filter((source) => source.status === 'active');
+  const connectedExams = exams.filter((exam) => careRelationships.some((relationship) => relationship.patientId === exam.patientId));
+  const approvedExams = connectedExams.filter((exam) => exam.reviewStatus === 'approved');
+  const pendingExams = connectedExams.filter((exam) => exam.reviewStatus === 'awaiting_review');
+  const activeKnowledge = publishedKnowledgeSources.filter((source) => source.status === 'active');
   const pendingKnowledge = knowledgeSources.filter((source) => source.status === 'awaiting_review');
   const connectedPatients = careRelationships.filter((relationship) => relationship.status === 'active').length;
   const readyPatients = patientContexts.filter((context) => context.status === 'ready').length;
   const activeModules = activeConfiguration.modules.filter((module) => module.enabled).length;
-  const blockedDraftModules = modulePolicies.filter((module) => (
-    getDraftModuleBlockers(module, dataConnections, capabilities, knowledgeSources).length > 0
-  ));
   const recentAudit = useMemo(
     () => auditEvents.toSorted((left, right) => right.occurredAtIso.localeCompare(left.occurredAtIso)).slice(0, 6),
     [auditEvents],
@@ -196,6 +195,11 @@ export function DoctorAiControlCenter() {
   const submitKnowledge = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError('');
+    if (knowledgeSources.length >= 100 || knowledgeForm.version.length > 100 || knowledgeForm.reference.length > 2000
+      || Object.values(knowledgeForm).some((value) => typeof value === 'string' && value.length > 4000)) {
+      setFormError('Use até 100 caracteres na versão, 2.000 na referência e 4.000 nos demais campos. A biblioteca permite até 100 fichas.');
+      return;
+    }
     if (
       !knowledgeForm.title.trim()
       || !knowledgeForm.organization.trim()
@@ -220,17 +224,6 @@ export function DoctorAiControlCenter() {
     setKnowledgeForm(emptyKnowledgeForm);
     setFormOpen(false);
     setMessage(`“${created.title}” foi adicionada para revisão e ainda não influencia a IA.`);
-  };
-
-  const save = () => {
-    if (blockedDraftModules.length > 0) {
-      setMessage(`Revise ${blockedDraftModules.length === 1 ? 'o módulo bloqueado' : 'os módulos bloqueados'} antes de publicar.`);
-      return;
-    }
-    const version = saveConfiguration();
-    setMessage(version
-      ? `Configuração global v${version} publicada. Somente novas análises usarão esta versão.`
-      : 'Não há alterações em rascunho para publicar.');
   };
 
   const moveTabFocus = (currentTab: CentralTab, key: string) => {
@@ -273,14 +266,14 @@ export function DoctorAiControlCenter() {
           <div className="rounded-2xl border border-white/12 bg-white/[0.06] p-4">
             <p className="text-xs font-semibold text-[#a9bdd8]">Política aplicada nas novas análises</p>
             <p className="mt-2 text-lg font-bold text-white">{activeModules} módulos · política global para a carteira</p>
-            <p className="mt-2 text-xs leading-5 text-[#c9d7ea]">{connectedPatients} de {doctorDemoCohortSummary.activePatients} acompanhamentos têm contexto fictício detalhado nesta demonstração. Dados e resultados continuam isolados por paciente.</p>
+            <p className="mt-2 text-xs leading-5 text-[#c9d7ea]">{connectedPatients} acompanhamento(s) conectado(s) ao seu usuário. A política é compartilhada pela clínica; dados e resultados continuam isolados por paciente.</p>
           </div>
         </div>
         <div className="grid border-t border-white/10 sm:grid-cols-2 xl:grid-cols-4">
           {[
             ['Fontes disponíveis', activeKnowledge.length, `${pendingKnowledge.length} para revisar`],
             ['Exames aprovados', approvedExams.length, `${pendingExams.length} aguardando médico`],
-            ['Contextos demonstrados', `${connectedPatients}/${doctorDemoCohortSummary.activePatients}`, `${readyPatients} com contexto pronto`],
+            ['Acompanhamentos conectados', connectedPatients, `${readyPatients} com contexto pronto`],
             ['Última configuração', `v${configurationVersion}`, configurationUpdatedAt],
           ].map(([label, value, detail]) => (
             <div key={label} className="border-b border-white/10 p-4 last:border-b-0 sm:border-r xl:border-b-0 xl:last:border-r-0 sm:p-5">
@@ -334,6 +327,8 @@ export function DoctorAiControlCenter() {
 
       <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
         <main id={`central-panel-${activeTab}`} role="tabpanel" aria-labelledby={`central-tab-${activeTab}`} tabIndex={0} className="min-w-0 focus-visible:outline-none">
+          {!policy.view ? <p role="alert" className="mb-4 rounded-xl bg-[#fff0ed] p-4 text-sm text-[#9c453f]">{policy.error || 'Conectando a Central compartilhada…'} Os controles só ficam disponíveis após carregar a configuração.</p> : null}
+          <fieldset disabled={policy.busy || !policy.view} className="min-w-0 disabled:opacity-60">
           {activeTab === 'knowledge' ? (
             <KnowledgePanel
               sources={knowledgeSources}
@@ -349,6 +344,12 @@ export function DoctorAiControlCenter() {
                 setFormOpen(false);
                 setFormError('');
               }}
+              onRevise={(source) => {
+                setKnowledgeForm({ ...emptyKnowledgeForm, ...source, version: '', studyDesign: source.studyDesign ?? '',
+                  population: source.population ?? '', sampleSize: source.sampleSize ?? '', followUp: source.followUp ?? '', conflicts: source.conflicts ?? '' });
+                setFormOpen(true); setFormError('');
+                setMessage('Crie uma nova versão da fonte. A ficha anterior e as políticas publicadas serão preservadas.');
+              }}
               onUpdateForm={updateKnowledgeForm}
               onSubmit={submitKnowledge}
               onActivate={(sourceId) => {
@@ -358,8 +359,8 @@ export function DoctorAiControlCenter() {
               onToggle={(sourceId) => {
                 const updated = toggleKnowledgeSource(sourceId);
                 setMessage(updated
-                  ? 'Disponibilidade atualizada. A fonte ainda precisa ser atribuída em uma configuração publicada para influenciar a IA.'
-                  : 'Esta fonte está em uso por uma configuração vigente. Remapeie ou pause os módulos e publique uma nova versão antes de indisponibilizá-la.');
+                  ? 'Disponibilidade alterada apenas no rascunho. Revise os módulos afetados, salve e teste antes de publicar.'
+                  : 'Revise esta fonte antes de mudar sua disponibilidade.');
               }}
             />
           ) : null}
@@ -369,6 +370,7 @@ export function DoctorAiControlCenter() {
               modules={modulePolicies}
               activeModules={activeConfiguration.modules}
               sources={knowledgeSources}
+              publishedSources={publishedKnowledgeSources}
               dataConnections={dataConnections}
               capabilities={capabilities}
               configurationVersion={configurationVersion}
@@ -454,17 +456,15 @@ export function DoctorAiControlCenter() {
             </section>
           ) : null}
 
-          <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-[#c8d8eb] bg-[#edf3fb] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-            <div><p className="text-sm font-bold text-[#071a3a]">Publicar a política global da IA</p><p className="mt-1 text-xs leading-5 text-[#50627f]">Alterações ficam em rascunho. Ao publicar, novas análises usam a nova versão; resultados anteriores não mudam.</p></div>
-            <button type="button" disabled={!hasUnpublishedChanges || blockedDraftModules.length > 0} onClick={save} className="min-h-12 rounded-xl bg-[#03132d] px-5 text-sm font-bold text-white transition-colors hover:bg-[#082553] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#124da0] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-[#91a0b5]">{blockedDraftModules.length > 0 ? 'Corrigir módulos bloqueados' : hasUnpublishedChanges ? `Publicar configuração v${configurationVersion + 1}` : `Configuração v${configurationVersion} vigente`}</button>
-          </div>
+          </fieldset>
+          <ClinicalPolicyWorkflow policy={policy} />
         </main>
 
         <aside className="min-w-0 space-y-5">
           <section className="vivance-panel rounded-2xl p-5">
             <div className="flex items-center gap-2"><FileText aria-hidden="true" size={19} className="text-[#124da0]" /><h3 className="text-sm font-bold text-[#071a3a]">O que a IA sabe agora</h3></div>
             <ul className="mt-4 space-y-3 text-xs leading-5 text-[#50627f]">
-              <li><strong className="text-[#071a3a]">Abrangência:</strong> política global para os {doctorDemoCohortSummary.activePatients} acompanhamentos; {connectedPatients} têm dados fictícios detalhados nesta demonstração.</li>
+              <li><strong className="text-[#071a3a]">Abrangência:</strong> política da clínica, com {connectedPatients} acompanhamento(s) vinculado(s) a este médico. Outros perfis ilustrativos não recebem acesso automaticamente.</li>
               <li><strong className="text-[#071a3a]">Dados:</strong> {approvedExams.length} exames revisados; {pendingExams.length} ainda fora do contexto.</li>
               <li><strong className="text-[#071a3a]">Conhecimento:</strong> {activeKnowledge.length} fontes ativas; {pendingKnowledge.length} aguardando revisão.</li>
               <li><strong className="text-[#071a3a]">Política:</strong> {activeModules} módulos governados pela configuração v{configurationVersion}.</li>
@@ -483,7 +483,7 @@ export function DoctorAiControlCenter() {
             </ol>
           </section>
 
-          <p className="rounded-xl border border-dashed border-[#c7d5e7] bg-white p-4 text-[11px] leading-5 text-[#61718a]">Ambiente demonstrativo com dados persistidos neste navegador. Não representa integração com prontuário, laboratório ou serviço externo.</p>
+          <p className="rounded-xl border border-dashed border-[#c7d5e7] bg-white p-4 text-[11px] leading-5 text-[#61718a]">Configuração e fontes salvas na Central compartilhada. Dados e protocolos iniciais são fictícios. Cadastrar uma fonte não lê o estudo, treina um modelo nem valida evidência clínica. Alterações antigas do navegador não são importadas automaticamente.</p>
         </aside>
       </div>
     </div>
@@ -494,6 +494,7 @@ function ModulesPanel({
   modules,
   activeModules,
   sources,
+  publishedSources,
   dataConnections,
   capabilities,
   configurationVersion,
@@ -502,12 +503,13 @@ function ModulesPanel({
   modules: ClinicalAiModulePolicy[];
   activeModules: ClinicalAiModulePolicy[];
   sources: ClinicalKnowledgeSource[];
+  publishedSources: ClinicalKnowledgeSource[];
   dataConnections: ReturnType<typeof useClinicalIntelligence>['dataConnections'];
   capabilities: ReturnType<typeof useClinicalIntelligence>['capabilities'];
   configurationVersion: number;
   onUpdate: (
     moduleId: ClinicalAiModuleId,
-    patch: Partial<Pick<ClinicalAiModulePolicy, 'enabled' | 'primaryKnowledgeSourceId'>>,
+    patch: Partial<Pick<ClinicalAiModulePolicy, 'enabled' | 'primaryKnowledgeSourceId' | 'feedbackGoal'>>,
   ) => void;
 }) {
   return (
@@ -526,7 +528,7 @@ function ModulesPanel({
         {modules.map((module) => {
           const activeModule = activeModules.find((item) => item.id === module.id);
           const source = sources.find((item) => item.id === module.primaryKnowledgeSourceId);
-          const appliedSource = sources.find((item) => item.id === activeModule?.primaryKnowledgeSourceId);
+          const appliedSource = publishedSources.find((item) => item.id === activeModule?.primaryKnowledgeSourceId);
           const compatibleActiveSources = sources.filter((item) => (
             item.status === 'active' && item.applicableModuleIds.includes(module.id)
           ));
@@ -574,7 +576,10 @@ function ModulesPanel({
                   </span>
                 </label>
                 <div className="text-xs leading-5 text-[#61718a]">
-                  <p><strong className="text-[#405675]">Feedback esperado:</strong> {module.feedbackGoal}</p>
+                  <label className="block font-bold text-[#405675]">Objetivo do feedback
+                    <textarea value={module.feedbackGoal} maxLength={1200} rows={3} onChange={(event) => onUpdate(module.id, { feedbackGoal: event.target.value })}
+                      className="mt-2 w-full rounded-xl border border-[#cbd8e9] bg-white p-3 text-xs font-normal leading-5 focus:ring-2 focus:ring-[#124da0]" />
+                  </label>
                   <p className="mt-2"><strong className="text-[#405675]">Dados exigidos:</strong> {module.requiredDataConnectionIds.map((id) => dataConnectionShortLabel[id]).join(', ')}.</p>
                   <p className="mt-2"><strong className="text-[#405675]">Bloqueia quando:</strong> {module.blockingConditions.join('; ')}.</p>
                 </div>
@@ -662,6 +667,7 @@ function KnowledgePanel({
   onSubmit,
   onActivate,
   onToggle,
+  onRevise,
 }: {
   sources: ClinicalKnowledgeSource[];
   activeModules: ClinicalAiModulePolicy[];
@@ -674,11 +680,12 @@ function KnowledgePanel({
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onActivate: (sourceId: string) => void;
   onToggle: (sourceId: string) => void;
+  onRevise: (source: ClinicalKnowledgeSource) => void;
 }) {
   return (
     <section className="vivance-panel overflow-hidden rounded-2xl">
       <header className="flex flex-col gap-4 border-b border-[#dbe4f0] bg-white p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
-        <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#edf3fb] text-[#124da0]"><Books aria-hidden="true" size={22} /></span><div><h3 className="text-xl font-semibold text-[#071a3a]">Biblioteca clínica</h3><p className="mt-1 text-sm leading-6 text-[#61718a]">Cada fonte guarda versão, data, origem, uso permitido e limitações.</p></div></div>
+        <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#edf3fb] text-[#124da0]"><Books aria-hidden="true" size={22} /></span><div><h3 className="text-xl font-semibold text-[#071a3a]">Biblioteca do rascunho</h3><p className="mt-1 text-sm leading-6 text-[#61718a]">Cada fonte guarda versão, origem e limitações. A qualidade é declarada pelo médico, não verificada automaticamente. Salve o rascunho para compartilhar a ficha.</p></div></div>
         {!formOpen ? <button type="button" onClick={onOpenForm} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#03132d] px-4 text-sm font-bold text-white transition-colors hover:bg-[#082553] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#124da0] focus-visible:ring-offset-2"><Plus aria-hidden="true" size={18} weight="bold" />Adicionar fonte</button> : null}
       </header>
 
@@ -755,11 +762,12 @@ function KnowledgePanel({
                 <p className="mt-2 text-[11px] font-semibold leading-5 text-[#61718a]">Aplicável em: {source.applicableModuleIds.map((moduleId) => moduleLabels[moduleId]).join(', ')}.</p>
               </div>
               {source.status === 'awaiting_review' ? (
-                <button type="button" onClick={() => onActivate(source.id)} className="min-h-11 shrink-0 rounded-xl border border-[#9bb5d4] px-4 text-sm font-bold text-[#124da0] transition-colors hover:bg-[#edf3fb]">Revisar e ativar</button>
+                <button type="button" onClick={() => onActivate(source.id)} className="min-h-11 shrink-0 rounded-xl border border-[#9bb5d4] px-4 text-sm font-bold text-[#124da0] transition-colors hover:bg-[#edf3fb]">Marcar ficha revisada no rascunho</button>
               ) : (
-                <button type="button" role="switch" aria-checked={source.status === 'active'} aria-label={`${source.status === 'active' ? 'Pausar' : 'Reativar'} fonte ${source.title}`} disabled={activeUseCount > 0} onClick={() => onToggle(source.id)} className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-2 text-sm font-bold text-[#405675] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#124da0] disabled:cursor-not-allowed disabled:text-[#61718a]"><Toggle checked={source.status === 'active'} label={source.title} />{activeUseCount > 0 ? 'Em uso' : source.status === 'active' ? 'Disponível' : 'Indisponível'}</button>
+                <button type="button" role="switch" aria-checked={source.status === 'active'} aria-label={`${source.status === 'active' ? 'Pausar' : 'Reativar'} fonte ${source.title} no rascunho`} onClick={() => onToggle(source.id)} className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-2 text-sm font-bold text-[#405675] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#124da0]"><Toggle checked={source.status === 'active'} label={source.title} />{source.status === 'active' ? 'Disponível no rascunho' : 'Indisponível no rascunho'}</button>
               )}
             </div>
+            <button type="button" onClick={() => onRevise(source)} className="mt-2 min-h-11 text-xs font-bold text-[#124da0] underline">Criar revisão desta fonte</button>
             <details className="mt-3 border-t border-[#e7edf5] pt-1">
               <summary className="flex min-h-11 cursor-pointer list-none items-center text-xs font-bold text-[#124da0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#124da0]">Ver ficha da fonte</summary>
               <dl className="grid gap-3 pb-2 text-xs leading-5 sm:grid-cols-2">
@@ -784,7 +792,7 @@ function TextField({ label, value, onChange, placeholder = '' }: { label: string
 }
 
 function TextAreaField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  return <label className="text-xs font-bold text-[#50627f]">{label}<textarea value={value} onChange={(event) => onChange(event.target.value)} rows={4} className="mt-1.5 w-full resize-y rounded-xl border border-[#cbd8e9] bg-white px-3 py-3 text-sm leading-6 text-[#071a3a] outline-none focus:ring-2 focus:ring-[#124da0]" /></label>;
+  return <label className="text-xs font-bold text-[#50627f]">{label}<textarea value={value} maxLength={4000} onChange={(event) => onChange(event.target.value)} rows={4} className="mt-1.5 w-full resize-y rounded-xl border border-[#cbd8e9] bg-white px-3 py-3 text-sm leading-6 text-[#071a3a] outline-none focus:ring-2 focus:ring-[#124da0]" /></label>;
 }
 
 function SelectField({ label, value, options, onChange }: { label: string; value: string; options: Array<[string, string]>; onChange: (value: string) => void }) {

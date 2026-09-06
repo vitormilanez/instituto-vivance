@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useContext } from 'react';
-import { DEFAULT_ENCOUNTER_ID, DEFAULT_PATIENT_ID } from './demo-routes';
+import { createContext,useContext } from 'react';
+import { cycleKey,type CoreCareCommand } from '../lib/care-cycle-contract';
 import type {
   CareAiPreparationReview,
   CareAiPreparationReviewInput,
@@ -19,13 +19,18 @@ import type {
   CareFollowUpCadence,
   CareFollowUpConfiguration,
   CareFollowUpContact,
-  CarePlanDraftContent,
   CarePlanActionConfirmation,
+  CarePlanDraftContent,
   CarePlanVersion,
   PreConsultationAnswers,
   PreConsultationReview,
   PreConsultationSubmission,
 } from './care-demo-types';
+import { EMPTY_PRECONSULTATION_DRAFT,getCareDemoScopeKey } from './care-scope';
+import { selectCarePlans, selectConfirmedActionIds } from './care-workflow';
+import { DEFAULT_ENCOUNTER_ID,DEFAULT_PATIENT_ID } from './demo-routes';
+import { useSharedCare } from './shared-care-context';
+export { EMPTY_PRECONSULTATION_DRAFT,getCareDemoScopeKey } from './care-scope';
 
 export interface CareDemoState {
   draftsByEncounter: Record<string, PreConsultationAnswers>;
@@ -146,7 +151,7 @@ export interface CareDemoStoreValue extends CareDemoState {
   ) => CareAiPreparationReview;
 }
 
-export interface CareDemoContextValue {
+export interface CareDemoLocalContextValue {
   hydrated: boolean;
   patientId: string;
   encounterId: string;
@@ -200,9 +205,9 @@ export interface CareDemoContextValue {
   ) => CareConsultationClosure;
   startCarePlan: (template?: Partial<CarePlanDraftContent>) => CarePlanVersion;
   createCarePlanRevision: (template?: Partial<CarePlanDraftContent>) => CarePlanVersion;
-  saveCarePlan: (planId: string, patch: Partial<CarePlanDraftContent>) => CarePlanVersion;
-  approveCarePlan: (planId: string) => CarePlanVersion;
-  publishCarePlan: (planId: string) => CarePlanVersion;
+  saveCarePlan: (planId: string, patch: Partial<CarePlanDraftContent>, expectedUpdatedAtIso: string) => CarePlanVersion;
+  approveCarePlan: (planId: string, expectedUpdatedAtIso: string) => CarePlanVersion;
+  publishCarePlan: (planId: string, expectedUpdatedAtIso: string) => CarePlanVersion;
   confirmCarePlanAction: (
     planId: string,
     actionId: string,
@@ -213,18 +218,9 @@ export interface CareDemoContextValue {
   ) => CareAiPreparationReview;
 }
 
-export const EMPTY_PRECONSULTATION_DRAFT: PreConsultationAnswers = {
-  consentGiven: false,
-  aiAssistanceAllowed: false,
-  objective: '',
-  changes: '',
-  questions: '',
-  additionalContext: '',
+export type CareDemoContextValue = Omit<CareDemoLocalContextValue, CoreCareCommand> & {
+  [K in CoreCareCommand]: (...args: Parameters<CareDemoLocalContextValue[K]>) => Promise<ReturnType<CareDemoLocalContextValue[K]>>;
 };
-
-export function getCareDemoScopeKey(patientId: string, encounterId: string) {
-  return `${patientId}::${encounterId}`;
-}
 
 export const CareDemoContext = createContext<CareDemoStoreValue | null>(null);
 
@@ -232,10 +228,13 @@ export function useCareDemo(
   patientId = DEFAULT_PATIENT_ID,
   encounterId = DEFAULT_ENCOUNTER_ID,
 ): CareDemoContextValue {
-  const context = useContext(CareDemoContext);
-  if (!context) {
+  const baseContext = useContext(CareDemoContext);
+  const shared = useSharedCare();
+  if (!baseContext) {
     throw new Error('useCareDemo deve ser usado dentro de CareDemoProvider.');
   }
+  const cycle = shared.cycles[cycleKey(patientId, encounterId)];
+  const context = { ...baseContext, ...(cycle?.care ?? {}), hydrated: baseContext.hydrated && shared.loaded };
 
   const scopeKey = getCareDemoScopeKey(patientId, encounterId);
   const submissions = context.submissions.filter(
@@ -251,20 +250,11 @@ export function useCareDemo(
           review.submissionId === latestSubmission.id,
       )
     : [];
-  const carePlans = context.carePlans
-    .filter((plan) => plan.patientId === patientId && plan.encounterId === encounterId)
-    .toSorted((left, right) => left.version - right.version);
-  const latestCarePlan = carePlans.at(-1) ?? null;
+  const { carePlans, latestCarePlan, activeCarePlan, latestPublishedCarePlan } = selectCarePlans(context.carePlans, patientId, encounterId);
   const consultationClosures = (context.consultationClosures ?? [])
     .filter((closure) => closure.patientId === patientId && closure.encounterId === encounterId)
     .toSorted((left, right) => left.version - right.version);
   const latestConsultationClosure = consultationClosures.at(-1) ?? null;
-  const activeCarePlan = [...carePlans].reverse().find(
-    (plan) => plan.status === 'draft' || plan.status === 'approved',
-  ) ?? latestCarePlan;
-  const latestPublishedCarePlan = [...carePlans].reverse().find(
-    (plan) => plan.status === 'published',
-  ) ?? null;
   const checkIns = (context.checkIns ?? [])
     .filter((checkIn) => checkIn.patientId === patientId && checkIn.encounterId === encounterId)
     .toSorted((left, right) => left.submittedAtIso.localeCompare(right.submittedAtIso));
@@ -296,13 +286,7 @@ export function useCareDemo(
     .filter((review) => review.patientId === patientId && review.encounterId === encounterId)
     .toSorted((left, right) => left.reviewedAtIso.localeCompare(right.reviewedAtIso));
   const latestAiPreparationReview = aiPreparationReviews.at(-1) ?? null;
-  const latestConfirmationByAction = new Map<string, CarePlanActionConfirmation>();
-  for (const confirmation of actionConfirmations) {
-    latestConfirmationByAction.set(confirmation.actionId, confirmation);
-  }
-  const confirmedActionIds = [...latestConfirmationByAction.values()]
-    .filter((confirmation) => confirmation.completed)
-    .map((confirmation) => confirmation.actionId);
+  const confirmedActionIds = selectConfirmedActionIds(actionConfirmations, latestPublishedCarePlan?.id);
   const auditEvents = context.auditEvents
     .filter((event) => event.patientId === patientId && event.encounterId === encounterId)
     .toSorted((left, right) => left.occurredAtIso.localeCompare(right.occurredAtIso));
@@ -341,12 +325,12 @@ export function useCareDemo(
     savePreConsultationDraft: (patch) =>
       context.savePreConsultationDraft(patientId, encounterId, patch),
     submitPreConsultation: () => context.submitPreConsultation(patientId, encounterId),
-    submitCheckIn: (input) => context.submitCheckIn(patientId, encounterId, input),
-    reviewCheckIn: (checkInId) => context.reviewCheckIn(patientId, encounterId, checkInId),
+    submitCheckIn: (input) => shared.mutate(patientId, encounterId, 'submitCheckIn', [input]),
+    reviewCheckIn: (checkInId) => shared.mutate(patientId, encounterId, 'reviewCheckIn', [checkInId]),
     configureFollowUp: (planId, cadence) =>
-      context.configureFollowUp(patientId, encounterId, planId, cadence),
+      shared.mutate(patientId, encounterId, 'configureFollowUp', [planId, cadence]),
     recordFollowUpContact: (configurationId) =>
-      context.recordFollowUpContact(patientId, encounterId, configurationId),
+      shared.mutate(patientId, encounterId, 'recordFollowUpContact', [configurationId]),
     submitDiaryEntry: (input) => context.submitDiaryEntry(patientId, encounterId, input),
     sendConversationMessage: (sender, input) =>
       context.sendConversationMessage(patientId, encounterId, sender, input),
@@ -359,15 +343,15 @@ export function useCareDemo(
     rejectPreConsultationReview: (content, reason) =>
       context.rejectPreConsultationReview(patientId, encounterId, content, reason),
     recordConsultationClosure: (input) =>
-      context.recordConsultationClosure(patientId, encounterId, input),
-    startCarePlan: (template) => context.startCarePlan(patientId, encounterId, template),
+      shared.mutate(patientId, encounterId, 'recordConsultationClosure', [input]),
+    startCarePlan: (template) => shared.mutate(patientId, encounterId, 'startCarePlan', [template ?? null]),
     createCarePlanRevision: (template) =>
-      context.createCarePlanRevision(patientId, encounterId, template),
-    saveCarePlan: (planId, patch) => context.saveCarePlan(patientId, encounterId, planId, patch),
-    approveCarePlan: (planId) => context.approveCarePlan(patientId, encounterId, planId),
-    publishCarePlan: (planId) => context.publishCarePlan(patientId, encounterId, planId),
+      shared.mutate(patientId, encounterId, 'createCarePlanRevision', [template ?? null]),
+    saveCarePlan: (planId, patch, baseline) => shared.mutate(patientId, encounterId, 'saveCarePlan', [planId, patch, baseline]),
+    approveCarePlan: (planId, baseline) => shared.mutate(patientId, encounterId, 'approveCarePlan', [planId, baseline]),
+    publishCarePlan: (planId, baseline) => shared.mutate(patientId, encounterId, 'publishCarePlan', [planId, baseline]),
     confirmCarePlanAction: (planId, actionId, completed) =>
-      context.confirmCarePlanAction(patientId, encounterId, planId, actionId, completed),
+      shared.mutate(patientId, encounterId, 'confirmCarePlanAction', [planId, actionId, completed]),
     reviewAiPreparation: (input) =>
       context.reviewAiPreparation(patientId, encounterId, input),
   };

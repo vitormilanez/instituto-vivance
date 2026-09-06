@@ -51,6 +51,9 @@ import {
 } from './patient-mvp-sections';
 import { PatientMealAnalysisDialog, PatientQuickActions } from './patient-quick-actions';
 import { PatientExamConnection } from './patient-exam-connection';
+import { CareSubmissionComposer } from './care-submission-composer';
+import { CareSubmissionInbox } from './care-submission-inbox';
+import { CareSyncStatus } from './shared-care-context';
 import { cn, NavigationLink, Status, Toast } from './shared';
 import { useSessionDemoState } from './use-session-demo-state';
 import { usePersistentConversation } from './use-persistent-conversation';
@@ -208,8 +211,8 @@ export default function PatientMvpWorkspace({
     }));
   };
 
-  const completeCheckIn = (input: CareCheckInInput) => {
-    submitCheckIn(input);
+  const completeCheckIn = async (input: CareCheckInInput) => {
+    await submitCheckIn(input);
     addCompletedStep('story');
     notify(
       input.aiAssistanceAllowed === false
@@ -341,6 +344,8 @@ export default function PatientMvpWorkspace({
         id="main-content"
         className="mx-auto min-h-[calc(100vh-72px)] max-w-5xl px-4 pb-28 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8"
       >
+        <CareSyncStatus patientId={patientId} encounterId={encounterId} />
+        {primaryView === 'Hoje' ? <details className="mb-6 rounded-2xl border border-[#d9e5e0] bg-white p-4"><summary className="min-h-11 cursor-pointer text-base font-semibold text-[#17372f]">Enviar informação, áudio, foto ou documento</summary><CareSubmissionComposer key={patientId} patientId={patientId} /><CareSubmissionInbox patientId={patientId} encounterId={encounterId} /></details> : null}
         {primaryView === 'Hoje' ? (
           <TodayScreen
             data={data}
@@ -368,9 +373,6 @@ export default function PatientMvpWorkspace({
             onAskMedicationQuestion={askMedicationQuestion}
             onChooseAppointment={chooseAppointment}
             onSaveMedication={saveMedicationReport}
-            onPlanExperience={(planExperience) =>
-              setSession((current) => ({ ...current, planExperience }))
-            }
           />
         ) : null}
 
@@ -397,6 +399,7 @@ export default function PatientMvpWorkspace({
             onTogglePhotoSlot={togglePhotoSlot}
           />
         ) : null}
+        {primaryView === 'Meu cuidado' ? <CareSubmissionInbox patientId={patientId} encounterId={encounterId} /> : null}
       </main>
 
       <div className="patient-bottom-navigation" data-visible={navigationVisible ? 'true' : 'false'}>

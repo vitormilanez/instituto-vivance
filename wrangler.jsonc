@@ -3,6 +3,7 @@
   "name": "instituto-vivans",
   "main": "vinext/server/app-router-entry",
   "compatibility_date": "2026-05-22",
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "vivance-care-files" }],
   "d1_databases": [
     {
       "binding": "DB",
