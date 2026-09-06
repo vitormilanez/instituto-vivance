@@ -46,6 +46,7 @@ export function RoleSwitcher({
 
 export function RoleHeader({ role, patientId = DEFAULT_PATIENT_ID }: { role: Role; patientId?: string }) {
   const patient = getDemoPatient(patientId);
+  const homeHref = role === 'doctor' ? '/medico' : `/paciente/${patientId}`;
   const patientInitials = patient?.name
     .split(' ')
     .slice(0, 2)
@@ -54,15 +55,15 @@ export function RoleHeader({ role, patientId = DEFAULT_PATIENT_ID }: { role: Rol
     .toUpperCase() ?? 'PA';
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#dfe8e3] bg-white/95 backdrop-blur">
+    <header className="border-b border-[#dfe8e3] bg-white/95">
       <div className="mx-auto flex h-[72px] max-w-[1540px] items-center justify-between gap-3 px-4 sm:px-5 lg:px-8">
-        <div className="flex min-w-0 items-center gap-3">
+        <NavigationLink href={homeHref} aria-label="Ir para o início" className="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0b7b68] focus-visible:ring-offset-2">
           <Image src="/brand/vivance-mark.png" alt="" width={40} height={40} className="size-10 shrink-0 rounded-xl" />
           <div className="hidden min-w-0 min-[360px]:block">
             <p className="truncate text-[17px] font-bold tracking-[0.12em]">VIVANCE</p>
             <p className="hidden text-xs font-medium text-[#698078] sm:block">Cuidado contínuo</p>
           </div>
-        </div>
+        </NavigationLink>
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="hidden text-right sm:block">
             <strong className="block text-xs text-[#17372f]">{patient?.name ?? 'Paciente'}</strong>
