@@ -1,5 +1,10 @@
 import { env } from 'cloudflare:workers';
 
+export function getCareBucket() {
+  if (!env.BUCKET) throw new Error('Armazenamento de documentos indisponível.');
+  return env.BUCKET;
+}
+
 export function getD1() {
   if (!env.DB) {
     throw new Error(

@@ -7,7 +7,6 @@ import {
   Check,
   Clock,
   FileText,
-  ForkKnife,
   Microphone,
   PaperPlaneTilt,
   Ruler,
@@ -15,7 +14,7 @@ import {
   Stop,
   UserFocus,
 } from '@phosphor-icons/react';
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent,useEffect,useMemo,useRef,useState } from 'react';
 import type {
   CareCheckIn,
   CareCheckInInput,
@@ -23,17 +22,17 @@ import type {
   CareCheckInSleepQuality,
   CareConversationMessage,
 } from './care-demo-types';
+import { SharedPatientCarePlan } from './patient-care-plan';
 import type {
   FilledPatientMvpData,
   PatientMvpAppointmentChoice,
   PatientMvpData,
   PatientMvpPhotoPose,
-  PatientMvpPlanExperience,
   PatientMvpSessionState,
   PendingPatientMvpData,
 } from './patient-mvp-data';
 import { isPatientCheckInDue } from './patient-mvp-data';
-import { cn, Status } from './shared';
+import { cn,Status } from './shared';
 
 export type CareDestination = 'plan' | 'medications' | 'appointments' | 'journal';
 
@@ -49,7 +48,7 @@ const secondaryButton = cn(
 );
 
 const careDestinations: Array<{ id: CareDestination; label: string }> = [
-  { id: 'plan', label: 'Alimentação' },
+  { id: 'plan', label: 'Meu plano' },
   { id: 'medications', label: 'Medicamentos' },
   { id: 'appointments', label: 'Consultas' },
   { id: 'journal', label: 'Check-ins' },
@@ -71,7 +70,6 @@ export function CareScreen({
   onAskMedicationQuestion,
   onChooseAppointment,
   onSaveMedication,
-  onPlanExperience,
 }: {
   data: PatientMvpData;
   session: PatientMvpSessionState;
@@ -84,7 +82,6 @@ export function CareScreen({
   onAskMedicationQuestion: () => void;
   onChooseAppointment: (choice: PatientMvpAppointmentChoice) => void;
   onSaveMedication: (choice: 'uses' | 'none', report: string) => void;
-  onPlanExperience: (experience: PatientMvpPlanExperience) => void;
 }) {
   return (
     <section aria-labelledby="care-screen-title">
@@ -115,9 +112,7 @@ export function CareScreen({
 
       <div className="mt-4 overflow-hidden rounded-2xl border border-[#d9e5e0] bg-white">
         {activeDestination === 'plan' ? (
-          data.scenario === 'filled'
-            ? <FilledFoodPlan data={data} experience={session.planExperience} onExperience={onPlanExperience} />
-            : <PendingPlanState />
+          <SharedPatientCarePlan key={data.patientId} patientId={data.patientId} />
         ) : null}
         {activeDestination === 'medications' ? (
           data.scenario === 'filled'
@@ -149,71 +144,6 @@ export function CareScreen({
   );
 }
 
-function FilledFoodPlan({
-  data,
-  experience,
-  onExperience,
-}: {
-  data: FilledPatientMvpData;
-  experience: PatientMvpPlanExperience;
-  onExperience: (experience: PatientMvpPlanExperience) => void;
-}) {
-  return (
-    <article className="p-5 sm:p-7">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-[-0.025em] text-[#17372f]">{data.foodPlan.title}</h2>
-          <p className="mt-2 text-sm leading-6 text-[#60766f]">{data.foodPlan.version} · publicada em {data.foodPlan.approvedAt}</p>
-        </div>
-        <Status tone="green">Aprovado por {data.doctorName}</Status>
-      </div>
-      <ol className="mt-6 divide-y divide-[#e4ece8] border-y border-[#e4ece8]">
-        {data.foodPlan.priorities.map((priority, index) => (
-          <li key={priority} className="flex gap-4 py-4 text-sm leading-6 text-[#405d54]">
-            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#edf7f4] text-xs font-bold text-[#0b6a5b]">{index + 1}</span>
-            <span>{priority}</span>
-          </li>
-        ))}
-      </ol>
-      <fieldset className="mt-6">
-        <legend className="text-sm font-bold text-[#17372f]">Como foi seguir o plano nos últimos dias?</legend>
-        <div className="mt-3 grid gap-2 sm:grid-cols-3">
-          {([
-            ['easy', 'Foi tranquilo'],
-            ['partial', 'Consegui em parte'],
-            ['difficult', 'Foi difícil'],
-          ] as const).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={experience === value}
-              onClick={() => onExperience(value)}
-              className={cn(
-                'min-h-12 rounded-xl border px-3 text-sm font-bold transition-colors',
-                focusRing,
-                experience === value
-                  ? 'border-[#0b7b68] bg-[#edf7f4] text-[#0b6a5b]'
-                  : 'border-[#d9e5e0] text-[#526a62] hover:bg-[#f7faf8]',
-              )}
-            >{label}</button>
-          ))}
-        </div>
-      </fieldset>
-      <p className="mt-5 rounded-xl bg-[#f6f9fe] p-4 text-xs leading-5 text-[#50627f]">A IA pode organizar sua dificuldade para a próxima conversa. Substituições e orientações novas só aparecem depois da revisão e publicação do médico.</p>
-    </article>
-  );
-}
-
-function PendingPlanState() {
-  return (
-    <article className="p-6 sm:p-8">
-      <span className="grid size-11 place-items-center rounded-xl bg-[#edf7f4] text-[#0b6a5b]"><ForkKnife aria-hidden="true" size={23} /></span>
-      <h2 className="mt-5 text-2xl font-semibold tracking-[-0.025em] text-[#17372f]">Seu plano ainda está sendo preparado</h2>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-[#60766f]">Quando o médico revisar seu ponto de partida e publicar uma orientação, ela aparecerá aqui com autor, data e versão.</p>
-      <p className="mt-5 border-t border-[#e4ece8] pt-4 text-xs leading-5 text-[#60766f]">Nenhuma orientação alimentar é criada ou enviada automaticamente pela IA.</p>
-    </article>
-  );
-}
 
 function FilledMedication({
   data,
@@ -446,7 +376,7 @@ function summarizePatientText(text: string, symptomAnswer: boolean | null) {
     : ['Relato livre recebido; o conteúdo integral permanece disponível na fonte original.'];
 }
 
-export function CheckInDialog({ patient, onClose, onComplete }: { patient: PatientMvpData; onClose: () => void; onComplete: (input: CareCheckInInput) => void }) {
+export function CheckInDialog({ patient, onClose, onComplete }: { patient: PatientMvpData; onClose: () => void; onComplete: (input: CareCheckInInput) => void | Promise<void> }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const recordingTimer = useRef<number | null>(null);
   const [step, setStep] = useState<CheckInStep>('mode');
@@ -460,6 +390,8 @@ export function CheckInDialog({ patient, onClose, onComplete }: { patient: Patie
   const [voiceCaptured, setVoiceCaptured] = useState(false);
   const [aiAllowed, setAiAllowed] = useState(true);
   const [announcement, setAnnouncement] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const activeCheckInSteps = useMemo(
     () => patient.scenario === 'filled'
       ? checkInSteps
@@ -544,10 +476,11 @@ export function CheckInDialog({ patient, onClose, onComplete }: { patient: Patie
     const next = activeCheckInSteps[Math.min(activeCheckInSteps.length - 1, stepIndex + 1)];
     setStep(next);
   };
-  const complete = () => {
-    if (energy === null || sleepQuality === null || newSymptom === null) return;
+  const complete = async () => {
+    if (saving || energy === null || sleepQuality === null || newSymptom === null) return;
     const hasVoiceSource = mode === 'voice' && voiceCaptured;
-    onComplete({
+    setSaving(true); setSaveError('');
+    try { await onComplete({
       energy,
       sleepQuality,
       newSymptom,
@@ -560,12 +493,15 @@ export function CheckInDialog({ patient, onClose, onComplete }: { patient: Patie
         : 'not-applicable',
       audioRef: hasVoiceSource ? `audio-demo-${patient.patientId}-${Date.now()}` : null,
       audioDurationSeconds: hasVoiceSource ? 27 : null,
-    });
+    }); } catch (error) { setSaveError(error instanceof Error ? error.message : 'Não foi possível enviar. Seu relato foi mantido.'); }
+    finally { setSaving(false); }
   };
 
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center bg-[#102a24]/65 sm:items-center sm:p-5" role="presentation">
-      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="patient-checkin-title" className="flex max-h-[100dvh] min-h-[88dvh] w-full max-w-2xl flex-col overflow-hidden bg-white text-[#17372f] sm:min-h-0 sm:rounded-2xl">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="patient-checkin-title" aria-busy={saving} className="flex max-h-[100dvh] min-h-[88dvh] w-full max-w-2xl flex-col overflow-hidden bg-white text-[#17372f] sm:min-h-0 sm:rounded-2xl">
+        {saveError ? <p role="alert" className="bg-red-50 p-4 text-sm text-red-800">{saveError}</p> : null}
+        {saving ? <p role="status" className="bg-[#edf7f4] p-3 text-sm">Confirmando o recebimento…</p> : null}
         <header className="border-b border-[#e4ece8] px-4 py-3 sm:px-6">
           <div className="flex items-center justify-between gap-3"><button type="button" onClick={stepIndex > 0 ? goBack : onClose} className={cn('grid size-11 place-items-center rounded-xl text-[#526a62] hover:bg-[#edf7f4]', focusRing)} aria-label={stepIndex > 0 ? 'Voltar uma etapa' : 'Fechar check-in'}><ArrowLeft aria-hidden="true" size={21} /></button><div className="min-w-0 flex-1 text-center"><p className="text-xs font-bold text-[#60766f]">{isReview ? 'Revisão final' : `Etapa ${stepIndex + 1} de ${activeCheckInSteps.length}`}</p><div className="mx-auto mt-2 h-1.5 max-w-48 overflow-hidden rounded-full bg-[#e3ebe7]"><div className="h-full rounded-full bg-[#0b7b68] transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${((stepIndex + 1) / activeCheckInSteps.length) * 100}%` }} /></div></div><button type="button" onClick={onClose} className={cn('min-h-11 rounded-xl px-3 text-sm font-bold text-[#526a62] hover:bg-[#edf7f4]', focusRing)}>Fechar</button></div>
         </header>

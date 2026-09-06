@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useCareDemo } from './care-demo-store';
 import type {
   CareConsultationClosure,
@@ -267,6 +267,16 @@ export function DoctorCarePlanWorkspace({
     approveCarePlan,
     publishCarePlan,
   } = useCareDemo(patientId, encounterId);
+  const [draft, setDraft] = useState<{ plan: CarePlanVersion; baseline: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
+  const currentDraft = draft?.plan.id === activeCarePlan?.id ? draft : null;
+  useEffect(() => {
+    if (!currentDraft) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [currentDraft]);
 
   const template = useMemo<Partial<CarePlanDraftContent>>(() => {
     const approvedReview = activeReview?.status === 'approved' ? activeReview : null;
@@ -293,7 +303,7 @@ export function DoctorCarePlanWorkspace({
     return <div className="rounded-3xl border border-[#dbe4f0] bg-white p-6 text-sm text-[#61718a]">Carregando o estado demonstrativo do plano...</div>;
   }
 
-  const plan = activeCarePlan;
+  const plan = currentDraft?.plan ?? activeCarePlan;
   const presentation = plan ? statusPresentation[plan.status] : statusPresentation.draft;
   const isEditable = plan?.status === 'draft';
   const planSourceClosure = plan?.sourceClosureId
@@ -313,24 +323,36 @@ export function DoctorCarePlanWorkspace({
     : null;
   const changeSummary = plan ? getPlanChangeSummary(plan, previousPlan) : [];
 
-  const createOrResume = () => {
+  const run = async (action: () => Promise<void>) => {
+    if (busy) return;
+    setBusy(true); setSaveMessage('');
+    try { await action(); }
+    catch (error) { const message = getErrorMessage(error); setSaveMessage(message); onNotify(message); }
+    finally { setBusy(false); }
+  };
+  const createOrResume = () => run(async () => {
     const hasOpenVersion = latestCarePlan?.status === 'draft' || latestCarePlan?.status === 'approved';
-    const next = hasOpenVersion ? startCarePlan(template) : createCarePlanRevision(template);
+    const next = await (hasOpenVersion ? startCarePlan(template) : createCarePlanRevision(template));
     onNotify(`Versão ${next.version} do plano aberta como rascunho.`);
-  };
+  });
 
-  const createRevision = () => {
-    const next = createCarePlanRevision(template);
+  const createRevision = () => run(async () => {
+    const next = await createCarePlanRevision(template);
     onNotify(`Versão ${next.version} do plano aberta como rascunho.`);
-  };
+  });
 
   const updatePlan = (patch: Partial<CarePlanDraftContent>) => {
-    if (!plan || !isEditable) return;
-    try {
-      saveCarePlan(plan.id, patch);
-    } catch (error) {
-      onNotify(getErrorMessage(error));
-    }
+    if (!plan || !isEditable || busy) return;
+    setDraft({ plan: { ...plan, ...patch }, baseline: currentDraft?.baseline ?? plan.updatedAtIso });
+    setSaveMessage('Alterações ainda não salvas.');
+  };
+
+  const saveDraft = async () => {
+    if (!plan) throw new Error('Plano indisponível.');
+    if (!currentDraft) return plan;
+    const { title, objective, introduction, actions, monitoring, supportNotice, sourceDescription, sourceMode, sourceReviewId, sourceClosureId, sourceClosureVersion, sourceItemIds } = plan;
+    const saved = await saveCarePlan(plan.id, { title, objective, introduction, actions, monitoring, supportNotice, sourceDescription, sourceMode, sourceReviewId, sourceClosureId, sourceClosureVersion, sourceItemIds }, currentDraft.baseline);
+    setDraft(null); setSaveMessage('Rascunho salvo no acompanhamento.'); return saved;
   };
 
   const updateAction = (index: number, patch: Partial<CarePlanAction>) => {
@@ -402,28 +424,23 @@ export function DoctorCarePlanWorkspace({
     onNotify('Vínculo removido. O texto permanece no rascunho como redação manual até você editá-lo.');
   };
 
-  const approve = () => {
+  const approve = () => run(async () => {
     if (!plan) return;
-    try {
-      const approved = approveCarePlan(plan.id);
+      const saved = await saveDraft();
+      const approved = await approveCarePlan(saved.id, saved.updatedAtIso);
       onNotify(`Versão ${approved.version} aprovada. A paciente ainda não consegue vê-la.`);
-    } catch (error) {
-      onNotify(getErrorMessage(error));
-    }
-  };
+  });
 
-  const publish = () => {
+  const publish = () => run(async () => {
     if (!plan) return;
-    try {
-      const published = publishCarePlan(plan.id);
-      onNotify(`Versão ${published.version} publicada para a paciente nesta sessão demonstrativa.`);
-    } catch (error) {
-      onNotify(getErrorMessage(error));
-    }
-  };
+      const published = await publishCarePlan(plan.id, plan.updatedAtIso);
+      onNotify(`Versão ${published.version} publicada no acompanhamento da paciente.`);
+  });
 
   return (
-    <section aria-labelledby="care-plan-workspace-title" className="rounded-3xl border border-[#dbe4f0] bg-white p-5 sm:p-6">
+    <section aria-labelledby="care-plan-workspace-title" aria-busy={busy} className="rounded-3xl border border-[#dbe4f0] bg-white p-5 sm:p-6">
+      <p role="status" className="mb-3 text-sm text-[#61718a]">{busy ? 'Salvando no acompanhamento…' : saveMessage}</p>
+      {currentDraft && currentDraft.baseline !== activeCarePlan?.updatedAtIso ? <div role="alert" className="mb-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Uma versão mais recente chegou. Seu texto foi preservado, mas não pode sobrescrevê-la. Copie o que deseja manter e <button type="button" className="min-h-11 px-2 font-bold underline" onClick={() => { setDraft(null); setSaveMessage('Versão salva carregada.'); }}>carregue a versão salva</button>.</div> : null}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#124da0]">Plano versionado</p>
@@ -498,7 +515,7 @@ export function DoctorCarePlanWorkspace({
                   </label>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <button type="button" onClick={() => { updatePlan({}); onNotify(`Rascunho da versão ${plan.version} salvo nesta sessão.`); }} className="min-h-11 cursor-pointer rounded-xl border border-[#cbd8e9] px-5 text-sm font-bold text-[#124da0] transition-colors hover:bg-[#edf3fb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#124da0] focus-visible:ring-offset-2">Salvar rascunho</button>
+                  <button type="button" disabled={busy} onClick={() => run(async () => { await saveDraft(); })} className="min-h-11 cursor-pointer rounded-xl border border-[#cbd8e9] px-5 text-sm font-bold text-[#124da0] transition-colors hover:bg-[#edf3fb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#124da0] focus-visible:ring-offset-2">Salvar rascunho</button>
                   <button type="button" onClick={approve} className="min-h-11 cursor-pointer rounded-xl bg-[#03132d] px-5 text-sm font-bold text-white transition-colors hover:bg-[#124da0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#124da0] focus-visible:ring-offset-2">Aprovar versão {plan.version}</button>
                 </div>
                 <details className="rounded-2xl border border-[#dbe4f0] bg-[#f7faff] p-4">

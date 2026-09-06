@@ -257,9 +257,10 @@ export default function PatientWorkspace({
           <Plan
             plan={latestPublishedCarePlan}
             confirmedActionIds={confirmedActionIds}
-            onConfirm={(actionId, completed) => {
+            onConfirm={async (actionId, completed) => {
               if (!latestPublishedCarePlan) return;
-              confirmCarePlanAction(latestPublishedCarePlan.id, actionId, completed);
+              try { await confirmCarePlanAction(latestPublishedCarePlan.id, actionId, completed); }
+              catch (error) { notify(error instanceof Error ? error.message : 'Não foi possível confirmar.'); }
             }}
           />
         )}
@@ -339,10 +340,11 @@ export default function PatientWorkspace({
       {checkinOpen && (
         <Checkin
           onClose={() => setCheckinOpen(false)}
-          onComplete={(input) => {
-            submitCheckIn(input);
+          onComplete={async (input) => {
+            try { await submitCheckIn(input);
             setCheckinOpen(false);
             notify('Check-in registrado. Obrigado, Marina.');
+            } catch (error) { notify(error instanceof Error ? error.message : 'Não foi possível enviar.'); }
           }}
         />
       )}

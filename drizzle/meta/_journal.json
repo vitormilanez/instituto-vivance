@@ -8,6 +8,27 @@
       "when": 1788542532489,
       "tag": "0000_outgoing_songbird",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788703492610,
+      "tag": "0001_dark_purple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788704913072,
+      "tag": "0002_volatile_supreme_intelligence",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788709780349,
+      "tag": "0003_daily_exodus",
+      "breakpoints": true
     }
   ]
 }

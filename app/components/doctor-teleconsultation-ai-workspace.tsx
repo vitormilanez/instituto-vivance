@@ -526,7 +526,7 @@ export function DoctorTeleconsultationAiWorkspace({
     setFeedback('Rascunho criado. Edite e revise antes de aplicar às notas.');
   };
 
-  const approveDraft = () => {
+  const approveDraft = async () => {
     if (session.status !== 'ended') {
       setFeedback('Encerre a sessão simulada antes de aprovar o fechamento.');
       return;
@@ -537,7 +537,7 @@ export function DoctorTeleconsultationAiWorkspace({
     }
     const nextVersion = session.reviewVersion + 1;
     try {
-      const closure = recordApprovedClosure(nextVersion);
+      const closure = await recordApprovedClosure(nextVersion);
       updateWithAudit(
         (current) => ({
           ...current,
@@ -570,10 +570,10 @@ export function DoctorTeleconsultationAiWorkspace({
     setFeedback('Rascunho rejeitado. As notas manuais continuam disponíveis.');
   };
 
-  const reapplyApprovedDraft = () => {
+  const reapplyApprovedDraft = async () => {
     if (!session.draftContent.trim() || session.draftStatus !== 'approved') return;
     try {
-      recordApprovedClosure(session.reviewVersion);
+      await recordApprovedClosure(session.reviewVersion);
       onApplyDraft(session.draftContent);
       const message = `Versão ${session.reviewVersion} reaplicada às notas e mantida como fonte do plano.`;
       setFeedback(message);

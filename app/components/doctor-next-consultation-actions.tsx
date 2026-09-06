@@ -18,6 +18,8 @@ import {
 } from 'react';
 import { ClinicalLayerBadge, SimulationDisclaimer } from './clinical';
 import { useCareDemo } from './care-demo-store';
+import { useClinicalIntelligence } from './clinical-intelligence-context';
+import { examReviewPresentation, selectExamIntake } from './care-workflow';
 import type { CareCheckIn, CarePlanAction, CarePlanVersion } from './care-demo-types';
 import { getPatientDossierHref, getPatientMessagesHref } from './demo-routes';
 import { cn, NavigationLink as Link, Status } from './shared';
@@ -41,25 +43,6 @@ const planExperienceLabel = {
   'not-applicable': 'Não se aplica',
 } as const;
 
-const pastExams = [
-  {
-    title: 'Painel laboratorial · agosto',
-    date: '14 ago 2026',
-    status: 'Revisão médica pendente',
-    tone: 'amber' as const,
-    href: '/docs/doc-demo-001.pdf',
-    values: ['Glicemia em jejum · 96 mg/dL', 'Hemoglobina glicada · 5,5%', 'Triglicerídeos · 118 mg/dL'],
-  },
-  {
-    title: 'Painel laboratorial · julho',
-    date: '18 jul 2026',
-    status: 'Revisado',
-    tone: 'green' as const,
-    href: '/docs/doc-demo-002.pdf',
-    values: ['Glicemia em jejum · 101 mg/dL', 'Hemoglobina glicada · 5,8%', 'Triglicerídeos · 132 mg/dL'],
-  },
-];
-
 export function DoctorNextConsultationActions({
   patientId,
   encounterId,
@@ -74,6 +57,8 @@ export function DoctorNextConsultationActions({
   onSendExamReminder: () => void;
 }) {
   const [openAction, setOpenAction] = useState<ConsultationContextAction | null>(null);
+  const { exams, hydrated: examsHydrated } = useClinicalIntelligence();
+  const intake = selectExamIntake(exams, patientId, examReminderSent);
   const {
     actionConfirmations,
     checkIns,
@@ -121,17 +106,17 @@ export function DoctorNextConsultationActions({
     },
     {
       id: 'past-exams',
-      label: 'Exames anteriores',
-      detail: '2 documentos recebidos',
+      label: 'Histórico de exames',
+      detail: examsHydrated ? `${intake.patientExams.length} documentos recebidos` : 'Carregando exames',
       Icon: Flask,
       tone: 'navy',
     },
     {
       id: 'new-exams',
       label: 'Novos exames',
-      detail: examReminderSent ? 'Lembrete enviado' : 'Envio pendente',
+      detail: examsHydrated ? intake.label : 'Carregando exames',
       Icon: BellRinging,
-      tone: examReminderSent ? 'green' : 'amber',
+      tone: intake.tone,
     },
   ];
 
@@ -240,7 +225,7 @@ function ConsultationContextSheet({
     summary: 'Resumo da última consulta',
     plan: 'Plano de cuidado',
     adherence: 'Adesão ao plano',
-    'past-exams': 'Exames anteriores',
+    'past-exams': 'Histórico de exames',
     'new-exams': 'Status do envio de novos exames',
   }[action];
 
@@ -285,7 +270,7 @@ function ConsultationContextSheet({
               actionCount={visibleActions.length}
             />
           ) : null}
-          {action === 'past-exams' ? <PastExamsPanel /> : null}
+          {action === 'past-exams' ? <PastExamsPanel patientId={patientId} /> : null}
           {action === 'new-exams' ? (
             <NewExamsPanel
               patientId={patientId}
@@ -443,34 +428,37 @@ function AdherencePanel({
   );
 }
 
-function PastExamsPanel() {
+function PastExamsPanel({ patientId }: { patientId: string }) {
+  const { exams } = useClinicalIntelligence();
+  const { patientExams } = selectExamIntake(exams, patientId);
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ClinicalLayerBadge layer="fato" />
-        <Status tone="blue">2 originais recebidos</Status>
+        <Status tone="blue">{patientExams.length} documentos recebidos</Status>
       </div>
       <p className="mt-3 text-sm leading-6 text-[#405675]">Os arquivos originais permanecem a fonte principal. Os valores abaixo são transcrições demonstrativas, sem interpretação de normalidade, risco ou conduta.</p>
       <div className="mt-5 space-y-3">
-        {pastExams.map((exam) => (
-          <article key={exam.href} className="rounded-2xl border border-[#dbe4f0] bg-white p-4 sm:p-5">
+        {patientExams.map((exam) => (
+          <article key={exam.id} className="rounded-2xl border border-[#dbe4f0] bg-white p-4 sm:p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h3 className="text-base font-semibold text-[#071a3a]">{exam.title}</h3>
-                <p className="mt-1 text-xs text-[#61718a]">{exam.date} · Laboratório Horizonte · enviado pela paciente</p>
+                <p className="mt-1 text-xs text-[#61718a]">Recebido em {exam.receivedAt} · {exam.laboratory} · {exam.submittedByLabel}</p>
               </div>
-              <Status tone={exam.tone}>{exam.status}</Status>
+              <Status tone={examReviewPresentation(exam).tone}>{examReviewPresentation(exam).label}</Status>
             </div>
             <ul className="mt-4 grid gap-2 text-sm text-[#405675] sm:grid-cols-3">
-              {exam.values.map((value) => <li key={value} className="rounded-xl bg-[#f7faff] px-3 py-2">{value}</li>)}
+              {exam.fields.filter((field) => field.included).map((field) => <li key={field.id} className="rounded-xl bg-[#f7faff] px-3 py-2">{field.label} · {field.value} {field.unit}{exam.reviewStatus !== 'approved' ? ' · não confirmado' : ''}</li>)}
             </ul>
-            <a href={exam.href} target="_blank" rel="noreferrer" className={cn('mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#124da0] underline underline-offset-4', focusRing)}>
+            <Link href={`${getPatientDossierHref(patientId)}#patient-documents`} className={cn('mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#124da0] underline underline-offset-4', focusRing)}>
               <FileText aria-hidden="true" size={18} />
-              Abrir original
-            </a>
+              Conferir documento e fontes
+            </Link>
           </article>
         ))}
       </div>
+      {patientExams.length === 0 ? <p className="mt-4 text-sm text-[#61718a]">Nenhum exame recebido neste acompanhamento.</p> : null}
     </div>
   );
 }
@@ -484,31 +472,33 @@ function NewExamsPanel({
   examReminderSent: boolean;
   onSendExamReminder: () => void;
 }) {
+  const { exams, hydrated } = useClinicalIntelligence();
+  const intake = selectExamIntake(exams, patientId, examReminderSent);
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <ClinicalLayerBadge layer="decisao_medica" />
-        <Status tone={examReminderSent ? 'green' : 'amber'}>{examReminderSent ? 'Lembrete enviado' : 'Aguardando envio'}</Status>
+        <ClinicalLayerBadge layer="fato" />
+        <Status tone={intake.tone}>{hydrated ? intake.label : 'Carregando exames'}</Status>
       </div>
       <section className="mt-5 rounded-2xl border border-[#dbe4f0] bg-[#f7faff] p-4 sm:p-5">
-        <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#124da0]">Pedido já aprovado no mock</p>
-        <p className="mt-2 text-base font-semibold text-[#071a3a]">Pedido de exames · acompanhamento de 30 dias</p>
-        <p className="mt-2 text-sm leading-6 text-[#405675]">Registrado pelo Dr. Guilherme Martins em 12 ago. Nenhum novo documento foi recebido nesta sessão demonstrativa.</p>
+        <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#124da0]">Documentos do acompanhamento</p>
+        <p className="mt-2 text-base font-semibold text-[#071a3a]">{intake.latest?.title ?? 'Aguardando o primeiro documento'}</p>
+        <p className="mt-2 text-sm leading-6 text-[#405675]">{intake.latest ? `Recebido em ${intake.latest.receivedAt}. ${intake.pendingCount > 0 ? 'A próxima ação é a conferência médica.' : 'A revisão foi concluída; não há envio pendente registrado.'}` : 'Nenhum exame consta neste acompanhamento.'}</p>
       </section>
       <div className="mt-4 rounded-xl border border-dashed border-[#c7d5e7] bg-white p-4">
-        <p className="text-sm font-bold text-[#071a3a]">{examReminderSent ? 'A paciente foi lembrada de enviar os documentos.' : 'Confira o envio antes de iniciar a consulta.'}</p>
+        <p className="text-sm font-bold text-[#071a3a]">{intake.latest ? 'O documento recebido já está disponível no prontuário.' : examReminderSent ? 'A paciente foi lembrada de enviar os documentos.' : 'Confira o envio antes de iniciar a consulta.'}</p>
         <p className="mt-1 text-xs leading-5 text-[#61718a]">O lembrete é administrativo: não cria pedido, prescrição ou orientação clínica nova.</p>
       </div>
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-        <button
+        {!intake.latest ? <button
           type="button"
-          disabled={examReminderSent}
+          disabled={!hydrated || !intake.canRemind}
           onClick={onSendExamReminder}
           className={cn('inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#071a3a] px-4 text-sm font-bold text-white transition-colors hover:bg-[#0b2854] disabled:cursor-not-allowed disabled:bg-[#91a2b9]', focusRing)}
         >
           <BellRinging aria-hidden="true" size={18} />
           {examReminderSent ? 'Lembrete enviado' : 'Enviar lembrete'}
-        </button>
+        </button> : <Link href={`${getPatientDossierHref(patientId)}#patient-documents`} className={cn('inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#071a3a] px-4 text-sm font-bold text-white', focusRing)}>Conferir exames recebidos</Link>}
         <Link href={getPatientMessagesHref(patientId)} className={cn('inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#9bb8db] px-4 text-sm font-bold text-[#124da0] transition-colors hover:bg-[#edf3fb]', focusRing)}>
           Abrir conversa com a paciente
           <ArrowRight aria-hidden="true" size={17} />

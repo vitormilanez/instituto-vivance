@@ -1,18 +1,19 @@
 'use client';
 
 import {
-  ArrowRight,
   CheckCircle,
   FileArrowUp,
   FilePdf,
-  LinkSimple,
-  X,
+  LinkSimple
 } from '@phosphor-icons/react';
-import { FormEvent, useMemo, useState } from 'react';
+import { useMemo,useState } from 'react';
+import { CareSubmissionComposer } from './care-submission-composer';
+import { examReviewPresentation,selectExamIntake } from './care-workflow';
 import { useClinicalIntelligence } from './clinical-intelligence-context';
 import { Status } from './shared';
 
 function formatExamDate(value: string) {
+  if (!value) return 'Coleta não informada';
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: 'short',
@@ -22,31 +23,16 @@ function formatExamDate(value: string) {
 }
 
 export function PatientExamConnection({ patientId }: { patientId: string }) {
-  const { hydrated, exams, careRelationships, patientContexts, sharePatientExam } = useClinicalIntelligence();
+  const { hydrated, exams, careRelationships, patientContexts } = useClinicalIntelligence();
   const [formOpen, setFormOpen] = useState(false);
-  const [examDate, setExamDate] = useState('2026-09-04');
-  const [note, setNote] = useState('Exame solicitado para o próximo retorno.');
   const [successMessage, setSuccessMessage] = useState('');
-  const patientExams = useMemo(
-    () => exams
-      .filter((exam) => exam.patientId === patientId)
-      .toSorted((left, right) => right.receivedAtIso.localeCompare(left.receivedAtIso)),
+  const { patientExams, latest: latestExam, pendingCount } = useMemo(
+    () => selectExamIntake(exams, patientId),
     [exams, patientId],
   );
-  const latestExam = patientExams[0] ?? null;
-  const pendingCount = patientExams.filter((exam) => exam.reviewStatus === 'awaiting_review').length;
   const relationship = careRelationships.find((item) => item.patientId === patientId && item.status === 'active');
   const patientContext = patientContexts.find((item) => item.patientId === patientId);
   const doctorName = relationship?.doctorName ?? 'equipe médica';
-
-  const submit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!examDate) return;
-    sharePatientExam({ patientId, examDate, note: note.trim() });
-    setSuccessMessage(`Exame compartilhado com ${doctorName}. Você verá aqui quando a revisão for concluída.`);
-    setFormOpen(false);
-    setNote('');
-  };
 
   if (!hydrated) return null;
 
@@ -93,8 +79,8 @@ export function PatientExamConnection({ patientId }: { patientId: string }) {
               <p className="mt-1 text-xs text-[#60766f]">Original preservado · {latestExam.extractionVersion > 0 ? `leitura assistida v${latestExam.extractionVersion}` : 'sem leitura assistida'}</p>
             </div>
             <div className="sm:text-right">
-              <Status tone={latestExam.reviewStatus === 'approved' ? 'green' : 'amber'}>
-                {latestExam.reviewStatus === 'approved' ? `Revisado · v${latestExam.reviewVersion}` : 'Em revisão médica'}
+              <Status tone={examReviewPresentation(latestExam).tone}>
+                {examReviewPresentation(latestExam).label}
               </Status>
               {latestExam.reviewedBy ? <p className="mt-2 text-[11px] font-semibold text-[#60766f]">por {latestExam.reviewedBy}</p> : null}
             </div>
@@ -113,7 +99,7 @@ export function PatientExamConnection({ patientId }: { patientId: string }) {
               {patientExams.map((exam) => (
                 <li key={exam.id} className="flex flex-wrap items-center justify-between gap-2 py-3 text-xs">
                   <span><strong className="text-[#17372f]">{formatExamDate(exam.examDate)}</strong><span className="ml-2 text-[#60766f]">{exam.fileName}</span></span>
-                  <span className="font-bold text-[#526a62]">{exam.reviewStatus === 'approved' ? `Revisado · v${exam.reviewVersion}` : 'Em revisão'}</span>
+                  <span className="font-bold text-[#526a62]">{examReviewPresentation(exam).label}</span>
                 </li>
               ))}
             </ul>
@@ -133,59 +119,7 @@ export function PatientExamConnection({ patientId }: { patientId: string }) {
       </div>
 
       {formOpen ? (
-        <form onSubmit={submit} className="border-t border-[#d9e5e0] bg-[#f7faf8] p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-base font-semibold text-[#17372f]">Compartilhar novo exame</h3>
-              <p className="mt-1 text-sm leading-6 text-[#60766f]">O painel laboratorial abaixo entrará na fila de {doctorName}.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setFormOpen(false)}
-              aria-label="Fechar envio de exame"
-              className="grid size-11 shrink-0 place-items-center rounded-full text-[#526a62] transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0b7b68]"
-            >
-              <X aria-hidden="true" size={20} />
-            </button>
-          </div>
-
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-[#bfd4cd] bg-white p-4">
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#17372f] text-white"><FilePdf aria-hidden="true" size={22} /></span>
-            <span className="min-w-0"><strong className="block truncate text-sm text-[#17372f]">painel-laboratorial-atual.pdf</strong><span className="mt-1 block text-xs text-[#60766f]">Laboratório Campo Azul · PDF</span></span>
-            <CheckCircle aria-label="Arquivo selecionado" size={20} weight="fill" className="ml-auto shrink-0 text-[#0b7b68]" />
-          </div>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <label className="text-sm font-bold text-[#17372f]">
-              Data da coleta
-              <input
-                type="date"
-                required
-                value={examDate}
-                onChange={(event) => setExamDate(event.target.value)}
-                className="mt-2 min-h-12 w-full rounded-xl border border-[#bfd4cd] bg-white px-4 text-sm font-semibold text-[#17372f] outline-none focus:ring-2 focus:ring-[#0b7b68]"
-              />
-            </label>
-            <label className="text-sm font-bold text-[#17372f]">
-              Observação para a equipe
-              <input
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                maxLength={180}
-                className="mt-2 min-h-12 w-full rounded-xl border border-[#bfd4cd] bg-white px-4 text-sm text-[#17372f] outline-none focus:ring-2 focus:ring-[#0b7b68]"
-                placeholder="Opcional"
-              />
-            </label>
-          </div>
-
-          <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
-            <button type="button" onClick={() => setFormOpen(false)} className="min-h-12 rounded-xl px-4 text-sm font-bold text-[#0b6a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0b7b68]">Cancelar</button>
-            <button type="submit" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#0b7b68] px-5 text-sm font-bold text-white transition-colors hover:bg-[#096b5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0b7b68] focus-visible:ring-offset-2">
-              Compartilhar com o médico
-              <ArrowRight aria-hidden="true" size={17} weight="bold" />
-            </button>
-          </div>
-        </form>
+        <div className="border-t border-[#d9e5e0] p-4"><CareSubmissionComposer patientId={patientId} examOnly onDone={() => { setFormOpen(false); setSuccessMessage('Exame recebido no acompanhamento. O original aguarda conferência médica.'); }} /><button type="button" onClick={() => setFormOpen(false)} className="min-h-11 px-4 text-sm font-bold text-[#0b6a5b]">Fechar envio</button></div>
       ) : null}
     </section>
   );

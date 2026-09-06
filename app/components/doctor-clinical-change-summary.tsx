@@ -8,7 +8,7 @@ import {
   ShieldCheck,
   WarningCircle,
 } from '@phosphor-icons/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   getClinicalChangeDemo,
   type ClinicalChangeSource,
@@ -16,6 +16,8 @@ import {
 } from './clinical-change-demo-data';
 import { AiDraftBadge, ClinicalLayerBadge } from './clinical';
 import { useClinicalIntelligence } from './clinical-intelligence-context';
+import { getDefaultEncounterId } from './demo-routes';
+import { parseSynthesisContent, type SavedSynthesis } from '../lib/clinical-synthesis-contract';
 import { cn, Status } from './shared';
 
 const outputTypePresentation: Record<ClinicalOutputType, { label: string; className: string }> = {
@@ -67,19 +69,64 @@ export function DoctorClinicalChangeSummary({
   patientId: string;
   onNotify?: (message: string) => void;
 }) {
+  // Patient switches reset the editor; a draft must never follow another patient.
+  return <ClinicalChangeEditor key={patientId} patientId={patientId} onNotify={onNotify} />;
+}
+
+function ClinicalChangeEditor({ patientId, onNotify }: { patientId: string; onNotify?: (message: string) => void }) {
   const summary = getClinicalChangeDemo(patientId);
+  const encounterId = getDefaultEncounterId(patientId);
   const {
     activeConfiguration,
     governedArtifacts,
     knowledgeSources,
     patientContexts,
     recordGovernedArtifact,
+    loadGovernedArtifacts,
   } = useClinicalIntelligence();
   const [draftText, setDraftText] = useState(summary?.draft.text ?? '');
   const [selectedPointIds, setSelectedPointIds] = useState<string[]>(
     summary?.draft.points.map((point) => point.id) ?? [],
   );
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [savedArtifact, setSavedArtifact] = useState<SavedSynthesis | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [comparisonText, setComparisonText] = useState('');
+  const dirtyRef = useRef(false);
+  const attemptRef = useRef<{ payload: string; id: string } | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadGovernedArtifacts(patientId, encounterId, controller.signal).then((artifacts) => {
+      if (controller.signal.aborted) return;
+      const latest = artifacts[0] ?? null;
+      const restored = latest ? parseSynthesisContent(latest.content) : null;
+      if (latest && !restored) throw new Error('A revisão salva está incompleta. O conteúdo não será substituído.');
+      setSavedArtifact(latest);
+      if (restored && !dirtyRef.current) {
+        setDraftText(restored.draftText);
+        setSelectedPointIds(restored.selectedPointIds);
+      } else if (restored) {
+        setComparisonText(restored.draftText);
+      }
+      setLoadError('');
+      setSaveError('');
+    }).catch((error: unknown) => {
+      if (!controller.signal.aborted) setLoadError(error instanceof Error ? error.message : 'Não foi possível recuperar a revisão.');
+    }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [patientId, encounterId, loadGovernedArtifacts, loadAttempt]);
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [hasUnsavedChanges]);
   const patientContext = patientContexts.find((context) => context.patientId === patientId);
   const patientAssistanceAllowed = patientContext?.authorizationStatus === 'authorized'
     && patientContext.status !== 'paused'
@@ -115,11 +162,13 @@ export function DoctorClinicalChangeSummary({
   const latestLongitudinalArtifact = governedArtifacts
     .filter((artifact) => artifact.patientId === patientId && artifact.moduleId === 'longitudinal_analysis')
     .toSorted((left, right) => right.createdAtIso.localeCompare(left.createdAtIso))[0];
-  const latestSynthesisArtifact = governedArtifacts
-    .filter((artifact) => artifact.patientId === patientId && artifact.moduleId === 'clinical_synthesis')
+  const legacySynthesisArtifact = governedArtifacts
+    .filter((artifact) => artifact.patientId === patientId && artifact.moduleId === 'clinical_synthesis'
+      && (!artifact.encounterId || artifact.encounterId === encounterId) && !artifact.content && artifact.persistence !== 'd1')
     .toSorted((left, right) => right.createdAtIso.localeCompare(left.createdAtIso))[0];
-  const revisionNumber = latestSynthesisArtifact?.version ?? 0;
-  const isReviewSaved = Boolean(latestSynthesisArtifact) && !hasUnsavedChanges;
+  const latestSynthesisArtifact = savedArtifact;
+  const revisionNumber = savedArtifact?.version ?? 0;
+  const isReviewSaved = Boolean(savedArtifact) && !hasUnsavedChanges && !loading && !loadError;
   const sourceMap = useMemo(
     () => new Map(summary?.sources.map((source) => [source.id, source]) ?? []),
     [summary],
@@ -127,7 +176,7 @@ export function DoctorClinicalChangeSummary({
 
   if (!summary) return null;
 
-  const markChanged = () => setHasUnsavedChanges(true);
+  const markChanged = () => { dirtyRef.current = true; setHasUnsavedChanges(true); };
   const togglePoint = (pointId: string) => {
     setSelectedPointIds((current) => (
       current.includes(pointId)
@@ -137,27 +186,42 @@ export function DoctorClinicalChangeSummary({
     markChanged();
   };
   const canSave = draftText.trim().length > 0
+    && draftText.length <= 20_000 && !loading && !saving && !loadError
     && selectedPointIds.length > 0
     && synthesisGovernanceAvailable;
 
-  const saveReview = () => {
+  const saveReview = async () => {
     if (!canSave) return;
     const selectedSourceIds = summary?.draft.points
       .filter((point) => selectedPointIds.includes(point.id))
       .flatMap((point) => point.sourceIds) ?? [];
-    const artifact = recordGovernedArtifact({
-      patientId,
-      moduleId: 'clinical_synthesis',
-      status: 'reviewed',
-      sourceIds: selectedSourceIds,
-      content: JSON.stringify({ draftText, selectedPointIds }),
-    });
-    if (!artifact) {
-      onNotify?.('A síntese não foi salva porque o contexto, os dados ou a diretriz do módulo não estão disponíveis.');
-      return;
-    }
-    setHasUnsavedChanges(false);
-    onNotify?.(`Resumo longitudinal revisado e salvo como artefato v${artifact.version} sob ${artifact.governance.knowledgeReference} v${artifact.governance.knowledgeVersion}.`);
+    const content = JSON.stringify({ draftText, selectedPointIds });
+    const payload = `${revisionNumber}:${content}`;
+    if (attemptRef.current?.payload !== payload) attemptRef.current = { payload, id: crypto.randomUUID() };
+    setSaving(true);
+    setSaveError('');
+    try {
+      const artifact = await recordGovernedArtifact({
+        patientId,
+        encounterId,
+        baseVersion: revisionNumber,
+        requestId: attemptRef.current.id,
+        moduleId: 'clinical_synthesis',
+        status: 'reviewed',
+        sourceIds: selectedSourceIds,
+        content,
+      });
+      if (!artifact) {
+        throw new Error('A síntese não foi salva porque o contexto, os dados ou a diretriz do módulo não estão disponíveis.');
+      }
+      setSavedArtifact(artifact);
+      dirtyRef.current = false;
+      setHasUnsavedChanges(false);
+      setComparisonText('');
+      onNotify?.(`Resumo longitudinal revisado e salvo como artefato v${artifact.version} sob ${artifact.governance.knowledgeReference} v${artifact.governance.knowledgeVersion}.`);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Não foi possível salvar. Seu texto continua no editor.');
+    } finally { setSaving(false); }
   };
 
   return (
@@ -335,11 +399,19 @@ export function DoctorClinicalChangeSummary({
         </div>
 
         <label htmlFor="clinical-change-draft" className="mt-5 block text-sm font-bold text-[#071a3a]">Resumo assistido editável</label>
+        {loading ? <p role="status" className="mt-2 text-sm text-[#61718a]">Recuperando a última revisão salva…</p> : null}
+        {legacySynthesisArtifact && !savedArtifact && !loading ? <p className="mt-2 text-sm text-[#775f2d]">A revisão antiga tem apenas metadados, sem texto recuperável. Confira e salve esta síntese para preservar o conteúdo completo.</p> : null}
+        {loadError || saveError ? <div role="alert" className="mt-3 rounded-xl border border-[#ead3a6] bg-[#fff8e9] p-4 text-sm text-[#775f2d]">
+          <p>{loadError || saveError}</p>
+          <button type="button" disabled={loading || saving} onClick={() => { setLoading(true); setLoadAttempt((attempt) => attempt + 1); }} className="mt-2 min-h-11 font-bold underline">Recarregar revisão salva sem apagar meu texto</button>
+        </div> : null}
+        {comparisonText ? <details open className="mt-3 rounded-xl border border-[#dbe4f0] p-4 text-sm text-[#405675]"><summary className="cursor-pointer font-bold">Revisão salva v{revisionNumber} — compare antes de salvar uma nova versão</summary><p className="mt-3 whitespace-pre-wrap">{comparisonText}</p></details> : null}
         {!synthesisGovernanceAvailable ? <p className="mt-2 rounded-xl border border-[#ead3a6] bg-[#fff8e9] p-3 text-xs font-semibold leading-5 text-[#775f2d]">A edição de uma nova síntese está bloqueada enquanto o contexto do paciente, os dados exigidos ou a diretriz do módulo não estiverem disponíveis.</p> : null}
         <textarea
           id="clinical-change-draft"
           value={draftText}
-          disabled={!synthesisGovernanceAvailable}
+          disabled={!synthesisGovernanceAvailable || loading || saving || Boolean(loadError)}
+          maxLength={20_000}
           onChange={(event) => {
             setDraftText(event.target.value);
             markChanged();
@@ -359,7 +431,7 @@ export function DoctorClinicalChangeSummary({
                   <input
                     type="checkbox"
                     checked={selected}
-                    disabled={!synthesisGovernanceAvailable}
+                    disabled={!synthesisGovernanceAvailable || loading || saving || Boolean(loadError)}
                     onChange={() => togglePoint(point.id)}
                     className="mt-1 size-5 shrink-0 accent-[#124da0]"
                   />
@@ -387,7 +459,7 @@ export function DoctorClinicalChangeSummary({
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#03132d] px-5 text-sm font-bold text-white transition-colors hover:bg-[#082553] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#124da0] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-[#91a0b5]"
           >
             {isReviewSaved ? <CheckCircle aria-hidden="true" size={19} weight="fill" /> : <ShieldCheck aria-hidden="true" size={19} />}
-            {isReviewSaved
+            {saving ? 'Salvando revisão…' : isReviewSaved
               ? `Artefato salvo · v${revisionNumber}`
               : synthesisGovernanceAvailable
                 ? 'Salvar síntese revisada'

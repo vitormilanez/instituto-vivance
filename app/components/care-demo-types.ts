@@ -183,7 +183,7 @@ export interface CareFollowUpConfiguration {
   configuredBy: string;
   configuredAt: string;
   configuredAtIso: string;
-  retentionMode: 'session-only';
+  retentionMode: 'session-only' | 'shared-care';
   contactMode: 'manual-only';
 }
 

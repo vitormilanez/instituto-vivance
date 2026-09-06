@@ -33,6 +33,7 @@ export function DoctorFollowUpWorkspace({
     activeFollowUpConfiguration?.cadence ?? 'every-three-days',
   );
   const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
 
   const latestContact = activeFollowUpConfiguration
     ? [...followUpContacts].reverse().find(
@@ -46,13 +47,15 @@ export function DoctorFollowUpWorkspace({
   );
   const awaitingCheckIn = Boolean(activeFollowUpConfiguration && !checkInAfterConfiguration);
 
-  const runAction = (action: () => void, successMessage: string) => {
+  const runAction = async (action: () => unknown | Promise<unknown>, successMessage: string) => {
+    if (busy) return;
+    setBusy(true);
     try {
-      action();
+      await action();
       setMessage(successMessage);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Não foi possível concluir esta ação.');
-    }
+    } finally { setBusy(false); }
   };
 
   return (
@@ -68,7 +71,7 @@ export function DoctorFollowUpWorkspace({
       </div>
 
       <div className="mt-4 rounded-2xl border border-[#dfe8e3] bg-white p-4">
-        <fieldset disabled={!latestPublishedCarePlan}>
+        <fieldset disabled={!latestPublishedCarePlan || busy}>
           <legend className="text-sm font-bold text-[#294940]">Frequência demonstrativa</legend>
           <p className="mt-1 text-xs leading-5 text-[#698078]">Vinculada somente à versão publicada do plano. Não cria monitoramento de urgência.</p>
           <div className="mt-3 grid gap-2 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
@@ -100,7 +103,7 @@ export function DoctorFollowUpWorkspace({
               if (!latestPublishedCarePlan) return;
               runAction(
                 () => configureFollowUp(latestPublishedCarePlan.id, selectedCadence),
-                'Cadência demonstrativa registrada na sessão.',
+                'Cadência registrada no acompanhamento compartilhado.',
               );
             }}
             className="mt-3 min-h-11 w-full cursor-pointer rounded-xl bg-[#17372f] px-4 text-sm font-bold text-white transition-colors hover:bg-[#0f2d26] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0b7b68] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-[#9aaba5]"
@@ -110,7 +113,7 @@ export function DoctorFollowUpWorkspace({
         </fieldset>
         {activeFollowUpConfiguration ? (
           <p className="mt-3 text-[11px] leading-5 text-[#698078]">
-            Versão {activeFollowUpConfiguration.version} · plano v{activeFollowUpConfiguration.planVersion} · retenção somente nesta sessão · contato sempre manual.
+            Versão {activeFollowUpConfiguration.version} · plano v{activeFollowUpConfiguration.planVersion} · {activeFollowUpConfiguration.retentionMode === 'shared-care' ? 'salva no acompanhamento' : 'configuração ilustrativa'} · contato sempre manual.
           </p>
         ) : null}
       </div>
@@ -120,7 +123,7 @@ export function DoctorFollowUpWorkspace({
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.08em] text-[#789087]">Leitura da fonte</p>
             <p className="mt-1 text-sm font-bold text-[#294940]">
-              {latestCheckIn ? `Check-in v${latestCheckIn.version}` : 'Nenhum check-in nesta sessão'}
+              {latestCheckIn ? `Check-in v${latestCheckIn.version}` : 'Nenhum check-in neste acompanhamento'}
             </p>
           </div>
           <Status tone={latestCheckInReview ? 'green' : latestCheckIn ? 'amber' : 'gray'}>

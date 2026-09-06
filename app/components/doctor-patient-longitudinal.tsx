@@ -16,6 +16,7 @@ import {
 } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
 import { useCareDemo } from './care-demo-store';
+import { publishedPlanLabel } from './care-workflow';
 import type { CareCheckIn } from './care-demo-types';
 import { AiDraftBadge, ClinicalLayerBadge } from './clinical';
 import {
@@ -27,6 +28,8 @@ import { DoctorAiPreparationWorkspace } from './doctor-ai-preparation-workspace'
 import { DoctorCareCycleSummary } from './doctor-care-cycle-summary';
 import { DoctorClinicalChangeSummary } from './doctor-clinical-change-summary';
 import { DoctorExamReviewPanel } from './doctor-exam-review-panel';
+import { CareSubmissionInbox } from './care-submission-inbox';
+import { CareSyncStatus } from './shared-care-context';
 import { DEFAULT_PATIENT_ID, doctorDemoCohortSummary, getDefaultEncounterId } from './demo-routes';
 import { LongitudinalDossier } from './longitudinal-dossier';
 import {
@@ -130,6 +133,7 @@ type ClinicalDocument = PatientDocument;
 const clinicalDocumentMonths = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
 function formatClinicalDocumentDate(value: string) {
+  if (!value) return 'Coleta não informada';
   const [year, month, day] = value.split('-').map(Number);
   if (!year || !month || !day || !clinicalDocumentMonths[month - 1]) return value;
   return `${day} ${clinicalDocumentMonths[month - 1]} ${year}`;
@@ -403,6 +407,7 @@ export function PatientLongitudinalWorkspace({
   const [activeTab, setActiveTab] = useState<PatientTab>('overview');
   const [scenario, setScenario] = useState<DemoScenario>('content');
   const { patientContexts } = useClinicalIntelligence();
+  const { latestPublishedCarePlan } = useCareDemo(patient.id, patient.nextEncounterId);
   const patientAiContext = patientContexts.find((context) => context.patientId === patient.id);
   const aiContextStatus = patientAiContext ? aiContextPresentation[patientAiContext.status] : null;
 
@@ -524,7 +529,7 @@ export function PatientLongitudinalWorkspace({
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-[#dbe4f0] pt-3 text-xs text-[#61718a]">
-            <span><strong className="text-[#071a3a]">Plano:</strong> {isPendingPatient ? 'Ainda não publicado' : 'v2 publicado'}</span>
+            <span><strong className="text-[#071a3a]">Plano:</strong> {publishedPlanLabel(latestPublishedCarePlan)}</span>
             <span className="hidden sm:inline"><strong className="text-[#071a3a]">Última consulta:</strong> {isPendingPatient ? 'Não realizada' : '28 jul · 09:30'}</span>
             <span><strong className="text-[#071a3a]">Próxima:</strong> {patient.nextConsultation}</span>
           </div>
@@ -605,7 +610,7 @@ function OverviewPanel({
   const [aiDetailsOpen, setAiDetailsOpen] = useState(false);
   const isPendingPatient = patient.id === 'pac-demo-006';
   const encounterId = getDefaultEncounterId(patient.id);
-  const { hydrated: careDemoHydrated, checkIns, latestCheckIn } = useCareDemo(patient.id, encounterId);
+  const { hydrated: careDemoHydrated, checkIns, latestCheckIn, latestPublishedCarePlan } = useCareDemo(patient.id, encounterId);
   const { hydrated: clinicalIntelligenceHydrated, exams } = useClinicalIntelligence();
   const careDemo = getPatientCareDemo(patient.id, patient.name);
   const patientExams = exams.filter((exam) => exam.patientId === patient.id);
@@ -709,6 +714,8 @@ function OverviewPanel({
         </div>
       </section>
 
+      <CareSyncStatus patientId={patient.id} encounterId={getDefaultEncounterId(patient.id)} />
+      <CareSubmissionInbox doctor patientId={patient.id} encounterId={getDefaultEncounterId(patient.id)} />
       <DoctorExamReviewPanel patientId={patient.id} onNotify={onNotify} />
 
       {patient.id === DEFAULT_PATIENT_ID ? (
@@ -747,7 +754,7 @@ function OverviewPanel({
                 ['Objetivo atual', patient.focus],
                 ['Meta demonstrativa', `${careDemo.goal.label} · ${careDemo.goal.target}`],
                 ['Progresso da meta', careDemo.goal.progress],
-                ['Plano vigente', isPendingPatient ? 'Ainda não publicado' : 'v2 · publicado em 28 jul'],
+                ['Plano vigente', publishedPlanLabel(latestPublishedCarePlan)],
                 ['Último contato', patient.lastContact],
                 ['Próxima consulta', patient.nextConsultation],
               ].map(([label, value]) => <div key={label} className="border-t border-[#e7edf5] py-3"><dt className="text-xs font-semibold text-[#61718a]">{label}</dt><dd className="mt-1 text-sm font-bold text-[#405675]">{value}</dd>{label === 'Progresso da meta' ? <p className="mt-1 text-xs leading-5 text-[#61718a]">{careDemo.goal.source}</p> : null}</div>)}

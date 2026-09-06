@@ -153,3 +153,78 @@ export const messageReceipts = sqliteTable(
     ),
   ],
 );
+
+export const clinicalSynthesisVersions = sqliteTable('clinical_synthesis_versions', {
+  id: text('id').primaryKey(),
+  relationshipId: text('relationship_id').notNull().references(() => careRelationships.id, { onDelete: 'restrict' }),
+  patientId: text('patient_id').notNull(),
+  encounterId: text('encounter_id').notNull(),
+  version: integer('version').notNull(),
+  requestId: text('request_id').notNull(),
+  createdBy: text('created_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  artifact: text('artifact').notNull(),
+  createdAt: text('created_at').notNull(),
+}, (table) => [
+  uniqueIndex('synthesis_scope_version_unique').on(table.relationshipId, table.encounterId, table.version),
+  uniqueIndex('synthesis_request_unique').on(table.createdBy, table.requestId),
+  check('synthesis_positive_version', sql`${table.version} > 0`),
+]);
+
+export const careCycles = sqliteTable('care_cycles', {
+  id: text('id').primaryKey(),
+  relationshipId: text('relationship_id').notNull().references(() => careRelationships.id, { onDelete: 'restrict' }),
+  encounterId: text('encounter_id').notNull(),
+  revision: integer('revision').notNull().default(0),
+  data: text('data').notNull(),
+  updatedAt: text('updated_at').notNull(),
+}, (table) => [uniqueIndex('care_cycle_scope_unique').on(table.relationshipId, table.encounterId)]);
+
+export const careCycleMutations = sqliteTable('care_cycle_mutations', {
+  id: text('id').primaryKey(),
+  cycleId: text('cycle_id').notNull().references(() => careCycles.id, { onDelete: 'restrict' }),
+  actorId: text('actor_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  requestId: text('request_id').notNull(),
+  command: text('command').notNull(),
+  inputHash: text('input_hash').notNull(),
+  result: text('result').notNull(),
+  createdAt: text('created_at').notNull(),
+}, (table) => [uniqueIndex('care_cycle_request_unique').on(table.actorId, table.requestId)]);
+
+export const careFiles = sqliteTable('care_files', {
+  id: text('id').primaryKey(),
+  relationshipId: text('relationship_id').notNull().references(() => careRelationships.id, { onDelete: 'restrict' }),
+  encounterId: text('encounter_id').notNull(),
+  uploadedBy: text('uploaded_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  name: text('name').notNull(), mediaType: text('media_type').notNull(),
+  size: integer('size').notNull(), objectKey: text('object_key').notNull(),
+  createdAt: text('created_at').notNull(),
+}, (table) => [index('care_files_scope').on(table.relationshipId, table.encounterId)]);
+
+// Clinic policy is shared; patient context and authorization remain relationship-scoped.
+export const clinicalPolicyMembers = sqliteTable('clinical_policy_members', {
+  userId: text('user_id').primaryKey().references(() => users.id, { onDelete: 'restrict' }),
+  clinicId: text('clinic_id').notNull(),
+});
+
+export const clinicalPolicyWorkspaces = sqliteTable('clinical_policy_workspaces', {
+  clinicId: text('clinic_id').primaryKey(),
+  revision: integer('revision').notNull(),
+  activeVersion: integer('active_version').notNull(),
+  data: text('data').notNull(),
+});
+
+export const clinicalPolicyVersions = sqliteTable('clinical_policy_versions', {
+  clinicId: text('clinic_id').notNull().references(() => clinicalPolicyWorkspaces.clinicId, { onDelete: 'restrict' }),
+  version: integer('version').notNull(),
+  snapshot: text('snapshot').notNull(),
+}, (table) => [primaryKey({ columns: [table.clinicId, table.version] })]);
+
+export const clinicalPatientPermissions = sqliteTable('clinical_patient_permissions', {
+  relationshipId: text('relationship_id').primaryKey().references(() => careRelationships.id, { onDelete: 'restrict' }),
+  authorized: integer('authorized', { mode: 'boolean' }).notNull().default(false),
+  paused: integer('paused', { mode: 'boolean' }).notNull().default(false),
+  revision: integer('revision').notNull().default(0),
+  updatedBy: text('updated_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  updatedAt: text('updated_at').notNull(),
+  basis: text('basis').notNull(),
+});
