@@ -7,10 +7,14 @@ export function WorkspaceShell({
   role,
   patientId = DEFAULT_PATIENT_ID,
   children,
+  displayName,
+  demo = true,
 }: {
   role: Role;
   patientId?: string;
   children: ReactNode;
+  displayName?: string;
+  demo?: boolean;
 }) {
   return (
     <div className={role === 'doctor' ? 'vivance-app-shell min-h-screen text-[#071a3a]' : 'min-h-screen bg-[#f4f7f5] text-[#17372f]'}>
@@ -20,7 +24,7 @@ export function WorkspaceShell({
       >
         Ir para o conteúdo
       </a>
-      {role === 'doctor' ? <DoctorChrome /> : <RoleHeader role={role} patientId={patientId} />}
+      {role === 'doctor' ? <DoctorChrome displayName={displayName} demo={demo} /> : <RoleHeader role={role} patientId={patientId} />}
       {children}
     </div>
   );

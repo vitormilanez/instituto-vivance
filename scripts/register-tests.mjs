@@ -7,6 +7,7 @@ import ts from 'typescript';
 const root = new URL('../', import.meta.url);
 registerHooks({
   resolve(specifier, context, nextResolve) {
+    if (specifier === 'next/headers') return nextResolve('next/headers.js', context);
     // Only the Cloudflare binding is replaced. Tests execute the production SQL/services.
     if (specifier === '@/db') return { url: new URL('tests/helpers/d1.ts', root).href, shortCircuit: true };
     if (specifier.startsWith('@/') || specifier.startsWith('.')) {

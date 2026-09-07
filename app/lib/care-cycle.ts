@@ -12,6 +12,7 @@ import { synthesisFingerprint } from './clinical-synthesis-contract';
 export class CareError extends Error { constructor(message: string, public status = 400) { super(message); } }
 export interface CareAccess { id: string; patientId: string; professionalId: string; patientUserId: string }
 export async function careAccess(user: AppUser, patientId?: string) {
+  if (user.role !== 'patient' && user.role !== 'professional') return [];
   const result = await getD1().prepare(`SELECT id, patient_profile_id AS patientId,
     professional_user_id AS professionalId, patient_user_id AS patientUserId FROM care_relationships
     WHERE status = 'active' AND (professional_user_id = ? OR patient_user_id = ?)
@@ -25,16 +26,21 @@ export function seedCycle(patientId: string, encounterId: string): CareCycle {
     exams: initialExams.filter((exam) => exam.patientId === patientId), submissions: [],
   };
 }
+async function initialCycle(access: CareAccess, encounterId: string): Promise<CareCycle> {
+  const previous = await getD1().prepare("SELECT id FROM care_relationships WHERE patient_user_id = ? AND status = 'inactive' LIMIT 1").bind(access.patientUserId).first();
+  if (!previous) return seedCycle(access.patientId, encounterId);
+  return { patientId: access.patientId, encounterId, revision: 0, care: Object.fromEntries(sharedCareKeys.map(key => [key, []])) as unknown as CareCycle['care'], exams: [], submissions: [] };
+}
 export async function loadCycle(access: CareAccess, encounterId: string = getDefaultEncounterId(access.patientId)) {
   if (!encounterBelongsToPatient(access.patientId, encounterId)) throw new CareError('Consulta não pertence a este acompanhamento.', 403);
   const database = getD1();
   await database.prepare(`INSERT INTO care_cycles (id, relationship_id, encounter_id, revision, data, updated_at)
     VALUES (?, ?, ?, 0, ?, ?) ON CONFLICT(relationship_id, encounter_id) DO NOTHING`)
-    .bind(crypto.randomUUID(), access.id, encounterId, JSON.stringify(seedCycle(access.patientId, encounterId)), new Date().toISOString()).run();
+    .bind(crypto.randomUUID(), access.id, encounterId, JSON.stringify(await initialCycle(access, encounterId)), new Date().toISOString()).run();
   const row = await database.prepare(`SELECT id, revision, data FROM care_cycles WHERE relationship_id = ? AND encounter_id = ?`)
     .bind(access.id, encounterId).first<{ id: string; revision: number; data: string }>();
   if (!row) throw new CareError('Acompanhamento indisponível.', 503);
-  return { id: row.id, cycle: { ...JSON.parse(row.data), revision: row.revision } as CareCycle };
+  return { id: row.id, cycle: { ...JSON.parse(row.data), revision: row.revision, relationshipId: access.id } as CareCycle };
 }
 const patientCommands = new Set(['submitCheckIn', 'confirmCarePlanAction', 'sharePatientExam', 'submitInformation']);
 const planKeys = new Set(['title','objective','introduction','actions','monitoring','supportNotice','sourceDescription','sourceMode','sourceReviewId','sourceClosureId','sourceClosureVersion','sourceItemIds']);
@@ -45,6 +51,7 @@ function text(value: unknown, label: string, min = 1, max = 8000) {
 
 // Pure transition: the API controls identity, original fields, time and version.
 export function transitionCycle(cycle: CareCycle, user: AppUser, mutation: CycleMutation, attachment: CareFile | null = null) {
+  if (user.role !== 'patient' && user.role !== 'professional') throw new CareError('Perfil sem acesso clínico.', 403);
   if (user.role === 'patient' && !patientCommands.has(mutation.command)) throw new CareError('Esta ação exige revisão do médico responsável.', 403);
   if (user.role === 'professional' && patientCommands.has(mutation.command)) throw new CareError('Este envio pertence ao perfil da paciente.', 403);
   const next = structuredClone(cycle);
@@ -168,6 +175,7 @@ export function transitionCycle(cycle: CareCycle, user: AppUser, mutation: Cycle
 export async function mutateCycle(user: AppUser, mutation: CycleMutation) {
   const access = (await careAccess(user, mutation.patientId))[0];
   if (!access) throw new CareError('Vínculo de acompanhamento não autorizado.', 403);
+  if (mutation.relationshipId && mutation.relationshipId !== access.id) throw new CareError('O médico responsável mudou. Atualize o acompanhamento antes de enviar.', 409);
   const { id, cycle } = await loadCycle(access, mutation.encounterId);
   const database = getD1();
   const inputHash = await synthesisFingerprint(JSON.stringify({ ...mutation, requestId: undefined }));

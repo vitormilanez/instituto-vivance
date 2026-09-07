@@ -10,5 +10,5 @@ export default async function DoctorLayout({ children }: { children: ReactNode }
   if (!user) redirect('/');
   if (user.role !== 'professional') redirect(homeForUser(user));
 
-  return <WorkspaceShell role="doctor">{children}</WorkspaceShell>;
+  return <WorkspaceShell role="doctor" displayName={user.displayName} demo={user.id === 'usr-dr-guilherme'}>{children}</WorkspaceShell>;
 }

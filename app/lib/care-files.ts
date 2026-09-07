@@ -49,6 +49,7 @@ export async function storeCareFile(user: AppUser, patientId: string, encounterI
 }
 
 export async function readCareFile(user: AppUser, id: string) {
+  if (user.role !== 'patient' && user.role !== 'professional') throw new CareError('Documento não encontrado.', 404);
   const file = await getD1().prepare(`SELECT f.id, f.name, f.media_type AS mediaType, f.size, f.object_key AS objectKey,
     f.uploaded_by AS uploadedBy, r.patient_profile_id AS patientId, f.encounter_id AS encounterId,
     r.professional_user_id AS professionalId, r.patient_user_id AS patientUserId

@@ -15,7 +15,7 @@ export const users = sqliteTable(
     id: text('id').primaryKey(),
     username: text('username').notNull(),
     displayName: text('display_name').notNull(),
-    role: text('role', { enum: ['professional', 'patient'] }).notNull(),
+    role: text('role', { enum: ['professional', 'patient', 'admin'] }).notNull(),
     patientId: text('patient_id'),
     passwordHash: text('password_hash').notNull(),
     passwordSalt: text('password_salt').notNull(),
@@ -23,14 +23,18 @@ export const users = sqliteTable(
     status: text('status', { enum: ['active', 'blocked'] }).notNull().default('active'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull(),
+    email: text('email').notNull().default(''),
+    phone: text('phone').notNull().default(''),
+    professionalRegistration: text('professional_registration').notNull().default(''),
+    revision: integer('revision').notNull().default(0),
   },
   (table) => [
     uniqueIndex('users_username_unique').on(table.username),
-    check('users_role_check', sql`${table.role} in ('professional', 'patient')`),
+    check('users_role_check', sql`${table.role} in ('professional', 'patient', 'admin')`),
     check('users_status_check', sql`${table.status} in ('active', 'blocked')`),
     check(
       'users_patient_scope_check',
-      sql`(${table.role} = 'patient' and ${table.patientId} is not null) or (${table.role} = 'professional' and ${table.patientId} is null)`,
+      sql`(${table.role} = 'patient' and ${table.patientId} is not null) or (${table.role} in ('professional', 'admin') and ${table.patientId} is null)`,
     ),
   ],
 );
@@ -71,8 +75,8 @@ export const careRelationships = sqliteTable(
     uniqueIndex('care_relationships_professional_patient_unique').on(
       table.professionalUserId,
       table.patientUserId,
-    ),
-    uniqueIndex('care_relationships_patient_profile_unique').on(table.patientProfileId),
+    ).where(sql`${table.status} = 'active'`),
+    uniqueIndex('care_relationships_patient_profile_unique').on(table.patientProfileId).where(sql`${table.status} = 'active'`),
     index('idx_care_relationships_professional').on(table.professionalUserId, table.status),
     index('idx_care_relationships_patient').on(table.patientUserId, table.status),
     check('care_relationships_status_check', sql`${table.status} in ('active', 'inactive')`),
@@ -227,4 +231,15 @@ export const clinicalPatientPermissions = sqliteTable('clinical_patient_permissi
   updatedBy: text('updated_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
   updatedAt: text('updated_at').notNull(),
   basis: text('basis').notNull(),
+});
+
+export const adminEvents = sqliteTable('admin_events', {
+  id: text('id').primaryKey(), actorId: text('actor_id').notNull().references(() => users.id),
+  action: text('action').notNull(), subjectId: text('subject_id').notNull(),
+  detail: text('detail').notNull(), createdAt: text('created_at').notNull(),
+}, (table) => [index('admin_events_subject_time').on(table.subjectId, table.createdAt)]);
+
+export const instituteSettings = sqliteTable('institute_settings', {
+  id: text('id').primaryKey(), name: text('name').notNull(), contact: text('contact').notNull(),
+  hours: text('hours').notNull(), revision: integer('revision').notNull().default(0),
 });
