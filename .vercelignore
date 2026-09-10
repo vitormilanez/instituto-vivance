@@ -1,0 +1,11 @@
+# Keep documents, local state and test artifacts out of deployment uploads.
+.env*
+.wrangler/
+output/
+outputs/
+tmp/
+work/
+docs/
+tests/
+coverage/
+*.tsbuildinfo
