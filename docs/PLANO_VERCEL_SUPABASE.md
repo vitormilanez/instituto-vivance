@@ -16,7 +16,10 @@ Reaproveitar o produto atual, com APIs organizadas em módulos, banco real e nen
 - Perfil de destino: Next.js, Node.js 24.x.
 - Publicações de preview suspensas e comando de ignorar build configurado como `exit 0` enquanto o código depender do runtime anterior e de conteúdo simulado.
 - Login GitHub e autorização do aplicativo concluídos pelo titular. Repositório `vitormilanez/instituto-vivance` conectado ao projeto da VTR Consulting e confirmado pela API (`link.org`, `link.repo`, `link.productionBranch = main`) e pelo link Repository no painel. Nenhum deploy foi criado.
-- Supabase: conexão disponível; projeto antigo encontrado está inativo e não será reutilizado. Novo projeto Free em São Paulo depende da escolha da organização pelo titular.
+- Supabase: titular autorizou a organização `vitormilanez's Org` (`laamvjzeoppcwvvvrnlf`). Projeto novo `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`) criado no plano Free, São Paulo (`sa-east-1`), com custo de criação confirmado de US$ 0/mês e estado `ACTIVE_HEALTHY`.
+- Projeto Supabase antigo `rxnklgprwsrnfogkstjs` preservado, ainda inativo. O novo banco começou vazio: zero tabelas de negócio no schema `public`, zero usuários e zero buckets, verificados por consulta.
+- URL e chave publicável moderna do projeto novo configuradas na Vercel apenas em Development e Preview, também disponíveis nos arquivos locais ignorados pelo Git. Nenhuma variável do Supabase foi adicionada em Production. Valores de Development conferidos após download oficial da Vercel.
+- Endpoint de configuração de autenticação respondeu HTTP 200 com a chave publicável. A raiz REST de introspecção recusou essa chave com HTTP 401 (`Secret API key required`), como informa o próprio endpoint; nenhuma chave privilegiada foi adicionada para contornar essa restrição. A integração funcional do aplicativo ainda precisa ser implementada e testada.
 - Nenhuma aplicação foi publicada e nenhum dado de paciente foi transferido nesta etapa.
 
 Credenciais ficam somente no armazenamento local de autenticação, em `.env.local` ignorado pelo Git e nas variáveis do projeto. Não registrar tokens, senhas ou chaves neste documento.
@@ -57,7 +60,8 @@ Mudar apenas o comando de build, ocultar cards ou trocar nomes não resolve essa
 
 - Concluído: login GitHub e autorização do GitHub App oficial da Vercel.
 - Concluído: vínculo do repositório `instituto-vivance`, verificado na API e no painel.
-- Escolher organização e confirmar custo zero antes de criar o Supabase Free.
+- Concluído: organização autorizada pelo titular e projeto Supabase Free criado em São Paulo, após confirmação de custo zero.
+- Concluído: configuração Supabase em Development/Preview na Vercel, sem dados simulados no novo projeto e sem acesso de Production.
 - Manter projeto antigo, Cloudflare e dados existentes preservados.
 
 ### 2. Identidade e base multi-tenant
@@ -113,3 +117,5 @@ PostgreSQL, contratos de API e regras de negócio favorecem evolução. Auth, St
 - Publicação acessível e verificada, com commit e ambiente identificados.
 
 Conexão, branch e documento de planejamento não equivalem a migração ou homologação concluídas.
+
+Painéis: [Vercel — Instituto Vivance](https://vercel.com/vtr-consulting/instituto-vivance) e [Supabase — desenvolvimento](https://supabase.com/dashboard/project/oxuwrdjojsmgxoljqkuk).
