@@ -36,3 +36,9 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# Isolated native Next.js application
+apps/*/node_modules/
+apps/*/.next/
+apps/*/*.tsbuildinfo
+supabase/.temp/

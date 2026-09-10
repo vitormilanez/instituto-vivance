@@ -9,3 +9,26 @@ docs/
 tests/
 coverage/
 *.tsbuildinfo
+
+# Upload only the new app's runtime, not prototype data or local agent state.
+/app/
+/db/
+/drizzle/
+/public/
+/.agents/
+/.codex/
+/.codex_tmp/
+/.openai/
+/.impeccable/
+/.product-design/
+/supabase/
+/scripts/
+/.github/
+/*.md
+apps/web/AGENTS.md
+apps/web/CLAUDE.md
+apps/web/README.md
+*.pptx
+apps/web/node_modules/
+apps/web/.next/
+apps/web/tests/

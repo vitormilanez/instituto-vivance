@@ -6,6 +6,9 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "web:dev": "node scripts/vivance-web.mjs dev",
+    "web:build": "node scripts/vivance-web.mjs build",
+    "web:start": "node scripts/vivance-web.mjs start",
     "predev": "wrangler d1 migrations apply site-creator-d1 --local --config wrangler.jsonc",
     "dev": "vinext dev",
     "build": "vinext build",

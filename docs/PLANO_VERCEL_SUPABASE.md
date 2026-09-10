@@ -6,7 +6,19 @@ Decisão registrada em 10/09/2026. Este documento distingue configuração aplic
 
 Reaproveitar o produto atual, com APIs organizadas em módulos, banco real e nenhuma informação clínica simulada no ambiente de uso. Começar vazio e preencher apenas por cadastros autorizados. Fixtures são exclusivas dos testes automatizados, em banco isolado.
 
-## Configuração inicial
+## Estado atual — primeira fatia implementada
+
+- Aplicação Next.js nativa em `apps/web`, com dependências próprias fixadas e sem importação do protótipo da raiz. Marca e cores reaproveitadas; migração funcional incremental.
+- Login Supabase, seleção de clínica, cadastro demográfico paginado e APIs versionadas por módulo implementados. Histórico de alterações transacional disponível para administrador.
+- Schema de identidade/diretório aplicado apenas no Supabase de desenvolvimento. RLS, papéis, vínculos ativos e sessão não revogada são verificados no banco. Nenhuma clínica, usuário ou paciente foi inventado.
+- 20 testes aprovados em PostgreSQL efêmero e validações de entrada/fronteira do runtime; tipos, lint e build nativo aprovados. Login e rejeição de credenciais inválidas verificados no navegador; APIs negam acesso anônimo.
+- Vercel configurada para `apps/web`, sem incluir arquivos externos à raiz da aplicação. Publicações automáticas continuam desligadas; uma prévia manual protegida desta fatia pode ser usada para validação, sem promoção para produção.
+- Primeiro administrador depende do e-mail confirmado pelo titular. Fluxo autenticado completo, convites/recuperação, jornadas clínicas e IA ainda pendentes; sem homologação para atendimento.
+- Verificador de segurança Supabase sem alertas. Performance informa apenas índices ainda não utilizados no banco vazio; mantidos por sustentarem consultas por clínica. [Explicação do aviso de índice não utilizado](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index).
+
+Detalhes e execução: [README da aplicação](../apps/web/README.md).
+
+## Configuração inicial — registro histórico da preparação
 
 - Repositório existente: `vitormilanez/instituto-vivance`.
 - Trabalho isolado: branch `codex/vercel-supabase-foundation`, criada do commit `b68c397`.

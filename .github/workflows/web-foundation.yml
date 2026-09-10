@@ -1,0 +1,28 @@
+name: Vivance native web
+on:
+  pull_request:
+    paths: ['apps/web/**', 'supabase/migrations/**', '.github/workflows/web-foundation.yml']
+  push:
+    branches: ['codex/vercel-supabase-foundation']
+    paths: ['apps/web/**', 'supabase/migrations/**', '.github/workflows/web-foundation.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
