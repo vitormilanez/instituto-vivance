@@ -27,6 +27,8 @@ Na raiz, execute `npm run web:dev -- --hostname 127.0.0.1 --port 3010`. Para com
 
 Vercel: Root Directory `apps/web`, framework Next.js, Node.js 24.x. `sourceFilesOutsideRootDirectory=false`. Variáveis Supabase somente em Development/Preview. Publicação automática desabilitada nesta etapa; prévias manuais não significam liberação clínica.
 
+**Publicação online pendente:** no primeiro envio a CLI 59.15.1 atribuiu `target=production` mesmo com `--target preview`. Os dois envios foram removidos; nenhum deployment ficou ativo. Resolver esse comportamento de bootstrap antes de tentar novamente. A aplicação permanece disponível localmente, não em produção.
+
 ## Verificar
 
 Dentro de `apps/web`:

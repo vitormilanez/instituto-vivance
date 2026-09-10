@@ -1,5 +1,7 @@
 # Instituto VIVANCE
 
+**Migração em andamento:** a nova aplicação Vercel/Supabase está em [apps/web](apps/web/README.md), sem dados de demonstração no runtime. Para iniciar essa versão, use `npm run web:dev` após configurar as dependências e o ambiente descritos no README dela. O restante deste documento descreve o protótipo Cloudflare, preservado como referência; suas funcionalidades não devem ser confundidas com a fatia já migrada.
+
 Protótipo de uma plataforma de cuidado contínuo para emagrecimento e envelhecimento saudável. O produto organiza a jornada antes, durante e depois da consulta, reduz a fragmentação das informações e usa IA para preparar contexto, estruturar acompanhamentos e destacar situações que merecem revisão do médico.
 
 Versão publicada: https://lume-saude-prototipo.vitormilanez.chatgpt.site
