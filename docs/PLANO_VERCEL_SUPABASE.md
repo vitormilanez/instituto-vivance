@@ -15,7 +15,7 @@ Reaproveitar o produto atual, com APIs organizadas em módulos, banco real e nen
 - Projeto `instituto-vivance` criado nessa equipe e vinculado à cópia local.
 - Perfil de destino: Next.js, Node.js 24.x.
 - Publicações de preview suspensas e comando de ignorar build configurado como `exit 0` enquanto o código depender do runtime anterior e de conteúdo simulado.
-- Conexão com GitHub pendente: Vercel retornou `You need to add a Login Connection to your GitHub account first`.
+- Login com GitHub conectado pelo titular. A associação do repositório continua pendente: a API da Vercel confirmou `To link a GitHub repository, you need to install the GitHub integration first` e indicou `https://github.com/apps/vercel`. Autorizar o aplicativo apenas para `vitormilanez/instituto-vivance`, depois repetir e verificar o vínculo.
 - Supabase: conexão disponível; projeto antigo encontrado está inativo e não será reutilizado. Novo projeto Free em São Paulo depende da escolha da organização pelo titular.
 - Nenhuma aplicação foi publicada e nenhum dado de paciente foi transferido nesta etapa.
 
@@ -55,7 +55,7 @@ Mudar apenas o comando de build, ocultar cards ou trocar nomes não resolve essa
 
 ### 1. Conexões e preparação
 
-- Autorizar GitHub nas conexões pessoais da conta Vercel da VTR Consulting.
+- Login GitHub autorizado; falta instalar/autorizar o GitHub App oficial da Vercel para o repositório.
 - Vincular apenas o repositório `instituto-vivance`.
 - Escolher organização e confirmar custo zero antes de criar o Supabase Free.
 - Manter projeto antigo, Cloudflare e dados existentes preservados.
