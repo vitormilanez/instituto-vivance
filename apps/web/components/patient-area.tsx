@@ -34,11 +34,13 @@ export function PatientArea({
   base,
   appointments = [],
   currentTime,
+  latestPublication=null,
 }: {
   section: PatientSection;
   base: string;
   appointments?: Appointment[];
   currentTime: string;
+  latestPublication?:{title:string;revision:number}|null;
 }) {
   const nextAppointment = appointments.find(
     (appointment) =>
@@ -134,12 +136,11 @@ export function PatientArea({
             <div className="patient-followup-note">
               <strong>Orientações médicas</strong>
               <p>
-                Somente planos revisados e publicados pela equipe aparecerão
-                nesta área.
+                {latestPublication?`${latestPublication.title} · Revisão ${latestPublication.revision} publicada.`:"Nenhum plano publicado disponível. Quando o médico publicar suas orientações, elas aparecerão aqui."}
               </p>
             </div>
-            <Link className="text-action" href={`${base}/cuidado`}>
-              Abrir meu cuidado
+            <Link className="text-action" href={`${base}/plano`}>
+              Ver orientações médicas
             </Link>
           </section>
         </div>
@@ -154,7 +155,7 @@ export function PatientArea({
               >
                 <strong>{action.label}</strong>
                 <span>{action.text}</span>
-                <span className="action-state">Conhecer a área</span>
+                <span className="action-state">{action.slug==="plano"?"Abrir orientações":"Conhecer a área"}</span>
               </Link>
             ))}
           </div>
@@ -221,7 +222,7 @@ export function PatientArea({
                     <strong>{item.title}</strong>
                     <span>{item.description}</span>
                   </Link>
-                  <span className="quiet-label">Em desenvolvimento</span>
+                  <span className="quiet-label">{["plano","consultas"].includes(item.slug)?"Disponível":"Em desenvolvimento"}</span>
                 </li>
               ))}
           </ul>

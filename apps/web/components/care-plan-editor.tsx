@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import type { PlanDetail } from "@/modules/care-plans/service";
 import { planFields, type PlanContent } from "@/modules/care-plans/validation";
 import { clinicalTime } from "./encounter-editor";
+import { PlanPublication } from "./plan-publication";
 export const planLabels: Record<string, string> = {
   draft: "Rascunho",
   in_review: "Em revisão médica",
-  approved: "Aprovado · interno",
+  approved: "Aprovado",
 };
 function contentOf(p: PlanContent): PlanContent {
   return {
@@ -126,7 +127,7 @@ export function CarePlanEditor({ initial }: { initial: PlanDetail }) {
       setConfirmed(false);
       setNotice(
         status === "approved"
-          ? "Revisão aprovada. O plano continua interno e não foi publicado ao paciente."
+          ? "Revisão aprovada. Esta revisão ainda não foi publicada ao paciente."
           : status === "in_review"
             ? "Confira o conteúdo salvo antes de aprovar."
             : p.status === "approved"
@@ -166,7 +167,7 @@ export function CarePlanEditor({ initial }: { initial: PlanDetail }) {
       <dl className="encounter-context-strip">
         <div>
           <dt>Visibilidade</dt>
-          <dd>Somente equipe vinculada</dd>
+          <dd>{detail.currentPublication ? `Revisão ${detail.currentPublication.revision} publicada` : "Sem publicação ao paciente"}</dd>
         </div>
         <div>
           <dt>Último salvamento</dt>
@@ -198,8 +199,8 @@ export function CarePlanEditor({ initial }: { initial: PlanDetail }) {
                   : "Plano aprovado"}
             </h2>
             <p>
-              Aprovar registra a decisão médica. A publicação ao paciente será
-              uma etapa separada.
+              Registro de trabalho da equipe vinculada. Aprovar não publica;
+              a publicação ao paciente exige confirmação separada abaixo.
             </p>
           </div>
           <span role="status" className="record-save-state">
@@ -340,7 +341,8 @@ export function CarePlanEditor({ initial }: { initial: PlanDetail }) {
           </p>
         )}
       </section>
-      <section className="panel clinical-history-panel">
+    <PlanPublication key={`${p.version}:${detail.currentPublication?.id??"none"}`} detail={detail} locked={pending||dirty} onUpdated={next=>setDetail(previous=>({...previous,publications:next.publications,currentPublication:next.currentPublication,publicationPage:next.publicationPage,hasMorePublications:next.hasMorePublications}))}/>
+    <section className="panel clinical-history-panel">
         <div className="section-heading">
           <div>
             <h2>Histórico preservado</h2>

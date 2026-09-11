@@ -46,10 +46,10 @@ export async function listPlans(id: string, pageInput?: string) {
     hasNext: (data?.length ?? 0) > 20,
   };
 }
-export async function loadPlan(id: string, planId: string, pageInput?: string) {
+export async function loadPlan(id: string, planId: string, pageInput?: string, publicationPageInput?:string) {
   const clinicId = tenantId(id),
     recordId = tenantId(planId),
-    page = planPage(pageInput);
+    page = planPage(pageInput), publicationPage=planPage(publicationPageInput);
   const { client, clinic, user } = await requireClinic(clinicId, [
     "doctor",
     "nurse",
@@ -71,6 +71,15 @@ export async function loadPlan(id: string, planId: string, pageInput?: string) {
     .order("version", { ascending: false })
     .range((page - 1) * 10, page * 10);
   if (history.error) failed(history.error.code);
+  const [publicationHistory,currentPublication]=await Promise.all([
+    client.from("care_plan_publications").select("*,care_plan_receipts(acknowledged_at)")
+      .eq("tenant_id",clinicId).eq("plan_id",recordId).order("published_at",{ascending:false}).order("id")
+      .range((publicationPage-1)*20,publicationPage*20),
+    client.from("care_plan_publications").select("*,care_plan_receipts(acknowledged_at)")
+      .eq("tenant_id",clinicId).eq("plan_id",recordId).eq("status","published").maybeSingle()
+  ]);
+  if(publicationHistory.error)failed(publicationHistory.error.code);
+  if(currentPublication.error)failed(currentPublication.error.code);
   return {
     clinic,
     plan: data,
@@ -78,6 +87,9 @@ export async function loadPlan(id: string, planId: string, pageInput?: string) {
     page,
     hasNext: (history.data?.length ?? 0) > 10,
     canEdit: clinic.role === "doctor" && data.doctor_id === user.id,
+    publications:(publicationHistory.data??[]).slice(0,20),
+    currentPublication:currentPublication.data,
+    publicationPage,hasMorePublications:(publicationHistory.data?.length??0)>20,
   };
 }
 export async function newPlanContext(id: string, input: unknown) {

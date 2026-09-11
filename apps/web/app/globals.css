@@ -2254,3 +2254,7 @@ button.calendar-day[aria-pressed="true"] {
   cursor: pointer;
   font-weight: 600;
 }
+.publication-confirm { display:flex; align-items:flex-start; gap:.65rem; margin:1rem 0; }
+.publication-confirm input { width:auto; flex:0 0 auto; margin-top:.25rem; }
+.published-plan + .published-plan { margin-top:24px; }
+.plan-approval textarea { width:100%; font:inherit; padding:12px; border:1px solid var(--border); border-radius:12px; color:var(--ink); resize:vertical; }

@@ -10,12 +10,16 @@ import { listAppointments } from "@/modules/agenda/service";
 import { clinicDate } from "@/modules/agenda/validation";
 import { AppointmentList } from "@/components/agenda";
 import { requestInstant } from "@/lib/request-time";
+import {patientPublications} from "@/modules/care-plans/publication-service";
+import {PublishedPlans} from "@/components/published-plans";
 export const dynamic = "force-dynamic";
 
 export default async function PatientAreaPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ tenantId: string; section: string }>;
+  searchParams:Promise<{pagina?:string}>;
 }) {
   const { tenantId, section: slug } = await params;
   const section = findPatientSection(slug);
@@ -31,6 +35,7 @@ export default async function PatientAreaPage({
   const requestDate = requestInstant();
   const now = requestDate.getTime();
   const currentTime = requestDate.toISOString();
+  const published=patient&&["plano","hoje"].includes(slug)?await patientPublications(tenantId,slug==="plano"?(await searchParams).pagina:undefined):null;
   const appointments =
     slug === "consultas" || slug === "hoje"
       ? await listAppointments(
@@ -83,7 +88,7 @@ export default async function PatientAreaPage({
           contato com a clínica.
         </p>
       )}
-      {appointments ? (
+      {slug==="plano"&&published?<PublishedPlans initial={published}/>:appointments ? (
         section.slug === "consultas" ? (
           <section className="panel patient-appointments-panel">
             <div className="section-heading">
@@ -113,11 +118,12 @@ export default async function PatientAreaPage({
             base={`/clinicas/${tenantId}/meu-cuidado`}
             appointments={appointments.appointments}
             currentTime={currentTime}
+            latestPublication={published?.publications[0]??null}
           />
         )
       ) : (
         <>
-          {section.slug !== "hoje" && <DevelopmentNotice />}
+          {!["hoje","plano","cuidado"].includes(section.slug) && <DevelopmentNotice />}
           <PatientArea
             section={section}
             base={`/clinicas/${tenantId}/meu-cuidado`}

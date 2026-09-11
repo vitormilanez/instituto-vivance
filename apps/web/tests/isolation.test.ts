@@ -252,6 +252,92 @@ after(async () => {
   await db.close();
 });
 
+async function publicationFixture() {
+  await startClinical();
+  const result=await db.query<{id:string}>("insert into public.care_plans(tenant_id,patient_id) values($1,$2) returning id",[a,pa]);
+  const id=result.rows[0].id;
+  await db.exec("reset role");
+  await db.query("insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",[a,pa,users.patient.id]);
+  await switchActor("doctor");
+  return id;
+}
+async function approveFixture(id:string,version:number,actions="Published synthetic guidance") {
+  await db.query("update public.care_plans set title='Synthetic publication',goals='Synthetic goal',actions=$3,frequency='Test frequency',period='Test period',review_on='2099-10-01',status='in_review',expected_version=$2 where id=$1",[id,version,actions]);
+  await db.query("update public.care_plans set status='approved',expected_version=$2 where id=$1",[id,version+1]);
+  return version+2;
+}
+async function publishFixture(id:string,version:number,previous:string|null=null) {
+  return (await db.query<{id:string}>("select public.publish_care_plan($1,$2,$3,$4,true) id",[a,id,version,previous])).rows[0].id;
+}
+test("publication is explicit; patient sees only current approved snapshot, never private history",async()=>{
+  await asUser("doctor",async()=>{
+    const id=await publicationFixture();
+    await denied("select public.publish_care_plan($1,$2,1,null,true)",[a,id]);
+    const version=await approveFixture(id,1);
+    await switchActor("patient");
+    assert.equal((await db.query("select id from public.care_plan_publications")).rows.length,0);
+    await switchActor("doctor");await denied("select public.publish_care_plan($1,$2,$3,null,false)",[a,id,version]);
+    const pub=await publishFixture(id,version);
+    await denied("select public.publish_care_plan($1,$2,$3,null,true)",[a,id,version]);
+    await denied("update public.care_plan_publications set actions='forged' where id=$1",[pub]);
+    await switchActor("patient");
+    assert.equal((await db.query<{actions:string}>("select actions from public.care_plan_publications")).rows[0].actions,"Published synthetic guidance");
+    assert.equal((await db.query("select id from public.care_plans")).rows.length,0);
+    assert.equal((await db.query("select id from public.care_plan_versions")).rows.length,0);
+    const receipt=await db.query<{id:string}>("select public.acknowledge_care_plan($1,$2,true) id",[a,pub]);
+    assert.equal((await db.query<{id:string}>("select public.acknowledge_care_plan($1,$2,true) id",[a,pub])).rows[0].id,receipt.rows[0].id);
+    await denied("update public.care_plan_receipts set acknowledged_at=now()",[]);
+    await db.exec("reset role");
+    assert.equal((await db.query<{n:number}>("select count(*)::int n from public.audit_events where entity_type='care_plan_receipts' and entity_id=$1",[receipt.rows[0].id])).rows[0].n,1);
+  });
+});
+test("publication replacement preserves current guidance during drafting, rejects stale targets and withdraws atomically",async()=>{
+  await asUser("doctor",async()=>{
+    const id=await publicationFixture(),v=await approveFixture(id,1),first=await publishFixture(id,v);
+    await db.query("update public.care_plans set status='draft',expected_version=$2 where id=$1",[id,v]);
+    await switchActor("patient");assert.equal((await db.query<{id:string}>("select id from public.care_plan_publications")).rows[0].id,first);
+    await switchActor("doctor");const next=await approveFixture(id,v+1,"New approved synthetic guidance");
+    await denied("select public.publish_care_plan($1,$2,$3,null,true)",[a,id,next]);
+    const second=await publishFixture(id,next,first);
+    await switchActor("patient");const visible=await db.query<{id:string;actions:string}>("select id,actions from public.care_plan_publications");
+    assert.deepEqual(visible.rows,[{id:second,actions:"New approved synthetic guidance"}]);
+    await denied("select public.acknowledge_care_plan($1,$2,true)",[a,first]);
+    await switchActor("doctor");await denied("select public.withdraw_care_plan($1,$2,$3,'stale',true)",[a,id,first]);
+    await db.query("select public.withdraw_care_plan($1,$2,$3,'Synthetic withdrawal reason',true)",[a,id,second]);
+    assert.equal((await db.query("select id from public.care_plan_publications where plan_id=$1",[id])).rows.length,2);
+    await switchActor("patient");assert.equal((await db.query("select id from public.care_plan_publications")).rows.length,0);
+    await denied("select public.acknowledge_care_plan($1,$2,true)",[a,second]);
+  });
+});
+test("publication denies operational admin, nursing writes, other clinic and revoked care/session",async()=>{
+  await asUser("doctor",async()=>{
+    const id=await publicationFixture(),version=await approveFixture(id,1),pub=await publishFixture(id,version);
+    for(const role of ["admin","nurse","other","outsider","suspended","patient"]){
+      await switchActor(role);
+      await denied("select public.publish_care_plan($1,$2,$3,$4,true)",[a,id,version,pub]);
+      await denied("select public.withdraw_care_plan($1,$2,$3,'Denied',true)",[a,id,pub]);
+      if(role!=="patient")assert.equal((await db.query("select id from public.care_plan_publications where id=$1",[pub])).rows.length,0);
+    }
+    await switchActor("admin");await db.query("update public.care_relationships set status='revoked',expected_version=1 where tenant_id=$1 and patient_id=$2 and professional_id=$3",[a,pa,users.doctor.id]);
+    await switchActor("doctor");assert.equal((await db.query("select id from public.care_plan_publications")).rows.length,0);
+    await denied("select public.withdraw_care_plan($1,$2,$3,'Denied',true)",[a,id,pub]);
+    await db.exec("reset role");await db.query("delete from auth.sessions where id=$1",[users.patient.session]);await switchActor("patient");
+    assert.equal((await db.query("select id from public.care_plan_publications")).rows.length,0);
+    await denied("select public.acknowledge_care_plan($1,$2,true)",[a,pub]);
+  });
+});
+test("publication rolls back replacement if the audit event fails",async()=>{
+  await asUser("doctor",async()=>{
+    const id=await publicationFixture(),version=await approveFixture(id,1),first=await publishFixture(id,version);
+    await db.query("update public.care_plans set status='draft',expected_version=$2 where id=$1",[id,version]);
+    const next=await approveFixture(id,version+1);
+    await db.exec("reset role");
+    await db.exec("create function private.synthetic_publication_audit_failure() returns trigger language plpgsql as $$ begin if new.entity_type='care_plan_publications' then raise exception 'Synthetic audit failure'; end if; return new; end; $$; create trigger synthetic_publication_audit_failure before insert on public.audit_events for each row execute function private.synthetic_publication_audit_failure();");
+    await switchActor("doctor");await denied("select public.publish_care_plan($1,$2,$3,$4,true)",[a,id,next,first]);
+    assert.deepEqual((await db.query("select id,status from public.care_plan_publications where plan_id=$1",[id])).rows,[{id:first,status:"published"}]);
+  });
+});
+
 async function book(
   patient = pa,
   doctor = users.doctor.id,

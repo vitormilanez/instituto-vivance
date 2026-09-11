@@ -37,6 +37,16 @@ export type Database = {
   };
   public: {
     Tables: {
+      care_plan_publications: {
+        Row: CarePlanContent & { id:string; tenant_id:string; plan_id:string; patient_id:string; source_version:number; revision:number; review_on:string; doctor_display_name:string; approved_at:string; published_by:string; published_at:string; closed_at:string|null; closed_by:string|null; withdrawal_reason:string|null };
+        Insert:never; Update:never;
+        Relationships: [];
+      };
+      care_plan_receipts: {
+        Row: {id:string; tenant_id:string; publication_id:string; patient_id:string; actor_user_id:string; acknowledged_at:string};
+        Insert:never; Update:never;
+        Relationships: [{foreignKeyName:"care_plan_receipts_tenant_id_publication_id_patient_id_fkey";columns:["tenant_id","publication_id","patient_id"];isOneToOne:false;referencedRelation:"care_plan_publications";referencedColumns:["tenant_id","id","patient_id"]}];
+      };
       care_plans: {
         Row: CarePlanRow;
         Insert: {
@@ -472,6 +482,9 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      publish_care_plan: {Args:{target_tenant:string;target_plan:string;read_version:number;previous_publication:string|null;confirmed:boolean};Returns:string};
+      withdraw_care_plan: {Args:{target_tenant:string;target_plan:string;target_publication:string;reason:string;confirmed:boolean};Returns:string};
+      acknowledge_care_plan: {Args:{target_tenant:string;target_publication:string;confirmed:boolean};Returns:string};
       list_encounters_page: {
         Args: {
           target_tenant: string;

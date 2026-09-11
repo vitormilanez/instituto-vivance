@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 const labels: Record<string, string> = {
   draft: "Rascunho",
   in_review: "Em revisão médica",
-  approved: "Aprovado · interno",
+  approved: "Aprovado",
 };
 export default async function PlansPage({
   params,
@@ -40,10 +40,10 @@ export default async function PlansPage({
       <section className="panel encounter-directory">
         <div className="section-heading">
           <div>
-            <h2>Planos internos</h2>
+            <h2>Planos da equipe</h2>
             <p>
-              Rascunhos e aprovações ainda não são visíveis ao paciente. Para
-              criar um plano, abra o atendimento do paciente.
+              Rascunhos são privados. Abra um plano para conferir sua publicação.
+              Para criar, abra o atendimento do paciente.
             </p>
           </div>
           <Link href={`${base}/atendimentos`}>Abrir atendimentos</Link>

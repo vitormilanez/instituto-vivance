@@ -122,7 +122,7 @@ export const patientSections = [
     slug: "plano",
     title: "Orientações médicas",
     group: "cuidado",
-    description: "Aqui ficarão as orientações publicadas pela sua equipe.",
+    description: "Suas orientações aprovadas e publicadas pelo médico.",
   },
   {
     slug: "medicamentos",

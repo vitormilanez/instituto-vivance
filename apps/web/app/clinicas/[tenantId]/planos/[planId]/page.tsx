@@ -10,11 +10,11 @@ export default async function PlanPage({
   searchParams,
 }: {
   params: Promise<{ tenantId: string; planId: string }>;
-  searchParams: Promise<{ pagina?: string }>;
+  searchParams: Promise<{ pagina?: string; publicacoes_pagina?:string }>;
 }) {
   const p = await params,
     q = await searchParams;
-  const detail = await loadPlan(p.tenantId, p.planId, q.pagina).catch((e) => {
+  const detail = await loadPlan(p.tenantId, p.planId, q.pagina,q.publicacoes_pagina).catch((e) => {
     if (e instanceof AccessError && e.status === 401) redirect("/");
     if (
       e instanceof AccessError ||
@@ -27,7 +27,7 @@ export default async function PlanPage({
   return (
     <ClinicShell clinic={detail.clinic} active="planos">
       <CarePlanEditor
-        key={`${detail.plan.id}:${detail.plan.version}:${q.pagina ?? 1}`}
+        key={`${detail.plan.id}:${detail.plan.version}:${q.pagina ?? 1}:${q.publicacoes_pagina??1}`}
         initial={detail}
       />
     </ClinicShell>

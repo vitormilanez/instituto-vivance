@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { planCreate, planPatch } from "../modules/care-plans/validation.ts";
+import {publicationInput,withdrawalInput,receiptInput} from "../modules/care-plans/publication-validation.ts";
 const draft = {
   title: "",
   goals: "",
@@ -11,6 +12,13 @@ const draft = {
   status: "draft",
   version: 1,
 };
+test("publication actions require explicit confirmation and reject forged content",()=>{
+  assert.deepEqual(publicationInput({version:3,previous_publication:null,confirmed:true}),{version:3,previousPublication:null});
+  assert.throws(()=>publicationInput({version:3,previous_publication:null,confirmed:false}));
+  assert.throws(()=>publicationInput({version:3,previous_publication:null,confirmed:true,actions:"unapproved"}));
+  assert.throws(()=>withdrawalInput({publication_id:"invalid",reason:"",confirmed:true}));
+  assert.throws(()=>receiptInput({confirmed:true,actor_user_id:"forged"}));
+});
 test("care plan drafts allow partial content; review requires complete medical fields", () => {
   assert.equal(planPatch(draft).values.status, "draft");
   assert.throws(() => planPatch({ ...draft, status: "in_review" }));
