@@ -135,8 +135,11 @@ export function CarePlanEditor({ initial }: { initial: PlanDetail }) {
       );
     } catch (e) {
       setError(
-        (e instanceof Error ? e.message : "Falha ao salvar.") +
-          " Seu texto permanece nesta tela.",
+        (e instanceof Error && e.name === "TimeoutError"
+          ? "A conexão demorou mais que o esperado. Confira a versão salva antes de tentar novamente."
+          : e instanceof Error
+            ? e.message
+            : "Falha ao salvar.") + " Seu texto permanece nesta tela.",
       );
     } finally {
       busy.current = false;
