@@ -40,13 +40,13 @@ export function PatientArea({
       <>
         <div className="patient-overview">
           <section className="panel">
-            <h2>Seu próximo encontro</h2>
-            <EmptyModule title="As consultas aparecerão aqui">
-              O agendamento ainda não está conectado. Para marcar um horário,
-              entre em contato com a clínica.
+            <h2>Consultas e retornos</h2>
+            <EmptyModule title="Consulte seus horários">
+              Veja os agendamentos registrados pela equipe. Para marcar ou
+              alterar um horário, entre em contato com a clínica.
             </EmptyModule>
             <Link className="text-action" href={`${base}/consultas`}>
-              Conhecer a área de consultas
+              Ver minhas consultas
             </Link>
           </section>
           <section className="panel">
@@ -169,7 +169,7 @@ export function PatientArea({
             {section.slug === "medicamentos" || section.slug === "plano"
               ? "Esta área ainda não está conectada. Continue seguindo as orientações recebidas diretamente da equipe da clínica."
               : section.slug === "consultas"
-                ? "O agendamento ainda não está disponível no aplicativo. Entre em contato com a clínica para marcar seu retorno."
+                ? "Entre em contato com a clínica para marcar ou alterar seu retorno."
                 : "O envio e a consulta de registros serão liberados após a integração. Nenhum dado de exemplo é exibido aqui."}
           </EmptyModule>
         </section>

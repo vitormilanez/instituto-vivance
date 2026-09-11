@@ -60,8 +60,9 @@ export default async function MyProfile({
       <section className="panel future-care">
         <h2>Seu acompanhamento</h2>
         <p>
-          Consultas, planos de cuidado, documentos e mensagens serão
-          disponibilizados nas próximas etapas.
+          Consulte seus horários na área Meu cuidado → Consultas. Planos de
+          cuidado, documentos e mensagens serão disponibilizados nas próximas
+          etapas.
         </p>
       </section>
     </PatientShell>

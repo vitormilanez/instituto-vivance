@@ -49,8 +49,8 @@ export default async function Clinics() {
         <p className="notice">
           {context.clinics.length > 0 &&
           context.clinics.every((c) => c.role === "patient")
-            ? "Seu perfil cadastral já está disponível. Consultas, planos e mensagens serão liberados nas próximas entregas."
-            : "Já disponíveis: visão geral, busca e ficha cadastral de pacientes. Agenda, atendimentos e acompanhamento serão liberados nas próximas entregas."}
+            ? "Seu perfil e suas consultas já estão disponíveis. Planos e mensagens serão liberados nas próximas entregas."
+            : "Já disponíveis: visão geral, cadastro de pacientes e agenda. Atendimentos e acompanhamento serão liberados nas próximas entregas."}
         </p>
       </main>
     </>

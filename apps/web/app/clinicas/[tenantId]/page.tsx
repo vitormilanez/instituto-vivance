@@ -90,8 +90,8 @@ export default async function Dashboard({
           </span>
         </div>
         <p>
-          O cadastro é o primeiro passo. Agenda e acompanhamento serão liberados
-          nas próximas entregas.
+          Cadastre os pacientes e organize consultas e retornos na Agenda. O
+          acompanhamento clínico será liberado nas próximas entregas.
         </p>
       </section>
       <section aria-labelledby="quick-actions">
