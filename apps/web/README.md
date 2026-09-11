@@ -36,7 +36,11 @@ Na raiz, execute `npm run web:dev -- --hostname 127.0.0.1 --port 3010`. Para com
 
 Vercel: Root Directory `apps/web`, framework Next.js, Node.js 24.x. `sourceFilesOutsideRootDirectory=false`. Variáveis Supabase somente em Development/Preview. Publicação automática desabilitada nesta etapa; prévias manuais não significam liberação clínica.
 
-**Publicação online pendente:** no primeiro envio a CLI 59.15.1 atribuiu `target=production` mesmo com `--target preview`. Os dois envios foram removidos; nenhum deployment ficou ativo. Resolver esse comportamento de bootstrap antes de tentar novamente. A aplicação permanece disponível localmente, não em produção.
+**Prévia online publicada em 10/09/2026:** [abrir ambiente de testes](https://instituto-vivance-l9034h1b3-vtr-consulting.vercel.app). Deployment `dpl_8TAwnssREwZp6Y4DEqtQdgnmvmQD`, status `READY`, ambiente Preview (`target: null` na API), código `ca6076f`, Next.js 16.3.4, build remoto de aproximadamente 33 segundos. O acesso exige a proteção da Vercel e, em seguida, o login individual da Vivance. Não há liberação para atendimento real.
+
+O bloqueio de primeiro envio foi resolvido seguindo a [regra documentada da Vercel](https://vercel.com/docs/deployments/environments#first-deployment): inicialização com HTML inerte, sem aplicativo, banco, variáveis Supabase ou dados, classificada pela plataforma como Production (`dpl_C2TANKnK2JKYBdxindLHW3agt8WV`). Essa página técnica foi verificada e continua protegida. O aplicativo foi publicado depois, separadamente, como Preview. Configurações de Next.js restauradas, autoatribuição de domínios desativada e nenhum merge para `main`. Não apagar a inicialização como limpeza casual: isso pode reabrir o comportamento de primeiro envio.
+
+Verificação online: login e logout da administradora, painel com os dois cadastros já existentes e Agenda vazia; login do paciente, área Hoje e bloqueio de URL direta do diretório da clínica. API `/api/v1/clinics` sem sessão responde `401` e `Cache-Control: private, no-store`, mesmo quando a proteção da Vercel é autenticada pela CLI. Visitante sem acesso Vercel é redirecionado ao login da plataforma. Consulta de logs de erro não retornou entradas no intervalo observado; isso não é garantia de ausência de erros futuros. Sem inclusão de cadastros, alteração de papéis ou migrações nesta publicação. O médico havia sido validado localmente; sua sessão não foi repetida no navegador online nesta rodada.
 
 ## Verificar
 
@@ -59,7 +63,7 @@ O titular confirmou seu e-mail. Convite enviado pelo painel oficial do Supabase 
 
 `/primeiro-acesso` recebe o convite, remove os tokens do endereço, valida a sessão com o Auth e permite definir a senha. O cliente compartilha a sessão com o servidor por cookies. Links inválidos ou expirados não habilitam o formulário. Nenhuma senha padrão é criada, e credenciais não são registradas em logs.
 
-Neste estágio, o Site URL do projeto de desenvolvimento aponta para `http://127.0.0.1:3010/primeiro-acesso`: abrir o convite no mesmo computador com o servidor local ativo. Ao publicar a versão de testes, configurar a URL HTTPS exata e manter o retorno local autorizado enquanto houver convites locais pendentes.
+O Site URL do Supabase de desenvolvimento aponta para `https://instituto-vivance-l9034h1b3-vtr-consulting.vercel.app/primeiro-acesso`. A lista de retornos autorizados contém esse endereço HTTPS exato e `http://127.0.0.1:3010/primeiro-acesso`, sem curingas. Ambos foram conferidos após recarregar o painel. Ao trocar a prévia, atualizar os endereços sem invalidar links ainda em uso. Configuração não equivale à validação de um novo e-mail de recuperação ponta a ponta; nenhum e-mail adicional foi enviado nesta publicação.
 
 Entrada, seleção da clínica e leitura do cadastro existente foram verificadas no navegador. Nenhum cadastro público pode se promover ou criar uma clínica nesta versão.
 

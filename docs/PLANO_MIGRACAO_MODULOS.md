@@ -30,6 +30,8 @@ Decisão atual do titular: antecipar a estrutura visual navegável, sem mocks, a
 
 Manter a entrega na branch `codex/vercel-supabase-foundation` e PR de revisão. Após verificar esta fatia localmente, resolver a primeira publicação do projeto Vercel e disponibilizar um ambiente de testes protegido; nenhum merge automático na produção. A migração completa não está concluída com a primeira fatia.
 
+Atualização de 10/09/2026: prévia protegida publicada, deployment `dpl_8TAwnssREwZp6Y4DEqtQdgnmvmQD`, código `ca6076f`. Detalhes, URL e limites no [README da aplicação](../apps/web/README.md). A primeira inicialização Production contém apenas uma página técnica sem banco; a aplicação está em Preview. Publicação automática e promoção continuam desabilitadas. Nenhum dado ou papel foi criado/alterado nesta publicação.
+
 ## Direção visual desta extensão
 
 Modo Operate. Preservar `DESIGN.md`: navegação azul-marinho, superfícies claras e bordas discretas. Identidade da clínica no menu, título e ação principal no topo, 8 atalhos compactos e lista real de pacientes abaixo. Em telas estreitas, navegação horizontal, atalhos em duas colunas e demais conteúdos em uma coluna. Não preencher consultas, métricas clínicas ou alertas sem fonte persistida.
