@@ -4,9 +4,12 @@
 
 Estender a aplicação Next.js em `apps/web`, usando o Supabase existente, com autorização por clínica e dados persistidos. Reaproveitar a identidade e os fluxos de `app/`, retirando dependências de demonstração antes de cada entrega. O protótipo continua sendo a referência funcional; não é uma fonte de dados.
 
+Decisão atual do titular: antecipar a estrutura visual navegável, sem mocks, antes de conectar os demais módulos. Isso não antecipa sua disponibilidade operacional. Cadastros persistidos e contas de teste solicitadas pelo titular são preservados; não apagar dados para deixar a interface vazia.
+
 | Etapa | Entrega verificável | Dependências |
 | --- | --- | --- |
 | 1 — implementada localmente | Painel da clínica com 8 ações rápidas; pacientes com busca, paginação, cadastro e ficha; histórico administrativo | Auth, memberships, patients e audit_events existentes |
+| 1B — implementada localmente | Navegação e estados vazios da equipe e do paciente; calendário navegável; abas da ficha; ações futuras desativadas | Mesma sessão e autorização por clínica; sem novas tabelas nem inserções |
 | 2 — planejada | Agenda: cadastrar, listar, reagendar e cancelar compromissos, com responsáveis e horários reais | Migrar o fluxo de `app/medico/agenda/page.tsx` e a vista Agenda de `app/components/doctor.tsx`; modelo persistido de agenda, equipe e testes de acesso |
 | 3 — planejada | Atendimento manual e evolução com autoria e histórico | Agenda, vínculo ativo de cuidado e autorização clínica separada do administrador |
 | 4 — planejada | Plano versionado: rascunho, revisão médica, aprovado, publicado e nova versão; acompanhamento/check-ins | Atendimento e políticas de publicação |
@@ -16,7 +19,7 @@ Estender a aplicação Next.js em `apps/web`, usando o Supabase existente, com a
 ## Critérios da primeira entrega
 
 - Início com a identidade da clínica e o papel do usuário; total de pacientes vem do banco.
-- Oito ações: Pacientes, Novo paciente, Agenda, Atendimento, Planos de cuidado, Acompanhamento, Documentos e Histórico de ações. Funções futuras aparecem indisponíveis com uma explicação; histórico só é acessível ao administrador.
+- Oito ações: Pacientes, Novo paciente, Agenda, Atendimento, Planos de cuidado, Acompanhamento, Documentos e Histórico de ações. Atalhos futuros abrem a estrutura visual com uma explicação; operações de escrita permanecem desativadas. Histórico só é acessível ao administrador.
 - Busca por nome na clínica atual, com paginação de 25 itens e termo preservado ao trocar de página. Caracteres de busca não podem ampliar indevidamente a consulta.
 - Ficha individual mostra somente nome, nascimento e data de cadastro persistidos. Não representa prontuário nem confere permissão clínica.
 - Cadastro salva usando a sessão do usuário e mantém a auditoria atômica; não há inserção automática de pacientes.
@@ -38,4 +41,15 @@ Modo Operate. Preservar `DESIGN.md`: navegação azul-marinho, superfícies clar
 - API autenticada: busca por parte do nome retorna o cadastro existente; busca literal por `%` retorna zero resultados. API sem sessão retorna 401.
 - Capturas desktop 1440 px e mobile 390 px revisadas; pacientes no mobile sem transbordamento horizontal. Ajustados texto auxiliar e contraste do foco no menu.
 - Nenhum paciente inserido automaticamente nesta entrega. Capturas autenticadas ficam somente locais, excluídas do Git.
-- Limites: não há dados suficientes para exercitar visualmente múltiplas páginas; próxima etapa é Agenda. Ainda sem publicação Vercel ou homologação clínica.
+- Limites: não há dados suficientes para exercitar visualmente múltiplas páginas; próxima integração funcional é Agenda, após a estrutura visual 1B. Ainda sem publicação Vercel ou homologação clínica.
+
+## Estrutura visual 1B — 10/09/2026
+
+- Equipe: agenda, atendimentos, planos, acompanhamento, documentos, mensagens, relatórios e Central da IA. Rotas explicitamente permitidas e protegidas por `requireClinic`; não importam o estado do protótipo.
+- Paciente: Hoje, Meu cuidado, Conversas e Evolução; subdivisões de orientações, tratamento, diário, consultas e documentos. `/meu-perfil` continua disponível; todas as áreas exigem o papel paciente e a consulta da própria ficha.
+- Ficha profissional: Visão geral real; Linha do tempo, Documentos e Evolução como seções futuras, após a mesma autorização da ficha.
+- Calendário usa a data atual de São Paulo e permite selecionar datas/mudar meses, sem representar disponibilidade de horários. Não grava consultas.
+- Sem envio de mensagens, arquivos, áudio ou chamadas a modelos. Os botões dessas operações são nativamente desativados, sem sucesso simulado. Não há novas migrações ou inserções no banco.
+- 29 testes passaram; lint, TypeScript e build concluídos. Verificação real com sessões de médico/paciente; módulos profissionais bloqueados para paciente e histórico bloqueado para médico. Capturas locais em `outputs/empty-shell/`, fora do Git.
+- Revisão visual independente: `ship` no escopo das quatro capturas (Agenda e Hoje do paciente, desktop 1440 e mobile 390) e código representativo. Fonte Arial herdada preservada. Nenhum problema material apontado nesse escopo.
+- Esta é uma estrutura de navegação, não uma reprodução completa de cada fluxo do protótipo, nem liberação para atendimento real. Publicação Vercel segue pendente.

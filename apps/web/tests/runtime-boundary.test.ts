@@ -20,7 +20,7 @@ test("native runtime does not import the Cloudflare prototype or demonstration p
       const code = readFileSync(path, "utf8");
       assert.doesNotMatch(
         code,
-        /cloudflare:workers|CareDemoProvider|ensureDemoAccounts|DEMO_USERS|care-demo-store|patient-mvp-data/,
+        /cloudflare:workers|CareDemoProvider|ensureDemoAccounts|DEMO_USERS|care-demo-store|patient-mvp-data|demo-routes|demoPatients/,
       );
       assert.doesNotMatch(code, /(?:from\s*|import\s*)['"]\.\.\/\.\.\/\.\.\//);
     }

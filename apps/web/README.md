@@ -7,7 +7,9 @@ Primeira fatia funcional, não o MVP clínico completo. O protótipo Cloudflare 
 - Login individual com Supabase Auth e refresh de cookies pelo proxy Next.js.
 - Vínculos de clínica e papéis lidos do banco, não de metadados editáveis do usuário.
 - Escolha explícita de clínica; lista e cadastro demográfico de pacientes, paginados.
-- Painel da clínica com 8 ações rápidas e contagem real; busca por nome, ficha cadastral individual e histórico em páginas próprias. Módulos futuros identificados como indisponíveis.
+- Painel da clínica com 8 ações rápidas e contagem real; busca por nome, ficha cadastral individual e histórico em páginas próprias.
+- Estrutura navegável sem mocks para agenda, atendimentos, planos, acompanhamento, documentos, mensagens, relatórios e IA. Abas navegáveis e ações de escrita futuras desativadas. Calendário com seleção de datas, sem horários fictícios.
+- Área do paciente em `/clinicas/:tenantId/meu-cuidado/hoje`, com Hoje, Meu cuidado, Conversas e Evolução. Seções de orientações, tratamento, diário, consultas e documentos ainda sem integração clínica. Perfil cadastral real preservado.
 - API versionada por módulo: `/api/v1/clinics`, `/api/v1/clinics/:tenantId/patients`, `/api/v1/clinics/:tenantId/audit`.
 - Auditoria de criação/alteração de clínica, vínculo e cadastro na mesma transação, sem cópia dos valores pessoais.
 - Histórico somente para administrador; sem permissão da aplicação para forjar ou apagar eventos.
@@ -17,7 +19,7 @@ Médico, enfermagem e administrador têm acesso ao **cadastro demográfico da su
 
 Dois acessos de teste (médico e paciente) foram criados por solicitação do titular no ambiente de desenvolvimento. Identidades, senhas e e-mails não são seeds nem ficam no repositório. A ficha de teste foi criada de forma persistida e vinculada ao usuário paciente. Login de ambos validado contra o Auth; RLS retorna somente a própria ficha ao paciente e nenhuma auditoria para qualquer dos dois papéis. Migração `20260911004732_patient_account_access.sql`, com chaves compostas e nenhum direito de escrita para os usuários sobre o vínculo.
 
-Verificações: 26 testes de regras/isolamento, lint, TypeScript e build. O advisor registrou proteção contra senhas vazadas desativada; é pendência de configuração para operação, sem alterar a senha de testes solicitada. [Orientação do Supabase](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+Verificações: 29 testes de regras/isolamento e navegação, lint, TypeScript e build. O advisor registrou proteção contra senhas vazadas desativada; é pendência de configuração para operação, sem alterar a senha de testes solicitada. [Orientação do Supabase](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
 
 ## Rodar localmente
 
@@ -53,13 +55,13 @@ O workflow GitHub executa testes, lint, tipos e build sem credenciais de produç
 
 ## Primeiro acesso
 
-O titular confirmou seu e-mail. Convite enviado pelo painel oficial do Supabase Auth em 10/09/2026; identidade criada, clínica Instituto Vivance e vínculo `admin` ativo verificados no banco. O titular ainda precisa aceitar o convite e definir sua própria senha.
+O titular confirmou seu e-mail. Convite enviado pelo painel oficial do Supabase Auth em 10/09/2026; identidade criada, clínica Instituto Vivance e vínculo `admin` ativo verificados no banco. O titular concluiu a definição de senha e confirmou o login. Fluxo de recuperação também utilizado pelo titular.
 
 `/primeiro-acesso` recebe o convite, remove os tokens do endereço, valida a sessão com o Auth e permite definir a senha. O cliente compartilha a sessão com o servidor por cookies. Links inválidos ou expirados não habilitam o formulário. Nenhuma senha padrão é criada, e credenciais não são registradas em logs.
 
 Neste estágio, o Site URL do projeto de desenvolvimento aponta para `http://127.0.0.1:3010/primeiro-acesso`: abrir o convite no mesmo computador com o servidor local ativo. Ao publicar a versão de testes, configurar a URL HTTPS exata e manter o retorno local autorizado enquanto houver convites locais pendentes.
 
-Pendente: o titular concluir o convite e validar entrada, seleção da clínica, cadastro de paciente, sessão e logout. Nenhum cadastro público pode se promover ou criar uma clínica nesta versão.
+Entrada, seleção da clínica e leitura do cadastro existente foram verificadas no navegador. Nenhum cadastro público pode se promover ou criar uma clínica nesta versão.
 
 Recuperação: o login oferece **Esqueci minha senha** em `/esqueci-minha-senha`. O envio usa a API pública do Supabase Auth, respeita seus limites e apresenta confirmação sem revelar se a conta existe. Um cliente sem persistência solicita um link de recuperação que pode ser aberto no navegador de e-mail do titular; `/primeiro-acesso` valida e importa a sessão em cookies antes de permitir a nova senha. O envio ao titular foi confirmado no Auth em 10/09/2026. Nenhuma senha é recuperada ou definida pela aplicação em nome do usuário.
 

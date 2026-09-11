@@ -2,6 +2,10 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Header } from "./header";
 import { roleLabels, type ClinicAccess } from "@/modules/identity/service";
+import {
+  staffModules,
+  type StaffModuleSlug,
+} from "@/modules/workspace/navigation";
 
 export function ClinicShell({
   clinic,
@@ -9,13 +13,18 @@ export function ClinicShell({
   children,
 }: {
   clinic: ClinicAccess;
-  active: "home" | "patients" | "audit";
+  active: "home" | "patients" | "audit" | StaffModuleSlug;
   children: ReactNode;
 }) {
   const base = `/clinicas/${clinic.id}`;
   const links = [
     { key: "home", label: "Visão geral", href: base },
     { key: "patients", label: "Pacientes", href: `${base}/pacientes` },
+    ...staffModules.map((module) => ({
+      key: module.slug,
+      label: module.title,
+      href: `${base}/${module.slug}`,
+    })),
     ...(clinic.role === "admin"
       ? [
           {

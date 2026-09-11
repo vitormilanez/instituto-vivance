@@ -29,11 +29,36 @@ export default async function Dashboard({
       text: "Comece pelo cadastro.",
       href: `${base}/pacientes#novo-paciente`,
     },
-    { title: "Agenda", text: "Horários e compromissos da equipe." },
-    { title: "Atendimento", text: "Registro e evolução das consultas." },
-    { title: "Planos de cuidado", text: "Orientações revisadas e publicadas." },
-    { title: "Acompanhamento", text: "Check-ins e evolução entre consultas." },
-    { title: "Documentos", text: "Arquivos e exames do paciente." },
+    {
+      title: "Agenda",
+      text: "Horários e compromissos da equipe.",
+      href: `${base}/agenda`,
+      pending: true,
+    },
+    {
+      title: "Atendimento",
+      text: "Registro e evolução das consultas.",
+      href: `${base}/atendimentos`,
+      pending: true,
+    },
+    {
+      title: "Planos de cuidado",
+      text: "Orientações revisadas e publicadas.",
+      href: `${base}/planos`,
+      pending: true,
+    },
+    {
+      title: "Acompanhamento",
+      text: "Check-ins e evolução entre consultas.",
+      href: `${base}/acompanhamento`,
+      pending: true,
+    },
+    {
+      title: "Documentos",
+      text: "Arquivos e exames do paciente.",
+      href: `${base}/documentos`,
+      pending: true,
+    },
     {
       title: "Histórico de ações",
       text:
@@ -81,7 +106,9 @@ export default async function Dashboard({
               >
                 <strong>{action.title}</strong>
                 <span>{action.text}</span>
-                <span className="action-state">Abrir</span>
+                <span className="action-state">
+                  {action.pending ? "Conhecer a área" : "Abrir"}
+                </span>
               </Link>
             ) : (
               <div className="quick-action unavailable" key={action.title}>

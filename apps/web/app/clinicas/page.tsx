@@ -12,7 +12,6 @@ export default async function Clinics() {
     <>
       <Header />
       <main id="conteudo" className="container">
-        <p className="eyebrow">Seu espaço de trabalho</p>
         <h1>Minhas clínicas</h1>
         <p>Escolha a clínica para abrir seu painel de trabalho.</p>
         {context.clinics.length === 0 ? (
@@ -28,10 +27,10 @@ export default async function Clinics() {
             {context.clinics.map((c) => (
               <li key={c.id} className="panel">
                 {c.role === "patient" ? (
-                  <Link href={`/clinicas/${c.id}/meu-perfil`}>
+                  <Link href={`/clinicas/${c.id}/meu-cuidado/hoje`}>
                     <div>
                       <h2>{c.name}</h2>
-                      <small>Paciente · Abrir meu perfil</small>
+                      <small>Paciente · Abrir meu cuidado</small>
                     </div>
                   </Link>
                 ) : (
