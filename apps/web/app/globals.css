@@ -7,7 +7,8 @@
   --border: #dbe4f0;
   --canvas: #f6f9fe;
 }
-.encounter-record textarea {
+.encounter-record textarea,
+.encounter-addenda textarea {
   width: 100%;
   resize: vertical;
   min-height: 96px;
@@ -19,16 +20,19 @@
   padding: 12px;
   background: white;
 }
-.encounter-record fieldset {
+.encounter-record fieldset,
+.encounter-addenda fieldset {
   border: 0;
   margin: 0;
   padding: 0;
   min-width: 0;
 }
-.encounter-record + .panel {
+.encounter-record + .panel,
+.encounter-addenda + .panel {
   margin-top: 24px;
 }
-.encounter-record textarea:focus-visible {
+.encounter-record textarea:focus-visible,
+.encounter-addenda textarea:focus-visible {
   outline: 3px solid var(--blue);
   outline-offset: 2px;
 }
@@ -41,6 +45,18 @@
   margin-top: 24px;
   padding-block: 20px;
   border-top: 1px solid var(--border);
+}
+.encounter-addenda form {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.addendum-list > li {
+  padding-block: 20px;
+}
+.addendum-list h3,
+.addendum-list h4 {
+  margin-bottom: 8px;
 }
 .care-accept {
   display: flex;

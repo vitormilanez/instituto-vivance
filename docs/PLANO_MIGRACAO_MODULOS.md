@@ -1,5 +1,7 @@
 # Migração dos módulos da Vivance
 
+> Sequência detalhada atualizada em 11/09/2026: [Próximos slices e passagem de contexto](PROXIMOS_SLICES_E_HANDOFF.md). Ela desdobra as etapas macro abaixo, inclui as pendências 3B–3D e o gate de liberação clínica. Os registros de evidência deste documento permanecem históricos.
+
 ## Decisão e sequência
 
 Estender a aplicação Next.js em `apps/web`, usando o Supabase existente, com autorização por clínica e dados persistidos. Reaproveitar a identidade e os fluxos de `app/`, retirando dependências de demonstração antes de cada entrega. O protótipo continua sendo a referência funcional; não é uma fonte de dados.

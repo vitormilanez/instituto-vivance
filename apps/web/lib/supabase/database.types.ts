@@ -14,6 +14,43 @@ export type Database = {
   };
   public: {
     Tables: {
+      encounter_addenda: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          encounter_id: string;
+          encounter_version: number;
+          addendum_number: number;
+          reason: string;
+          content: string;
+          actor_user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          tenant_id: string;
+          encounter_id: string;
+          encounter_version: number;
+          reason: string;
+          content: string;
+        };
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "encounter_addenda_tenant_id_encounter_id_fkey";
+            columns: ["tenant_id", "encounter_id"];
+            isOneToOne: false;
+            referencedRelation: "encounters";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "encounter_addenda_tenant_id_actor_user_id_fkey";
+            columns: ["tenant_id", "actor_user_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
       encounters: {
         Row: {
           id: string;
@@ -25,6 +62,7 @@ export type Database = {
           reason: string;
           evolution: string;
           version: number;
+          expected_version: number | null;
           created_at: string;
           updated_at: string;
           finalized_at: string | null;
@@ -35,7 +73,12 @@ export type Database = {
           patient_id: string;
           doctor_id: string;
         };
-        Update: { reason?: string; evolution?: string; status?: string };
+        Update: {
+          reason?: string;
+          evolution?: string;
+          status?: string;
+          expected_version?: number | null;
+        };
         Relationships: [
           {
             foreignKeyName: "encounters_tenant_id_patient_id_fkey";

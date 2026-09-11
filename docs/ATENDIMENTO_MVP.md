@@ -1,8 +1,8 @@
-# Atendimento manual — slice 3
+# Atendimento manual e adendos — slices 3 e 3B
 
 ## Entrega e fronteira
 
-Agenda → confirmar responsabilidade de cuidado → registro manual → salvar rascunho → retomar → finalizar → consultar versões. Sem IA, áudio, prescrição, publicação para paciente ou integração de prontuário. Interface estende a identidade atual, sem redesign.
+Agenda → confirmar responsabilidade de cuidado → registro manual → salvar rascunho → retomar → finalizar → consultar versões → registrar adendo identificado. Sem IA, áudio, prescrição, publicação para paciente ou integração de prontuário. Interface estende a identidade atual, sem redesign.
 
 O atendimento contém motivo (2.000 caracteres) e evolução (10.000). O salvamento é **explícito**, não automático: texto ainda não salvo permanece somente na memória da aba. Não há cache clínico em localStorage. Avisos de saída cobrem links da aplicação, botão Sair e fechamento da aba, mas não prometem recuperação após travamento ou navegação pelo histórico do navegador. Salvar antes de sair.
 
@@ -10,7 +10,7 @@ O atendimento contém motivo (2.000 caracteres) e evolução (10.000). O salvame
 
 | Papel | Leitura clínica | Escrita |
 | --- | --- | --- |
-| Médico | Pacientes com vínculo ativo próprio | Somente seus atendimentos em rascunho |
+| Médico | Pacientes com vínculo ativo próprio | Seus atendimentos em rascunho; adendo somente em registro finalizado do qual é autor |
 | Enfermagem | Pacientes com vínculo ativo previamente atribuído | Não escreve nem finaliza neste slice |
 | Administrador | Nenhuma; recebe apenas auditoria operacional sem conteúdo | Nenhuma |
 | Paciente | Nenhuma; nem rascunhos nem registros finalizados internos | Nenhuma |
@@ -22,34 +22,37 @@ Agendamento, nome semelhante, conhecimento do UUID e vínculo à clínica não c
 - `care_relationships`, `encounters` e `encounter_versions` têm RLS e privilégios mínimos. Nenhuma chave privilegiada é usada na aplicação.
 - `start_encounter` usa direitos do chamador, trava o agendamento e é idempotente. Vínculo aceito, rascunho, versão inicial e auditoria são transacionais.
 - O banco confirma a correspondência entre clínica, agendamento, paciente e médico. Após o início, o agendamento não pode ser alterado ou cancelado, preservando a identidade clínica.
-- A API exige a versão lida antes de salvar; conflito devolve 409 e mantém o texto na tela, sem sobrescrever automaticamente outra versão. A garantia de concorrência otimista é do contrato de API; as permissões de coluna do banco permitem ao médico autor atualizar diretamente textos de seus rascunhos.
+- A API e o banco exigem a versão lida antes de salvar. Toda atualização de rascunho deve enviar `expected_version`; o trigger valida o token, o elimina antes de persistir e incrementa a versão. Conflito devolve 409 e mantém o texto na tela, sem sobrescrever automaticamente outra versão.
 - A cada escrita, um snapshot clínico completo é preservado com autor, versão e horário gerados pelo banco. Falha de auditoria reverte a escrita inteira.
-- Finalização exige ambos os textos. Registro final não é editável, reaberto ou apagado pela aplicação. Retificações por adendo são etapa futura, **pré-requisito antes de uso clínico real**.
+- Finalização exige ambos os textos. Registro final não é editável, reaberto ou apagado pela aplicação.
+- Adendos são registros separados, numerados e imutáveis. Exigem motivo, correção e a versão final de origem. O banco atribui autoria, horário e número, trava o atendimento durante a inclusão e bloqueia paciente, administrador, outra clínica, médico não autor e vínculo revogado. O original e os adendos anteriores permanecem inalterados.
 - Auditoria administrativa contém nomes de campos alterados, nunca seus valores. Snapshots ficam na autorização clínica.
 - O status clínico é independente do status de agendamento; finalizar não publica ao paciente e não cancela nem libera o horário reservado. Na agenda, Abrir atendimento reabre o mesmo registro.
 
 ## Interfaces
 
 - `/clinicas/:tenantId/atendimentos`: 100 registros mais recentes visíveis ao profissional, com aviso de limite.
-- `/clinicas/:tenantId/atendimentos/:encounterId`: editor e 100 versões mais recentes, com aviso de limite.
-- `GET/POST /api/v1/clinics/:tenantId/encounters`; `GET/PATCH /api/v1/clinics/:tenantId/encounters/:encounterId`.
+- `/clinicas/:tenantId/atendimentos/:encounterId`: editor, até 100 versões e até 100 adendos mais recentes, com avisos de limite.
+- `GET/POST /api/v1/clinics/:tenantId/encounters`; `GET/PATCH /api/v1/clinics/:tenantId/encounters/:encounterId`; `POST /api/v1/clinics/:tenantId/encounters/:encounterId/addenda`.
 - Mutações exigem sessão, origem válida, JSON e campos permitidos. Escrita clínica limitada a 64 KB. Respostas privadas `no-store`; erros não registram textos, nomes ou credenciais.
 
 ## Validação
 
-- 52 testes passaram, incluindo PostgreSQL efêmero com as migrações reais: isolamento entre clínicas, identidades forjadas, acesso por vínculo, revogação, sessão invalidada, somente autor, versões, finalização imutável, agendamento cancelado, bloqueio de agendamento iniciado e rollback da auditoria.
-- TypeScript e lint passaram. Migração remota `20260911022523_clinical_encounters` aplicada ao projeto de desenvolvimento existente.
+- 56 testes passaram, incluindo PostgreSQL efêmero com as migrações reais: isolamento entre clínicas, identidades forjadas, acesso por vínculo, revogação, sessão invalidada, somente autor, versões, finalização imutável, sequência de adendos, tentativa de forjar autoria/data/número, bloqueio de escrita direta sem versão e rollback da auditoria.
+- TypeScript, lint e build passaram. Migrações remotas `20260911034717_encounter_addenda_integrity` e `20260911035218_encounter_addenda_rls_writes` aplicadas ao projeto de desenvolvimento existente.
 - Navegador local: médico iniciou consulta do paciente de teste existente, salvou versão 2 e recuperou o texto ao sair e voltar.
 - Finalização no navegador gerou versão 3, confirmou o estado somente leitura e preservou 3 snapshots no Supabase. Tentativa de PATCH no registro final retornou 409.
 - Sessões reais de administrador e paciente: APIs de listagem e detalhe retornaram 403 com `private, no-store`. O administrador recebeu a tela de acesso clínico restrito; URL direta do registro com paciente recebeu Página indisponível.
 - Revisão visual independente: `ship` no escopo das duas capturas e do editor. Não é certificação clínica ou de segurança.
 - Um agendamento de validação foi criado em 12/09/2026 às 09h para a ficha de teste já existente, e seu atendimento foi finalizado com texto explicitamente técnico, sem informação clínica real. Registro e histórico são preservados; o horário não foi liberado, pois o agendamento já possui atendimento. Nenhum outro cadastro, agendamento ou papel foi alterado.
 - Capturas locais de rascunho em 1440 px e 390 px; celular com largura de documento igual à janela (390 px). Detector visual sem achados nos componentes de agenda/editor. Capturas autenticadas não entram no Git.
+- Navegador local do slice 3B: sessão real de médico abriu o registro finalizado e exibiu o estado vazio, os campos obrigatórios e a revisão antes da confirmação, sem erros ou avisos no console. O conteúdo sintético foi descartado antes do envio, preservando os dois registros finalizados existentes. Persistência e reabertura de um adendo em sessão real permanecem para um novo registro sintético autorizado; não serão testadas alterando o registro preservado das capturas.
+- Banco remoto de desenvolvimento após as migrações: zero adendos persistidos, dois atendimentos preservados e nenhum `expected_version` transitório armazenado. As concessões de coluna permitem inserir somente clínica, atendimento, versão, motivo e conteúdo; autoria, horário e número continuam controlados pelo banco.
 - Advisor de segurança sem novos avisos de tabelas/RLS; permanece aviso anterior de proteção de senhas vazadas desativada. Referência: [segurança de senhas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
 
 ## Limites do piloto
 
-Esta entrega é para testes, não homologação clínica. Antes de dados de saúde reais: retificações, revisão profissional dos campos e fluxos, gestão/revogação operacional de vínculos, credenciais fortes/MFA, política de retenção, restauração de backups e revisão de segurança. Também faltam busca/paginação clínica completa e revisão detalhada de acessibilidade. Não há monitoramento clínico automático.
+Esta entrega é para testes, não homologação clínica. Antes de dados de saúde reais: revisão profissional dos campos e fluxos, gestão/revogação operacional de vínculos, credenciais fortes/MFA, política de retenção, restauração de backups e revisão de segurança. Também faltam busca/paginação clínica completa e revisão detalhada de acessibilidade. Não há assinatura digital certificada, monitoramento clínico automático ou edição/destruição de adendos.
 
 ## Publicação verificada — 10/09/2026
 

@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  encounterAddendum,
   encounterPatch,
   encounterStart,
 } from "../modules/encounters/validation.ts";
@@ -44,4 +45,32 @@ test("clinical drafts allow blanks; finalization requires reviewed text and vers
     }).values,
     { reason: "Motivo", evolution: "Registro\nmanual", status: "finalized" },
   );
+});
+
+test("addenda require a source version, reason and correction without identity injection", () => {
+  const valid = {
+    encounter_version: 3,
+    reason: " Correção de informação ",
+    content: " Texto correto\ncomplementar ",
+  };
+  assert.deepEqual(encounterAddendum(valid), {
+    encounter_version: 3,
+    reason: "Correção de informação",
+    content: "Texto correto\ncomplementar",
+  });
+  for (const patch of [
+    { encounter_version: 0 },
+    { encounter_version: "3" },
+    { encounter_version: 3.1 },
+    { reason: "" },
+    { reason: "a".repeat(1001) },
+    { content: " " },
+    { content: "a".repeat(10001) },
+    { content: "texto\0inválido" },
+    { actor_user_id: "injected" },
+    { created_at: "injected" },
+    { addendum_number: 99 },
+    { tenant_id: "injected" },
+  ])
+    assert.throws(() => encounterAddendum({ ...valid, ...patch }));
 });

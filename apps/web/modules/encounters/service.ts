@@ -1,7 +1,11 @@
 import "server-only";
 import { requireClinic } from "@/modules/identity/service";
 import { tenantId } from "@/lib/validation";
-import { encounterPatch, encounterStart } from "./validation";
+import {
+  encounterAddendum,
+  encounterPatch,
+  encounterStart,
+} from "./validation";
 export class EncounterError extends Error {
   constructor(
     message: string,
@@ -20,7 +24,7 @@ function failed(code?: string): never {
       "Você precisa ser o médico responsável e ter um vínculo de cuidado ativo.",
       403,
     );
-  if (["23514", "23503", "23505"].includes(code ?? ""))
+  if (["23514", "23503", "23505", "40001"].includes(code ?? ""))
     throw new EncounterError(
       "O atendimento não pode ser alterado. Atualize a página e confira a situação da consulta.",
       409,
@@ -61,23 +65,41 @@ export async function loadEncounter(id: string, encounterId: string) {
   if (error) failed(error.code);
   if (!data)
     throw new EncounterError("Atendimento não disponível para sua conta.", 404);
-  const { data: versions, error: historyError } = await client
-    .from("encounter_versions")
-    .select("id,version,status,reason,evolution,actor_user_id,created_at")
-    .eq("tenant_id", id)
-    .eq("encounter_id", encounterId)
-    .order("version", { ascending: false })
-    .limit(101);
-  if (historyError) failed(historyError.code);
+  const [history, addendumHistory] = await Promise.all([
+    client
+      .from("encounter_versions")
+      .select("id,version,status,reason,evolution,actor_user_id,created_at")
+      .eq("tenant_id", id)
+      .eq("encounter_id", encounterId)
+      .order("version", { ascending: false })
+      .limit(101),
+    client
+      .from("encounter_addenda")
+      .select(
+        "id,encounter_version,addendum_number,reason,content,actor_user_id,created_at",
+      )
+      .eq("tenant_id", id)
+      .eq("encounter_id", encounterId)
+      .order("addendum_number", { ascending: false })
+      .limit(101),
+  ]);
+  if (history.error) failed(history.error.code);
+  if (addendumHistory.error) failed(addendumHistory.error.code);
   return {
     clinic,
     encounter: data,
-    versions: (versions ?? []).slice(0, 100),
-    historyTruncated: (versions?.length ?? 0) > 100,
+    versions: (history.data ?? []).slice(0, 100),
+    historyTruncated: (history.data?.length ?? 0) > 100,
+    addenda: (addendumHistory.data ?? []).slice(0, 100),
+    addendaTruncated: (addendumHistory.data?.length ?? 0) > 100,
     canEdit:
       clinic.role === "doctor" &&
       data.doctor_id === user.id &&
       data.status === "draft",
+    canAddendum:
+      clinic.role === "doctor" &&
+      data.doctor_id === user.id &&
+      data.status === "finalized",
   };
 }
 export async function startEncounter(id: string, input: unknown) {
@@ -100,10 +122,9 @@ export async function saveEncounter(
   const { version, values } = encounterPatch(input);
   const { data, error } = await client
     .from("encounters")
-    .update(values)
+    .update({ ...values, expected_version: version })
     .eq("tenant_id", id)
     .eq("id", tenantId(encounterId))
-    .eq("version", version)
     .eq("status", "draft")
     .select("id,version")
     .maybeSingle();
@@ -111,6 +132,33 @@ export async function saveEncounter(
   if (!data)
     throw new EncounterError(
       "O registro mudou, foi finalizado ou seu acesso foi revogado. Seu texto continua na tela; confira a versão atual antes de tentar novamente.",
+      409,
+    );
+  return loadEncounter(id, encounterId);
+}
+
+export async function createEncounterAddendum(
+  id: string,
+  encounterId: string,
+  input: unknown,
+) {
+  const { client } = await requireClinic(tenantId(id), ["doctor"]);
+  const value = encounterAddendum(input);
+  const { data, error } = await client
+    .from("encounter_addenda")
+    .insert({
+      tenant_id: id,
+      encounter_id: tenantId(encounterId),
+      encounter_version: value.encounter_version,
+      reason: value.reason,
+      content: value.content,
+    })
+    .select("id")
+    .maybeSingle();
+  if (error) failed(error.code);
+  if (!data)
+    throw new EncounterError(
+      "O adendo não foi registrado. Atualize a página e confira o atendimento.",
       409,
     );
   return loadEncounter(id, encounterId);

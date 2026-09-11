@@ -387,6 +387,29 @@ async function startClinical() {
   );
   return { id: result.rows[0].id, appointment: appointment.id };
 }
+async function saveClinical(
+  id: string,
+  version: number,
+  reason: string,
+  evolution: string,
+  status: "draft" | "finalized" = "draft",
+) {
+  return db.query<{ version: number }>(
+    "update public.encounters set expected_version=$3,reason=$4,evolution=$5,status=$6 where tenant_id=$1 and id=$2 returning version",
+    [a, id, version, reason, evolution, status],
+  );
+}
+async function appendAddendum(
+  id: string,
+  version: number,
+  reason: string,
+  content: string,
+) {
+  return db.query<{ id: string }>(
+    "insert into public.encounter_addenda(tenant_id,encounter_id,encounter_version,reason,content) values($1,$2,$3,$4,$5) returning id",
+    [a, id, version, reason, content],
+  );
+}
 test("clinical start is explicit, idempotent and creates an active care link atomically", async () => {
   await asUser("doctor", async () => {
     const appointment = await book();
@@ -420,29 +443,42 @@ test("clinical start is explicit, idempotent and creates an active care link ato
 test("clinical draft saves preserve snapshots, stale versions do not overwrite, finalized text is immutable", async () => {
   await asUser("doctor", async () => {
     const { id } = await startClinical();
-    await db.query(
-      "update public.encounters set reason='Motivo sintético',evolution='Evolução sintética' where id=$1 and version=1",
-      [id],
+    const saved = await saveClinical(
+      id,
+      1,
+      "Motivo sintético",
+      "Evolução sintética",
     );
+    assert.equal(saved.rows[0].version, 2);
     assert.equal(
       (await db.query("select * from public.encounter_versions")).rows.length,
       2,
     );
-    assert.equal(
-      (
-        await db.query(
-          "update public.encounters set reason='stale' where id=$1 and version=1 returning id",
-          [id],
-        )
-      ).rows.length,
-      0,
+    await denied(
+      "update public.encounters set expected_version=1,reason='stale',evolution='stale',status='draft' where tenant_id=$1 and id=$2",
+      [a, id],
     );
-    const finalized = await db.query<{ version: number; finalized_at: string }>(
-      "update public.encounters set status='finalized' where id=$1 and version=2 returning version,finalized_at",
-      [id],
+    await denied(
+      "update public.encounters set expected_version=null,reason='bypass',evolution='bypass',status='draft' where tenant_id=$1 and id=$2",
+      [a, id],
+    );
+    await denied("update public.encounters set reason='direct bypass'");
+    const finalized = await saveClinical(
+      id,
+      2,
+      "Motivo sintético",
+      "Evolução sintética",
+      "finalized",
     );
     assert.equal(finalized.rows[0].version, 3);
-    assert.ok(finalized.rows[0].finalized_at);
+    assert.ok(
+      (
+        await db.query<{ finalized_at: string }>(
+          "select finalized_at from public.encounters where id=$1",
+          [id],
+        )
+      ).rows[0].finalized_at,
+    );
     await denied("update public.encounters set reason='changed' where id=$1", [
       id,
     ]);
@@ -463,6 +499,165 @@ test("clinical draft saves preserve snapshots, stale versions do not overwrite, 
         )
       ).rows.length,
       3,
+    );
+  });
+});
+test("finalized encounters accept append-only numbered addenda without changing the original", async () => {
+  await asUser("doctor", async () => {
+    const { id } = await startClinical();
+    await saveClinical(
+      id,
+      1,
+      "Motivo original",
+      "Evolução original",
+      "finalized",
+    );
+    const first = await appendAddendum(
+      id,
+      2,
+      "Correção de data",
+      "A data correta é a registrada neste adendo.",
+    );
+    const second = await appendAddendum(
+      id,
+      2,
+      "Complemento",
+      "Complemento identificado após a finalização.",
+    );
+    assert.ok(first.rows[0].id);
+    assert.ok(second.rows[0].id);
+    const addenda = await db.query<{
+      addendum_number: number;
+      encounter_version: number;
+      reason: string;
+      content: string;
+      actor_user_id: string;
+      created_at: string;
+    }>(
+      "select addendum_number,encounter_version,reason,content,actor_user_id,created_at from public.encounter_addenda order by addendum_number",
+    );
+    assert.deepEqual(
+      addenda.rows.map((row) => row.addendum_number),
+      [1, 2],
+    );
+    assert.equal(addenda.rows[0].encounter_version, 2);
+    assert.equal(addenda.rows[0].actor_user_id, users.doctor.id);
+    assert.ok(addenda.rows[0].created_at);
+    const original = (
+      await db.query<{
+        reason: string;
+        evolution: string;
+        version: number;
+        status: string;
+      }>("select reason,evolution,version,status from public.encounters where id=$1", [
+        id,
+      ])
+    ).rows[0];
+    assert.deepEqual(original, {
+      reason: "Motivo original",
+      evolution: "Evolução original",
+      version: 2,
+      status: "finalized",
+    });
+    await denied(
+      "insert into public.encounter_addenda(tenant_id,encounter_id,encounter_version,addendum_number,reason,content,actor_user_id) values($1,$2,2,3,'forged','forged',$3)",
+      [a, id, users.doctor.id],
+    );
+    await denied("update public.encounter_addenda set content='changed'");
+    await denied("delete from public.encounter_addenda");
+    await denied(
+      "insert into public.encounter_addenda(tenant_id,encounter_id,encounter_version,reason,content) values($1,$2,1,'stale','stale')",
+      [a, id],
+    );
+    await denied(
+      "insert into public.encounter_addenda(tenant_id,encounter_id,encounter_version,reason,content) values($1,$2,null,'bypass','bypass')",
+      [a, id],
+    );
+    await switchActor("admin");
+    const audit = await db.query<{ entity_id: string; changed_fields: string[] }>(
+      "select entity_id,changed_fields from public.audit_events where entity_type='encounter_addenda' order by created_at",
+    );
+    assert.equal(audit.rows.length, 2);
+    assert.equal(audit.rows[0].entity_id, first.rows[0].id);
+    assert.ok(audit.rows[0].changed_fields.includes("reason"));
+    assert.ok(audit.rows[0].changed_fields.includes("content"));
+    assert.ok(!audit.rows[0].changed_fields.includes("A data correta é a registrada neste adendo."));
+  });
+});
+test("addenda deny admin, patient, another clinic, non-author and revoked or invalid sessions", async () => {
+  await asUser("doctor", async () => {
+    const { id } = await startClinical();
+    await saveClinical(id, 1, "Motivo", "Evolução", "finalized");
+    await appendAddendum(id, 2, "Motivo", "Correção");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.memberships(tenant_id,user_id,role) values($1,$2,'doctor')",
+      [a, users.outsider.id],
+    );
+    await db.query(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id) values($1,$2,$3)",
+      [a, pa, users.nurse.id],
+    );
+    for (const role of ["admin", "patient", "nurse", "outsider", "other"]) {
+      await switchActor(role);
+      const visible = await db.query(
+        "select id from public.encounter_addenda where encounter_id=$1",
+        [id],
+      );
+      assert.equal(visible.rows.length, role === "nurse" ? 1 : 0, role);
+      await denied(
+        "insert into public.encounter_addenda(tenant_id,encounter_id,encounter_version,reason,content) values($1,$2,2,'Não autorizado','Não autorizado')",
+        [a, id],
+      );
+    }
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked' where tenant_id=$1 and professional_id=$2",
+      [a, users.doctor.id],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.encounter_addenda where encounter_id=$1",
+          [id],
+        )
+      ).rows.length,
+      0,
+    );
+    await denied(
+      "insert into public.encounter_addenda(tenant_id,encounter_id,encounter_version,reason,content) values($1,$2,2,'Revogado','Revogado')",
+      [a, id],
+    );
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='active' where tenant_id=$1 and professional_id=$2",
+      [a, users.doctor.id],
+    );
+    await db.query("delete from auth.sessions where id=$1", [users.doctor.session]);
+    await switchActor("doctor");
+    await denied(
+      "insert into public.encounter_addenda(tenant_id,encounter_id,encounter_version,reason,content) values($1,$2,2,'Sessão inválida','Sessão inválida')",
+      [a, id],
+    );
+  });
+});
+test("addendum and its metadata-only audit commit atomically", async () => {
+  await asUser("doctor", async () => {
+    const { id } = await startClinical();
+    await saveClinical(id, 1, "Motivo", "Evolução", "finalized");
+    await db.exec("reset role");
+    await db.exec(
+      "alter table public.audit_events add constraint addendum_audit_failure check(entity_type<>'encounter_addenda') not valid",
+    );
+    await switchActor("doctor");
+    await denied(
+      "insert into public.encounter_addenda(tenant_id,encounter_id,encounter_version,reason,content) values($1,$2,2,'Motivo','Deve reverter')",
+      [a, id],
+    );
+    assert.equal(
+      (await db.query("select id from public.encounter_addenda")).rows.length,
+      0,
     );
   });
 });
@@ -534,7 +729,7 @@ test("nurse with provisioned care link reads but cannot write; revocation and se
     assert.equal(
       (
         await db.query(
-          "update public.encounters set reason='nurse edit' where id=$1 returning id",
+          "update public.encounters set expected_version=1,reason='nurse edit' where id=$1 returning id",
           [id],
         )
       ).rows.length,
@@ -599,8 +794,8 @@ test("finalization requires clinical text; cross-tenant identity and audit failu
   await asUser("doctor", async () => {
     const { id, appointment } = await startClinical();
     await denied(
-      "update public.encounters set status='finalized' where id=$1",
-      [id],
+      "update public.encounters set expected_version=1,reason='',evolution='',status='finalized' where tenant_id=$1 and id=$2",
+      [a, id],
     );
     await denied(
       "insert into public.encounters(tenant_id,appointment_id,patient_id,doctor_id) values($1,$2,$3,$4)",
@@ -612,8 +807,8 @@ test("finalization requires clinical text; cross-tenant identity and audit failu
     );
     await switchActor("doctor");
     await denied(
-      "update public.encounters set reason='Must rollback' where id=$1",
-      [id],
+      "update public.encounters set expected_version=1,reason='Must rollback',evolution='',status='draft' where tenant_id=$1 and id=$2",
+      [a, id],
     );
     const record = await db.query<{ reason: string; version: number }>(
       "select reason,version from public.encounters where id=$1",

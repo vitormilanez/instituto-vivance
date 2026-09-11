@@ -13,13 +13,31 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
   const [detail, setDetail] = useState(initial);
   const [reason, setReason] = useState(initial.encounter.reason);
   const [evolution, setEvolution] = useState(initial.encounter.evolution);
+  const [addendumReason, setAddendumReason] = useState("");
+  const [addendumContent, setAddendumContent] = useState("");
   const [pending, setPending] = useState(false),
     [confirming, setConfirming] = useState(false);
+  const [addendumPending, setAddendumPending] = useState(false),
+    [addendumConfirming, setAddendumConfirming] = useState(false);
   const [error, setError] = useState(""),
     [notice, setNotice] = useState("");
+  const [addendumError, setAddendumError] = useState(""),
+    [addendumNotice, setAddendumNotice] = useState("");
   const busy = useRef(false);
-  const { encounter: e, canEdit, versions, historyTruncated } = detail;
-  const dirty = reason !== e.reason || evolution !== e.evolution;
+  const addendumBusy = useRef(false);
+  const {
+    encounter: e,
+    canEdit,
+    canAddendum,
+    versions,
+    historyTruncated,
+    addenda,
+    addendaTruncated,
+  } = detail;
+  const recordDirty = reason !== e.reason || evolution !== e.evolution;
+  const addendumDirty =
+    addendumReason.length > 0 || addendumContent.length > 0;
+  const dirty = recordDirty || addendumDirty;
   // Sensitive drafts stay in memory, never localStorage. Warn on tab close and
   // same-app links; the explicit save button is the persistence boundary.
   useEffect(() => {
@@ -90,6 +108,50 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
       setPending(false);
     }
   }
+  async function saveAddendum() {
+    if (addendumBusy.current) return;
+    addendumBusy.current = true;
+    setAddendumPending(true);
+    setAddendumError("");
+    setAddendumNotice("");
+    try {
+      const response = await fetch(
+        `/api/v1/clinics/${e.tenant_id}/encounters/${e.id}/addenda`,
+        {
+          method: "POST",
+          signal: AbortSignal.timeout(20000),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            encounter_version: e.version,
+            reason: addendumReason,
+            content: addendumContent,
+          }),
+        },
+      );
+      const result = await response.json();
+      if (!response.ok)
+        throw new Error(
+          result.error ?? "Não foi possível registrar o adendo.",
+        );
+      setDetail(result as EncounterDetail);
+      setAddendumReason("");
+      setAddendumContent("");
+      setAddendumConfirming(false);
+      setAddendumNotice(
+        "Adendo registrado. O atendimento original permanece inalterado.",
+      );
+    } catch (error) {
+      setAddendumConfirming(false);
+      setAddendumError(
+        error instanceof Error
+          ? error.message
+          : "Falha ao registrar. Seu texto permanece nesta tela.",
+      );
+    } finally {
+      addendumBusy.current = false;
+      setAddendumPending(false);
+    }
+  }
   return (
     <>
       <Link href={`/clinicas/${e.tenant_id}/atendimentos`}>
@@ -120,7 +182,7 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
         <p role="status" aria-live="polite">
           {pending
             ? "Salvando…"
-            : dirty
+            : recordDirty
               ? "Alterações não salvas"
               : `Versão ${e.version} salva em ${clinicalTime(e.updated_at)}`}
         </p>
@@ -194,7 +256,8 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
                 <h3>Finalizar este atendimento?</h3>
                 <p>
                   Confira o texto acima. A versão final ficará bloqueada para
-                  edição. Retificações serão implementadas em uma próxima etapa.
+                  edição. Uma correção posterior deverá ser registrada como
+                  adendo, sem alterar este conteúdo.
                 </p>
                 <div className="agenda-actions">
                   <button
@@ -230,6 +293,140 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
           </>
         )}
       </section>
+      {e.status === "finalized" && (
+        <section
+          className="panel encounter-addenda"
+          aria-label="Adendos ao registro final"
+        >
+          <h2>Adendos ao registro final</h2>
+          <p>
+            Cada adendo identifica motivo, correção, autoria e horário. O
+            registro final e os adendos anteriores não podem ser editados ou
+            excluídos pela aplicação.
+          </p>
+          {addendumNotice && (
+            <p className="notice" role="status">
+              {addendumNotice}
+            </p>
+          )}
+          {addendumError && (
+            <p className="feedback" role="alert">
+              {addendumError}
+            </p>
+          )}
+          {addendaTruncated && (
+            <p>Exibindo os 100 adendos mais recentes.</p>
+          )}
+          {addenda.length ? (
+            <ul className="list addendum-list">
+              {addenda.map((addendum) => (
+                <li key={addendum.id}>
+                  <h3>
+                    Adendo {addendum.addendum_number} ·{" "}
+                    {clinicalTime(addendum.created_at)}
+                  </h3>
+                  <p>
+                    Autor: {e.memberships?.display_name ?? "Médico responsável"}
+                    {" · "}referente à versão {addendum.encounter_version}
+                  </p>
+                  <h4>Motivo do adendo</h4>
+                  <p className="clinical-text">{addendum.reason}</p>
+                  <h4>Correção ou complemento</h4>
+                  <p className="clinical-text">{addendum.content}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Nenhum adendo registrado.</p>
+          )}
+          {canAddendum && (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                setAddendumConfirming(true);
+              }}
+            >
+              <h3>Registrar novo adendo</h3>
+              <fieldset disabled={addendumPending || addendumConfirming}>
+                <div className="field">
+                  <label htmlFor="addendum-reason">Motivo do adendo</label>
+                  <textarea
+                    id="addendum-reason"
+                    rows={3}
+                    required
+                    maxLength={1000}
+                    value={addendumReason}
+                    onChange={(event) => setAddendumReason(event.target.value)}
+                    aria-describedby="addendum-reason-help"
+                  />
+                  <small id="addendum-reason-help">
+                    Explique por que a correção é necessária. Até 1.000
+                    caracteres.
+                  </small>
+                </div>
+                <div className="field">
+                  <label htmlFor="addendum-content">
+                    Correção ou complemento
+                  </label>
+                  <textarea
+                    id="addendum-content"
+                    rows={7}
+                    required
+                    maxLength={10000}
+                    value={addendumContent}
+                    onChange={(event) => setAddendumContent(event.target.value)}
+                    aria-describedby="addendum-content-help"
+                  />
+                  <small id="addendum-content-help">
+                    Registre somente o que precisa ser acrescentado ou
+                    corrigido. Até 10.000 caracteres.
+                  </small>
+                </div>
+              </fieldset>
+              <button
+                disabled={
+                  addendumPending ||
+                  addendumConfirming ||
+                  !addendumReason.trim() ||
+                  !addendumContent.trim()
+                }
+              >
+                Revisar adendo
+              </button>
+              {addendumConfirming && (
+                <div
+                  className="encounter-confirm"
+                  role="region"
+                  aria-label="Confirmar adendo"
+                >
+                  <h3>Registrar este adendo permanentemente?</h3>
+                  <p>
+                    Confira o motivo e a correção acima. Depois de registrado,
+                    o adendo não poderá ser editado nem excluído pela aplicação.
+                  </p>
+                  <div className="agenda-actions">
+                    <button
+                      type="button"
+                      disabled={addendumPending}
+                      onClick={() => void saveAddendum()}
+                    >
+                      Confirmar adendo
+                    </button>
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={addendumPending}
+                      onClick={() => setAddendumConfirming(false)}
+                    >
+                      Continuar revisando
+                    </button>
+                  </div>
+                </div>
+              )}
+            </form>
+          )}
+        </section>
+      )}
       <section className="panel" aria-label="Histórico clínico">
         <h2>Histórico de versões</h2>
         <p>

@@ -47,3 +47,35 @@ export function encounterPatch(value: unknown) {
     values: { reason, evolution, status: b.status as "draft" | "finalized" },
   };
 }
+
+export function encounterAddendum(value: unknown) {
+  const body = object(value);
+  if (
+    Object.keys(body).some(
+      (key) => !["reason", "content", "encounter_version"].includes(key),
+    ) ||
+    !Number.isSafeInteger(body.encounter_version) ||
+    Number(body.encounter_version) < 1
+  )
+    throw new InputError("Adendo inválido. Atualize o atendimento.");
+  for (const [key, max] of [
+    ["reason", 1000],
+    ["content", 10000],
+  ] as const) {
+    if (
+      typeof body[key] !== "string" ||
+      (body[key] as string).length > max ||
+      /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(body[key] as string)
+    )
+      throw new InputError(`Revise o texto: limite de ${max} caracteres.`);
+  }
+  const reason = (body.reason as string).trim();
+  const content = (body.content as string).trim();
+  if (!reason || !content)
+    throw new InputError("Informe o motivo e a correção do adendo.");
+  return {
+    encounter_version: body.encounter_version as number,
+    reason,
+    content,
+  };
+}
