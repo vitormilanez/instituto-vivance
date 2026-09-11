@@ -44,16 +44,19 @@ Os testes executam o SQL de migração em PostgreSQL efêmero (PGlite), com fixt
 
 O workflow GitHub executa testes, lint, tipos e build sem credenciais de produção. Tipos do banco gerados pelo Supabase. O schema remoto recebeu `20260910234945_vivance_identity_directory.sql`; timestamp local alinhado com o histórico retornado pelo servidor, sem reaplicar DDL.
 
-## Primeiro acesso — ainda pendente
+## Primeiro acesso
 
-1. Titular informa o e-mail do primeiro administrador.
-2. Criar/convidar a identidade pelo Supabase Auth de forma segura, sem senhas no Git/chat e sem conta padrão. Não inserir diretamente uma senha na tabela Auth.
-3. Em operação administrativa autorizada, criar a clínica Vivance e o vínculo `admin` para o ID confirmado. Nenhum cadastro público pode se promover ou criar uma clínica nesta versão.
-4. Validar entrada, seleção da clínica, sessão, logout e bloqueio do acesso com uma conta real. Convites, definição/recuperação de senha e gestão de usuários na interface ainda precisam ser concluídos antes da operação.
+O titular confirmou seu e-mail. Convite enviado pelo painel oficial do Supabase Auth em 10/09/2026; identidade criada, clínica Instituto Vivance e vínculo `admin` ativo verificados no banco. O titular ainda precisa aceitar o convite e definir sua própria senha.
+
+`/primeiro-acesso` recebe o convite, remove os tokens do endereço, valida a sessão com o Auth e permite definir a senha. O cliente compartilha a sessão com o servidor por cookies. Links inválidos ou expirados não habilitam o formulário. Nenhuma senha padrão é criada, e credenciais não são registradas em logs.
+
+Neste estágio, o Site URL do projeto de desenvolvimento aponta para `http://127.0.0.1:3010/primeiro-acesso`: abrir o convite no mesmo computador com o servidor local ativo. Ao publicar a versão de testes, configurar a URL HTTPS exata e manter o retorno local autorizado enquanto houver convites locais pendentes.
+
+Pendente: o titular concluir o convite e validar entrada, seleção da clínica, cadastro de paciente, sessão e logout. Nenhum cadastro público pode se promover ou criar uma clínica nesta versão.
 
 ## Limites desta entrega
 
-Não implementados: consultas, check-ins, prontuário, vínculos clínicos, arquivos, áudios, IA, convite/recuperação de senha na interface e gestão de equipe. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
+Não implementados: consultas, check-ins, prontuário, vínculos clínicos, arquivos, áudios, IA, envio de convite/recuperação de senha pela interface e gestão de equipe. A aceitação de convite e definição da senha estão implementadas. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
 
 Sem homologação para atendimento real. MFA, limites contra abuso, fluxo completo de primeiro acesso, restauração de backups, política de retenção e revisão clínica/privacidade permanecem critérios de entrada em operação. A inspeção de segurança do schema não certifica todo o produto.
 
