@@ -18,17 +18,27 @@ export function ClinicShell({
 }) {
   const base = `/clinicas/${clinic.id}`;
   const moduleLinks = staffModules.map((module) => ({
-      key: module.slug,
-      label: module.title,
-      href: `${base}/${module.slug}`,
-    }));
+    key: module.slug,
+    label: module.title,
+    href: `${base}/${module.slug}`,
+  }));
   const links = [
-    { key: "home", label: "Visão geral", href: base },
+    {
+      key: "home",
+      label: clinic.role === "admin" ? "Visão geral" : "Hoje",
+      href: base,
+    },
     { key: "patients", label: "Pacientes", href: `${base}/pacientes` },
     ...moduleLinks,
     { key: "team", label: "Equipe de cuidado", href: `${base}/equipe` },
     ...(clinic.role === "admin"
-      ? [{ key: "audit", label: "Histórico de ações", href: `${base}/historico` }]
+      ? [
+          {
+            key: "audit",
+            label: "Histórico de ações",
+            href: `${base}/historico`,
+          },
+        ]
       : []),
   ];
   const navigationGroups = [
@@ -53,7 +63,8 @@ export function ClinicShell({
       ),
     },
   ];
-  const activeLabel = links.find((link) => link.key === active)?.label ?? "Clínica";
+  const activeLabel =
+    links.find((link) => link.key === active)?.label ?? "Clínica";
   const clinicInitials = clinic.name
     .split(/\s+/)
     .filter(Boolean)
@@ -102,6 +113,44 @@ export function ClinicShell({
           {children}
         </main>
       </div>
+      <nav
+        className="staff-mobile-dock"
+        aria-label="Navegação rápida da clínica"
+      >
+        {[
+          { key: "home", label: "Hoje", href: base },
+          { key: "agenda", label: "Agenda", href: `${base}/agenda` },
+          { key: "patients", label: "Pacientes", href: `${base}/pacientes` },
+          { key: "planos", label: "Planos", href: `${base}/planos` },
+        ].map((link) => (
+          <Link
+            key={link.key}
+            href={link.href}
+            aria-current={active === link.key ? "page" : undefined}
+          >
+            {link.label}
+          </Link>
+        ))}
+        <details>
+          <summary>Mais</summary>
+          <div>
+            {links
+              .filter(
+                (link) =>
+                  !["home", "agenda", "patients", "planos"].includes(link.key),
+              )
+              .map((link) => (
+                <Link
+                  key={link.key}
+                  href={link.href}
+                  aria-current={active === link.key ? "page" : undefined}
+                >
+                  {link.label}
+                </Link>
+              ))}
+          </div>
+        </details>
+      </nav>
     </>
   );
 }

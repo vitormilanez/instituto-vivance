@@ -5,20 +5,19 @@ import type { FormEvent } from "react";
 import type { Appointment, AgendaOptions } from "@/modules/agenda/service";
 import { clinicDate, localToInstant } from "@/modules/agenda/validation";
 
-const statusPresentation: Record<
-  string,
-  { label: string; className: string }
-> = {
-  scheduled: { label: "Agendado", className: "scheduled" },
-  in_progress: { label: "Em atendimento", className: "in-progress" },
-  completed: { label: "Concluído", className: "completed" },
-  cancelled: { label: "Cancelado", className: "cancelled" },
-  no_show: { label: "Falta", className: "no-show" },
-};
+const statusPresentation: Record<string, { label: string; className: string }> =
+  {
+    scheduled: { label: "Agendado", className: "scheduled" },
+    in_progress: { label: "Em atendimento", className: "in-progress" },
+    completed: { label: "Concluído", className: "completed" },
+    cancelled: { label: "Cancelado", className: "cancelled" },
+    no_show: { label: "Falta", className: "no-show" },
+  };
 
 export function AppointmentList({
   appointments,
   currentTime,
+  nextId,
   onEdit,
   onCancel,
   onNoShow,
@@ -26,6 +25,7 @@ export function AppointmentList({
 }: {
   appointments: Appointment[];
   currentTime: string;
+  nextId?: string;
   onEdit?: (appointment: Appointment) => void;
   onCancel?: (appointment: Appointment) => void;
   onNoShow?: (appointment: Appointment) => void;
@@ -41,7 +41,11 @@ export function AppointmentList({
   return (
     <ul className="list appointment-list">
       {appointments.map((a) => (
-        <li className="appointment-row" key={a.id}>
+        <li
+          className={`appointment-row${a.id === nextId ? " is-next" : ""}`}
+          id={`consulta-${a.id}`}
+          key={a.id}
+        >
           <div className="appointment-time">
             <strong>
               {new Date(a.starts_at).toLocaleTimeString("pt-BR", {
@@ -52,10 +56,10 @@ export function AppointmentList({
             </strong>
             <span>
               {new Date(a.starts_at).toLocaleDateString("pt-BR", {
-              timeZone: "America/Sao_Paulo",
+                timeZone: "America/Sao_Paulo",
                 day: "2-digit",
                 month: "short",
-            })}
+              })}
             </span>
           </div>
           <div className="appointment-patient">
@@ -73,9 +77,9 @@ export function AppointmentList({
               <small>
                 {a.kind === "return" ? "Retorno" : "Consulta"} ·{" "}
                 {new Date(a.starts_at).toLocaleTimeString("pt-BR", {
-              timeZone: "America/Sao_Paulo",
-              hour: "2-digit",
-              minute: "2-digit",
+                  timeZone: "America/Sao_Paulo",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
                 –
                 {new Date(a.ends_at).toLocaleTimeString("pt-BR", {
@@ -94,26 +98,26 @@ export function AppointmentList({
           </span>
           {a.status === "scheduled" &&
             (onStart || onEdit || onCancel || onNoShow) && (
-            <div className="appointment-actions">
-              {onStart && (
-                <button onClick={() => onStart(a)}>Abrir atendimento</button>
-              )}
-              {onEdit && (
-                <button className="secondary" onClick={() => onEdit(a)}>
-                  Editar
-                </button>
-              )}
-              {onNoShow && a.starts_at <= currentTime && (
-                <button className="secondary" onClick={() => onNoShow(a)}>
-                  Registrar falta
-                </button>
-              )}
-              {onCancel && (
-                <button className="secondary" onClick={() => onCancel(a)}>
-                  Cancelar
-                </button>
-              )}
-            </div>
+              <div className="appointment-actions">
+                {onStart && (
+                  <button onClick={() => onStart(a)}>Abrir atendimento</button>
+                )}
+                {onEdit && (
+                  <button className="secondary" onClick={() => onEdit(a)}>
+                    Editar
+                  </button>
+                )}
+                {onNoShow && a.starts_at <= currentTime && (
+                  <button className="secondary" onClick={() => onNoShow(a)}>
+                    Registrar falta
+                  </button>
+                )}
+                {onCancel && (
+                  <button className="secondary" onClick={() => onCancel(a)}>
+                    Cancelar
+                  </button>
+                )}
+              </div>
             )}
         </li>
       ))}
@@ -324,15 +328,18 @@ export function Agenda({
     <>
       <div className="page-heading">
         <div>
-          <h1>Agenda</h1>
+          <h1>{date === today ? "Consultas de hoje" : "Agenda"}</h1>
           <p>Consultas e retornos · horário de Brasília (UTC−3).</p>
         </div>
         {canManage && (
-          <button onClick={() => open("new")}>Agendar consulta</button>
+          <button onClick={() => open("new")}>Novo agendamento</button>
         )}
       </div>
       {nextAppointment && !returns && (
-        <section className="agenda-focus-card" aria-label="Próximo atendimento do dia">
+        <section
+          className="agenda-focus-card"
+          aria-label="Próximo atendimento do dia"
+        >
           <div className="agenda-focus-time">
             <span>Próximo atendimento</span>
             <strong>
@@ -344,7 +351,10 @@ export function Agenda({
             </strong>
           </div>
           <div className="agenda-focus-patient">
-            <span className="patient-avatar patient-avatar-large" aria-hidden="true">
+            <span
+              className="patient-avatar patient-avatar-large"
+              aria-hidden="true"
+            >
               {(nextAppointment.patients?.display_name ?? "Consulta")
                 .split(/\s+/)
                 .filter(Boolean)
@@ -715,11 +725,16 @@ export function Agenda({
                   timeZone: "UTC",
                 })}
           </h2>
+          <p className="schedule-caption">
+            Consulta por consulta · {chosen.length}{" "}
+            {chosen.length === 1 ? "agendamento" : "agendamentos"}
+          </p>
           {navigating ? (
             <p role="status">Carregando horários…</p>
           ) : (
             <AppointmentList
               appointments={chosen}
+              nextId={nextAppointment?.id}
               currentTime={currentTime}
               onStart={
                 canStart

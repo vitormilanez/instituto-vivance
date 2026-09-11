@@ -4,6 +4,20 @@ Atualizado em 11/09/2026. Referência central de continuidade: distingue entrega
 
 ## 1. Onde continuar
 
+### Modelo de execução vigente — lotes locais (11/09/2026)
+
+Por decisão do titular, não publicar nem fazer push a cada slice. Implementar uma entrega delimitada, rodar testes dos caminhos/riscos alterados, conferir navegador e fazer commit local. Atualizar esta referência e o estado correspondente no Asana. Estados distintos: em implementação → validado localmente → publicado em Preview. Somente no fechamento do lote visual + 4C + 4D executar checks completos, build e publicação protegida. O workflow `web-foundation.yml` dispara em push e pull_request; commits locais evitam execuções remotas intermediárias. Não mudar configuração/custo da Vercel nem promover Production.
+
+Reutilizar ambiente e sessões; não expandir testes sem falha ou risco introduzido. Uma rodada visual agrupada e no máximo uma correção por achados concretos. Sem relatórios duplicados nem agentes por rotina. Isolamento, autoria, persistência e publicação explícita permanecem obrigatórios quando afetados. Esta decisão substitui a exigência anterior de Preview/build completo por slice neste documento.
+
+### Incremento visual local — antes do 4C
+
+Painel Hoje reorganizado conforme as capturas do protótipo: consulta/atendimento em destaque, contexto do paciente, plano publicado, pendências operacionais de rascunhos e lista cronológica do dia. Oito atalhos preservados. Agenda móvel prioriza linha do tempo, com próximo atendimento destacado; navegação inferior com acesso aos demais módulos em Mais. Ficha reúne atalhos para último registro finalizado e planos publicados disponíveis ao vínculo. Não existem contadores fictícios nem promessas de IA, vídeo, exames ou check-ins disponíveis.
+
+Composição somente de leitura sob as políticas existentes, com limites nas consultas e sem carregar textos clínicos no painel. Nenhuma migração, alteração de permissão ou nova regra clínica. O diretório cadastral mais amplo continua sendo uma decisão separada; não foi restringido por esta alteração visual. Validação local: oito testes existentes de Agenda/navegação, tipos e lint aprovados; navegador demonstrou preparação → confirmação de responsabilidade → atendimento → retomada pelo painel, plano publicado acessível pelo contexto e oito atalhos. Build completo e Preview aguardam fechamento do lote; a Preview continua no 4B (`98942c7`).
+
+Quatro testes existentes de publicação/isolamento também passaram, sem ampliar a suíte. Capturas desktop 1600px/celular 390px e revisão visual independente sem correções materiais adicionais. Dados sintéticos desta rodada serão removidos após a prova; não são conteúdo do produto. Próximo incremento local: 4C. A composição segue o protótipo com conteúdo disponível, sem prometer reprodução de funções ainda não implementadas.
+
 - Diretório de implementação: `/Users/vitormilanez/Desktop/Codes/instituto-vivance-vercel`.
 - Aplicação: `apps/web`. Branch atual: `codex/vercel-supabase-foundation`.
 - Repositório: `https://github.com/vitormilanez/instituto-vivance.git`.

@@ -10,6 +10,8 @@ import {
   ModuleTabs,
 } from "@/components/module-ui";
 import { selectedTab } from "@/modules/workspace/navigation";
+import { patientCareContext } from "@/modules/workspace/today";
+import { PatientCareLinks } from "@/components/today-workspace";
 export const dynamic = "force-dynamic";
 
 export default async function Patient({
@@ -29,6 +31,10 @@ export default async function Patient({
   const p = context.patient;
   const tabs = ["Visão geral", "Linha do tempo", "Documentos", "Evolução"];
   const active = selectedTab(tabs, (await searchParams).aba);
+  const care =
+    context.clinic.role !== "admin" && active === "Visão geral"
+      ? await patientCareContext(tenantId, patientId)
+      : null;
   return (
     <ClinicShell clinic={context.clinic} active="patients">
       <Link className="back-link" href={`/clinicas/${tenantId}/pacientes`}>
@@ -61,39 +67,52 @@ export default async function Patient({
         base={`/clinicas/${tenantId}/pacientes/${patientId}`}
       />
       {active === "Visão geral" ? (
-        <section className="panel">
-          <h2>Dados do paciente</h2>
-          <dl className="patient-facts">
-            <div>
-              <dt>Nome completo</dt>
-              <dd>{p.display_name}</dd>
-            </div>
-            <div>
-              <dt>Data de nascimento</dt>
-              <dd>
-                {p.birth_date
-                  ? p.birth_date.split("-").reverse().join("/")
-                  : "Não informada"}
-              </dd>
-            </div>
-            <div>
-              <dt>Cadastrado em</dt>
-              <dd>
-                {new Date(p.created_at).toLocaleDateString("pt-BR", {
-                  timeZone: "America/Sao_Paulo",
-                })}
-              </dd>
-            </div>
-            <div>
-              <dt>Última atualização</dt>
-              <dd>
-                {new Date(p.updated_at).toLocaleString("pt-BR", {
-                  timeZone: "America/Sao_Paulo",
-                })}
-              </dd>
-            </div>
-          </dl>
-        </section>
+        <>
+          {care && (
+            <section className="panel">
+              <h2>Contexto do acompanhamento</h2>
+              <p>Registros disponíveis conforme seu vínculo de cuidado.</p>
+              <PatientCareLinks
+                base={`/clinicas/${tenantId}`}
+                patientId={patientId}
+                context={care}
+              />
+            </section>
+          )}
+          <section className="panel">
+            <h2>Dados do paciente</h2>
+            <dl className="patient-facts">
+              <div>
+                <dt>Nome completo</dt>
+                <dd>{p.display_name}</dd>
+              </div>
+              <div>
+                <dt>Data de nascimento</dt>
+                <dd>
+                  {p.birth_date
+                    ? p.birth_date.split("-").reverse().join("/")
+                    : "Não informada"}
+                </dd>
+              </div>
+              <div>
+                <dt>Cadastrado em</dt>
+                <dd>
+                  {new Date(p.created_at).toLocaleDateString("pt-BR", {
+                    timeZone: "America/Sao_Paulo",
+                  })}
+                </dd>
+              </div>
+              <div>
+                <dt>Última atualização</dt>
+                <dd>
+                  {new Date(p.updated_at).toLocaleString("pt-BR", {
+                    timeZone: "America/Sao_Paulo",
+                  })}
+                </dd>
+              </div>
+            </dl>
+          </section>
+        </>
       ) : (
         <>
           <DevelopmentNotice />
@@ -112,7 +131,8 @@ export default async function Patient({
           <>
             <p>
               Atribua ou revise os profissionais responsáveis por este paciente.
-              A atribuição só libera acesso clínico após o aceite do profissional.
+              A atribuição só libera acesso clínico após o aceite do
+              profissional.
             </p>
             <Link
               className="button secondary"
@@ -131,12 +151,13 @@ export default async function Patient({
       <section className="panel future-care">
         <h2>Próximas etapas do cuidado</h2>
         <p>
-          Agenda e Atendimentos já estão disponíveis no menu. Planos, acompanhamento
-          e documentos serão conectados nas próximas etapas.
+          Agenda, Atendimentos e Planos já estão disponíveis. Check-ins e
+          documentos serão conectados nas próximas etapas.
         </p>
         <p>
-          Esta ficha reúne os dados cadastrais. Os registros de consulta ficam em
-          Atendimentos, com acesso restrito à equipe com vínculo de cuidado ativo.
+          Esta ficha reúne os dados cadastrais. Os registros de consulta ficam
+          em Atendimentos, com acesso restrito à equipe com vínculo de cuidado
+          ativo.
         </p>
       </section>
     </ClinicShell>

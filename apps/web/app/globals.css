@@ -2257,4 +2257,69 @@ button.calendar-day[aria-pressed="true"] {
 .publication-confirm { display:flex; align-items:flex-start; gap:.65rem; margin:1rem 0; }
 .publication-confirm input { width:auto; flex:0 0 auto; margin-top:.25rem; }
 .published-plan + .published-plan { margin-top:24px; }
+.today-workspace { display:grid; grid-template-columns:minmax(0, 2.4fr) minmax(260px, 1fr); gap:24px; margin-bottom:32px; align-items:start; }
+.today-workspace .panel { margin:0; padding:28px; }
+.today-next > h2, .today-attention h2, .today-schedule h2 { font-size:17px; color:#405c7e; }
+.today-patient { display:flex; align-items:center; gap:16px; margin:28px 0 20px; }
+.today-patient h3 { font-size:28px; letter-spacing:-.03em; margin:0; }
+.today-patient p { margin:6px 0 0; }
+.today-consultation-meta { display:flex; gap:20px; flex-wrap:wrap; font-size:14px; }
+.today-consultation-meta strong { font-variant-numeric:tabular-nums; }
+.today-context { border-top:1px solid var(--border); margin-top:24px; padding-top:22px; }
+.today-context > h3 { margin:0; font-size:18px; }
+.today-context > p { font-size:13px; margin:6px 0 18px; }
+.care-context-links { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:12px; }
+.care-context-links > a, .care-context-links > div { display:flex; flex-direction:column; gap:9px; padding:18px 14px; border:1px solid #d6e3f6; border-radius:14px; background:#f8fbff; min-width:0; text-decoration:none; }
+.care-context-links strong { font-size:14px; color:var(--navy); }
+.care-context-links span { font-size:12px; color:#516887; }
+.care-context-links a > span:last-child { margin-top:auto; padding-top:8px; color:var(--blue); font-weight:650; }
+.care-context-links > .care-context-plan { background:#f1f8f6; border-color:#c9e2dc; }
+.care-context-links > .care-context-future { background:#fafbfd; }
+.today-primary-action { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; border-top:1px solid var(--border); margin-top:24px; padding-top:22px; }
+.today-primary-action > span { font-size:12px; max-width:28ch; color:#526782; }
+.today-attention { grid-column:2; grid-row:1 / span 2; }
+.today-attention > p { font-size:13px; }
+.today-attention ul { list-style:none; padding:0; margin:20px 0; }
+.today-attention li { padding:20px 0; border-top:1px solid var(--border); }
+.today-attention li p { font-size:14px; margin:8px 0 14px; }
+.today-attention li a { font-size:14px; font-weight:650; }
+.today-attention .empty { padding:24px 0; text-align:left; }
+.today-schedule { grid-column:1; }
+.today-timeline { list-style:none; padding:0; margin:18px 0 0; }
+.today-timeline li { display:grid; grid-template-columns:64px minmax(0,1fr) auto; gap:16px; align-items:center; padding:18px 12px; border-top:1px solid var(--border); }
+.today-timeline time { font-weight:700; font-variant-numeric:tabular-nums; }
+.today-timeline p { margin:5px 0 0; font-size:13px; }
+.today-timeline .is-next { background:#edf7f4; border-radius:12px; }
+.today-timeline a { color:var(--navy); }
+.appointment-row { scroll-margin-top:110px; }
+.appointment-row:target { background:#edf7f4; outline:2px solid #a7cec5; outline-offset:4px; }
+.calendar-schedule .appointment-row.is-next { background:#edf7f4; border-radius:12px; }
+.schedule-caption { font-size:14px; color:#486c64; }
+.staff-mobile-dock { display:none; }
+@media (max-width:1100px) { .today-workspace { grid-template-columns:minmax(0,1fr); } .today-attention,.today-schedule { grid-column:1; grid-row:auto; } .today-schedule { order:1; } .today-attention { order:2; } }
+@media (max-width:650px) {
+  .workspace-nav { display:none; }
+  .workspace-main { padding-bottom:110px; }
+  .staff-mobile-dock { display:flex; position:fixed; z-index:30; bottom:12px; left:12px; right:12px; padding:8px; gap:3px; border:1px solid #bcd0ea; border-radius:22px; background:#f8fbff; box-shadow:0 10px 28px #03132d20; }
+  .staff-mobile-dock > a,.staff-mobile-dock > details { flex:1; min-width:0; text-align:center; font-size:12px; }
+  .staff-mobile-dock > a,.staff-mobile-dock summary { display:block; padding:16px 3px; border-radius:14px; color:var(--navy); text-decoration:none; font-weight:650; cursor:pointer; }
+  .staff-mobile-dock > a[aria-current="page"] { background:var(--navy); color:white; }
+  .staff-mobile-dock details > div { position:absolute; bottom:76px; left:0; right:0; padding:14px; background:white; border:1px solid var(--border); border-radius:16px; box-shadow:0 10px 28px #03132d20; max-height:65dvh; overflow:auto; text-align:left; }
+  .staff-mobile-dock details a { display:block; padding:12px; color:var(--navy); }
+  .today-workspace .panel { padding:20px; }
+  .today-patient h3 { font-size:23px; }
+  .care-context-links { grid-template-columns:1fr 1fr; }
+  .today-primary-action .button { width:100%; text-align:center; }
+  .today-timeline li { grid-template-columns:52px minmax(0,1fr); gap:12px; }
+  .today-timeline .badge { grid-column:2; justify-self:start; }
+  .calendar-workspace { display:flex; flex-direction:column; }
+  .calendar-schedule { order:-1; padding:20px; }
+  .calendar-schedule .appointment-row { position:relative; grid-template-columns:52px minmax(0,1fr); gap:10px 18px; padding:20px 0!important; }
+  .calendar-schedule .appointment-row::before { content:""; position:absolute; top:0; bottom:0; left:61px; width:1px; background:#c9dfd9; }
+  .calendar-schedule .appointment-time::after { content:""; position:absolute; left:57px; top:26px; width:9px; height:9px; border:2px solid #759d92; border-radius:50%; background:#fff; }
+  .calendar-schedule .patient-avatar { display:none; }
+  .calendar-schedule .appointment-patient strong,.calendar-schedule .appointment-patient small { white-space:normal; }
+  .calendar-schedule .appointment-status,.calendar-schedule .appointment-actions { grid-column:2; justify-self:start; }
+  .calendar-schedule .appointment-patient strong { font-size:17px; }
+}
 .plan-approval textarea { width:100%; font:inherit; padding:12px; border:1px solid var(--border); border-radius:12px; color:var(--ink); resize:vertical; }
