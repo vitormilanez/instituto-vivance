@@ -30,12 +30,14 @@ O envio não interpreta, resume, classifica ou altera plano de cuidado. Também 
 
 O envio passa por duas chamadas privadas da aplicação: preparar o upload e confirmar o arquivo. O navegador envia o arquivo diretamente para o Storage com a URL assinada; ele não passa pelo corpo da função da Vercel.
 
-## Verificação local
+## Verificação local e de desenvolvimento
 
 - A suíte local passou com 93 testes, incluindo entrada limitada, assinatura binária, reserva, isolamento entre clínica/papéis, arquivo interno/compartilhado, revogação e rollback de auditoria.
 - TypeScript, lint, build de produção, `git diff --check` e a checagem Deno da Edge Function passaram.
 - No navegador local, a entrada carregou com conteúdo real e sem erros atuais de console; a rota de download sem sessão respondeu `401` com `Cache-Control: private, no-store`.
-- Upload, download e revogação com identidades sintéticas autenticadas continuam pendentes até a migração e a Edge Function existirem no Supabase de desenvolvimento. Esta validação não é declarada como prova de Preview nem de Production.
+- No Supabase de desenvolvimento, a migração `20260911162631_private_patient_documents` está aplicada, o bucket permanece privado com RLS e a Edge Function `private-documents` está ativa com verificação obrigatória de JWT. Uma chamada sem sessão recebeu `401` antes de alcançar a função.
+- A jornada autenticada usou médico e paciente sintéticos: arquivo compartilhado foi disponibilizado e baixado pelo paciente, arquivo interno foi bloqueado para ele, arquivo com assinatura inválida foi rejeitado e removido, e uma revogação de vínculo bloqueou nova reserva com `403`.
+- Os dois usuários, clínica, ficha, vínculo, documentos, auditorias e objetos sintéticos foram removidos por IDs conferidos após a prova. Não houve Preview, push, merge ou alteração de Production.
 
 ## Limites do piloto
 

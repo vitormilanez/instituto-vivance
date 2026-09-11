@@ -38,14 +38,14 @@ Quatro testes existentes de publicação/isolamento também passaram, sem amplia
 - Na Preview, a sessão sintética do paciente percorreu Hoje → Evolução e exibiu medida/linha do tempo persistidas antes da limpeza. A sessão médica foi exercitada localmente, não repetida online. Sem merge para `main`, promoção Production ou mudança de plano/custo.
 - Limites: sem gráficos, metas, alertas, notificações, fotos, áudio ou IA. A tela usa os 50 check-ins e 20 publicações mais recentes e avisa quando o período é limitado; busca/paginação maior fica para volume real. O Gate P continua obrigatório antes de dados de saúde reais.
 
-### Slice 5A — documentos privados implementado localmente
+### Slice 5A — documentos privados validado no desenvolvimento
 
 - Equipe clínica com vínculo ativo envia PDF, JPG ou PNG de até 5 MB para seus pacientes; paciente vinculado envia somente documento compartilhado. O administrador operacional não vê arquivo nem metadado clínico.
 - O objeto nasce `reserved` em bucket privado, com caminho aleatório sem identificador de clínica/paciente. Somente depois de tamanho real e assinatura binária declarada conferidos ele se torna `available`; arquivo incompatível fica `rejected` e não é mostrado.
 - A interface está em Documentos para equipe e Meu cuidado → Meus documentos para paciente. Há separação explícita entre uso interno e compartilhado, URLs temporárias para download e respostas sem cache.
 - A Edge Function `private-documents` revalida JWT e vínculo atual antes de usar a chave privilegiada hospedada. As RPCs de reserva/conclusão são exclusivas do `service_role`; navegador e aplicação Next.js não recebem chave privilegiada.
 - A suíte local cobre reserva, isolamento de documento interno, compartilhamento do paciente, revogação de vínculo/conta, bloqueio de chamada direta ao banco, falha de auditoria e registro sem conteúdo. Validações de entrada e a checagem estática da Edge Function também passaram.
-- Estado remoto: a migração `20260911154749_private_patient_documents` e a Edge Function ainda não foram aplicadas ao Supabase de desenvolvimento porque esta máquina não possui sessão do Supabase CLI. Não houve push, Preview nova, merge ou alteração de Production.
+- Estado remoto: a migração `20260911162631_private_patient_documents` está aplicada ao Supabase de desenvolvimento e a Edge Function `private-documents` está ativa com JWT obrigatório. Médico/paciente sintéticos validaram compartilhado, interno, assinatura inválida e revogação; usuários, clínica, ficha, vínculo, documentos, auditorias e objetos foram removidos por IDs conferidos. Não houve push, Preview nova, merge ou alteração de Production.
 - Limites: a assinatura inicial e o tamanho não equivalem a antivírus, OCR ou inspeção completa. Não há retenção/limpeza automática, exclusão, substituição, conversas com anexos ou uso com dados reais. Ver [escopo e limites](DOCUMENTOS_MVP.md).
 
 - Diretório de implementação: `/Users/vitormilanez/Desktop/Codes/instituto-vivance-vercel`.
@@ -87,7 +87,7 @@ Ler primeiro este documento, `apps/web/AGENTS.md`, `docs/ATENDIMENTO_MVP.md`, `d
 | 4B | Publicação explícita, portal de orientações, confirmação de leitura, substituição e retirada com histórico | Somente publicação vigente da própria ficha; leitura não comprova adesão; sem notificações automáticas |
 | 4C | Check-in manual solicitado pela equipe, relato/medida opcional do paciente e revisão interna | Uma pergunta por solicitação; sem diagnóstico, urgência automática, cadência ou mudança de plano |
 | 4D | Evolução de equipe e paciente com medidas e linha do tempo derivadas de registros persistidos | Sem tendência/meta clínica; período limitado e Gate P obrigatório antes de dados reais |
-| 5A | Documentos privados com upload direto assinado, validação antes da disponibilidade e download temporário | Implementado e testado localmente; falta aplicar migração/função no Supabase de desenvolvimento e validar a jornada autenticada antes de qualquer Preview |
+| 5A | Documentos privados com upload direto assinado, validação antes da disponibilidade e download temporário | Aplicado e validado no Supabase de desenvolvimento com dados sintéticos removidos; falta apenas uma Preview protegida se o lote for publicado, sem autorizar Production ou dados reais |
 
 O slice 3D manteve os 66 testes da base e validou somente os 61 cenários diretamente afetados de Agenda, Atendimento, navegação e isolamento, todos aprovados após as correções concretas. Tipos, lint e build passaram. A migração remota `20260911055947_agenda_encounter_state_coherence` está aplicada; os registros anteriores foram preservados e todo dado sintético descartável desta validação foi removido.
 
@@ -162,7 +162,7 @@ Preparar durante as fases A/B e concluir **antes de qualquer uso com dados de sa
 
 | Slice | Resultado demonstrável | Aceite essencial / dependência |
 | --- | --- | --- |
-| **5A — Documentos privados — implementado localmente** | Upload e acesso autorizado a documentos do paciente | PDF/JPG/PNG até 5 MB, estado reservado antes de disponibilizar, conferência de tamanho/assinatura, bucket privado, links temporários de 60 segundos, isolamento de clínica/vínculo e origem registrada. Separação interno/compartilhado. A revogação bloqueia novas URLs, mas não uma URL já entregue até expirar. Falta aplicar no Supabase de desenvolvimento e validar jornada autenticada; saúde real depende do Gate P |
+| **5A — Documentos privados — validado no desenvolvimento** | Upload e acesso autorizado a documentos do paciente | PDF/JPG/PNG até 5 MB, estado reservado antes de disponibilizar, conferência de tamanho/assinatura, bucket privado, links temporários de 60 segundos, isolamento de clínica/vínculo e origem registrada. Separação interno/compartilhado. A revogação bloqueia novas URLs, mas não uma URL já entregue até expirar. Jornada sintética e limpeza confirmadas; saúde real depende do Gate P |
 | **5B — Conversas** | Paciente e equipe vinculada trocam mensagens persistentes | Participantes autorizados, ordenação/paginação e estados de envio reais; sem prometer chat de emergência. Definir horário e responsável por acompanhar mensagens. Anexos somente via 5A |
 | **5C — Notificações** | Lembrete e aviso de nova mensagem/publicação chegam ao destinatário correto | Preferências e canais confirmados, tentativas limitadas, idempotência, histórico de entrega/falha; não incluir informação clínica no e-mail/notificação. Implantar primeiro um canal autorizado, sem WhatsApp obrigatório. Depende dos eventos de agenda/4B/5B conforme o aviso |
 
@@ -216,6 +216,6 @@ Os slices são fatias de implementação, não substitutos das tarefas de produt
 
 Continuar no diretório de implementação indicado acima. Os slices **3B–3D** e **4A–4D**, junto do realinhamento visual do protótipo, estão fechados no código, no Supabase de desenvolvimento e na Preview protegida. O lote final está no commit `4ca290f`, deployment `dpl_F9h6ELcAP3p6MKKVPvdWJ5pUPXwj`; build local/remoto e CI passaram. Médico e paciente foram validados localmente; o paciente também percorreu Hoje → Evolução na Preview antes da limpeza da identidade sintética. Todos os registros descartáveis desta prova foram removidos sem alterar os três pacientes/memberships anteriores.
 
-O Slice **5A** está completo no checkout e validado localmente, mas ainda não existe no Supabase de desenvolvimento nem na Preview: antes de uma jornada autenticada, autenticar o Supabase CLI, aplicar a migração e publicar apenas a Edge Function `private-documents` no projeto de desenvolvimento. Em seguida, criar dados sintéticos descartáveis, validar upload/download, revogação e celular no navegador e removê-los por IDs conferidos. Não publicar Vercel, fazer push, promover Production ou usar dados clínicos reais nessa etapa.
+O Slice **5A** está completo no checkout e validado no Supabase de desenvolvimento: a migração e a Edge Function `private-documents` estão ativas, e a jornada sintética de compartilhado, interno, arquivo inválido e revogação foi concluída com limpeza por IDs conferidos. A única prova pendente, caso este lote seja publicado, é a jornada autenticada na Preview protegida; não promover Production nem usar dados clínicos reais.
 
 Depois dessa prova, o próximo slice de produto é **5B — Conversas**. Antes de começá-lo, o titular e a clínica precisam definir responsável e horário de acompanhamento das mensagens; não assumir que esse canal é urgência. O Gate P continua obrigatório para qualquer entrada de dado de saúde real.

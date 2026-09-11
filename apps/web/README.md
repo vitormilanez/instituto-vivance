@@ -89,7 +89,7 @@ Recuperação: o login oferece **Esqueci minha senha** em `/esqueci-minha-senha`
 
 ## Limites desta entrega
 
-Não implementados: mensagens persistentes, notificações, áudios e IA. Documentos privados, agendamento, atendimento manual interno, adendos, gestão operacional de equipe/vínculos, planos/publicação, check-ins e evolução neutra estão implementados no checkout. A migração e a Edge Function de documentos ainda precisam ser aplicadas ao Supabase de desenvolvimento antes da validação autenticada ou de qualquer Preview. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
+Não implementados: mensagens persistentes, notificações, áudios e IA. Documentos privados, agendamento, atendimento manual interno, adendos, gestão operacional de equipe/vínculos, planos/publicação, check-ins e evolução neutra estão implementados no checkout. A migração `20260911162631_private_patient_documents` e a Edge Function de documentos estão aplicadas ao Supabase de desenvolvimento e foram validadas com dados sintéticos já removidos; uma Preview protegida permanece uma etapa separada. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
 
 Sem homologação para atendimento real. MFA, limites contra abuso, fluxo completo de primeiro acesso, restauração de backups, política de retenção e revisão clínica/privacidade permanecem critérios de entrada em operação. A inspeção de segurança do schema não certifica todo o produto.
 
