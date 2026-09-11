@@ -54,6 +54,13 @@ As mutações exigem sessão, origem válida, JSON limitado e apenas campos conh
 - O banco remoto permaneceu com três identidades, três memberships ativas, dois vínculos ativos e zero convites pendentes depois dos testes negativos. Nenhuma mensagem de convite foi enviada nesta validação.
 - O advisor de segurança não encontrou novo problema de RLS. Permanece o aviso anterior de proteção contra senhas vazadas desativada. O advisor de desempenho sinaliza índices ainda não usados e políticas permissivas sobrepostas; nesta escala piloto, eles preservam as leituras separadas e serão reavaliados com tráfego real.
 
+## Publicação verificada
+
+- Código funcional: `94b3e48` (`feat: add operational care team management`), no PR de trabalho #11.
+- Preview protegida: deployment `dpl_H6gFqQf1Lvj3ACztE7KkZTVf99TK`, estado `READY`, no endereço fixo https://instituto-vivance-testes-vtr-consulting.vercel.app. Nenhum merge ou envio para Production foi realizado.
+- Um visitante sem acesso à Vercel recebe redirecionamento para a proteção da plataforma. Com a proteção autenticada, a tela de login respondeu `200` com `noindex`; a API de Equipe sem sessão Vivance respondeu `401` e `Cache-Control: private, no-store`.
+- Os checks do GitHub passaram e a consulta de logs de erro do deployment não retornou entradas no intervalo observado. Isso não garante ausência de falhas futuras.
+
 ## Limites do piloto
 
 Esta entrega é para teste controlado, não para uso clínico real. Ainda faltam reenvio/cancelamento de convite, busca e paginação completa da equipe, entrega ponta a ponta de um novo e-mail, MFA, proteção de senha vazada, revisão profissional de privacidade/acessibilidade, restauração de backup e monitoramento operacional.

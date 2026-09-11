@@ -45,6 +45,8 @@ Atendimento manual publicado em 10/09/2026, código `128aacf`, deployment Previe
 
 Adendos e integridade publicados em Preview em 11/09/2026, código funcional `6f14c3b`, deployment `dpl_7rDEyw7LvpLfNEihdSoyb1C89okA` READY, sem merge ou promoção Production. O fluxo persistente foi fechado depois em um novo registro sintético autorizado, sem alterar os dois registros anteriores.
 
+Equipe e vínculos de cuidado publicados em Preview em 11/09/2026, código funcional `94b3e48`, deployment `dpl_H6gFqQf1Lvj3ACztE7KkZTVf99TK` READY, no mesmo endereço fixo e sem merge ou promoção Production. A jornada de convite, aceite, atribuição, suspensão, revogação e reatribuição foi validada com identidades sintéticas descartáveis e o banco de desenvolvimento foi restaurado aos registros anteriores.
+
 ### Registro histórico da primeira publicação
 
 A primeira prévia do shell foi https://instituto-vivance-l9034h1b3-vtr-consulting.vercel.app, deployment `dpl_8TAwnssREwZp6Y4DEqtQdgnmvmQD`, `READY`, Preview, código `ca6076f`, Next.js 16.3.4, build de cerca de 33 segundos. Esse endereço imutável não recebe as evoluções da Agenda; usar o endereço fixo acima.
