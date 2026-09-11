@@ -14,6 +14,61 @@ export type Database = {
   };
   public: {
     Tables: {
+      encounters: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          appointment_id: string;
+          patient_id: string;
+          doctor_id: string;
+          status: string;
+          reason: string;
+          evolution: string;
+          version: number;
+          created_at: string;
+          updated_at: string;
+          finalized_at: string | null;
+        };
+        Insert: {
+          tenant_id: string;
+          appointment_id: string;
+          patient_id: string;
+          doctor_id: string;
+        };
+        Update: { reason?: string; evolution?: string; status?: string };
+        Relationships: [
+          {
+            foreignKeyName: "encounters_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "encounters_tenant_id_doctor_id_fkey";
+            columns: ["tenant_id", "doctor_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
+      encounter_versions: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          encounter_id: string;
+          version: number;
+          status: string;
+          reason: string;
+          evolution: string;
+          actor_user_id: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       appointments: {
         Row: {
           id: string;
@@ -241,7 +296,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      start_encounter: {
+        Args: {
+          target_tenant: string;
+          target_appointment: string;
+          accept_care: boolean;
+        };
+        Returns: string;
+      };
     };
     Enums: {
       [_ in never]: never;

@@ -18,8 +18,8 @@ export const staffModules = [
     action: "Iniciar atendimento",
     tabs: ["Pré-consulta", "Em atendimento", "Concluídos"],
     columns: ["Paciente", "Consulta", "Responsável", "Etapa"],
-    empty: "Os atendimentos serão organizados aqui",
-    detail: "O registro clínico ainda não está disponível nesta versão.",
+    empty: "Nenhum atendimento disponível",
+    detail: "O médico inicia pela agenda. Os registros exigem vínculo de cuidado ativo.",
   },
   {
     slug: "planos",

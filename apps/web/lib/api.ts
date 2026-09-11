@@ -1,6 +1,7 @@
 import { AccessError } from "@/modules/identity/service";
 import { InputError } from "./validation";
 import { AgendaError } from "@/modules/agenda/service";
+import { EncounterError } from "@/modules/encounters/service";
 
 export function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -12,6 +13,8 @@ export function json(body: unknown, status = 200) {
   });
 }
 export function apiError(error: unknown) {
+  if (error instanceof EncounterError)
+    return json({ error: error.message }, error.status);
   if (error instanceof AgendaError)
     return json({ error: error.message }, error.status);
   if (error instanceof AccessError)
@@ -32,7 +35,7 @@ export function apiError(error: unknown) {
   );
 }
 
-export async function boundedJson(request: Request) {
+export async function boundedJson(request: Request, maxBytes = 4096) {
   const reader = request.body?.getReader();
   if (!reader) throw new InputError("Solicitação vazia.");
   const chunks: Uint8Array[] = [];
@@ -41,7 +44,7 @@ export async function boundedJson(request: Request) {
     const { value, done } = await reader.read();
     if (done) break;
     size += value.byteLength;
-    if (size > 4096) {
+    if (size > maxBytes) {
       await reader.cancel();
       throw new InputError("Solicitação muito grande.");
     }

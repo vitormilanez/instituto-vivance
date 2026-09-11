@@ -7,6 +7,56 @@
   --border: #dbe4f0;
   --canvas: #f6f9fe;
 }
+.encounter-record textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 96px;
+  font: inherit;
+  line-height: 1.6;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: white;
+}
+.encounter-record fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.encounter-record + .panel {
+  margin-top: 24px;
+}
+.encounter-record textarea:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+.clinical-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 75ch;
+}
+.encounter-confirm {
+  margin-top: 24px;
+  padding-block: 20px;
+  border-top: 1px solid var(--border);
+}
+.care-accept {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-block: 20px;
+}
+.care-accept input {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+summary {
+  cursor: pointer;
+  padding-block: 12px;
+}
 ::selection {
   background: #c9def8;
   color: var(--navy);

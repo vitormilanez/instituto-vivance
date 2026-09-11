@@ -8,7 +8,9 @@ export function Header() {
       <div className="topbar-actions">
         <Link href="/clinicas">Minhas clínicas</Link>
         <form action={logout}>
-          <button className="secondary">Sair</button>
+          <button className="secondary" data-leave-clinic>
+            Sair
+          </button>
         </form>
       </div>
     </header>

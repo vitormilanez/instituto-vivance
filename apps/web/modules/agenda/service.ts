@@ -82,7 +82,7 @@ function databaseError(error: { code?: string }) {
     );
   if (["23503", "23514", "42501"].includes(error.code ?? ""))
     throw new AgendaError(
-      "Não foi possível salvar. Verifique o horário, o paciente e se o médico está ativo na clínica.",
+      "Não foi possível salvar. Verifique o horário, o paciente e o médico. Agendamentos com atendimento iniciado não podem ser alterados.",
       400,
     );
   throw new Error("Unable to save appointment");

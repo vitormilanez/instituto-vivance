@@ -44,6 +44,7 @@ apps/*/*.tsbuildinfo
 supabase/.temp/
 
 # Local verification captures can contain authenticated clinic data.
+.impeccable/review/
 .impeccable/review/dashboard-desktop.png
 .impeccable/review/dashboard-mobile.png
 .impeccable/review/dashboard-mobile-final.png

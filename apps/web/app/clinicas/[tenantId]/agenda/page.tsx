@@ -34,7 +34,12 @@ export default async function AgendaPage({
   });
   return (
     <ClinicShell clinic={context.clinic} active="agenda">
-      <Agenda tenantId={tenantId} today={today} {...context} />
+      <Agenda
+        tenantId={tenantId}
+        today={today}
+        canStart={context.clinic.role === "doctor"}
+        {...context}
+      />
     </ClinicShell>
   );
 }

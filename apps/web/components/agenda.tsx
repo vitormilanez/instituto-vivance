@@ -1,5 +1,5 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import type { Appointment, AgendaOptions } from "@/modules/agenda/service";
@@ -9,10 +9,12 @@ export function AppointmentList({
   appointments,
   onEdit,
   onCancel,
+  onStart,
 }: {
   appointments: Appointment[];
   onEdit?: (appointment: Appointment) => void;
   onCancel?: (appointment: Appointment) => void;
+  onStart?: (appointment: Appointment) => void;
 }) {
   if (!appointments.length)
     return (
@@ -48,6 +50,9 @@ export function AppointmentList({
           <span className="badge">
             {a.status === "cancelled" ? "Cancelado" : "Agendado"}
           </span>
+          {a.status === "scheduled" && onStart && (
+            <button onClick={() => onStart(a)}>Abrir atendimento</button>
+          )}
           {a.status === "scheduled" && onEdit && onCancel && (
             <div className="agenda-actions">
               <button className="secondary" onClick={() => onEdit(a)}>
@@ -71,6 +76,7 @@ export function Agenda({
   appointments,
   options,
   truncated,
+  canStart = false,
 }: {
   tenantId: string;
   date: string;
@@ -78,6 +84,7 @@ export function Agenda({
   appointments: Appointment[];
   options: AgendaOptions;
   truncated: boolean;
+  canStart?: boolean;
 }) {
   const router = useRouter();
   const [navigating, startTransition] = useTransition();
@@ -87,6 +94,45 @@ export function Agenda({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [returns, setReturns] = useState(false);
+  const [starting, setStarting] = useState<Appointment | null>(null);
+  const [accepted, setAccepted] = useState(false);
+  const startPanel = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (starting) {
+      startPanel.current?.focus();
+      startPanel.current?.scrollIntoView({ block: "start" });
+    }
+  }, [starting]);
+  async function startCare(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!starting || pending || !accepted) return;
+    setPending(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/v1/clinics/${tenantId}/encounters`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          appointment_id: starting.id,
+          accept_care: accepted,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok)
+        throw new Error(
+          result.error ?? "Não foi possível abrir o atendimento.",
+        );
+      router.push(`/clinicas/${tenantId}/atendimentos/${result.id}`);
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Não foi possível abrir o atendimento.",
+      );
+    } finally {
+      setPending(false);
+    }
+  }
   const month = date.slice(0, 7),
     [year, monthNumber] = month.split("-").map(Number);
   const first = new Date(Date.UTC(year, monthNumber - 1, 1));
@@ -357,6 +403,49 @@ export function Agenda({
           </form>
         </section>
       )}
+      {starting && (
+        <section
+          className="panel"
+          aria-label="Iniciar cuidado"
+          tabIndex={-1}
+          ref={startPanel}
+        >
+          <h2>Abrir atendimento de {starting.patients?.display_name}?</h2>
+          <p>
+            O registro será interno. Iniciar confirma seu vínculo de cuidado com
+            este paciente e bloqueia alterações neste agendamento.
+          </p>
+          <form onSubmit={startCare}>
+            <label className="care-accept">
+              <input
+                type="checkbox"
+                checked={accepted}
+                disabled={pending}
+                onChange={(e) => setAccepted(e.target.checked)}
+              />
+              Confirmo que sou responsável por este atendimento.
+            </label>
+            {error && (
+              <p role="alert" className="feedback">
+                {error}
+              </p>
+            )}
+            <div className="agenda-actions">
+              <button disabled={pending || !accepted}>
+                {pending ? "Abrindo…" : "Confirmar e abrir atendimento"}
+              </button>
+              <button
+                type="button"
+                className="secondary"
+                disabled={pending}
+                onClick={() => setStarting(null)}
+              >
+                Voltar à agenda
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
       {cancelling && (
         <section className="panel" aria-label="Confirmar cancelamento">
           <h2>Cancelar este agendamento?</h2>
@@ -490,6 +579,17 @@ export function Agenda({
           ) : (
             <AppointmentList
               appointments={chosen}
+              onStart={
+                canStart
+                  ? (a) => {
+                      setStarting(a);
+                      setEditing(null);
+                      setCancelling(null);
+                      setAccepted(false);
+                      setError("");
+                    }
+                  : undefined
+              }
               onEdit={open}
               onCancel={(a) => {
                 setCancelling(a);

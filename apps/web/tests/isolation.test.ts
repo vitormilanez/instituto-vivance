@@ -364,6 +364,270 @@ async function asUser(
   }
 }
 
+async function switchActor(name: string) {
+  await db.exec("set local role authenticated");
+  await db.query("select set_config('request.jwt.claims',$1,true)", [
+    JSON.stringify({ sub: users[name].id, session_id: users[name].session }),
+  ]);
+}
+async function denied(query: string, values: unknown[] = []) {
+  await db.exec("savepoint denial");
+  try {
+    await assert.rejects(db.query(query, values));
+  } finally {
+    await db.exec("rollback to savepoint denial; release savepoint denial");
+  }
+}
+async function startClinical() {
+  const appointment = await book();
+  const values = [a, appointment.id];
+  const result = await db.query<{ id: string }>(
+    "select public.start_encounter($1,$2,true) as id",
+    values,
+  );
+  return { id: result.rows[0].id, appointment: appointment.id };
+}
+test("clinical start is explicit, idempotent and creates an active care link atomically", async () => {
+  await asUser("doctor", async () => {
+    const appointment = await book();
+    assert.equal(
+      (await db.query("select * from public.care_relationships")).rows.length,
+      0,
+    );
+    await denied("select public.start_encounter($1,$2,false)", [
+      a,
+      appointment.id,
+    ]);
+    const first = await db.query<{ id: string }>(
+      "select public.start_encounter($1,$2,true) id",
+      [a, appointment.id],
+    );
+    const second = await db.query<{ id: string }>(
+      "select public.start_encounter($1,$2,true) id",
+      [a, appointment.id],
+    );
+    assert.equal(first.rows[0].id, second.rows[0].id);
+    assert.equal(
+      (await db.query("select * from public.care_relationships")).rows.length,
+      1,
+    );
+    assert.equal(
+      (await db.query("select * from public.encounter_versions")).rows.length,
+      1,
+    );
+  });
+});
+test("clinical draft saves preserve snapshots, stale versions do not overwrite, finalized text is immutable", async () => {
+  await asUser("doctor", async () => {
+    const { id } = await startClinical();
+    await db.query(
+      "update public.encounters set reason='Motivo sintético',evolution='Evolução sintética' where id=$1 and version=1",
+      [id],
+    );
+    assert.equal(
+      (await db.query("select * from public.encounter_versions")).rows.length,
+      2,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "update public.encounters set reason='stale' where id=$1 and version=1 returning id",
+          [id],
+        )
+      ).rows.length,
+      0,
+    );
+    const finalized = await db.query<{ version: number; finalized_at: string }>(
+      "update public.encounters set status='finalized' where id=$1 and version=2 returning version,finalized_at",
+      [id],
+    );
+    assert.equal(finalized.rows[0].version, 3);
+    assert.ok(finalized.rows[0].finalized_at);
+    await denied("update public.encounters set reason='changed' where id=$1", [
+      id,
+    ]);
+    await denied("update public.encounters set status='draft' where id=$1", [
+      id,
+    ]);
+    await denied("delete from public.encounters where id=$1", [id]);
+    await denied("update public.encounter_versions set reason='forged'");
+    await denied("delete from public.encounter_versions");
+    await denied("update public.encounters set doctor_id=$1 where id=$2", [
+      users.nurse.id,
+      id,
+    ]);
+    assert.equal(
+      (
+        await db.query(
+          "select reason from public.encounter_versions order by version",
+        )
+      ).rows.length,
+      3,
+    );
+  });
+});
+test("clinical records and snapshots deny admin, patient, unlinked staff and other clinics even by exact ID", async () => {
+  await asUser("doctor", async () => {
+    const { id, appointment } = await startClinical();
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.memberships(tenant_id,user_id,role) values($1,$2,'doctor')",
+      [a, users.outsider.id],
+    );
+    for (const role of [
+      "admin",
+      "patient",
+      "nurse",
+      "outsider",
+      "other",
+      "suspended",
+    ]) {
+      await switchActor(role);
+      assert.equal(
+        (await db.query("select * from public.encounters where id=$1", [id]))
+          .rows.length,
+        0,
+        role,
+      );
+      assert.equal(
+        (
+          await db.query(
+            "select * from public.encounter_versions where encounter_id=$1",
+            [id],
+          )
+        ).rows.length,
+        0,
+        role,
+      );
+      await denied("select public.start_encounter($1,$2,true)", [
+        a,
+        appointment,
+      ]);
+      await denied(
+        "insert into public.care_relationships(tenant_id,patient_id,professional_id) values($1,$2,$3)",
+        [a, pa, users[role].id],
+      );
+    }
+    await switchActor("admin");
+    const audit = await db.query<{ changed_fields: string[] }>(
+      "select changed_fields from public.audit_events where entity_type=$1 and entity_id=$2",
+      ["encounters", id],
+    );
+    assert.equal(audit.rows.length, 1);
+    assert.ok(audit.rows[0].changed_fields.includes("reason"));
+  });
+});
+test("nurse with provisioned care link reads but cannot write; revocation and session invalidation immediately remove access", async () => {
+  await asUser("doctor", async () => {
+    const { id, appointment } = await startClinical();
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id) values($1,$2,$3)",
+      [a, pa, users.nurse.id],
+    );
+    await switchActor("nurse");
+    assert.equal(
+      (await db.query("select id from public.encounters where id=$1", [id]))
+        .rows.length,
+      1,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "update public.encounters set reason='nurse edit' where id=$1 returning id",
+          [id],
+        )
+      ).rows.length,
+      0,
+    );
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked' where tenant_id=$1",
+      [a],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.encounters")).rows.length,
+      0,
+    );
+    await denied("select public.start_encounter($1,$2,true)", [a, appointment]);
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='active' where tenant_id=$1",
+      [a],
+    );
+    await db.query("delete from auth.sessions where id=$1", [
+      users.doctor.session,
+    ]);
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.encounters")).rows.length,
+      0,
+    );
+    assert.equal(
+      (await db.query("select id from public.encounter_versions")).rows.length,
+      0,
+    );
+  });
+});
+test("started appointments cannot be reassigned or cancelled; cancelled appointments cannot start care", async () => {
+  await asUser("doctor", async () => {
+    const { appointment } = await startClinical();
+    await switchActor("admin");
+    await denied(
+      "update public.appointments set status='cancelled' where id=$1",
+      [appointment],
+    );
+    await denied(
+      "update public.appointments set starts_at=starts_at+interval '1 hour',ends_at=ends_at+interval '1 hour' where id=$1",
+      [appointment],
+    );
+  });
+  await asUser("doctor", async () => {
+    const appointment = await book();
+    await db.query(
+      "update public.appointments set status='cancelled' where id=$1",
+      [appointment.id],
+    );
+    await denied("select public.start_encounter($1,$2,true)", [
+      a,
+      appointment.id,
+    ]);
+  });
+});
+test("finalization requires clinical text; cross-tenant identity and audit failure cannot leave partial clinical records", async () => {
+  await asUser("doctor", async () => {
+    const { id, appointment } = await startClinical();
+    await denied(
+      "update public.encounters set status='finalized' where id=$1",
+      [id],
+    );
+    await denied(
+      "insert into public.encounters(tenant_id,appointment_id,patient_id,doctor_id) values($1,$2,$3,$4)",
+      [b, appointment, pb, users.doctor.id],
+    );
+    await db.exec("reset role");
+    await db.exec(
+      "alter table public.audit_events add constraint clinical_audit_failure check(entity_type<>'encounters') not valid",
+    );
+    await switchActor("doctor");
+    await denied(
+      "update public.encounters set reason='Must rollback' where id=$1",
+      [id],
+    );
+    const record = await db.query<{ reason: string; version: number }>(
+      "select reason,version from public.encounters where id=$1",
+      [id],
+    );
+    assert.equal(record.rows[0].version, 1);
+    assert.equal(record.rows[0].reason, "");
+    assert.equal(
+      (await db.query("select id from public.encounter_versions")).rows.length,
+      1,
+    );
+  });
+});
+
 test("anonymous role cannot read the directory", async () => {
   await db.exec("begin; set local role anon;");
   try {
