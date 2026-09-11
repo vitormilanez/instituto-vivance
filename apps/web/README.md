@@ -40,6 +40,8 @@ Vercel: Root Directory `apps/web`, framework Next.js, Node.js 24.x. `sourceFiles
 
 **Endereço fixo da prévia de testes:** https://instituto-vivance-testes-vtr-consulting.vercel.app. A Agenda operacional foi entregue em 10/09/2026, código funcional `2fc8666` e revisão dos textos `d7907e7`. O acesso exige a proteção da Vercel e depois o login individual da Vivance. Sem liberação para atendimento real. A cada publicação manual validada, atualizar somente o alias de testes; não promover para Production.
 
+Atendimento manual publicado em 10/09/2026, código `128aacf`, deployment Preview `dpl_3scv4m6KDATCJZRHGfM31T8iGPe4` READY, no mesmo endereço fixo. [Evidências e limites do slice 3](../../docs/ATENDIMENTO_MVP.md). Salvamento explícito; finalização não publica ao paciente.
+
 ### Registro histórico da primeira publicação
 
 A primeira prévia do shell foi https://instituto-vivance-l9034h1b3-vtr-consulting.vercel.app, deployment `dpl_8TAwnssREwZp6Y4DEqtQdgnmvmQD`, `READY`, Preview, código `ca6076f`, Next.js 16.3.4, build de cerca de 33 segundos. Esse endereço imutável não recebe as evoluções da Agenda; usar o endereço fixo acima.

@@ -50,3 +50,13 @@ Agendamento, nome semelhante, conhecimento do UUID e vínculo à clínica não c
 ## Limites do piloto
 
 Esta entrega é para testes, não homologação clínica. Antes de dados de saúde reais: retificações, revisão profissional dos campos e fluxos, gestão/revogação operacional de vínculos, credenciais fortes/MFA, política de retenção, restauração de backups e revisão de segurança. Também faltam busca/paginação clínica completa e revisão detalhada de acessibilidade. Não há monitoramento clínico automático.
+
+## Publicação verificada — 10/09/2026
+
+- Código funcional `12908c6`; orientação de disponibilidade na ficha/painel ajustada em `128aacf`. Branch `codex/vercel-supabase-foundation`, sem merge para main ou promoção Production.
+- Preview final `dpl_3scv4m6KDATCJZRHGfM31T8iGPe4`, **READY**, Next.js 16.3.4, build remoto concluído. URL imutável: https://instituto-vivance-4gpsks6f4-vtr-consulting.vercel.app.
+- Alias de testes atualizado e verificado: https://instituto-vivance-testes-vtr-consulting.vercel.app. A versão anterior deste slice foi `dpl_E7uWwVvBXg5njza4JkkXRQs2QH5T`; somente textos de disponibilidade mudaram entre elas.
+- No navegador online, o administrador acessou Atendimentos e recebeu a restrição clínica esperada. Este teste foi no primeiro deployment do slice. O depurador da automação perdeu conexão depois; não foi repetido o fluxo completo do médico no navegador online. Início, salvamento, retomada e finalização foram executados no navegador local com o mesmo Supabase real.
+- No alias final, API de atendimentos sem sessão da aplicação retornou 401 e `Cache-Control: private, no-store`, com a proteção Vercel autenticada pela CLI. Acesso anônimo à prévia retornou 302, preservando a barreira Vercel.
+- Consulta de logs de erro do deployment final (janela de 15 minutos) não retornou entradas; não equivale a garantia de operação sem erros. Servidor local continuou respondendo 200 na porta 3010. Sessões de teste locais encerradas ao final.
+- Não houve novas variáveis, mudança de plano, compra, troca de senha, liberação de domínio público ou publicação automática.
