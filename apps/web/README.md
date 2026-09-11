@@ -11,8 +11,10 @@ Primeira fatia funcional, não o MVP clínico completo. O protótipo Cloudflare 
 - Agenda real: criar, remarcar, cancelar e registrar falta em consultas/retornos; cinco estados coerentes com o Atendimento, calendário mensal, conflito de horários, versão otimista e auditoria. Ver [escopo e validação](../../docs/AGENDA_MVP.md).
 - Atendimento manual: início explícito pela Agenda, rascunho, retomada, finalização, busca/paginação, versões e adendos imutáveis, com acesso por vínculo clínico ativo e escrita exclusiva do médico autor. Ver [escopo e validação](../../docs/ATENDIMENTO_MVP.md).
 - Equipe de cuidado: convite pendente de médico/enfermagem, aceite explícito, suspensão/reativação e atribuição/aceite/revogação de responsabilidade por paciente. O administrador opera metadados sem abrir conteúdo clínico. Ver [escopo e validação](../../docs/EQUIPE_VINCULOS_MVP.md).
-- Estrutura navegável sem mocks para planos, acompanhamento, documentos, mensagens, relatórios e IA; ações futuras desativadas.
-- Área do paciente em `/clinicas/:tenantId/meu-cuidado/hoje`, com Hoje, Meu cuidado, Conversas e Evolução. A visão principal e Consultas mostram o próximo compromisso real, seu estado e o profissional; orientações, tratamento, diário e documentos ainda não têm integração clínica. Perfil cadastral preservado.
+- Plano de cuidado interno versionado, aprovação médica separada da publicação, portal de orientações vigentes, ciência de leitura, substituição e retirada com histórico.
+- Check-ins manuais com relato original, medida opcional e revisão interna; Evolução compõe medidas e linha do tempo somente de dados persistidos, com origem e separação entre equipe/paciente.
+- Estrutura navegável sem mocks para documentos, mensagens, relatórios e IA; ações futuras desativadas.
+- Área do paciente em `/clinicas/:tenantId/meu-cuidado/hoje`, com Hoje, Meu cuidado, Conversas e Evolução. A visão principal e Consultas mostram o próximo compromisso real, seu estado e o profissional; plano, diário e evolução estão conectados. Tratamento, documentos e mensagens permanecem sem integração clínica. Perfil cadastral preservado.
 - API versionada por módulo: `/api/v1/clinics`, `/api/v1/clinics/:tenantId/patients`, `/api/v1/clinics/:tenantId/appointments`, `/api/v1/clinics/:tenantId/encounters` (incluindo `/:encounterId/addenda`), `/api/v1/clinics/:tenantId/team` e `/api/v1/clinics/:tenantId/audit`.
 - Auditoria de criação/alteração de clínica, vínculo e cadastro na mesma transação, sem cópia dos valores pessoais.
 - Histórico somente para administrador; sem permissão da aplicação para forjar ou apagar eventos.
@@ -86,7 +88,7 @@ Recuperação: o login oferece **Esqueci minha senha** em `/esqueci-minha-senha`
 
 ## Limites desta entrega
 
-Não implementados: plano de cuidado, publicação clínica ao paciente, check-ins, arquivos, áudios e IA. Agendamento, atendimento manual interno, adendos, gestão operacional de equipe/vínculos, convite pela interface, aceitação de convite, definição e recuperação da senha estão implementados. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
+Não implementados: arquivos, mensagens persistentes, notificações, áudios e IA. Agendamento, atendimento manual interno, adendos, gestão operacional de equipe/vínculos, planos/publicação, check-ins e evolução neutra estão implementados. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
 
 Sem homologação para atendimento real. MFA, limites contra abuso, fluxo completo de primeiro acesso, restauração de backups, política de retenção e revisão clínica/privacidade permanecem critérios de entrada em operação. A inspeção de segurança do schema não certifica todo o produto.
 
