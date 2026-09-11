@@ -37,7 +37,8 @@ O envio passa por duas chamadas privadas da aplicação: preparar o upload e con
 - No navegador local, a entrada carregou com conteúdo real e sem erros atuais de console; a rota de download sem sessão respondeu `401` com `Cache-Control: private, no-store`.
 - No Supabase de desenvolvimento, a migração `20260911162631_private_patient_documents` está aplicada, o bucket permanece privado com RLS e a Edge Function `private-documents` está ativa com verificação obrigatória de JWT. Uma chamada sem sessão recebeu `401` antes de alcançar a função.
 - A jornada autenticada usou médico e paciente sintéticos: arquivo compartilhado foi disponibilizado e baixado pelo paciente, arquivo interno foi bloqueado para ele, arquivo com assinatura inválida foi rejeitado e removido, e uma revogação de vínculo bloqueou nova reserva com `403`.
-- Os dois usuários, clínica, ficha, vínculo, documentos, auditorias e objetos sintéticos foram removidos por IDs conferidos após a prova. Não houve Preview, push, merge ou alteração de Production.
+- A Preview protegida `dpl_A7UsHTpUrAVrqcVaBUGmGVGuTF5L` foi construída a partir de `ccc2e32`: visitante recebeu redirecionamento da proteção Vercel, a entrada autorizada respondeu `200` e a API sem sessão respondeu `401` com `Cache-Control: private, no-store`. Médico e paciente sintéticos abriram suas telas de Documentos no navegador, inclusive a visão do paciente em 390 px, sem erro atual de console.
+- Os dois usuários, clínica, ficha, vínculo, documentos, auditorias e objetos sintéticos foram removidos por IDs conferidos após as provas. Não houve merge ou alteração de Production.
 
 ## Limites do piloto
 
