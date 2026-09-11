@@ -6,6 +6,29 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+type CarePlanContent = {
+  title: string;
+  goals: string;
+  actions: string;
+  frequency: string;
+  period: string;
+  review_on: string | null;
+  status: string;
+};
+type CarePlanRow = CarePlanContent & {
+  id: string;
+  tenant_id: string;
+  patient_id: string;
+  encounter_id: string | null;
+  doctor_id: string;
+  doctor_display_name: string;
+  revision: number;
+  version: number;
+  expected_version: number | null;
+  approved_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
@@ -14,6 +37,39 @@ export type Database = {
   };
   public: {
     Tables: {
+      care_plans: {
+        Row: CarePlanRow;
+        Insert: {
+          tenant_id: string;
+          patient_id: string;
+          encounter_id?: string | null;
+        };
+        Update: Partial<CarePlanContent> & { expected_version: number };
+        Relationships: [
+          {
+            foreignKeyName: "care_plans_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      care_plan_versions: {
+        Row: CarePlanContent & {
+          id: string;
+          tenant_id: string;
+          plan_id: string;
+          version: number;
+          revision: number;
+          actor_user_id: string;
+          approved_at: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       encounter_addenda: {
         Row: {
           id: string;

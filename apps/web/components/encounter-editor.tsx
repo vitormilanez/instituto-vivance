@@ -214,6 +214,15 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
           <dd>Versão {e.version}</dd>
         </div>
       </dl>
+      {detail.clinic.role === "doctor" && (
+        <p>
+          <Link
+            href={`/clinicas/${e.tenant_id}/planos/novo?paciente=${e.patient_id}&atendimento=${e.id}`}
+          >
+            Criar plano de cuidado para este paciente
+          </Link>
+        </p>
+      )}
       <section className="panel encounter-record" aria-label="Registro clínico">
         <div className="section-heading encounter-record-heading">
           <div>

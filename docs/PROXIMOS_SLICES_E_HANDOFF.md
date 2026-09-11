@@ -10,7 +10,7 @@ Atualizado em 11/09/2026. Referência central de continuidade: distingue entrega
 - PR de trabalho: https://github.com/vitormilanez/instituto-vivance/pull/11.
 - Prévia protegida: https://instituto-vivance-testes-vtr-consulting.vercel.app.
 - Endereço local usado nos testes: http://127.0.0.1:3010. Confirmar se o servidor está ativo antes de orientar o usuário.
-- Base funcional conferida: commit `2fd4420`, com os slices 3B, 3C e 3D fechados no código e no Supabase de desenvolvimento. Conferir novamente Git, arquivos e ambiente antes de editar.
+- Base anterior conferida: commit `550335c`, com 3B–3D encerrados. O Slice 4A acrescenta planos internos; evidências e versão da publicação estão no fechamento abaixo.
 - Não confundir com `/Users/vitormilanez/Desktop/Codes/Instituto Vivance`, que contém o protótipo original e pode conter trabalho do usuário. Não desenvolver a migração ali.
 
 Ler primeiro este documento, `apps/web/AGENTS.md`, `docs/ATENDIMENTO_MVP.md`, `docs/AGENDA_MVP.md` e `apps/web/README.md`. Consultar `docs/PLANO_VERCEL_SUPABASE.md` para decisões de arquitetura, lembrando que suas seções iniciais são históricas, não um retrato atual de disponibilidade.
@@ -39,12 +39,24 @@ Ler primeiro este documento, `apps/web/AGENTS.md`, `docs/ATENDIMENTO_MVP.md`, `d
 | 3B | Adendos imutáveis e controle de versão também no banco | Fechado com persistência após sair/voltar, original preservado e Preview protegida |
 | 3C | Convite e aceite de equipe; atribuição, aceite, suspensão, revogação e reatribuição de cuidado | Fechado com isolamento, bloqueio imediato e administrador sem conteúdo clínico; convite novo por e-mail ainda não exercitado ponta a ponta |
 | 3D | Agenda e Atendimento com cinco estados coerentes, nome profissional preservado, busca/paginação e identidade visual reaplicada | Fechado no código, banco e navegador; não libera uso clínico real nem publica registro interno ao paciente |
+| 4A | Plano interno ligado ao paciente/atendimento, rascunho, revisão médica, aprovação e nova revisão com histórico | Aprovação não publica; somente médico autor vinculado escreve/aprova; equipe clínica vinculada lê; paciente e admin não acessam |
 
 O slice 3D manteve os 66 testes da base e validou somente os 61 cenários diretamente afetados de Agenda, Atendimento, navegação e isolamento, todos aprovados após as correções concretas. Tipos, lint e build passaram. A migração remota `20260911055947_agenda_encounter_state_coherence` está aplicada; os registros anteriores foram preservados e todo dado sintético descartável desta validação foi removido.
 
 Publicação protegida do 3D: código funcional `2fd4420`, documentação da entrega `2501d5b`, deployment `dpl_Eke15MbwD4rYQdU72YJkNBzZiCFu` `READY`, URL imutável https://instituto-vivance-gb6f0mcrg-vtr-consulting.vercel.app e alias https://instituto-vivance-testes-vtr-consulting.vercel.app. O build remoto passou com Next.js 16.3.4 e Node.js 24.x. Visitante anônimo recebeu o redirecionamento da proteção Vercel; pela CLI autenticada, a aplicação respondeu 200 com cache privado e a nova rota de busca sem sessão respondeu 401 com `private, no-store`. Nenhum erro apareceu nos logs do deployment na janela observada. Não houve merge para `main` nem promoção Production.
 
-Asana: a tarefa `Slice 3B–3D — Base clínica e operação de atendimento` (`1218384571286751`) teve os seis BDDs e as evidências atualizados, foi marcada como concluída e movida para `Done`. O próximo trabalho recomendado permanece 4A, em uma entrega separada.
+Asana: a tarefa `Slice 3B–3D — Base clínica e operação de atendimento` (`1218384571286751`) teve os seis BDDs e as evidências atualizados, foi marcada como concluída e movida para `Done`. A tarefa `Slice 4A–4D — Planos de cuidado e acompanhamento` (`1218384336844795`) permanece aberta em Development: 4A não encerra publicação e check-ins.
+
+### Slice 4A — contrato e evidências
+
+- Caminho: Atendimento → Criar plano de cuidado → Criar rascunho interno → preencher objetivos, ações, frequência, período e data de revisão → Salvar e revisar → confirmação médica → Aprovar. Retomada pela navegação Planos de cuidado. Nenhum campo recebe conteúdo clínico inventado ou recomendação automática.
+- `care_plans` mantém a revisão de trabalho, com controle otimista de salvamento. `care_plan_versions` guarda snapshot imutável de cada salvamento/transição. Ao criar nova revisão, a aprovação anterior continua intacta no histórico. O 4B deverá referenciar uma versão aprovada imutável, nunca o conteúdo corrente mutável, e registrar publicação separadamente.
+- Escritas permitidas somente ao médico autor com papel e vínculo ativos. Enfermeiro vinculado pode ler, não alterar/aprovar. Administrador operacional, paciente, outra clínica, profissional sem vínculo e sessão revogada não veem o conteúdo. Auditoria registra metadados, sem textos clínicos.
+- Migração de desenvolvimento aplicada: `20260911062908_internal_care_plans`. Nenhuma política/tabela clínica anterior foi alterada. Não há publicação implícita, exclusão de plano pela aplicação, prescrição eletrônica ou liberação Production.
+- Verificação focada: quatro testes de validação/transições, histórico aprovado, conflito de versão, autoria/auditoria e isolamento passaram. Tipos, lint e build local passaram. Não houve expansão para cobertura exaustiva.
+- Navegador local: criação a partir da Agenda/Atendimento, edição, salvamento, recarga, revisão, aprovação, recarga e nova revisão preservando aprovação anterior demonstrados. Desktop 1440px e celular 390px sem overflow; revisão visual independente `ship` no estado de revisão, sem achados materiais. API negou acesso do paciente com 403.
+- Alertas Supabase preexistentes mantidos: RPCs deliberadamente `SECURITY DEFINER` de Agenda/Atendimento e proteção contra [senhas vazadas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) desativada. Nenhum alerta novo relativo às tabelas/funções de planos. Não mudar custo/configuração de Auth sem decisão.
+- Limites: plano é interno nesta entrega; publicação, ciência, substituição/retirada e portal com orientação vigente são 4B. Lista paginada em blocos de 20; histórico em blocos de 10. Sem busca avançada ou geração de conteúdo.
 
 ## 4. Sequência de implementação
 
@@ -58,7 +70,7 @@ Preservar as etapas macro do plano anterior: **4 = cuidado e acompanhamento; 5 =
 | **3C — Equipe e vínculos de cuidado** | Responsável autorizado convida/gerencia equipe e atribui ou revoga médico/enfermagem por paciente | Matriz explícita de quem pode conceder acesso; admin opera vínculos sem ler conteúdo clínico; profissional aceita responsabilidade quando aplicável. Revogação e suspensão bloqueiam acesso imediatamente. Sem escalada de privilégio ou atribuição entre clínicas |
 | **3D — Agenda e atendimento coerentes — concluído** | Agenda diferencia agendado, em atendimento, concluído, cancelado e falta, conforme transições permitidas | Entregue: transições atômicas, bloqueios após início, nome cadastrado preservado, busca/paginação estável e telas conectadas alinhadas ao protótipo |
 
-**Próxima implementação recomendada: 4A — Plano de cuidado interno.** O 3B não transforma adendo em edição da versão final nem em assinatura digital certificada; o 3C não amplia o acesso clínico do administrador; o 3D não publica o registro interno para o paciente.
+**Próxima implementação recomendada após fechar a publicação 4A: 4B — Publicação e portal do paciente.** O 3B não transforma adendo em edição da versão final nem em assinatura digital certificada; o 3C não amplia o acesso clínico do administrador; o 3D e o 4A não publicam conteúdo interno para o paciente.
 
 ### Fase B — fechar a jornada de cuidado manual
 
@@ -144,4 +156,4 @@ Os slices são fatias de implementação, não substitutos das tarefas de produt
 
 Continuar no diretório de implementação indicado acima. Os slices **3B — Adendos e integridade**, **3C — Equipe e vínculos de cuidado** e **3D — Agenda e atendimento coerentes** estão fechados no código, no Supabase de desenvolvimento e na Preview protegida. O 3D está no commit funcional `2fd4420`, deployment `dpl_Eke15MbwD4rYQdU72YJkNBzZiCFu`: cinco estados e transições atômicas, bloqueio de cancelamento/falta após início, snapshots do nome profissional, busca/paginação e direção visual do protótipo nas telas conectadas. Os 61 cenários diretamente afetados passaram; tipos, lint e builds local/remoto passaram. Agenda, Atendimento e área do paciente foram validados no navegador; celular em 390 px foi conferido. Dados sintéticos descartáveis foram removidos sem alterar os registros anteriores.
 
-Executar agora o **slice 4A — Plano de cuidado interno** como uma entrega completa. Preservar `rascunho → revisão médica → aprovado`, com versões imutáveis depois da aprovação, autoria e auditoria; aprovação somente por médico autorizado e sem publicação automática ao paciente. Reaproveitar a navegação e os componentes visuais agora restaurados, sem expandir o design para módulos fora da jornada. Validar somente os testes diretamente afetados e riscos concretos do slice; depois navegador, Preview, documentação e Asana. Não iniciar 4B antes de fechar 4A, não promover Production e não marcar a tarefa maior do Asana como concluída enquanto seus BDDs restantes não passarem.
+Próximo: **4B — Publicação e portal do paciente**, depois de confirmar a publicação protegida do 4A. Publicar deve referenciar uma versão aprovada imutável e constituir ato separado da aprovação. Nova revisão privada não retira a orientação vigente. Reaproveitar o visual existente, validar somente riscos diretamente afetados e concluir navegador, Preview, documentação central e Asana. Não promover Production nem marcar a tarefa maior como concluída enquanto seus BDDs restantes não passarem.

@@ -2216,3 +2216,41 @@ button.calendar-day[aria-pressed="true"] {
     animation-iteration-count: 1 !important;
   }
 }
+.plan-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+.plan-summary {
+  display: grid;
+  gap: 1rem;
+}
+.plan-summary h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.35rem;
+}
+.plan-summary p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin-top: 0;
+}
+.plan-approval {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e4e8ef;
+}
+.plan-approval input {
+  width: auto;
+  margin-right: 0.5rem;
+}
+.plan-history {
+  padding: 1rem 0;
+  border-bottom: 1px solid #e4e8ef;
+}
+.plan-history summary {
+  cursor: pointer;
+  font-weight: 600;
+}

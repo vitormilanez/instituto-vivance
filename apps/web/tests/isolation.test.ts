@@ -62,6 +62,192 @@ before(async () => {
     [pa, a, users.admin.id, pb, b, users.other.id],
   );
 });
+test("care plans preserve approved revision and reject stale writes and skipped review", async () => {
+  await asUser("doctor", async () => {
+    const source = await startClinical();
+    const result = await db.query<{ id: string }>(
+      "insert into public.care_plans(tenant_id,patient_id,encounter_id) values($1,$2,$3) returning id",
+      [a, pa, source.id],
+    );
+    const id = result.rows[0].id;
+    await denied(
+      "update public.care_plans set status='approved',expected_version=1 where id=$1",
+      [id],
+    );
+    await db.query(
+      "update public.care_plans set title='Synthetic plan',goals='Synthetic goals',actions='Synthetic actions',frequency='Medical frequency',period='Medical period',review_on='2099-10-01',status='in_review',expected_version=1 where id=$1",
+      [id],
+    );
+    await denied(
+      "update public.care_plans set status='approved',expected_version=1 where id=$1",
+      [id],
+    );
+    await denied(
+      "update public.care_plans set actions='Unreviewed change',status='approved',expected_version=2 where id=$1",
+      [id],
+    );
+    await db.query(
+      "update public.care_plans set status='approved',expected_version=2 where id=$1",
+      [id],
+    );
+    await denied(
+      "update public.care_plans set actions='Alter approved',expected_version=3 where id=$1",
+      [id],
+    );
+    await denied(
+      "update public.care_plan_versions set actions='Alter history' where plan_id=$1",
+      [id],
+    );
+    await db.query(
+      "update public.care_plans set status='draft',expected_version=3 where id=$1",
+      [id],
+    );
+    await db.query(
+      "update public.care_plans set actions='New private revision',expected_version=4 where id=$1",
+      [id],
+    );
+    const approved = await db.query<{
+      actions: string;
+      revision: number;
+      approved_at: unknown;
+    }>(
+      "select actions,revision,approved_at from public.care_plan_versions where plan_id=$1 and status='approved'",
+      [id],
+    );
+    assert.equal(approved.rows[0].actions, "Synthetic actions");
+    assert.equal(approved.rows[0].revision, 1);
+    assert.ok(approved.rows[0].approved_at);
+    const current = await db.query<{
+      version: number;
+      revision: number;
+      status: string;
+    }>("select version,revision,status from public.care_plans where id=$1", [
+      id,
+    ]);
+    assert.deepEqual(current.rows[0], {
+      version: 5,
+      revision: 2,
+      status: "draft",
+    });
+    await db.exec("reset role");
+    const audit = await db.query<{ n: number }>(
+      "select count(*)::int n from public.audit_events where entity_id=$1 and actor_user_id=$2",
+      [id, users.doctor.id],
+    );
+    assert.equal(audit.rows[0].n, 5);
+  });
+});
+test("care plans deny other tenants, operational admin, patient, unlinked professional and revoked session", async () => {
+  await asUser("doctor", async () => {
+    await startClinical();
+    const result = await db.query<{ id: string }>(
+      "insert into public.care_plans(tenant_id,patient_id) values($1,$2) returning id",
+      [a, pa],
+    );
+    const id = result.rows[0].id;
+    await denied(
+      "insert into public.care_plans(tenant_id,patient_id) values($1,$2)",
+      [a, pb],
+    );
+    for (const role of [
+      "admin",
+      "patient",
+      "nurse",
+      "other",
+      "outsider",
+      "suspended",
+    ]) {
+      await switchActor(role);
+      assert.equal(
+        (await db.query("select id from public.care_plans where id=$1", [id]))
+          .rows.length,
+        0,
+      );
+      assert.equal(
+        (
+          await db.query(
+            "select id from public.care_plan_versions where plan_id=$1",
+            [id],
+          )
+        ).rows.length,
+        0,
+      );
+      await denied(
+        "insert into public.care_plans(tenant_id,patient_id) values($1,$2)",
+        [a, pa],
+      );
+    }
+    await switchActor("doctor");
+    await db.exec("reset role");
+    await db.query("delete from auth.sessions where id=$1", [
+      users.doctor.session,
+    ]);
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.care_plans where id=$1", [id]))
+        .rows.length,
+      0,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "update public.care_plans set title='Denied',expected_version=1 where id=$1 returning id",
+          [id],
+        )
+      ).rows.length,
+      0,
+    );
+  });
+});
+test("care plan linked nurse can read but not approve; revoked care immediately removes history", async () => {
+  await asUser("doctor", async () => {
+    await startClinical();
+    const result = await db.query<{ id: string }>(
+      "insert into public.care_plans(tenant_id,patient_id) values($1,$2) returning id",
+      [a, pa],
+    );
+    const id = result.rows[0].id;
+    await switchActor("admin");
+    const link = await db.query<{ id: string }>(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'assigned') returning id",
+      [a, pa, users.nurse.id],
+    );
+    await switchActor("nurse");
+    await db.query(
+      "update public.care_relationships set status='active',expected_version=1 where id=$1",
+      [link.rows[0].id],
+    );
+    assert.equal(
+      (await db.query("select id from public.care_plans where id=$1", [id]))
+        .rows.length,
+      1,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "update public.care_plans set status='approved',expected_version=1 where id=$1 returning id",
+          [id],
+        )
+      ).rows.length,
+      0,
+    );
+    await switchActor("admin");
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=2 where id=$1",
+      [link.rows[0].id],
+    );
+    await switchActor("nurse");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.care_plan_versions where plan_id=$1",
+          [id],
+        )
+      ).rows.length,
+      0,
+    );
+  });
+});
 after(async () => {
   await db.close();
 });
