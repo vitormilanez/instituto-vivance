@@ -28,12 +28,12 @@ export default async function Clinics() {
             {context.clinics.map((c) => (
               <li key={c.id} className="panel">
                 {c.role === "patient" ? (
-                  <>
-                    <h2>{c.name}</h2>
-                    <p>
-                      A área do paciente ainda não está disponível nesta versão.
-                    </p>
-                  </>
+                  <Link href={`/clinicas/${c.id}/meu-perfil`}>
+                    <div>
+                      <h2>{c.name}</h2>
+                      <small>Paciente · Abrir meu perfil</small>
+                    </div>
+                  </Link>
                 ) : (
                   <Link href={`/clinicas/${c.id}`}>
                     <div>
@@ -48,9 +48,10 @@ export default async function Clinics() {
           </ul>
         )}
         <p className="notice">
-          Já disponíveis: visão geral, busca e ficha cadastral de pacientes.
-          Agenda, atendimentos e acompanhamento serão liberados nas próximas
-          entregas.
+          {context.clinics.length > 0 &&
+          context.clinics.every((c) => c.role === "patient")
+            ? "Seu perfil cadastral já está disponível. Consultas, planos e mensagens serão liberados nas próximas entregas."
+            : "Já disponíveis: visão geral, busca e ficha cadastral de pacientes. Agenda, atendimentos e acompanhamento serão liberados nas próximas entregas."}
         </p>
       </main>
     </>

@@ -21,6 +21,7 @@ export default async function Audit({
     throw error;
   });
   const labels: Record<string, string> = {
+    patient_accounts: "Acesso do paciente",
     patients: "Paciente",
     tenants: "Clínica",
     memberships: "Vínculo de acesso",

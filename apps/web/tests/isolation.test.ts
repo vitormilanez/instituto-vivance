@@ -135,7 +135,7 @@ test("direct patient links and matching names cannot expose another clinic", asy
       [pb],
     );
     assert.equal(foreign.rows.length, 0);
-    const search = await db.query(
+    const search = await db.query<{ id: string }>(
       "select id from public.patients where display_name ilike $1",
       ["%Synthetic%"],
     );
@@ -144,6 +144,94 @@ test("direct patient links and matching names cannot expose another clinic", asy
       [pa],
     );
   });
+});
+
+test("linked patient reads only their record and cannot modify data or their link", async () => {
+  await db.exec("begin");
+  try {
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,user_id,patient_id) values($1,$2,$3)",
+      [a, users.patient.id, pa],
+    );
+    await db.exec("set local role authenticated");
+    await db.query("select set_config('request.jwt.claims', $1, true)", [
+      JSON.stringify({
+        sub: users.patient.id,
+        session_id: users.patient.session,
+      }),
+    ]);
+    assert.deepEqual(
+      (
+        await db.query<{ id: string }>("select id from public.patients")
+      ).rows.map((row) => row.id),
+      [pa],
+    );
+    assert.equal(
+      (await db.query("select * from public.patients where id=$1", [pb])).rows
+        .length,
+      0,
+    );
+    assert.equal(
+      (await db.query("select * from public.audit_events")).rows.length,
+      0,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "update public.patients set display_name='Changed' where id=$1 returning id",
+          [pa],
+        )
+      ).rows.length,
+      0,
+    );
+    await assert.rejects(
+      db.query("update public.patient_accounts set patient_id=$1", [pb]),
+      /permission denied/,
+    );
+  } finally {
+    await db.exec("rollback");
+  }
+});
+
+test("patient profile stops being visible immediately after membership suspension", async () => {
+  await db.exec("begin");
+  try {
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,user_id,patient_id) values($1,$2,$3)",
+      [a, users.patient.id, pa],
+    );
+    await db.query(
+      "update public.memberships set status='suspended' where tenant_id=$1 and user_id=$2",
+      [a, users.patient.id],
+    );
+    await db.exec("set local role authenticated");
+    await db.query("select set_config('request.jwt.claims', $1, true)", [
+      JSON.stringify({
+        sub: users.patient.id,
+        session_id: users.patient.session,
+      }),
+    ]);
+    assert.equal(
+      (await db.query("select * from public.patients")).rows.length,
+      0,
+    );
+    assert.equal(
+      (await db.query("select * from public.patient_accounts")).rows.length,
+      0,
+    );
+  } finally {
+    await db.exec("rollback");
+  }
+});
+
+test("patient account cannot reference a record from another tenant", async () => {
+  await assert.rejects(
+    db.query(
+      "insert into public.patient_accounts(tenant_id,user_id,patient_id) values($1,$2,$3)",
+      [a, users.patient.id, pb],
+    ),
+    /foreign key/,
+  );
 });
 
 test("forged user_metadata never grants admin access", async () => {

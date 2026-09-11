@@ -13,7 +13,11 @@ Primeira fatia funcional, não o MVP clínico completo. O protótipo Cloudflare 
 - Histórico somente para administrador; sem permissão da aplicação para forjar ou apagar eventos.
 - Banco com RLS e verificação de sessão existente, expiração, usuário bloqueado/excluído, clínica e vínculo ativos.
 
-Médico, enfermagem e administrador têm acesso ao **cadastro demográfico da sua clínica**. Isso não concede acesso a prontuário: os próximos módulos clínicos precisam exigir vínculo de cuidado ativo com o paciente. O papel paciente ainda não tem área funcional neste app.
+Médico, enfermagem e administrador têm acesso ao **cadastro demográfico da sua clínica**. Isso não concede acesso a prontuário: os próximos módulos clínicos precisam exigir vínculo de cuidado ativo com o paciente. O paciente acessa `/clinicas/:tenantId/meu-perfil`, somente leitura de sua própria ficha, vinculada explicitamente por `patient_accounts`. Não tem acesso ao diretório nem à auditoria.
+
+Dois acessos de teste (médico e paciente) foram criados por solicitação do titular no ambiente de desenvolvimento. Identidades, senhas e e-mails não são seeds nem ficam no repositório. A ficha de teste foi criada de forma persistida e vinculada ao usuário paciente. Login de ambos validado contra o Auth; RLS retorna somente a própria ficha ao paciente e nenhuma auditoria para qualquer dos dois papéis. Migração `20260911004732_patient_account_access.sql`, com chaves compostas e nenhum direito de escrita para os usuários sobre o vínculo.
+
+Verificações: 26 testes de regras/isolamento, lint, TypeScript e build. O advisor registrou proteção contra senhas vazadas desativada; é pendência de configuração para operação, sem alterar a senha de testes solicitada. [Orientação do Supabase](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
 
 ## Rodar localmente
 

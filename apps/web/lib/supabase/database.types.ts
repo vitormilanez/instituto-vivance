@@ -87,6 +87,45 @@ export type Database = {
           },
         ];
       };
+      patient_accounts: {
+        Row: {
+          created_at: string;
+          id: string;
+          patient_id: string;
+          tenant_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          patient_id: string;
+          tenant_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          patient_id?: string;
+          tenant_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "patient_accounts_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: true;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "patient_accounts_tenant_id_user_id_fkey";
+            columns: ["tenant_id", "user_id"];
+            isOneToOne: true;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
       patients: {
         Row: {
           birth_date: string | null;
