@@ -66,5 +66,6 @@ export async function savePatient(
     };
   }
   revalidatePath(`/clinicas/${id}`);
-  redirect(`/clinicas/${id}`);
+  revalidatePath(`/clinicas/${id}/pacientes`);
+  redirect(`/clinicas/${id}/pacientes`);
 }

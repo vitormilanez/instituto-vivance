@@ -1,5 +1,20 @@
 export class InputError extends Error {}
 
+export function patientSearch(value: string | null | undefined): string {
+  if (value == null) return "";
+  if (
+    typeof value !== "string" ||
+    value.length > 80 ||
+    /[\x00-\x1f\x7f]/u.test(value)
+  )
+    throw new InputError("Use até 80 caracteres para buscar um paciente.");
+  return value.trim().replace(/\s+/g, " ");
+}
+
+export function searchPattern(value: string): string {
+  return `%${value.replace(/[\\%_]/g, "\\$&")}%`;
+}
+
 export function tenantId(value: string): string {
   if (
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(

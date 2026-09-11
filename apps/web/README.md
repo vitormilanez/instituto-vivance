@@ -7,6 +7,7 @@ Primeira fatia funcional, não o MVP clínico completo. O protótipo Cloudflare 
 - Login individual com Supabase Auth e refresh de cookies pelo proxy Next.js.
 - Vínculos de clínica e papéis lidos do banco, não de metadados editáveis do usuário.
 - Escolha explícita de clínica; lista e cadastro demográfico de pacientes, paginados.
+- Painel da clínica com 8 ações rápidas e contagem real; busca por nome, ficha cadastral individual e histórico em páginas próprias. Módulos futuros identificados como indisponíveis.
 - API versionada por módulo: `/api/v1/clinics`, `/api/v1/clinics/:tenantId/patients`, `/api/v1/clinics/:tenantId/audit`.
 - Auditoria de criação/alteração de clínica, vínculo e cadastro na mesma transação, sem cópia dos valores pessoais.
 - Histórico somente para administrador; sem permissão da aplicação para forjar ou apagar eventos.
@@ -15,6 +16,8 @@ Primeira fatia funcional, não o MVP clínico completo. O protótipo Cloudflare 
 Médico, enfermagem e administrador têm acesso ao **cadastro demográfico da sua clínica**. Isso não concede acesso a prontuário: os próximos módulos clínicos precisam exigir vínculo de cuidado ativo com o paciente. O papel paciente ainda não tem área funcional neste app.
 
 ## Rodar localmente
+
+Plano e próximos módulos: [PLANO_MIGRACAO_MODULOS.md](../../docs/PLANO_MIGRACAO_MODULOS.md).
 
 Requer Node.js 24. Na pasta `apps/web`, execute `npm ci`. Na raiz do repositório, mantenha somente as configurações locais autorizadas em `.env.development.local` (ignorado pelo Git):
 

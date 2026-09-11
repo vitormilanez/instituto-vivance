@@ -1,134 +1,136 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { listPatients } from "@/modules/patients/service";
-import { listAudit } from "@/modules/audit/service";
-import { AccessError, roleLabels } from "@/modules/identity/service";
-import { InputError, pageNumber } from "@/lib/validation";
-import { Header } from "@/components/header";
-import { PatientForm } from "@/components/forms";
+import { AccessError } from "@/modules/identity/service";
+import { InputError } from "@/lib/validation";
+import { ClinicShell } from "@/components/clinic-shell";
 export const dynamic = "force-dynamic";
-export default async function Directory({
+
+export default async function Dashboard({
   params,
-  searchParams,
 }: {
   params: Promise<{ tenantId: string }>;
-  searchParams: Promise<{ page?: string }>;
 }) {
   const { tenantId } = await params;
-  const load = async () => {
-    const page = pageNumber((await searchParams).page);
-    return { ...(await listPatients(tenantId, page)), page };
-  };
-  const context = await load().catch((error) => {
+  const context = await listPatients(tenantId).catch((error) => {
     if (error instanceof AccessError && error.status === 401) redirect("/");
     if (error instanceof AccessError || error instanceof InputError) notFound();
     throw error;
   });
-  const audit =
-    context.clinic.role === "admin" ? await listAudit(tenantId) : [];
+  const base = `/clinicas/${tenantId}`;
+  const actions = [
+    {
+      title: "Pacientes",
+      text: "Busque e abra uma ficha.",
+      href: `${base}/pacientes`,
+    },
+    {
+      title: "Novo paciente",
+      text: "Comece pelo cadastro.",
+      href: `${base}/pacientes#novo-paciente`,
+    },
+    { title: "Agenda", text: "Horários e compromissos da equipe." },
+    { title: "Atendimento", text: "Registro e evolução das consultas." },
+    { title: "Planos de cuidado", text: "Orientações revisadas e publicadas." },
+    { title: "Acompanhamento", text: "Check-ins e evolução entre consultas." },
+    { title: "Documentos", text: "Arquivos e exames do paciente." },
+    {
+      title: "Histórico de ações",
+      text:
+        context.clinic.role === "admin"
+          ? "Consulte as alterações registradas."
+          : "Reservado ao administrador.",
+      href: context.clinic.role === "admin" ? `${base}/historico` : undefined,
+      restricted: context.clinic.role !== "admin",
+    },
+  ];
   return (
-    <>
-      <Header />
-      <main id="conteudo" className="container">
-        <p className="eyebrow">
-          {context.clinic.name} · {roleLabels[context.clinic.role]}
-        </p>
-        <h1>Pacientes</h1>
+    <ClinicShell clinic={context.clinic} active="home">
+      <div className="page-heading">
+        <div>
+          <h1>Visão geral</h1>
+          <p>Organize os cadastros e o próximo passo do cuidado.</p>
+        </div>
+        <Link className="button" href={`${base}/pacientes#novo-paciente`}>
+          Cadastrar paciente
+        </Link>
+      </div>
+      <section className="directory-summary" aria-label="Resumo da clínica">
+        <div>
+          <strong>{context.count}</strong>
+          <span>
+            {context.count === 1
+              ? "paciente cadastrado"
+              : "pacientes cadastrados"}
+          </span>
+        </div>
         <p>
-          Cadastro básico da clínica. {context.count}{" "}
-          {context.count === 1 ? "pessoa cadastrada" : "pessoas cadastradas"}.
+          O cadastro é o primeiro passo. Agenda e acompanhamento serão liberados
+          nas próximas entregas.
         </p>
-        <div className="grid">
-          <section className="panel">
-            <h2>Cadastros</h2>
-            {context.patients.length === 0 ? (
-              <div className="empty">
-                <h2>
-                  {context.count === 0
-                    ? "Nenhum paciente cadastrado"
-                    : "Nenhum cadastro nesta página"}
-                </h2>
-                <p>
-                  {context.count === 0
-                    ? "Os pacientes aparecerão aqui após o primeiro cadastro autorizado. Nenhum dado de demonstração é carregado."
-                    : "Volte para a página anterior."}
-                </p>
-              </div>
+      </section>
+      <section aria-labelledby="quick-actions">
+        <h2 id="quick-actions">Ações rápidas</h2>
+        <div className="quick-actions">
+          {actions.map((action) =>
+            action.href ? (
+              <Link
+                className="quick-action"
+                href={action.href}
+                key={action.title}
+              >
+                <strong>{action.title}</strong>
+                <span>{action.text}</span>
+                <span className="action-state">Abrir</span>
+              </Link>
             ) : (
-              <ul className="list">
-                {context.patients.map((p) => (
-                  <li key={p.id}>
+              <div className="quick-action unavailable" key={action.title}>
+                <strong>{action.title}</strong>
+                <span>{action.text}</span>
+                <span className="action-state">
+                  {action.restricted ? "Acesso restrito" : "Em breve"}
+                </span>
+              </div>
+            ),
+          )}
+        </div>
+      </section>
+      <section className="panel" aria-labelledby="directory-title">
+        <div className="section-heading">
+          <h2 id="directory-title">Pacientes da clínica</h2>
+          <Link href={`${base}/pacientes`}>Ver todos</Link>
+        </div>
+        {context.patients.length === 0 ? (
+          <div className="empty">
+            <h3>Seu primeiro paciente começa aqui</h3>
+            <p>Cadastre nome e nascimento para abrir a ficha individual.</p>
+            <Link
+              className="button secondary"
+              href={`${base}/pacientes#novo-paciente`}
+            >
+              Cadastrar primeiro paciente
+            </Link>
+          </div>
+        ) : (
+          <ul className="list patient-list">
+            {context.patients.slice(0, 5).map((p) => (
+              <li key={p.id}>
+                <Link href={`${base}/pacientes/${p.id}`}>
+                  <span>
                     <strong>{p.display_name}</strong>
                     <small>
                       {p.birth_date
-                        ? `Nascimento: ${String(p.birth_date).split("-").reverse().join("/")}`
+                        ? `Nascimento: ${p.birth_date.split("-").reverse().join("/")}`
                         : "Nascimento não informado"}
                     </small>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <nav className="pagination" aria-label="Paginação">
-              {context.page > 1 ? (
-                <Link href={`?page=${context.page - 1}`}>Anterior</Link>
-              ) : (
-                <span />
-              )}
-              <small>Página {context.page}</small>
-              {context.page * 25 < context.count ? (
-                <Link href={`?page=${context.page + 1}`}>Próxima</Link>
-              ) : (
-                <span />
-              )}
-            </nav>
-          </section>
-          <aside className="panel">
-            <h2>Novo paciente</h2>
-            <p>
-              Cadastre somente pessoas com autorização para atendimento nesta
-              clínica.
-            </p>
-            <PatientForm tenantId={tenantId} />
-          </aside>
-        </div>
-        {context.clinic.role === "admin" && (
-          <details className="panel audit">
-            <summary>Histórico de alterações</summary>
-            <p>
-              Últimas 50 alterações. Sem conteúdo clínico ou cópia dos dados
-              pessoais.
-            </p>
-            {audit.length === 0 ? (
-              <p>Nenhuma alteração registrada.</p>
-            ) : (
-              <ul className="list">
-                {audit.map((e) => (
-                  <li key={e.id}>
-                    <strong>
-                      {e.action === "insert" ? "Cadastro" : "Atualização"} ·{" "}
-                      {(
-                        {
-                          patients: "Paciente",
-                          tenants: "Clínica",
-                          memberships: "Vínculo de acesso",
-                        } as Record<string, string>
-                      )[e.entity_type] ?? "Registro"}
-                    </strong>
-                    <small>
-                      {new Date(e.created_at).toLocaleString("pt-BR", {
-                        timeZone: "America/Sao_Paulo",
-                      })}{" "}
-                      · Responsável:{" "}
-                      {e.actor_user_id ?? "Configuração administrativa"}
-                    </small>
-                    <code>Registro: {e.entity_id}</code>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </details>
+                  </span>
+                  <span className="row-action">Ver ficha</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         )}
-      </main>
-    </>
+      </section>
+    </ClinicShell>
   );
 }

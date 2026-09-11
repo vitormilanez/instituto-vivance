@@ -1,6 +1,6 @@
 import { createPatient, listPatients } from "@/modules/patients/service";
 import { apiError, json } from "@/lib/api";
-import { pageNumber, sameOrigin } from "@/lib/validation";
+import { pageNumber, sameOrigin, patientSearch } from "@/lib/validation";
 type Context = { params: Promise<{ tenantId: string }> };
 export async function GET(request: Request, { params }: Context) {
   try {
@@ -8,6 +8,7 @@ export async function GET(request: Request, { params }: Context) {
       await listPatients(
         (await params).tenantId,
         pageNumber(new URL(request.url).searchParams.get("page")),
+        patientSearch(new URL(request.url).searchParams.get("q")),
       ),
     );
   } catch (error) {

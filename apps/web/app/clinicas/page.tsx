@@ -14,7 +14,7 @@ export default async function Clinics() {
       <main id="conteudo" className="container">
         <p className="eyebrow">Seu espaço de trabalho</p>
         <h1>Minhas clínicas</h1>
-        <p>Escolha a clínica para acessar os cadastros autorizados.</p>
+        <p>Escolha a clínica para abrir seu painel de trabalho.</p>
         {context.clinics.length === 0 ? (
           <section className="panel empty">
             <h2>Aguardando liberação de acesso</h2>
@@ -48,8 +48,9 @@ export default async function Clinics() {
           </ul>
         )}
         <p className="notice">
-          Versão inicial: cadastros e histórico de alterações. Consultas,
-          prontuário, documentos e IA ainda não estão disponíveis.
+          Já disponíveis: visão geral, busca e ficha cadastral de pacientes.
+          Agenda, atendimentos e acompanhamento serão liberados nas próximas
+          entregas.
         </p>
       </main>
     </>

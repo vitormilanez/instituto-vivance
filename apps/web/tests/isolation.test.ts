@@ -123,6 +123,29 @@ test("patient, suspended membership and no membership cannot read the directory"
       );
     });
 });
+test("direct patient links and matching names cannot expose another clinic", async () => {
+  await asUser("doctor", async () => {
+    const own = await db.query(
+      "select id from public.patients where tenant_id=$1 and id=$2",
+      [a, pa],
+    );
+    assert.equal(own.rows.length, 1);
+    const foreign = await db.query(
+      "select id from public.patients where id=$1",
+      [pb],
+    );
+    assert.equal(foreign.rows.length, 0);
+    const search = await db.query(
+      "select id from public.patients where display_name ilike $1",
+      ["%Synthetic%"],
+    );
+    assert.deepEqual(
+      search.rows.map((row) => row.id),
+      [pa],
+    );
+  });
+});
+
 test("forged user_metadata never grants admin access", async () => {
   await asUser(
     "patient",
