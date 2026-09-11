@@ -8,9 +8,10 @@ Primeira fatia funcional, não o MVP clínico completo. O protótipo Cloudflare 
 - Vínculos de clínica e papéis lidos do banco, não de metadados editáveis do usuário.
 - Escolha explícita de clínica; lista e cadastro demográfico de pacientes, paginados.
 - Painel da clínica com 8 ações rápidas e contagem real; busca por nome, ficha cadastral individual e histórico em páginas próprias.
-- Estrutura navegável sem mocks para agenda, atendimentos, planos, acompanhamento, documentos, mensagens, relatórios e IA. Abas navegáveis e ações de escrita futuras desativadas. Calendário com seleção de datas, sem horários fictícios.
-- Área do paciente em `/clinicas/:tenantId/meu-cuidado/hoje`, com Hoje, Meu cuidado, Conversas e Evolução. Seções de orientações, tratamento, diário, consultas e documentos ainda sem integração clínica. Perfil cadastral real preservado.
-- API versionada por módulo: `/api/v1/clinics`, `/api/v1/clinics/:tenantId/patients`, `/api/v1/clinics/:tenantId/audit`.
+- Agenda real: criar, remarcar e cancelar consultas/retornos; calendário mensal, conflito de horários, versão otimista e auditoria. Ver [escopo e validação](../../docs/AGENDA_MVP.md).
+- Estrutura navegável sem mocks para atendimentos, planos, acompanhamento, documentos, mensagens, relatórios e IA; ações futuras desativadas.
+- Área do paciente em `/clinicas/:tenantId/meu-cuidado/hoje`, com Hoje, Meu cuidado, Conversas e Evolução. Consultas já lê os próprios horários reais; orientações, tratamento, diário e documentos ainda sem integração clínica. Perfil cadastral preservado.
+- API versionada por módulo: `/api/v1/clinics`, `/api/v1/clinics/:tenantId/patients`, `/api/v1/clinics/:tenantId/appointments`, `/api/v1/clinics/:tenantId/audit`.
 - Auditoria de criação/alteração de clínica, vínculo e cadastro na mesma transação, sem cópia dos valores pessoais.
 - Histórico somente para administrador; sem permissão da aplicação para forjar ou apagar eventos.
 - Banco com RLS e verificação de sessão existente, expiração, usuário bloqueado/excluído, clínica e vínculo ativos.
@@ -19,7 +20,7 @@ Médico, enfermagem e administrador têm acesso ao **cadastro demográfico da su
 
 Dois acessos de teste (médico e paciente) foram criados por solicitação do titular no ambiente de desenvolvimento. Identidades, senhas e e-mails não são seeds nem ficam no repositório. A ficha de teste foi criada de forma persistida e vinculada ao usuário paciente. Login de ambos validado contra o Auth; RLS retorna somente a própria ficha ao paciente e nenhuma auditoria para qualquer dos dois papéis. Migração `20260911004732_patient_account_access.sql`, com chaves compostas e nenhum direito de escrita para os usuários sobre o vínculo.
 
-Verificações: 29 testes de regras/isolamento e navegação, lint, TypeScript e build. O advisor registrou proteção contra senhas vazadas desativada; é pendência de configuração para operação, sem alterar a senha de testes solicitada. [Orientação do Supabase](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+Verificações: 44 testes de regras/isolamento e navegação, lint, TypeScript e build remoto. O advisor registrou proteção contra senhas vazadas desativada; é pendência de configuração para operação, sem alterar a senha de testes solicitada. [Orientação do Supabase](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
 
 ## Rodar localmente
 
@@ -36,7 +37,11 @@ Na raiz, execute `npm run web:dev -- --hostname 127.0.0.1 --port 3010`. Para com
 
 Vercel: Root Directory `apps/web`, framework Next.js, Node.js 24.x. `sourceFilesOutsideRootDirectory=false`. Variáveis Supabase somente em Development/Preview. Publicação automática desabilitada nesta etapa; prévias manuais não significam liberação clínica.
 
-**Prévia online publicada em 10/09/2026:** [abrir ambiente de testes](https://instituto-vivance-l9034h1b3-vtr-consulting.vercel.app). Deployment `dpl_8TAwnssREwZp6Y4DEqtQdgnmvmQD`, status `READY`, ambiente Preview (`target: null` na API), código `ca6076f`, Next.js 16.3.4, build remoto de aproximadamente 33 segundos. O acesso exige a proteção da Vercel e, em seguida, o login individual da Vivance. Não há liberação para atendimento real.
+**Endereço fixo da prévia de testes:** https://instituto-vivance-testes-vtr-consulting.vercel.app. A Agenda operacional foi entregue em 10/09/2026, código funcional `2fc8666` e revisão dos textos `d7907e7`. O acesso exige a proteção da Vercel e depois o login individual da Vivance. Sem liberação para atendimento real. A cada publicação manual validada, atualizar somente o alias de testes; não promover para Production.
+
+### Registro histórico da primeira publicação
+
+A primeira prévia do shell foi https://instituto-vivance-l9034h1b3-vtr-consulting.vercel.app, deployment `dpl_8TAwnssREwZp6Y4DEqtQdgnmvmQD`, `READY`, Preview, código `ca6076f`, Next.js 16.3.4, build de cerca de 33 segundos. Esse endereço imutável não recebe as evoluções da Agenda; usar o endereço fixo acima.
 
 O bloqueio de primeiro envio foi resolvido seguindo a [regra documentada da Vercel](https://vercel.com/docs/deployments/environments#first-deployment): inicialização com HTML inerte, sem aplicativo, banco, variáveis Supabase ou dados, classificada pela plataforma como Production (`dpl_C2TANKnK2JKYBdxindLHW3agt8WV`). Essa página técnica foi verificada e continua protegida. O aplicativo foi publicado depois, separadamente, como Preview. Configurações de Next.js restauradas, autoatribuição de domínios desativada e nenhum merge para `main`. Não apagar a inicialização como limpeza casual: isso pode reabrir o comportamento de primeiro envio.
 
@@ -63,7 +68,7 @@ O titular confirmou seu e-mail. Convite enviado pelo painel oficial do Supabase 
 
 `/primeiro-acesso` recebe o convite, remove os tokens do endereço, valida a sessão com o Auth e permite definir a senha. O cliente compartilha a sessão com o servidor por cookies. Links inválidos ou expirados não habilitam o formulário. Nenhuma senha padrão é criada, e credenciais não são registradas em logs.
 
-O Site URL do Supabase de desenvolvimento aponta para `https://instituto-vivance-l9034h1b3-vtr-consulting.vercel.app/primeiro-acesso`. A lista de retornos autorizados contém esse endereço HTTPS exato e `http://127.0.0.1:3010/primeiro-acesso`, sem curingas. Ambos foram conferidos após recarregar o painel. Ao trocar a prévia, atualizar os endereços sem invalidar links ainda em uso. Configuração não equivale à validação de um novo e-mail de recuperação ponta a ponta; nenhum e-mail adicional foi enviado nesta publicação.
+O Site URL do Supabase aponta para `https://instituto-vivance-testes-vtr-consulting.vercel.app/primeiro-acesso`. Esse retorno exato foi adicionado à lista autorizada, preservando o localhost e os retornos HTTPS anteriores. Configuração conferida após recarregar o painel, sem curingas. Usar o alias fixo ao divulgar a versão; os URLs imutáveis são evidência histórica. Configuração não equivale à validação de um novo e-mail de recuperação ponta a ponta; nenhum e-mail adicional foi enviado nesta publicação.
 
 Entrada, seleção da clínica e leitura do cadastro existente foram verificadas no navegador. Nenhum cadastro público pode se promover ou criar uma clínica nesta versão.
 
@@ -71,7 +76,7 @@ Recuperação: o login oferece **Esqueci minha senha** em `/esqueci-minha-senha`
 
 ## Limites desta entrega
 
-Não implementados: consultas, check-ins, prontuário, vínculos clínicos, arquivos, áudios, IA, envio de convite pela interface e gestão de equipe. A aceitação de convite, definição e recuperação da senha estão implementadas. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
+Não implementados: registro clínico do atendimento, check-ins, prontuário, vínculos clínicos, arquivos, áudios, IA, envio de convite pela interface e gestão de equipe. Agendamento, aceitação de convite, definição e recuperação da senha estão implementados. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
 
 Sem homologação para atendimento real. MFA, limites contra abuso, fluxo completo de primeiro acesso, restauração de backups, política de retenção e revisão clínica/privacidade permanecem critérios de entrada em operação. A inspeção de segurança do schema não certifica todo o produto.
 

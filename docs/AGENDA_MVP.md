@@ -1,5 +1,13 @@
 # Agenda — primeira entrega operacional
 
+## Publicação
+
+- URL fixa: https://instituto-vivance-testes-vtr-consulting.vercel.app
+- Target: Preview, status READY, sem promoção de produção.
+- Deployment: `dpl_AN4yz2SAGRDSn6N95wha6i8ygCnz`; URL imutável: https://instituto-vivance-7gj95pgmu-vtr-consulting.vercel.app
+- Commit: `d7907e7`; framework Next.js 16.3.4; build remoto: 15,241 segundos.
+- Supabase Site URL: alias fixo com `/primeiro-acesso`. Quatro retornos exatos persistidos, preservando localhost e URLs anteriores; sem novos e-mails de recuperação nesta entrega.
+
 ## Escopo
 
 - Calendário mensal com seleção de dia, indicação de horários e retornos futuros do mês.
@@ -26,6 +34,8 @@
 - Os cenários sintéticos rodam em PostgreSQL temporário (PGlite), sem criar usuários ou pacientes no Supabase.
 - Validação local pela tela: login da administradora, criação e remarcação de agendamento do paciente de teste já existente; leitura pelo médico e paciente. Tentativa duplicada retorna 409; alteração pelo paciente e acesso a outra clínica retornam 403.
 - Correção de origem local: Next.js pode reconstruir a URL com `localhost` mesmo quando o navegador usa `127.0.0.1`; a validação compara a origem com `Host` e protocolo, sem confiar em `X-Forwarded-Host`.
+- Cancelamento pela tela confirmado no banco e no histórico: criação, remarcação e cancelamento. Resultado final da validação: zero agendamentos ativos e um cancelado do paciente de teste já existente; nenhum novo paciente e nenhum e-mail/notificação enviado.
+- Na prévia online: login da administradora, calendário, médico e agendamento cancelado visíveis; API sem sessão retorna 401 com `private, no-store`. Visitante sem acesso Vercel recebe redirecionamento de autenticação. As mutações completas foram exercitadas localmente contra o mesmo Supabase; não foram repetidas online para evitar mais registros de teste.
 
 ## Limites e pendências
 

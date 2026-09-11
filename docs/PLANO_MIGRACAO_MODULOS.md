@@ -10,7 +10,7 @@ Decisão atual do titular: antecipar a estrutura visual navegável, sem mocks, a
 | --- | --- | --- |
 | 1 — implementada localmente | Painel da clínica com 8 ações rápidas; pacientes com busca, paginação, cadastro e ficha; histórico administrativo | Auth, memberships, patients e audit_events existentes |
 | 1B — implementada localmente | Navegação e estados vazios da equipe e do paciente; calendário navegável; abas da ficha; ações futuras desativadas | Mesma sessão e autorização por clínica; sem novas tabelas nem inserções |
-| 2 — planejada | Agenda: cadastrar, listar, reagendar e cancelar compromissos, com responsáveis e horários reais | Migrar o fluxo de `app/medico/agenda/page.tsx` e a vista Agenda de `app/components/doctor.tsx`; modelo persistido de agenda, equipe e testes de acesso |
+| 2 — implementada em testes | Agenda: cadastrar, listar, reagendar e cancelar compromissos, com médico e paciente reais | Supabase com RLS, conflitos e auditoria; interfaces de equipe/paciente e API modular. Evidências em `AGENDA_MVP.md` |
 | 3 — planejada | Atendimento manual e evolução com autoria e histórico | Agenda, vínculo ativo de cuidado e autorização clínica separada do administrador |
 | 4 — planejada | Plano versionado: rascunho, revisão médica, aprovado, publicado e nova versão; acompanhamento/check-ins | Atendimento e políticas de publicação |
 | 5 — planejada | Documentos privados, mensagens e áudio com processamento assíncrono | Regras de armazenamento, autorização, retenção e filas |
