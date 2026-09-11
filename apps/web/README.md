@@ -8,11 +8,11 @@ Primeira fatia funcional, não o MVP clínico completo. O protótipo Cloudflare 
 - Vínculos de clínica e papéis lidos do banco, não de metadados editáveis do usuário.
 - Escolha explícita de clínica; lista e cadastro demográfico de pacientes, paginados.
 - Painel da clínica com 8 ações rápidas e contagem real; busca por nome, ficha cadastral individual e histórico em páginas próprias.
-- Agenda real: criar, remarcar e cancelar consultas/retornos; calendário mensal, conflito de horários, versão otimista e auditoria. Ver [escopo e validação](../../docs/AGENDA_MVP.md).
-- Atendimento manual: início explícito pela agenda, rascunho, retomada, finalização, versões e adendos imutáveis, com acesso por vínculo clínico ativo e escrita exclusiva do médico autor. Ver [escopo e validação](../../docs/ATENDIMENTO_MVP.md).
+- Agenda real: criar, remarcar, cancelar e registrar falta em consultas/retornos; cinco estados coerentes com o Atendimento, calendário mensal, conflito de horários, versão otimista e auditoria. Ver [escopo e validação](../../docs/AGENDA_MVP.md).
+- Atendimento manual: início explícito pela Agenda, rascunho, retomada, finalização, busca/paginação, versões e adendos imutáveis, com acesso por vínculo clínico ativo e escrita exclusiva do médico autor. Ver [escopo e validação](../../docs/ATENDIMENTO_MVP.md).
 - Equipe de cuidado: convite pendente de médico/enfermagem, aceite explícito, suspensão/reativação e atribuição/aceite/revogação de responsabilidade por paciente. O administrador opera metadados sem abrir conteúdo clínico. Ver [escopo e validação](../../docs/EQUIPE_VINCULOS_MVP.md).
 - Estrutura navegável sem mocks para planos, acompanhamento, documentos, mensagens, relatórios e IA; ações futuras desativadas.
-- Área do paciente em `/clinicas/:tenantId/meu-cuidado/hoje`, com Hoje, Meu cuidado, Conversas e Evolução. Consultas já lê os próprios horários reais; orientações, tratamento, diário e documentos ainda sem integração clínica. Perfil cadastral preservado.
+- Área do paciente em `/clinicas/:tenantId/meu-cuidado/hoje`, com Hoje, Meu cuidado, Conversas e Evolução. A visão principal e Consultas mostram o próximo compromisso real, seu estado e o profissional; orientações, tratamento, diário e documentos ainda não têm integração clínica. Perfil cadastral preservado.
 - API versionada por módulo: `/api/v1/clinics`, `/api/v1/clinics/:tenantId/patients`, `/api/v1/clinics/:tenantId/appointments`, `/api/v1/clinics/:tenantId/encounters` (incluindo `/:encounterId/addenda`), `/api/v1/clinics/:tenantId/team` e `/api/v1/clinics/:tenantId/audit`.
 - Auditoria de criação/alteração de clínica, vínculo e cadastro na mesma transação, sem cópia dos valores pessoais.
 - Histórico somente para administrador; sem permissão da aplicação para forjar ou apagar eventos.
@@ -22,7 +22,7 @@ Médico, enfermagem e administrador têm acesso ao **cadastro demográfico da su
 
 Dois acessos de teste (médico e paciente) foram criados por solicitação do titular no ambiente de desenvolvimento. Identidades, senhas e e-mails não são seeds nem ficam no repositório. A ficha de teste foi criada de forma persistida e vinculada ao usuário paciente. Login de ambos validado contra o Auth; RLS retorna somente a própria ficha ao paciente e nenhuma auditoria para qualquer dos dois papéis. Migração `20260911004732_patient_account_access.sql`, com chaves compostas e nenhum direito de escrita para os usuários sobre o vínculo.
 
-Verificações até o slice 3C: 66 testes de regras/isolamento e navegação, lint, TypeScript e build. O fluxo persistente de adendo do 3B foi fechado em novo registro sintético; o 3C adiciona gestão versionada de equipe e vínculos. O advisor registra proteção contra senhas vazadas desativada; é pendência de configuração para operação, sem alterar a senha de testes solicitada. [Orientação do Supabase](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+Verificações do slice 3D: 61 cenários diretamente afetados de Agenda, Atendimento, navegação e isolamento aprovados, além de lint, TypeScript e build. A migração remota está aplicada; a jornada conectada foi validada em desktop e no paciente em 390 px, e os dados sintéticos descartáveis foram removidos. O advisor registra proteção contra senhas vazadas desativada e sinaliza os dois RPCs atômicos `SECURITY DEFINER`, intencionalmente expostos apenas ao papel autenticado e protegidos por validação de sessão, papel, clínica, responsável e versão. [Orientação do Supabase](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
 
 ## Rodar localmente
 
@@ -46,6 +46,8 @@ Atendimento manual publicado em 10/09/2026, código `128aacf`, deployment Previe
 Adendos e integridade publicados em Preview em 11/09/2026, código funcional `6f14c3b`, deployment `dpl_7rDEyw7LvpLfNEihdSoyb1C89okA` READY, sem merge ou promoção Production. O fluxo persistente foi fechado depois em um novo registro sintético autorizado, sem alterar os dois registros anteriores.
 
 Equipe e vínculos de cuidado publicados em Preview em 11/09/2026, código funcional `94b3e48`, deployment `dpl_H6gFqQf1Lvj3ACztE7KkZTVf99TK` READY, no mesmo endereço fixo e sem merge ou promoção Production. A jornada de convite, aceite, atribuição, suspensão, revogação e reatribuição foi validada com identidades sintéticas descartáveis e o banco de desenvolvimento foi restaurado aos registros anteriores.
+
+Agenda e Atendimento coerentes implementados no código funcional `2fd4420`, com a migração `20260911055947_agenda_encounter_state_coherence` aplicada ao Supabase de desenvolvimento. A publicação Preview final é registrada na referência central e no Asana; sem merge ou promoção Production.
 
 ### Registro histórico da primeira publicação
 

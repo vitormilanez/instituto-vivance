@@ -10,7 +10,7 @@ Atualizado em 11/09/2026. Referência central de continuidade: distingue entrega
 - PR de trabalho: https://github.com/vitormilanez/instituto-vivance/pull/11.
 - Prévia protegida: https://instituto-vivance-testes-vtr-consulting.vercel.app.
 - Endereço local usado nos testes: http://127.0.0.1:3010. Confirmar se o servidor está ativo antes de orientar o usuário.
-- Base funcional conferida: commit `94b3e48`, com os slices 3B e 3C fechados e publicados na Preview protegida. Conferir novamente Git, arquivos e ambiente antes de editar.
+- Base funcional conferida: commit `2fd4420`, com os slices 3B, 3C e 3D fechados no código e no Supabase de desenvolvimento. Conferir novamente Git, arquivos e ambiente antes de editar.
 - Não confundir com `/Users/vitormilanez/Desktop/Codes/Instituto Vivance`, que contém o protótipo original e pode conter trabalho do usuário. Não desenvolver a migração ali.
 
 Ler primeiro este documento, `apps/web/AGENTS.md`, `docs/ATENDIMENTO_MVP.md`, `docs/AGENDA_MVP.md` e `apps/web/README.md`. Consultar `docs/PLANO_VERCEL_SUPABASE.md` para decisões de arquitetura, lembrando que suas seções iniciais são históricas, não um retrato atual de disponibilidade.
@@ -22,6 +22,7 @@ Ler primeiro este documento, `apps/web/AGENTS.md`, `docs/ATENDIMENTO_MVP.md`, `d
 - Isolamento por clínica desde o início. Administrador operacional não ganha acesso clínico por ser administrador.
 - Sem mocks no aplicativo, preenchimento artificial de indicadores ou sucessos simulados. Fixtures somente em testes isolados. Preservar contas, cadastros e registros de teste já autorizados.
 - Manter os 8 atalhos do painel. Fazer ajustes básicos de clareza, acessibilidade e desempenho em cada entrega; não bloquear funcionalidades por um redesign completo.
+- Nas jornadas médica e do paciente, usar o protótipo original como referência de navegação, hierarquia, tipografia, cards, agrupamento, densidade e acabamento. Reaplicar a experiência aos dados conectados, sem copiar fixtures, criar outro design system ou refatorar telas fora do slice.
 - IA auxilia, não decide condutas, diagnostica, prescreve, muda doses ou publica autonomamente.
 - Aprovação médica e publicação ao paciente são ações diferentes. Registro interno finalizado não é automaticamente conteúdo do paciente.
 - Não comprar serviços, trocar planos, liberar produção ou migrar infraestrutura automaticamente. Mudanças de custo e liberação clínica exigem decisão explícita.
@@ -37,8 +38,9 @@ Ler primeiro este documento, `apps/web/AGENTS.md`, `docs/ATENDIMENTO_MVP.md`, `d
 | 3 | Atendimento manual, rascunho, retomada, finalização e histórico de versões | Ainda não liberado para atendimento real |
 | 3B | Adendos imutáveis e controle de versão também no banco | Fechado com persistência após sair/voltar, original preservado e Preview protegida |
 | 3C | Convite e aceite de equipe; atribuição, aceite, suspensão, revogação e reatribuição de cuidado | Fechado com isolamento, bloqueio imediato e administrador sem conteúdo clínico; convite novo por e-mail ainda não exercitado ponta a ponta |
+| 3D | Agenda e Atendimento com cinco estados coerentes, nome profissional preservado, busca/paginação e identidade visual reaplicada | Fechado no código, banco e navegador; não libera uso clínico real nem publica registro interno ao paciente |
 
-O estado atual registra 66 testes, tipos, lint, build, checks do GitHub, validação real no navegador e publicação protegida do 3C. Os registros clínicos anteriores foram preservados; os dados sintéticos descartáveis do teste de equipe foram removidos.
+O slice 3D manteve os 66 testes da base e validou somente os 61 cenários diretamente afetados de Agenda, Atendimento, navegação e isolamento, todos aprovados após as correções concretas. Tipos, lint e build passaram. A migração remota `20260911055947_agenda_encounter_state_coherence` está aplicada; os registros anteriores foram preservados e todo dado sintético descartável desta validação foi removido.
 
 ## 4. Sequência de implementação
 
@@ -50,9 +52,9 @@ Preservar as etapas macro do plano anterior: **4 = cuidado e acompanhamento; 5 =
 | --- | --- | --- |
 | **3B — Adendos e integridade** | Médico autor acrescenta uma correção identificada a um atendimento finalizado, sem modificar o original | Motivo, autoria e data obrigatórios; original e adendos preservados; sem reabertura/destruição; bloqueio a paciente, admin, outra clínica e vínculo revogado. Fortalecer o controle de versão também no caminho de escrita do banco, não somente na API. Depende do 3 |
 | **3C — Equipe e vínculos de cuidado** | Responsável autorizado convida/gerencia equipe e atribui ou revoga médico/enfermagem por paciente | Matriz explícita de quem pode conceder acesso; admin opera vínculos sem ler conteúdo clínico; profissional aceita responsabilidade quando aplicável. Revogação e suspensão bloqueiam acesso imediatamente. Sem escalada de privilégio ou atribuição entre clínicas |
-| **3D — Agenda e atendimento coerentes** | Agenda diferencia agendado, em atendimento, concluído, cancelado e falta, conforme transições permitidas | Concluir atendimento não deixa a consulta visualmente agendada; preserva histórico e identidade. Cancelamento/falta após início são bloqueados. Mostrar nome cadastrado do profissional, sem inventar identidade; busca/paginação clínica para superar listas limitadas |
+| **3D — Agenda e atendimento coerentes — concluído** | Agenda diferencia agendado, em atendimento, concluído, cancelado e falta, conforme transições permitidas | Entregue: transições atômicas, bloqueios após início, nome cadastrado preservado, busca/paginação estável e telas conectadas alinhadas ao protótipo |
 
-**Próxima implementação recomendada: 3D — Agenda e atendimento coerentes.** O 3B não transforma adendo em edição da versão final nem em assinatura digital certificada, e o 3C não amplia o acesso clínico do administrador.
+**Próxima implementação recomendada: 4A — Plano de cuidado interno.** O 3B não transforma adendo em edição da versão final nem em assinatura digital certificada; o 3C não amplia o acesso clínico do administrador; o 3D não publica o registro interno para o paciente.
 
 ### Fase B — fechar a jornada de cuidado manual
 
@@ -136,6 +138,6 @@ Os slices são fatias de implementação, não substitutos das tarefas de produt
 
 ## 7. Instrução para a próxima janela
 
-Continuar no diretório de implementação indicado acima. Os slices **3B — Adendos e integridade** e **3C — Equipe e vínculos de cuidado** estão fechados no código, Supabase de desenvolvimento e Preview protegida. O 3C está no commit funcional `94b3e48`, deployment `dpl_H6gFqQf1Lvj3ACztE7KkZTVf99TK` `READY`, no alias fixo; 66 testes e os checks do GitHub passaram. A validação administrativa/profissional usou registros sintéticos descartáveis, removidos ao final, sem alterar os registros anteriores.
+Continuar no diretório de implementação indicado acima. Os slices **3B — Adendos e integridade**, **3C — Equipe e vínculos de cuidado** e **3D — Agenda e atendimento coerentes** estão fechados no código e no Supabase de desenvolvimento. O 3D está no commit funcional `2fd4420`: cinco estados e transições atômicas, bloqueio de cancelamento/falta após início, snapshots do nome profissional, busca/paginação e direção visual do protótipo nas telas conectadas. Os 61 cenários diretamente afetados passaram; tipos, lint e build passaram. Agenda, Atendimento e área do paciente foram validados no navegador; celular em 390 px foi conferido. Dados sintéticos descartáveis foram removidos sem alterar os registros anteriores.
 
-Executar agora o **slice 3D — Agenda e atendimento coerentes** como uma entrega completa. Aceite: estados agendado/em atendimento/concluído/cancelado/falta com transições seguras; início e finalização refletidos imediatamente em Agenda e Atendimentos; cancelamento ou falta bloqueados depois do início; nome cadastrado do profissional sem fragmento de UUID; busca/paginação estáveis sem romper RLS ou isolamento. Validar concorrência, persistência, histórico, navegador, celular e Preview. Não iniciar 4A antes de fechar 3D, não promover Production e não marcar a tarefa maior do Asana como concluída enquanto seus BDDs restantes não passarem.
+Executar agora o **slice 4A — Plano de cuidado interno** como uma entrega completa. Preservar `rascunho → revisão médica → aprovado`, com versões imutáveis depois da aprovação, autoria e auditoria; aprovação somente por médico autorizado e sem publicação automática ao paciente. Reaproveitar a navegação e os componentes visuais agora restaurados, sem expandir o design para módulos fora da jornada. Validar somente os testes diretamente afetados e riscos concretos do slice; depois navegador, Preview, documentação e Asana. Não iniciar 4B antes de fechar 4A, não promover Production e não marcar a tarefa maior do Asana como concluída enquanto seus BDDs restantes não passarem.

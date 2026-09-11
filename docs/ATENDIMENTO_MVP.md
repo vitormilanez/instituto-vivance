@@ -1,8 +1,8 @@
-# Atendimento manual e adendos — slices 3 e 3B
+# Atendimento manual, adendos e coerência com Agenda — slices 3, 3B e 3D
 
 ## Entrega e fronteira
 
-Agenda → confirmar responsabilidade de cuidado → registro manual → salvar rascunho → retomar → finalizar → consultar versões → registrar adendo identificado. Sem IA, áudio, prescrição, publicação para paciente ou integração de prontuário. Interface estende a identidade atual, sem redesign.
+Agenda → confirmar responsabilidade de cuidado → registro manual → salvar rascunho → retomar → finalizar → consultar versões → registrar adendo identificado. Sem IA, áudio, prescrição, publicação para paciente ou integração de prontuário. A interface conectada reaplica a direção visual do protótipo nas telas desta jornada, sem criar outro design system nem levar dados fictícios para o produto.
 
 O atendimento contém motivo (2.000 caracteres) e evolução (10.000). O salvamento é **explícito**, não automático: texto ainda não salvo permanece somente na memória da aba. Não há cache clínico em localStorage. Avisos de saída cobrem links da aplicação, botão Sair e fechamento da aba, mas não prometem recuperação após travamento ou navegação pelo histórico do navegador. Salvar antes de sair.
 
@@ -27,16 +27,21 @@ Agendamento, nome semelhante, conhecimento do UUID e vínculo à clínica não c
 - Finalização exige ambos os textos. Registro final não é editável, reaberto ou apagado pela aplicação.
 - Adendos são registros separados, numerados e imutáveis. Exigem motivo, correção e a versão final de origem. O banco atribui autoria, horário e número, trava o atendimento durante a inclusão e bloqueia paciente, administrador, outra clínica, médico não autor e vínculo revogado. O original e os adendos anteriores permanecem inalterados.
 - Auditoria administrativa contém nomes de campos alterados, nunca seus valores. Snapshots ficam na autorização clínica.
-- O status clínico é independente do status de agendamento; finalizar não publica ao paciente e não cancela nem libera o horário reservado. Na agenda, Abrir atendimento reabre o mesmo registro.
+- O status operacional do compromisso acompanha o atendimento: iniciar faz `agendado → em atendimento` e finalizar faz `em atendimento → concluído` na mesma transação da escrita clínica. Finalizar continua sem publicar conteúdo ao paciente nem liberar o horário reservado. Cancelamento e falta após o início são bloqueados.
+- Compromisso e atendimento preservam o nome cadastrado do profissional como snapshot histórico. A busca longitudinal não depende de ampliar a leitura da Agenda nem expõe um e-mail como nome clínico.
 
 ## Interfaces
 
-- `/clinicas/:tenantId/atendimentos`: 100 registros mais recentes visíveis ao profissional, com aviso de limite.
-- `/clinicas/:tenantId/atendimentos/:encounterId`: editor, até 100 versões e até 100 adendos mais recentes, com avisos de limite.
-- `GET/POST /api/v1/clinics/:tenantId/encounters`; `GET/PATCH /api/v1/clinics/:tenantId/encounters/:encounterId`; `POST /api/v1/clinics/:tenantId/encounters/:encounterId/addenda`.
+- `/clinicas/:tenantId/atendimentos`: busca por paciente/profissional e paginação estável de 20 registros, preservando o escopo autorizado pelo vínculo clínico.
+- `/clinicas/:tenantId/atendimentos/:encounterId`: editor e histórico paginado de 20 versões e 20 adendos por página.
+- `GET/POST /api/v1/clinics/:tenantId/encounters`; `POST /api/v1/clinics/:tenantId/encounters/search`; `GET/PATCH /api/v1/clinics/:tenantId/encounters/:encounterId`; `POST /api/v1/clinics/:tenantId/encounters/:encounterId/addenda`.
 - Mutações exigem sessão, origem válida, JSON e campos permitidos. Escrita clínica limitada a 64 KB. Respostas privadas `no-store`; erros não registram textos, nomes ou credenciais.
 
 ## Validação
+
+- Slice 3D: os 61 cenários diretamente afetados de Agenda, Atendimento, navegação e isolamento foram aprovados. A cobertura confirma transições atômicas, bloqueios após início, versão otimista, nome profissional preservado, busca/paginação e manutenção do isolamento; TypeScript, lint e build passaram.
+- Migração remota `20260911055947_agenda_encounter_state_coherence` aplicada. O backfill técnico precisou suspender temporariamente os validadores de registros finalizados durante a própria transação e recriá-los antes do commit; uma tentativa anterior falhou atomicamente e não alterou o schema.
+- Navegador local: médico sintético abriu o atendimento pela Agenda e salvou a versão 2; paciente sintético viu o estado `em atendimento` e os dados reais do compromisso. A hierarquia visual foi conferida em desktop e no paciente em 390 px. Todo o conjunto sintético descartável foi removido depois da prova.
 
 - A suíte atual tem 66 testes aprovados, incluindo PostgreSQL efêmero com as migrações reais: isolamento entre clínicas, identidades forjadas, acesso por vínculo, revogação, sessão invalidada, somente autor, versões, finalização imutável, sequência de adendos, tentativa de forjar autoria/data/número, bloqueio de escrita direta sem versão e rollback da auditoria.
 - TypeScript, lint e build passaram. Migrações remotas `20260911034717_encounter_addenda_integrity` e `20260911035218_encounter_addenda_rls_writes` aplicadas ao projeto de desenvolvimento existente.
@@ -52,7 +57,12 @@ Agendamento, nome semelhante, conhecimento do UUID e vínculo à clínica não c
 
 ## Limites do piloto
 
-Esta entrega é para testes, não homologação clínica. Antes de dados de saúde reais: revisão profissional dos campos e fluxos, credenciais fortes/MFA, política de retenção, restauração de backups e revisão de segurança. Também faltam busca/paginação clínica completa e revisão detalhada de acessibilidade. Não há assinatura digital certificada, monitoramento clínico automático ou edição/destruição de adendos.
+Esta entrega é para testes, não homologação clínica. Antes de dados de saúde reais: revisão profissional dos campos e fluxos, credenciais fortes/MFA, política de retenção, restauração de backups e revisão de segurança. A busca e paginação essenciais do piloto estão disponíveis; ainda falta uma revisão detalhada de acessibilidade. Não há assinatura digital certificada, monitoramento clínico automático ou edição/destruição de adendos.
+
+## Versão funcional do slice 3D
+
+- Commit `2fd4420` na branch `codex/vercel-supabase-foundation`, sem merge para `main` ou promoção Production.
+- A publicação protegida e seu deployment imutável são registrados na referência central após a validação online.
 
 ## Publicação verificada — 11/09/2026 (slice 3B)
 
