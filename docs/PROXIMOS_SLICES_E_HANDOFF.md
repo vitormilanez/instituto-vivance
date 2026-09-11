@@ -10,7 +10,7 @@ Atualizado em 11/09/2026. Referência central de continuidade: distingue entrega
 - PR de trabalho: https://github.com/vitormilanez/instituto-vivance/pull/11.
 - Prévia protegida: https://instituto-vivance-testes-vtr-consulting.vercel.app.
 - Endereço local usado nos testes: http://127.0.0.1:3010. Confirmar se o servidor está ativo antes de orientar o usuário.
-- Base anterior conferida: commit `550335c`, com 3B–3D encerrados. O Slice 4A acrescenta planos internos; evidências e versão da publicação estão no fechamento abaixo.
+- Base funcional conferida: commit `ea313be`, com 3B–3D e 4A encerrados. O Slice 4A acrescenta planos internos; evidências e versão da publicação estão no fechamento abaixo.
 - Não confundir com `/Users/vitormilanez/Desktop/Codes/Instituto Vivance`, que contém o protótipo original e pode conter trabalho do usuário. Não desenvolver a migração ali.
 
 Ler primeiro este documento, `apps/web/AGENTS.md`, `docs/ATENDIMENTO_MVP.md`, `docs/AGENDA_MVP.md` e `apps/web/README.md`. Consultar `docs/PLANO_VERCEL_SUPABASE.md` para decisões de arquitetura, lembrando que suas seções iniciais são históricas, não um retrato atual de disponibilidade.
@@ -58,6 +58,8 @@ Asana: a tarefa `Slice 3B–3D — Base clínica e operação de atendimento` (`
 - Alertas Supabase preexistentes mantidos: RPCs deliberadamente `SECURITY DEFINER` de Agenda/Atendimento e proteção contra [senhas vazadas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) desativada. Nenhum alerta novo relativo às tabelas/funções de planos. Não mudar custo/configuração de Auth sem decisão.
 - Limites: plano é interno nesta entrega; publicação, ciência, substituição/retirada e portal com orientação vigente são 4B. Lista paginada em blocos de 20; histórico em blocos de 10. Sem busca avançada ou geração de conteúdo.
 
+Publicação 4A encerrada: implementação `b9bdac8`, correção funcional `ea313be`, deployment `dpl_6e7CBjUTX1vd61GK1FbycEvjCNE8` `READY`, URL imutável https://instituto-vivance-1tlsho7lu-vtr-consulting.vercel.app e alias protegido https://instituto-vivance-testes-vtr-consulting.vercel.app. Build remoto passou. CI obrigatório `34571098881` passou com testes, lint, tipos e build. Checagem remota: visitante anônimo 302 pela proteção; CLI autorizada recebeu 200 na entrada com cache privado e 401 na API de plano sem sessão da aplicação. Jornada autenticada validada no navegador local contra o Supabase de desenvolvimento, não simulada como jornada autenticada na Preview. A clínica descartável, duas contas sintéticas e seus registros foram removidos por IDs conferidos; nenhum registro preexistente foi removido. Não houve merge nem promoção Production.
+
 ## 4. Sequência de implementação
 
 Preservar as etapas macro do plano anterior: **4 = cuidado e acompanhamento; 5 = documentos, comunicação e áudio; 6 = IA**. As letras abaixo dividem essas etapas em entregas menores. Implementar e validar uma por vez.
@@ -70,7 +72,7 @@ Preservar as etapas macro do plano anterior: **4 = cuidado e acompanhamento; 5 =
 | **3C — Equipe e vínculos de cuidado** | Responsável autorizado convida/gerencia equipe e atribui ou revoga médico/enfermagem por paciente | Matriz explícita de quem pode conceder acesso; admin opera vínculos sem ler conteúdo clínico; profissional aceita responsabilidade quando aplicável. Revogação e suspensão bloqueiam acesso imediatamente. Sem escalada de privilégio ou atribuição entre clínicas |
 | **3D — Agenda e atendimento coerentes — concluído** | Agenda diferencia agendado, em atendimento, concluído, cancelado e falta, conforme transições permitidas | Entregue: transições atômicas, bloqueios após início, nome cadastrado preservado, busca/paginação estável e telas conectadas alinhadas ao protótipo |
 
-**Próxima implementação recomendada após fechar a publicação 4A: 4B — Publicação e portal do paciente.** O 3B não transforma adendo em edição da versão final nem em assinatura digital certificada; o 3C não amplia o acesso clínico do administrador; o 3D e o 4A não publicam conteúdo interno para o paciente.
+**Próxima implementação recomendada: 4B — Publicação e portal do paciente.** O 3B não transforma adendo em edição da versão final nem em assinatura digital certificada; o 3C não amplia o acesso clínico do administrador; o 3D e o 4A não publicam conteúdo interno para o paciente.
 
 ### Fase B — fechar a jornada de cuidado manual
 
@@ -156,4 +158,4 @@ Os slices são fatias de implementação, não substitutos das tarefas de produt
 
 Continuar no diretório de implementação indicado acima. Os slices **3B — Adendos e integridade**, **3C — Equipe e vínculos de cuidado** e **3D — Agenda e atendimento coerentes** estão fechados no código, no Supabase de desenvolvimento e na Preview protegida. O 3D está no commit funcional `2fd4420`, deployment `dpl_Eke15MbwD4rYQdU72YJkNBzZiCFu`: cinco estados e transições atômicas, bloqueio de cancelamento/falta após início, snapshots do nome profissional, busca/paginação e direção visual do protótipo nas telas conectadas. Os 61 cenários diretamente afetados passaram; tipos, lint e builds local/remoto passaram. Agenda, Atendimento e área do paciente foram validados no navegador; celular em 390 px foi conferido. Dados sintéticos descartáveis foram removidos sem alterar os registros anteriores.
 
-Próximo: **4B — Publicação e portal do paciente**, depois de confirmar a publicação protegida do 4A. Publicar deve referenciar uma versão aprovada imutável e constituir ato separado da aprovação. Nova revisão privada não retira a orientação vigente. Reaproveitar o visual existente, validar somente riscos diretamente afetados e concluir navegador, Preview, documentação central e Asana. Não promover Production nem marcar a tarefa maior como concluída enquanto seus BDDs restantes não passarem.
+Próximo: **4B — Publicação e portal do paciente**; 4A está encerrado em Preview protegida. Publicar deve referenciar uma versão aprovada imutável e constituir ato separado da aprovação. Nova revisão privada não retira a orientação vigente. Reaproveitar o visual existente, validar somente riscos diretamente afetados e concluir navegador, Preview, documentação central e Asana. Não promover Production nem marcar a tarefa maior como concluída enquanto seus BDDs restantes não passarem.
