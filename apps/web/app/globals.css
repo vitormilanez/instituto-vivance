@@ -2501,6 +2501,106 @@ button.calendar-day[aria-pressed="true"] {
   .document-row .button { width:100%; text-align:center; }
 }
 .longitudinal-workspace { display:grid; gap:22px; }
+.notifications-workspace {
+  display: grid;
+  gap: 22px;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(3, 19, 45, 0.05);
+}
+.notifications-preference,
+.notifications-heading,
+.notification-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.notifications-preference {
+  padding: 20px;
+  border: 1px solid #c9e2dc;
+  border-radius: 15px;
+  background: #f1f8f6;
+}
+.notifications-preference h2,
+.notifications-preference p,
+.notifications-heading h2,
+.notifications-heading p,
+.notification-row p,
+.notifications-empty h3,
+.notifications-empty p {
+  margin: 0;
+}
+.notifications-preference p,
+.notifications-heading p,
+.notification-row p,
+.notifications-empty p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.notifications-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex: 0 0 auto;
+  font-size: 14px;
+  font-weight: 700;
+  color: #123d35;
+}
+.notifications-switch input {
+  width: 18px;
+  height: 18px;
+  accent-color: #147f6d;
+}
+.notifications-error {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fff0f0;
+  color: #9c2626;
+  font-size: 14px;
+}
+.notifications-list {
+  border-top: 1px solid var(--border);
+}
+.notification-row {
+  padding: 20px 4px;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+  text-decoration: none;
+}
+.notification-row:hover {
+  background: #f8fbff;
+}
+.notification-row.is-unread {
+  padding-inline: 14px;
+  border-left: 3px solid #147f6d;
+  background: #f1f8f6;
+}
+.notification-row strong {
+  color: var(--navy);
+  font-size: 16px;
+}
+.notification-row > span {
+  flex: 0 0 auto;
+  color: #526782;
+  font-size: 12px;
+  text-align: right;
+}
+.notifications-empty {
+  padding: 24px 0;
+  border-top: 1px solid var(--border);
+}
+@media (max-width:650px) {
+  .notifications-workspace { padding: 20px; }
+  .notifications-preference,
+  .notifications-heading,
+  .notification-row { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .notification-row > span { text-align: left; }
+}
 .longitudinal-patient-picker { display:flex; align-items:end; gap:16px; margin:0; padding:20px 24px; }
 .longitudinal-patient-picker .field { flex:1; margin:0; }
 .longitudinal-section { padding:28px; border:1px solid var(--border); border-radius:20px; background:#fff; box-shadow:0 12px 32px rgba(3,19,45,.05); }

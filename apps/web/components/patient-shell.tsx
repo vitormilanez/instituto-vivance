@@ -17,7 +17,10 @@ export function PatientShell({
   const primarySections = patientSections.slice(0, 4);
   return (
     <>
-      <Header homeHref={`${base}/hoje`} />
+      <Header
+        homeHref={`${base}/hoje`}
+        notificationsHref={`/clinicas/${clinic.id}/avisos`}
+      />
       <div className="patient-shell-grid">
         <aside className="patient-sidebar">
           <div className="patient-sidebar-context">

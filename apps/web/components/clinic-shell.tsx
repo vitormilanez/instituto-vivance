@@ -13,7 +13,13 @@ export function ClinicShell({
   children,
 }: {
   clinic: ClinicAccess;
-  active: "home" | "patients" | "team" | "audit" | StaffModuleSlug;
+  active:
+    | "home"
+    | "patients"
+    | "team"
+    | "audit"
+    | "notifications"
+    | StaffModuleSlug;
   children: ReactNode;
 }) {
   const base = `/clinicas/${clinic.id}`;
@@ -30,6 +36,7 @@ export function ClinicShell({
     },
     { key: "patients", label: "Pacientes", href: `${base}/pacientes` },
     ...moduleLinks,
+    { key: "notifications", label: "Avisos", href: `${base}/avisos` },
     { key: "team", label: "Equipe de cuidado", href: `${base}/equipe` },
     ...(clinic.role === "admin"
       ? [
@@ -51,7 +58,13 @@ export function ClinicShell({
     {
       label: "Acompanhamento",
       links: links.filter((link) =>
-        ["planos", "acompanhamento", "documentos", "mensagens"].includes(
+        [
+          "planos",
+          "acompanhamento",
+          "documentos",
+          "mensagens",
+          "notifications",
+        ].includes(
           link.key,
         ),
       ),
@@ -77,6 +90,7 @@ export function ClinicShell({
       <Header
         variant="staff"
         homeHref={base}
+        notificationsHref={`${base}/avisos`}
         title={activeLabel}
         context={`${clinic.name} · ${roleLabels[clinic.role]}`}
       />

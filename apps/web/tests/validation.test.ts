@@ -13,6 +13,7 @@ import {
   membershipManagementInput,
   teamInvitationInput,
 } from "../modules/team/validation.ts";
+import { notificationPreferenceInput } from "../modules/notifications/validation.ts";
 
 test("normalizes demographic input without creating placeholder values", () => {
   assert.deepEqual(
@@ -167,4 +168,20 @@ test("care assignment validates both identifiers and rejects actor injection", (
     { patient_id: first, professional_id: second, created_by: first },
   ])
     assert.throws(() => careAssignmentInput(input));
+});
+test("notification preferences accept only an explicit in-app boolean", () => {
+  assert.deepEqual(notificationPreferenceInput({ in_app_enabled: true }), {
+    inAppEnabled: true,
+  });
+  assert.deepEqual(notificationPreferenceInput({ in_app_enabled: false }), {
+    inAppEnabled: false,
+  });
+  assert.throws(() => notificationPreferenceInput({}));
+  assert.throws(() => notificationPreferenceInput({ in_app_enabled: "true" }));
+  assert.throws(() =>
+    notificationPreferenceInput({
+      in_app_enabled: true,
+      recipient_user_id: "forged",
+    }),
+  );
 });

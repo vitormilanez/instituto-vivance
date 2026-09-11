@@ -466,6 +466,30 @@ export type Database = {
           },
         ];
       };
+      in_app_notifications: {
+        Row: {
+          created_at: string;
+          event_key: string;
+          id: string;
+          kind: string;
+          read_at: string | null;
+          recipient_user_id: string;
+          target_path: string;
+          tenant_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName:
+              "in_app_notifications_tenant_id_recipient_user_id_fkey";
+            columns: ["tenant_id", "recipient_user_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
       audit_events: {
         Row: {
           action: string;
@@ -538,6 +562,27 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "tenants";
             referencedColumns: ["id"];
+          },
+        ];
+      };
+      notification_preferences: {
+        Row: {
+          id: string;
+          in_app_enabled: boolean;
+          tenant_id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName:
+              "notification_preferences_tenant_id_user_id_fkey";
+            columns: ["tenant_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
           },
         ];
       };
@@ -680,6 +725,20 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      mark_in_app_notification_read: {
+        Args: {
+          target_tenant: string;
+          target_notification: string;
+        };
+        Returns: string;
+      };
+      set_in_app_notification_preference: {
+        Args: {
+          target_tenant: string;
+          enabled: boolean;
+        };
+        Returns: boolean;
+      };
       send_direct_message: {
         Args: {
           target_tenant: string;

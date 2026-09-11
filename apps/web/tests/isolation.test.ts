@@ -2610,5 +2610,210 @@ test("direct messaging follows care revocation and rolls back if its audit canno
         .rows.length,
       0,
     );
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.in_app_notifications where tenant_id=$1",
+          [a],
+        )
+      ).rows.length,
+      0,
+    );
+  });
+});
+
+test("in-app message notices are generic, recipient-bound, idempotent and respect preferences", async () => {
+  await asUser("doctor", async () => {
+    await directMessageFixture();
+    const sent = await sendSyntheticDirectMessage(
+      "doctor",
+      "Synthetic private content must stay in the conversation",
+    );
+
+    await switchActor("patient");
+    const notices = await db.query<{
+      id: string;
+      kind: string;
+      event_key: string;
+      target_path: string;
+      read_at: string | null;
+    }>(
+      "select id,kind,event_key,target_path,read_at from public.in_app_notifications where tenant_id=$1",
+      [a],
+    );
+    assert.deepEqual(notices.rows, [
+      {
+        id: notices.rows[0].id,
+        kind: "message",
+        event_key: `message:${sent.message_id}`,
+        target_path: `/clinicas/${a}/meu-cuidado/conversas?medico=${users.doctor.id}`,
+        read_at: null,
+      },
+    ]);
+    await denied(
+      "insert into public.in_app_notifications(tenant_id,recipient_user_id,kind,event_key,target_path) values($1,$2,'message','forged','/clinicas/forged')",
+      [a, users.patient.id],
+    );
+    await denied(
+      "update public.in_app_notifications set read_at=null where id=$1",
+      [notices.rows[0].id],
+    );
+    await denied(
+      "select private.queue_in_app_notification($1,$2,'message','forged','/clinicas/' || $1::text || '/mensagens')",
+      [a, users.patient.id],
+    );
+
+    const firstRead = await db.query<{ read_at: string }>(
+      "select public.mark_in_app_notification_read($1,$2) read_at",
+      [a, notices.rows[0].id],
+    );
+    const secondRead = await db.query<{ read_at: string }>(
+      "select public.mark_in_app_notification_read($1,$2) read_at",
+      [a, notices.rows[0].id],
+    );
+    assert.equal(
+      String(firstRead.rows[0].read_at),
+      String(secondRead.rows[0].read_at),
+    );
+
+    await db.query(
+      "select public.set_in_app_notification_preference($1,false)",
+      [a],
+    );
+    assert.deepEqual(
+      (
+        await db.query<{ in_app_enabled: boolean }>(
+          "select in_app_enabled from public.notification_preferences where tenant_id=$1",
+          [a],
+        )
+      ).rows,
+      [{ in_app_enabled: false }],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.in_app_notifications where tenant_id=$1",
+          [a],
+        )
+      ).rows.length,
+      0,
+    );
+    await sendSyntheticDirectMessage(
+      "doctor",
+      "Another private message with no notification detail",
+    );
+    await switchActor("patient");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.in_app_notifications where tenant_id=$1",
+          [a],
+        )
+      ).rows.length,
+      1,
+    );
+    await switchActor("admin");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.in_app_notifications where tenant_id=$1",
+          [a],
+        )
+      ).rows.length,
+      0,
+    );
+    await switchActor("other");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.in_app_notifications where tenant_id=$1",
+          [a],
+        )
+      ).rows.length,
+      0,
+    );
+    await db.exec("reset role");
+    const audit = await db.query<{ payload: string }>(
+      "select json_agg(a)::text payload from public.audit_events a where entity_type='in_app_notifications' and entity_id=$1",
+      [notices.rows[0].id],
+    );
+    assert.ok(
+      !audit.rows[0].payload.includes(
+        "Synthetic private content must stay in the conversation",
+      ),
+    );
+  });
+});
+
+test("plan publication creates a generic notice only for the linked patient", async () => {
+  await asUser("doctor", async () => {
+    const plan = await publicationFixture();
+    const version = await approveFixture(
+      plan,
+      1,
+      "Synthetic private guidance must stay in the publication",
+    );
+    const firstPublication = await publishFixture(plan, version);
+
+    await switchActor("patient");
+    const notices = await db.query<{
+      id: string;
+      kind: string;
+      event_key: string;
+      target_path: string;
+    }>(
+      "select id,kind,event_key,target_path from public.in_app_notifications where tenant_id=$1",
+      [a],
+    );
+    assert.deepEqual(notices.rows, [
+      {
+        id: notices.rows[0].id,
+        kind: "plan_published",
+        event_key: `plan-publication:${firstPublication}`,
+        target_path: `/clinicas/${a}/meu-cuidado/plano`,
+      },
+    ]);
+    await db.query(
+      "select public.set_in_app_notification_preference($1,false)",
+      [a],
+    );
+    await switchActor("doctor");
+    await db.query(
+      "update public.care_plans set status='draft',expected_version=$2 where id=$1",
+      [plan, version],
+    );
+    const nextVersion = await approveFixture(plan, version + 1);
+    await publishFixture(plan, nextVersion, firstPublication);
+    await switchActor("patient");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.in_app_notifications where tenant_id=$1",
+          [a],
+        )
+      ).rows.length,
+      1,
+    );
+    await switchActor("admin");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.in_app_notifications where tenant_id=$1",
+          [a],
+        )
+      ).rows.length,
+      0,
+    );
+    await db.exec("reset role");
+    const audit = await db.query<{ payload: string }>(
+      "select json_agg(a)::text payload from public.audit_events a where entity_type='in_app_notifications' and entity_id=$1",
+      [notices.rows[0].id],
+    );
+    assert.ok(
+      !audit.rows[0].payload.includes(
+        "Synthetic private guidance must stay in the publication",
+      ),
+    );
   });
 });

@@ -5,17 +5,20 @@ import { logout } from "@/app/actions";
 export function Header({
   variant = "patient",
   homeHref = "/clinicas",
+  notificationsHref,
   title,
   context,
 }: {
   variant?: "patient" | "staff";
   homeHref?: string;
+  notificationsHref?: string;
   title?: string;
   context?: string;
 }) {
   const actions = (
     <div className="topbar-actions">
       <Link href="/clinicas">Minhas clínicas</Link>
+      {notificationsHref && <Link href={notificationsHref}>Avisos</Link>}
       <form action={logout}>
         <button className="secondary" data-leave-clinic>
           Sair

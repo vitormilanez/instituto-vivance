@@ -56,6 +56,14 @@ Quatro testes existentes de publicação/isolamento também passaram, sem amplia
 - Verificação: 97 testes, tipos, lint, build e `git diff --check` passaram. Médico/paciente sintéticos autenticados trocaram mensagens nos dois sentidos contra o Supabase de desenvolvimento; isolamento, revogação, sessão, papéis bloqueados e rollback de auditoria foram cobertos. Navegador local conferiu médico e paciente, inclusive a tela do paciente em 390 px.
 - Estado remoto: migrações `20260911173050_direct_patient_messages` e `20260911174240_message_foreign_key_indexes` aplicadas ao desenvolvimento. Preview protegida `dpl_FKoZk34nWhsT222zMLR9pNVPUhdf` pronta em https://instituto-vivance-48gxuveol-vtr-consulting.vercel.app; visitante recebe a proteção Vercel e a API sem sessão responde `401` com cache privado. Dados sintéticos e sessões foram removidos por IDs conferidos. Sem merge ou promoção Production. Ver [escopo e limites](CONVERSAS_MVP.md).
 
+### Slice 5C — avisos internos validado em desenvolvimento
+
+- O canal decidido para esta primeira entrega é somente interno à Vivance. Não há e-mail, WhatsApp, SMS, push de dispositivo, novo fornecedor ou custo; um aviso não contém conteúdo clínico nem cria cobertura, plantão ou prazo de resposta.
+- Mensagem direta nova e publicação de orientação aprovada são os dois eventos permitidos. O destinatário vê apenas “Nova mensagem” ou “Novas orientações”, abre a área já autorizada e pode pausar ou retomar avisos futuros na própria conta.
+- `in_app_notifications` guarda somente tipo, chave idempotente, caminho interno, criação e leitura; `notification_preferences` guarda somente a preferência interna. RLS limita ambas ao destinatário com sessão, clínica e membership ativos; tabelas não concedem escrita direta. A criação, leitura e preferência são auditadas sem copiar conteúdo.
+- A migração `20260911234004_in_app_notifications` foi aplicada no Supabase de desenvolvimento. RLS e as políticas de leitura foram conferidas no schema; o advisor não mostrou alerta novo causado por este slice. Os avisos pré-existentes de senha vazada, RPCs anteriores e desempenho não foram alterados.
+- Verificação: 100 testes, tipos, lint, build e `git diff --check` passaram. Médico/paciente sintéticos autenticados percorreram mensagem → aviso genérico → leitura → conversa nos dois sentidos; a preferência pausou o aviso seguinte e foi retomada, e o paciente foi conferido em 390 px. Clínica, identidades, sessões, mensagens, avisos, preferências e auditorias sintéticas foram removidos com contagem final zero. A Preview deste lote ainda será registrada separadamente; não houve merge ou promoção Production. Ver [escopo e limites](NOTIFICACOES_MVP.md).
+
 - Diretório de implementação: `/Users/vitormilanez/Desktop/Codes/instituto-vivance-vercel`.
 - Aplicação: `apps/web`. Branch atual: `codex/vercel-supabase-foundation`.
 - Repositório: `https://github.com/vitormilanez/instituto-vivance.git`.

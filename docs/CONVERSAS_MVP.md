@@ -28,7 +28,7 @@ Paciente e médico com vínculo de cuidado ativo podem trocar mensagens persiste
 
 ## Evidências de validação
 
-- A suíte local passou com 97 testes, além de tipos, lint, build e `git diff --check`.
+- Com o Slice 5C, a suíte local passou com 100 testes, além de tipos, lint, build e `git diff --check`.
 - No Supabase de desenvolvimento, médico e paciente sintéticos autenticados enviaram e leram mensagens nos dois sentidos. Os testes cobriram isolamento, papéis bloqueados, revogação de vínculo/sessão, imutabilidade e rollback se a auditoria falhar.
 - No navegador local, médico e paciente percorreram a conversa real contra o Supabase de desenvolvimento; a tela do paciente foi conferida em 390 px.
 - A Preview protegida `dpl_FKoZk34nWhsT222zMLR9pNVPUhdf` está pronta em https://instituto-vivance-48gxuveol-vtr-consulting.vercel.app. Visitante recebe a proteção Vercel; a API de mensagens sem sessão responde `401` com `Cache-Control: private, no-store`.
@@ -36,8 +36,8 @@ Paciente e médico com vínculo de cuidado ativo podem trocar mensagens persiste
 
 ## Limites desta entrega
 
-Não há notificação, confirmação de leitura, indicador de não lidas, anexo, áudio, resposta automática, classificação de urgência ou prazo de resposta. Arquivos seguem pelo módulo de [Documentos](DOCUMENTOS_MVP.md). O canal não substitui atendimento de urgência nem cria uma obrigação de cobertura.
+O Slice 5C adiciona somente um aviso interno, genérico e optável: nova mensagem → destinatário correto → abertura da conversa. Não há notificação externa, confirmação de leitura da mensagem, indicador em tempo real, anexo, áudio, resposta automática, classificação de urgência ou prazo de resposta. Arquivos seguem pelo módulo de [Documentos](DOCUMENTOS_MVP.md). O canal não substitui atendimento de urgência nem cria uma obrigação de cobertura. Ver [escopo de avisos](NOTIFICACOES_MVP.md).
 
 ## Próximo passo
 
-O Slice 5C pode adicionar notificações somente depois de definir um canal autorizado, preferências do destinatário e conteúdo sem informação clínica sensível. Essa decisão não altera o caráter direto e assíncrono das conversas e não pressupõe WhatsApp.
+O próximo incremento de comunicação que exigir canal externo, agenda ou prazo de entrega precisa de uma decisão específica sobre fornecedor, custo, conteúdo, consentimento e responsabilidade. Ele não está implícito no aviso interno.
