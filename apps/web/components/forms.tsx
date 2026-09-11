@@ -1,5 +1,6 @@
 "use client";
 import { useActionState } from "react";
+import Link from "next/link";
 import { login, savePatient } from "@/app/actions";
 export function LoginForm() {
   const [state, action, pending] = useActionState(login, { error: "" });
@@ -35,6 +36,9 @@ export function LoginForm() {
       <button className="full" disabled={pending}>
         {pending ? "Entrando…" : "Entrar"}
       </button>
+      <p style={{ marginTop: 20, textAlign: "center" }}>
+        <Link href="/esqueci-minha-senha">Esqueci minha senha</Link>
+      </p>
     </form>
   );
 }

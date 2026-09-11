@@ -49,7 +49,7 @@ export function FirstAccess() {
     }
     void acceptInvitation().catch(() =>
       setError(
-        "Este convite está inválido ou expirou. Solicite um novo convite ao administrador.",
+        "Este link está inválido ou expirou. Solicite um novo link de recuperação de senha.",
       ),
     );
   }, []);
@@ -79,7 +79,7 @@ export function FirstAccess() {
       window.location.replace("/clinicas");
     } catch {
       setError(
-        "Não foi possível salvar a senha. Tente uma senha diferente ou solicite um novo convite.",
+        "Não foi possível salvar a senha. Tente uma senha diferente ou solicite um novo link de recuperação.",
       );
       setPending(false);
     }
@@ -87,7 +87,7 @@ export function FirstAccess() {
 
   return (
     <>
-      {!ready && !error && <p role="status">Validando seu convite…</p>}
+      {!ready && !error && <p role="status">Validando seu acesso…</p>}
       {ready && (
         <form onSubmit={submit}>
           <p>Seu acesso: {email}</p>
@@ -126,7 +126,14 @@ export function FirstAccess() {
         </p>
       )}
       <p style={{ marginTop: 24 }}>
-        <Link href="/">Voltar ao login</Link>
+        <Link href="/esqueci-minha-senha" prefetch={false}>
+          Solicitar novo link
+        </Link>
+      </p>
+      <p>
+        <Link href="/" prefetch={false}>
+          Voltar ao login
+        </Link>
       </p>
     </>
   );

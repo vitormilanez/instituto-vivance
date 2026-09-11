@@ -54,9 +54,11 @@ Neste estágio, o Site URL do projeto de desenvolvimento aponta para `http://127
 
 Pendente: o titular concluir o convite e validar entrada, seleção da clínica, cadastro de paciente, sessão e logout. Nenhum cadastro público pode se promover ou criar uma clínica nesta versão.
 
+Recuperação: o login oferece **Esqueci minha senha** em `/esqueci-minha-senha`. O envio usa a API pública do Supabase Auth, respeita seus limites e apresenta confirmação sem revelar se a conta existe. Um cliente sem persistência solicita um link de recuperação que pode ser aberto no navegador de e-mail do titular; `/primeiro-acesso` valida e importa a sessão em cookies antes de permitir a nova senha. O envio ao titular foi confirmado no Auth em 10/09/2026. Nenhuma senha é recuperada ou definida pela aplicação em nome do usuário.
+
 ## Limites desta entrega
 
-Não implementados: consultas, check-ins, prontuário, vínculos clínicos, arquivos, áudios, IA, envio de convite/recuperação de senha pela interface e gestão de equipe. A aceitação de convite e definição da senha estão implementadas. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
+Não implementados: consultas, check-ins, prontuário, vínculos clínicos, arquivos, áudios, IA, envio de convite pela interface e gestão de equipe. A aceitação de convite, definição e recuperação da senha estão implementadas. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
 
 Sem homologação para atendimento real. MFA, limites contra abuso, fluxo completo de primeiro acesso, restauração de backups, política de retenção e revisão clínica/privacidade permanecem critérios de entrada em operação. A inspeção de segurança do schema não certifica todo o produto.
 
