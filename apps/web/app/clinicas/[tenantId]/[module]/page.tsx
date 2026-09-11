@@ -6,7 +6,6 @@ import { findStaffModule, selectedTab } from "@/modules/workspace/navigation";
 import { ClinicShell } from "@/components/clinic-shell";
 import {
   DevelopmentNotice,
-  EmptyConversation,
   EmptyModule,
   FutureButton,
   ModuleTabs,
@@ -18,6 +17,10 @@ import { staffLongitudinal } from "@/modules/longitudinal/service";
 import { StaffLongitudinalWorkspace } from "@/components/longitudinal-workspace";
 import { staffDocuments } from "@/modules/documents/service";
 import { StaffDocumentsWorkspace } from "@/components/documents-workspace";
+import {
+  staffMessages,
+} from "@/modules/messages/service";
+import { StaffMessagesWorkspace } from "@/components/messages-workspace";
 export const dynamic = "force-dynamic";
 
 export default async function ModulePage({
@@ -128,6 +131,45 @@ export default async function ModulePage({
       </ClinicShell>
     );
   }
+  if (slug === "mensagens") {
+    if (clinic.role !== "doctor")
+      return (
+        <ClinicShell clinic={clinic} active="mensagens">
+          <h1>Mensagens</h1>
+          <section className="panel">
+            <h2>Acesso clínico restrito</h2>
+            <p>
+              Conversas são diretas entre paciente e médico com vínculo ativo. Este
+              perfil não acessa mensagens nem seus metadados.
+            </p>
+          </section>
+        </ClinicShell>
+      );
+    const query = await searchParams;
+    const base = `/clinicas/${tenantId}/mensagens`;
+    const initial = await staffMessages(
+      tenantId,
+      query.paciente,
+      query.pagina,
+    ).catch((error) => {
+      if (error instanceof InputError) redirect(base);
+      throw error;
+    });
+    return (
+      <ClinicShell clinic={clinic} active="mensagens">
+        <div className="page-heading">
+          <div>
+            <h1>Mensagens</h1>
+            <p>
+              Conversas diretas e assíncronas com pacientes que têm vínculo
+              ativo com você.
+            </p>
+          </div>
+        </div>
+        <StaffMessagesWorkspace initial={initial} />
+      </ClinicShell>
+    );
+  }
   const active = selectedTab(area.tabs, (await searchParams).aba);
   const date = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",
@@ -152,8 +194,6 @@ export default async function ModulePage({
       />
       {slug === "agenda" && active === "Calendário" ? (
         <EmptyCalendar initialDate={date} />
-      ) : slug === "mensagens" ? (
-        <EmptyConversation />
       ) : (
         <section className="panel module-board" aria-label={active}>
           <div className="section-heading">

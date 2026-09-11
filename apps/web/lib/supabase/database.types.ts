@@ -393,6 +393,79 @@ export type Database = {
           },
         ];
       };
+      care_conversations: {
+        Row: {
+          created_at: string;
+          doctor_id: string;
+          id: string;
+          last_message_at: string;
+          patient_id: string;
+          tenant_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "care_conversations_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "care_conversations_tenant_id_doctor_id_fkey";
+            columns: ["tenant_id", "doctor_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
+      care_messages: {
+        Row: {
+          content: string;
+          conversation_id: string;
+          doctor_id: string;
+          id: string;
+          patient_id: string;
+          sender_id: string;
+          sent_at: string;
+          tenant_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName:
+              "care_messages_tenant_id_conversation_id_patient_id_doctor__fkey";
+            columns: ["tenant_id", "conversation_id", "patient_id", "doctor_id"];
+            isOneToOne: false;
+            referencedRelation: "care_conversations";
+            referencedColumns: ["tenant_id", "id", "patient_id", "doctor_id"];
+          },
+          {
+            foreignKeyName: "care_messages_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "care_messages_tenant_id_doctor_id_fkey";
+            columns: ["tenant_id", "doctor_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+          {
+            foreignKeyName: "care_messages_tenant_id_sender_id_fkey";
+            columns: ["tenant_id", "sender_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
       audit_events: {
         Row: {
           action: string;
@@ -607,6 +680,19 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      send_direct_message: {
+        Args: {
+          target_tenant: string;
+          target_patient: string;
+          target_doctor: string;
+          message_text: string;
+        };
+        Returns: {
+          conversation_id: string;
+          message_id: string;
+          sent_at: string;
+        }[];
+      };
       request_care_check_in: {
         Args: {
           target_tenant: string;

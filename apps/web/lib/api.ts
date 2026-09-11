@@ -6,6 +6,7 @@ import { TeamError } from "@/modules/team/service";
 import { CarePlanError } from "@/modules/care-plans/service";
 import { CheckInError } from "@/modules/check-ins/service";
 import { DocumentError } from "@/modules/documents/service";
+import { ConversationError } from "@/modules/messages/service";
 
 export function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -17,6 +18,8 @@ export function json(body: unknown, status = 200) {
   });
 }
 export function apiError(error: unknown) {
+  if (error instanceof ConversationError)
+    return json({ error: error.message }, error.status);
   if (error instanceof DocumentError)
     return json({ error: error.message }, error.status);
   if (error instanceof CheckInError)

@@ -18,6 +18,8 @@ import { patientLongitudinal } from "@/modules/longitudinal/service";
 import { PatientLongitudinalWorkspace } from "@/components/longitudinal-workspace";
 import { patientDocuments } from "@/modules/documents/service";
 import { PatientDocumentsWorkspace } from "@/components/documents-workspace";
+import { patientMessages } from "@/modules/messages/service";
+import { PatientMessagesWorkspace } from "@/components/messages-workspace";
 export const dynamic = "force-dynamic";
 
 export default async function PatientAreaPage({
@@ -25,7 +27,7 @@ export default async function PatientAreaPage({
   searchParams,
 }: {
   params: Promise<{ tenantId: string; section: string }>;
-  searchParams: Promise<{ pagina?: string }>;
+  searchParams: Promise<{ pagina?: string; medico?: string | string[] }>;
 }) {
   const { tenantId, section: slug } = await params;
   const section = findPatientSection(slug);
@@ -41,16 +43,17 @@ export default async function PatientAreaPage({
   const requestDate = requestInstant();
   const now = requestDate.getTime();
   const currentTime = requestDate.toISOString();
+  const query = await searchParams;
   const published =
     patient && ["plano", "hoje"].includes(slug)
       ? await patientPublications(
           tenantId,
-          slug === "plano" ? (await searchParams).pagina : undefined,
+          slug === "plano" ? query.pagina : undefined,
         )
       : null;
   const checkIns =
     patient && slug === "diario"
-      ? await patientCheckIns(tenantId, (await searchParams).pagina)
+      ? await patientCheckIns(tenantId, query.pagina)
       : null;
   const longitudinal =
     patient && slug === "evolucao"
@@ -58,7 +61,17 @@ export default async function PatientAreaPage({
       : null;
   const documents =
     patient && slug === "documentos"
-      ? await patientDocuments(tenantId, (await searchParams).pagina)
+      ? await patientDocuments(tenantId, query.pagina)
+      : null;
+  const messages =
+    slug === "conversas"
+      ? await patientMessages(tenantId, query.medico, query.pagina).catch(
+          (error) => {
+            if (error instanceof InputError)
+              redirect(`/clinicas/${tenantId}/meu-cuidado/conversas`);
+            throw error;
+          },
+        )
       : null;
   const appointments =
     slug === "consultas" || slug === "hoje"
@@ -115,7 +128,9 @@ export default async function PatientAreaPage({
           contato com a clínica.
         </p>
       )}
-      {slug === "documentos" && documents ? (
+      {slug === "conversas" && messages ? (
+        <PatientMessagesWorkspace initial={messages} />
+      ) : slug === "documentos" && documents ? (
         <PatientDocumentsWorkspace initial={documents} />
       ) : slug === "evolucao" && longitudinal ? (
         <PatientLongitudinalWorkspace
@@ -166,6 +181,7 @@ export default async function PatientAreaPage({
             "diario",
             "evolucao",
             "documentos",
+            "conversas",
           ].includes(section.slug) && <DevelopmentNotice />}
           <PatientArea
             section={section}

@@ -2,13 +2,13 @@ import Link from "next/link";
 import type { PatientSection } from "@/modules/workspace/navigation";
 import { patientSections } from "@/modules/workspace/navigation";
 import type { Appointment } from "@/modules/agenda/service";
-import { EmptyConversation, EmptyModule, FutureButton } from "./module-ui";
+import { EmptyModule, FutureButton } from "./module-ui";
 
 const actions = [
   { label: "Orientações médicas", text: "Seu plano de cuidado", slug: "plano" },
   {
-    label: "Mensagem para a equipe",
-    text: "Seu espaço de conversa",
+    label: "Mensagem para o médico",
+    text: "Conversa direta e assíncrona",
     slug: "conversas",
   },
   {
@@ -167,24 +167,16 @@ export function PatientArea({
                       ? "Abrir check-ins"
                       : action.slug === "evolucao"
                         ? "Abrir evolução"
-                        : action.slug === "documentos"
+                      : action.slug === "documentos"
                         ? "Abrir documentos"
-                        : "Conhecer a área"}
+                        : action.slug === "conversas"
+                          ? "Abrir conversas"
+                          : "Conhecer a área"}
                 </span>
               </Link>
             ))}
           </div>
         </section>
-      </>
-    );
-  if (section.slug === "conversas")
-    return (
-      <>
-        <EmptyConversation />
-        <p className="module-footnote">
-          Este espaço ainda não recebe mensagens. Para falar com a equipe, use
-          os canais habituais da clínica.
-        </p>
       </>
     );
   return (

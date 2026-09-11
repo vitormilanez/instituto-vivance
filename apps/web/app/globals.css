@@ -1019,6 +1019,137 @@ button.calendar-day[aria-pressed="true"] {
   padding: 28px;
   min-width: 0;
 }
+.conversation-recipient-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+}
+.conversation-recipient {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+.conversation-recipient:hover,
+.conversation-recipient[aria-current="page"] {
+  background: white;
+  border-color: var(--border);
+}
+.conversation-recipient strong {
+  font-size: 15px;
+}
+.conversation-recipient small,
+.conversation-directory-empty {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.conversation-detail-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.conversation-detail-heading h2,
+.conversation-detail-heading p {
+  margin: 0;
+}
+.conversation-detail-heading p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.conversation-messages {
+  display: grid;
+  gap: 12px;
+  min-height: 250px;
+  padding: 24px 0;
+}
+.conversation-message {
+  display: grid;
+  gap: 6px;
+  max-width: min(82%, 620px);
+  padding: 13px 15px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #f4f7fb;
+}
+.conversation-message.outgoing {
+  justify-self: end;
+  background: #e6f0fb;
+  border-color: #b9d0e9;
+}
+.conversation-message small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.conversation-message p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.conversation-empty {
+  display: grid;
+  align-content: center;
+  min-height: 250px;
+  padding: 24px 0;
+}
+.conversation-empty h2,
+.conversation-empty h3,
+.conversation-empty p {
+  margin: 0;
+}
+.conversation-empty p {
+  max-width: 48ch;
+  margin-top: 8px;
+  color: var(--muted);
+}
+.conversation-composer {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.conversation-composer label {
+  font-weight: 600;
+}
+.conversation-composer textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 88px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font: inherit;
+  color: var(--ink);
+}
+.conversation-composer textarea:focus-visible {
+  outline: 3px solid #8ab2df;
+  outline-offset: 2px;
+}
+.conversation-composer > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.conversation-composer > div span,
+.conversation-boundary {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.conversation-composer button {
+  min-height: 44px;
+}
 .disabled-composer {
   border-top: 1px solid var(--border);
   padding-top: 20px;
@@ -1173,6 +1304,19 @@ button.calendar-day[aria-pressed="true"] {
   }
 }
 @media (max-width: 760px) {
+  .conversation-workspace {
+    margin-bottom: 96px;
+  }
+  .conversation-directory,
+  .conversation-detail {
+    padding: 20px;
+  }
+  .conversation-detail-heading {
+    flex-wrap: wrap;
+  }
+  .conversation-message {
+    max-width: 100%;
+  }
   .encounter-search {
     align-items: stretch;
     flex-direction: column;

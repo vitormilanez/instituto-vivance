@@ -56,12 +56,12 @@ export const staffModules = [
   {
     slug: "mensagens",
     title: "Mensagens",
-    description: "Um espaço para as conversas com os pacientes.",
-    action: "Nova conversa",
-    tabs: ["Conversas", "Arquivadas"],
+    description: "Conversas diretas e assíncronas com pacientes vinculados.",
+    action: "Nova mensagem",
+    tabs: ["Conversas"],
     columns: ["Paciente", "Última mensagem"],
-    empty: "As conversas ainda não estão conectadas",
-    detail: "O envio e o recebimento de mensagens ainda não estão disponíveis.",
+    empty: "Nenhuma conversa disponível",
+    detail: "Apenas o paciente e o médico com vínculo ativo acessam a conversa.",
   },
   {
     slug: "relatorios",
@@ -110,7 +110,7 @@ export const patientSections = [
     slug: "conversas",
     title: "Conversas",
     group: "conversas",
-    description: "Seu espaço para conversar com a equipe da clínica.",
+    description: "Seu espaço para conversar diretamente com os médicos vinculados ao seu cuidado.",
   },
   {
     slug: "evolucao",

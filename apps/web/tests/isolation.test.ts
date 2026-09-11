@@ -2461,3 +2461,154 @@ test("document completion rejects missing files and audit failure leaves no rese
     );
   });
 });
+
+async function directMessageFixture() {
+  await startClinical("2099-12-20T12:00:00Z", "2099-12-20T12:30:00Z");
+  await db.exec("reset role");
+  await db.query(
+    "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+    [a, pa, users.patient.id],
+  );
+  await switchActor("doctor");
+}
+
+async function sendSyntheticDirectMessage(actor: string, content: string) {
+  await switchActor(actor);
+  return (
+    await db.query<{
+      conversation_id: string;
+      message_id: string;
+      sent_at: string;
+    }>("select * from public.send_direct_message($1,$2,$3,$4)", [
+      a,
+      pa,
+      users.doctor.id,
+      content,
+    ])
+  ).rows[0];
+}
+
+test("direct messages are append-only, patient-doctor only, and hide content from operations", async () => {
+  await asUser("doctor", async () => {
+    await directMessageFixture();
+    const first = await sendSyntheticDirectMessage(
+      "doctor",
+      "Synthetic direct doctor message",
+    );
+    await switchActor("patient");
+    assert.equal(
+      (
+        await db.query<{ content: string }>(
+          "select content from public.care_messages where id=$1",
+          [first.message_id],
+        )
+      ).rows[0].content,
+      "Synthetic direct doctor message",
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select user_id from public.memberships where tenant_id=$1 and role='doctor'",
+          [a],
+        )
+      ).rows.length,
+      1,
+    );
+    const reply = await sendSyntheticDirectMessage(
+      "patient",
+      "Synthetic patient reply",
+    );
+    assert.equal(first.conversation_id, reply.conversation_id);
+    await switchActor("doctor");
+    const history = await db.query<{ content: string; sender_id: string }>(
+      "select content,sender_id from public.care_messages where conversation_id=$1 order by sent_at,id",
+      [first.conversation_id],
+    );
+    assert.deepEqual(history.rows, [
+      { content: "Synthetic direct doctor message", sender_id: users.doctor.id },
+      { content: "Synthetic patient reply", sender_id: users.patient.id },
+    ]);
+    await denied(
+      "insert into public.care_messages(tenant_id,conversation_id,patient_id,doctor_id,sender_id,content) values($1,$2,$3,$4,$5,'Forged direct message')",
+      [a, first.conversation_id, pa, users.doctor.id, users.doctor.id],
+    );
+    await denied(
+      "update public.care_messages set content='Changed' where id=$1",
+      [first.message_id],
+    );
+    await denied("delete from public.care_messages where id=$1", [first.message_id]);
+    for (const role of ["admin", "nurse", "other", "outsider", "suspended"]) {
+      await switchActor(role);
+      assert.equal(
+        (await db.query("select id from public.care_messages where id=$1", [first.message_id]))
+          .rows.length,
+        0,
+      );
+      await denied("select * from public.send_direct_message($1,$2,$3,$4)", [
+        a,
+        pa,
+        users.doctor.id,
+        "Denied synthetic message",
+      ]);
+    }
+    await db.exec("reset role");
+    const audit = await db.query<{ payload: string }>(
+      "select json_agg(a)::text payload from public.audit_events a where entity_id in ($1,$2,$3)",
+      [first.conversation_id, first.message_id, reply.message_id],
+    );
+    assert.ok(!audit.rows[0].payload.includes("Synthetic direct doctor message"));
+    assert.ok(!audit.rows[0].payload.includes("Synthetic patient reply"));
+  });
+});
+
+test("direct messaging follows care revocation and rolls back if its audit cannot be recorded", async () => {
+  await asUser("doctor", async () => {
+    await directMessageFixture();
+    const first = await sendSyntheticDirectMessage("doctor", "Synthetic message");
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=1 where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+      [a, pa, users.doctor.id],
+    );
+    for (const role of ["doctor", "patient"]) {
+      await switchActor(role);
+      assert.equal(
+        (await db.query("select id from public.care_messages where id=$1", [first.message_id]))
+          .rows.length,
+        0,
+      );
+      await denied("select * from public.send_direct_message($1,$2,$3,$4)", [
+        a,
+        pa,
+        users.doctor.id,
+        "Denied after revocation",
+      ]);
+    }
+  });
+
+  await asUser("doctor", async () => {
+    await directMessageFixture();
+    await db.exec("reset role");
+    await db.exec(
+      "create function private.synthetic_message_audit_failure() returns trigger language plpgsql as $$ begin if new.entity_type='care_messages' then raise exception 'Synthetic message audit failure'; end if; return new; end; $$; create trigger synthetic_message_audit_failure before insert on public.audit_events for each row execute function private.synthetic_message_audit_failure();",
+    );
+    await switchActor("doctor");
+    await denied("select * from public.send_direct_message($1,$2,$3,$4)", [
+      a,
+      pa,
+      users.doctor.id,
+      "Must roll back",
+    ]);
+    await db.exec("reset role");
+    assert.equal(
+      (await db.query("select id from public.care_conversations where tenant_id=$1", [a]))
+        .rows.length,
+      0,
+    );
+    assert.equal(
+      (await db.query("select id from public.care_messages where tenant_id=$1", [a]))
+        .rows.length,
+      0,
+    );
+  });
+});
