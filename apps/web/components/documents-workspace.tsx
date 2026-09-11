@@ -1,0 +1,299 @@
+"use client";
+
+import Link from "next/link";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { FormEvent } from "react";
+import { createClient } from "@/lib/supabase/browser";
+import { documentBucket, maxDocumentBytes } from "@/modules/documents/validation";
+import type {
+  PatientDocuments,
+  StaffDocuments,
+} from "@/modules/documents/service";
+import { clinicalTime } from "./encounter-editor";
+
+type DocumentItem =
+  | StaffDocuments["documents"][number]
+  | PatientDocuments["documents"][number];
+
+const categoryLabels: Record<string, string> = {
+  exam: "Exame",
+  clinical_document: "Documento clínico",
+};
+const visibilityLabels: Record<string, string> = {
+  internal: "Uso interno da equipe",
+  shared: "Compartilhado com o paciente",
+};
+
+function byteLimit() {
+  return `${maxDocumentBytes / (1024 * 1024)} MB`;
+}
+
+function DocumentUploadForm({
+  tenant,
+  patients,
+  ownPatientId,
+}: {
+  tenant: string;
+  patients?: StaffDocuments["patients"];
+  ownPatientId?: string | null;
+}) {
+  const router = useRouter();
+  const busy = useRef(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const patientUpload = Boolean(ownPatientId);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy.current) return;
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const file = data.get("file");
+    if (!(file instanceof File) || !file.size) {
+      setError("Escolha um arquivo para enviar.");
+      return;
+    }
+    if (file.size > maxDocumentBytes) {
+      setError(`Escolha um arquivo de até ${byteLimit()}.`);
+      return;
+    }
+    busy.current = true;
+    setPending(true);
+    setError("");
+    setNotice("");
+    try {
+      const intent = await fetch(`/api/v1/clinics/${tenant}/documents`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(20_000),
+        body: JSON.stringify({
+          patient_id: ownPatientId ?? data.get("patient_id"),
+          filename: file.name,
+          content_type: file.type,
+          byte_size: file.size,
+          category: data.get("category"),
+          visibility: patientUpload ? "shared" : data.get("visibility"),
+        }),
+      });
+      const prepared = await intent.json();
+      if (!intent.ok)
+        throw new Error(prepared.error ?? "Não foi possível preparar o envio.");
+      const storage = createClient();
+      const upload = await storage.storage
+        .from(documentBucket)
+        .uploadToSignedUrl(prepared.uploadPath, prepared.uploadToken, file, {
+          cacheControl: "0",
+          contentType: file.type,
+          upsert: false,
+        });
+      if (upload.error) throw new Error("O arquivo não foi recebido. Tente novamente.");
+      const complete = await fetch(
+        `/api/v1/clinics/${tenant}/documents/${prepared.documentId}/complete`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(20_000),
+          body: JSON.stringify({ confirmed: true }),
+        },
+      );
+      const completed = await complete.json();
+      if (!complete.ok)
+        throw new Error(completed.error ?? "Não foi possível conferir o arquivo.");
+      form.reset();
+      setNotice("Documento enviado e disponibilizado para as pessoas autorizadas.");
+      router.refresh();
+    } catch (reason) {
+      setError(
+        reason instanceof Error && reason.name !== "TimeoutError"
+          ? reason.message
+          : "A conexão demorou. Atualize a página antes de tentar novamente.",
+      );
+    } finally {
+      busy.current = false;
+      setPending(false);
+    }
+  }
+
+  if (!patientUpload && !patients?.length)
+    return <p>Nenhum paciente com vínculo ativo está disponível para envio.</p>;
+
+  return (
+    <form className="document-upload-form" onSubmit={submit}>
+      {error && <p role="alert">{error}</p>}
+      {notice && <p role="status">{notice}</p>}
+      {!patientUpload && (
+        <label className="field">
+          Paciente
+          <select name="patient_id" required disabled={pending}>
+            {patients?.map((patient) => (
+              <option key={patient.id} value={patient.id}>
+                {patient.display_name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      <label className="field">
+        Tipo de documento
+        <select name="category" defaultValue="exam" disabled={pending}>
+          <option value="exam">Exame</option>
+          <option value="clinical_document">Documento clínico</option>
+        </select>
+      </label>
+      {!patientUpload && (
+        <label className="field">
+          Visibilidade
+          <select name="visibility" defaultValue="internal" disabled={pending}>
+            <option value="internal">Uso interno da equipe</option>
+            <option value="shared">Compartilhar com o paciente</option>
+          </select>
+        </label>
+      )}
+      <label className="field">
+        Arquivo
+        <input
+          name="file"
+          type="file"
+          required
+          accept="application/pdf,image/jpeg,image/png"
+          disabled={pending}
+        />
+      </label>
+      {patientUpload && (
+        <label className="publication-confirm">
+          <input name="confirmed" type="checkbox" required disabled={pending} />
+          Confirmo que selecionei este arquivo para compartilhar com a equipe.
+        </label>
+      )}
+      <button disabled={pending}>
+        {pending ? "Enviando e conferindo…" : "Enviar documento"}
+      </button>
+    </form>
+  );
+}
+
+function DocumentList({
+  documents,
+  tenant,
+  showPatient,
+}: {
+  documents: DocumentItem[];
+  tenant: string;
+  showPatient: boolean;
+}) {
+  if (!documents.length)
+    return (
+      <section className="panel empty">
+        <h2>Nenhum documento disponível</h2>
+        <p>Os arquivos autorizados aparecerão aqui depois do envio e da conferência.</p>
+      </section>
+    );
+  return (
+    <div className="document-list" aria-label="Documentos disponíveis">
+      {documents.map((document) => {
+        const staffDocument = document as StaffDocuments["documents"][number];
+        return (
+          <article className="document-row" key={document.id}>
+            <div>
+              <h3>{document.original_filename}</h3>
+              <p>
+                {categoryLabels[document.category] ?? "Documento"}
+                {showPatient && staffDocument.patients
+                  ? ` · ${staffDocument.patients.display_name}`
+                  : ""}
+              </p>
+              <small>
+                Disponibilizado em {clinicalTime(document.available_at ?? document.created_at)}
+                {showPatient && document.visibility
+                  ? ` · ${visibilityLabels[document.visibility] ?? document.visibility}`
+                  : ""}
+              </small>
+            </div>
+            <Link
+              className="button secondary"
+              href={`/api/v1/clinics/${tenant}/documents/${document.id}/download`}
+            >
+              Baixar
+            </Link>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+export function StaffDocumentsWorkspace({ initial }: { initial: StaffDocuments }) {
+  const base = `/clinicas/${initial.clinic.id}/documentos`;
+  return (
+    <>
+      <details className="panel document-upload-panel">
+        <summary>Adicionar documento</summary>
+        <p>
+          Aceita PDF, JPG e PNG de até {byteLimit()}. O arquivo fica privado e
+          só aparece após a conferência de formato e tamanho.
+        </p>
+        <DocumentUploadForm tenant={initial.clinic.id} patients={initial.patients} />
+      </details>
+      <section className="document-board">
+        <div className="section-heading">
+          <div>
+            <h2>Documentos disponíveis</h2>
+            <p>Somente arquivos dos pacientes sob sua responsabilidade ativa.</p>
+          </div>
+          <span className="quiet-label">{initial.documents.length} nesta página</span>
+        </div>
+        <DocumentList documents={initial.documents} tenant={initial.clinic.id} showPatient />
+      </section>
+      <nav className="agenda-actions" aria-label="Páginas de documentos">
+        {initial.page > 1 && <Link href={`${base}?pagina=${initial.page - 1}`}>Anterior</Link>}
+        {initial.hasNext && <Link href={`${base}?pagina=${initial.page + 1}`}>Próxima</Link>}
+      </nav>
+      <p className="module-footnote">
+        Este espaço não é um canal de urgência. O arquivo não é interpretado,
+        resumido nem altera o plano de cuidado automaticamente.
+      </p>
+    </>
+  );
+}
+
+export function PatientDocumentsWorkspace({ initial }: { initial: PatientDocuments }) {
+  const base = `/clinicas/${initial.clinic.id}/meu-cuidado/documentos`;
+  return (
+    <>
+      {initial.patientId ? (
+        <details className="panel document-upload-panel">
+          <summary>Enviar documento para a equipe</summary>
+          <p>
+            Aceita PDF, JPG e PNG de até {byteLimit()}. O arquivo é privado e
+            será compartilhado somente com sua equipe de cuidado autorizada.
+          </p>
+          <DocumentUploadForm tenant={initial.clinic.id} ownPatientId={initial.patientId} />
+        </details>
+      ) : (
+        <p className="notice">
+          A equipe ainda precisa vincular sua conta à ficha antes que você possa
+          enviar documentos.
+        </p>
+      )}
+      <section className="document-board">
+        <div className="section-heading">
+          <div>
+            <h2>Meus documentos</h2>
+            <p>Arquivos compartilhados entre você e a equipe autorizada.</p>
+          </div>
+        </div>
+        <DocumentList documents={initial.documents} tenant={initial.clinic.id} showPatient={false} />
+      </section>
+      <nav className="agenda-actions" aria-label="Páginas de documentos">
+        {initial.page > 1 && <Link href={`${base}?pagina=${initial.page - 1}`}>Anterior</Link>}
+        {initial.hasNext && <Link href={`${base}?pagina=${initial.page + 1}`}>Próxima</Link>}
+      </nav>
+      <p className="module-footnote">
+        O envio de documentos não substitui contato com a clínica em caso de
+        urgência.
+      </p>
+    </>
+  );
+}

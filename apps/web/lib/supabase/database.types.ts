@@ -507,6 +507,42 @@ export type Database = {
           },
         ];
       };
+      patient_documents: {
+        Row: {
+          available_at: string | null;
+          byte_size: number;
+          category: string;
+          content_type: string;
+          created_at: string;
+          id: string;
+          original_filename: string;
+          patient_id: string;
+          rejected_at: string | null;
+          status: string;
+          storage_path: string;
+          tenant_id: string;
+          uploaded_by: string;
+          visibility: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "patient_documents_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "patient_documents_tenant_id_uploaded_by_fkey";
+            columns: ["tenant_id", "uploaded_by"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
       patients: {
         Row: {
           birth_date: string | null;
@@ -599,6 +635,38 @@ export type Database = {
           target_check_in: string;
           note_text: string;
           confirmed: boolean;
+        };
+        Returns: string;
+      };
+      reserve_patient_document: {
+        Args: {
+          target_tenant: string;
+          target_patient: string;
+          target_uploader: string;
+          input_filename: string;
+          input_content_type: string;
+          input_byte_size: number;
+          input_category: string;
+          input_visibility: string;
+        };
+        Returns: {
+          document_id: string;
+          storage_path: string;
+        }[];
+      };
+      complete_patient_document: {
+        Args: {
+          target_tenant: string;
+          target_document: string;
+          target_actor: string;
+        };
+        Returns: string;
+      };
+      reject_patient_document: {
+        Args: {
+          target_tenant: string;
+          target_document: string;
+          target_actor: string;
         };
         Returns: string;
       };

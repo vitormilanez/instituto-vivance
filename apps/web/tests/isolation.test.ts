@@ -20,13 +20,31 @@ const pa = randomUUID(),
 
 before(async () => {
   await db.exec(`
-    create role anon nologin; create role authenticated nologin;
+    create role anon nologin; create role authenticated nologin; create role service_role nologin;
     create schema auth;
+    create schema storage;
     create table auth.users(id uuid primary key, email text, banned_until timestamptz, deleted_at timestamptz);
     create table auth.sessions(id uuid primary key, user_id uuid references auth.users, not_after timestamptz);
     create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
     create function auth.uid() returns uuid language sql stable as $$ select (auth.jwt()->>'sub')::uuid $$;
+    create table storage.buckets(
+      id text primary key,
+      name text not null,
+      public boolean not null default false,
+      file_size_limit bigint,
+      allowed_mime_types text[]
+    );
+    create table storage.objects(
+      id uuid primary key default gen_random_uuid(),
+      bucket_id text not null,
+      name text not null,
+      created_at timestamptz not null default now(),
+      unique(bucket_id,name)
+    );
+    alter table storage.objects enable row level security;
     grant usage on schema auth to anon, authenticated;
+    grant usage on schema storage to authenticated;
+    grant select,insert,delete on storage.objects to authenticated;
   `);
   const migrations = new URL("../../../supabase/migrations/", import.meta.url);
   for (const name of readdirSync(migrations)
@@ -2213,5 +2231,233 @@ test("check-in submission rolls back when its audit cannot be recorded", async (
     await denied("select public.submit_care_check_in($1,$2,'Must roll back',null,null,null,current_date,true)",[a,id]);
     assert.equal((await db.query("select id from public.care_check_in_submissions where check_in_id=$1",[id])).rows.length,0);
     assert.equal((await db.query<{status:string}>("select status from public.care_check_ins where id=$1",[id])).rows[0].status,"pending");
+  });
+});
+
+async function privateDocumentFixture(visibility: "internal" | "shared" = "shared") {
+  await startClinical("2099-12-01T12:00:00Z", "2099-12-01T12:30:00Z");
+  await db.exec("reset role");
+  await db.query(
+    "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+    [a, pa, users.patient.id],
+  );
+  await switchActor("doctor");
+  return reservePrivateDocument("synthetic-result.pdf", "exam", visibility);
+}
+
+async function reservePrivateDocument(
+  filename: string,
+  category: "exam" | "clinical_document",
+  visibility: "internal" | "shared",
+) {
+  return reservePrivateDocumentAs("doctor", filename, category, visibility);
+}
+
+async function reservePrivateDocumentAs(
+  actor: string,
+  filename: string,
+  category: "exam" | "clinical_document",
+  visibility: "internal" | "shared",
+) {
+  await db.exec("set local role service_role");
+  try {
+    return (
+      await db.query<{ document_id: string; storage_path: string }>(
+        "select * from public.reserve_patient_document($1,$2,$3,$4,'application/pdf',6,$5,$6)",
+        [a, pa, users[actor].id, filename, category, visibility],
+      )
+    ).rows[0];
+  } finally {
+    await switchActor(actor);
+  }
+}
+
+async function completePrivateDocument(documentId: string) {
+  return completePrivateDocumentAs("doctor", documentId);
+}
+
+async function completePrivateDocumentAs(actor: string, documentId: string) {
+  await db.exec("set local role service_role");
+  try {
+    await db.query("select public.complete_patient_document($1,$2,$3)", [
+      a,
+      documentId,
+      users[actor].id,
+    ]);
+  } finally {
+    await switchActor(actor);
+  }
+}
+
+test("private documents require a reservation, stay hidden until validation, and preserve audit metadata", async () => {
+  await asUser("doctor", async () => {
+    const document = await privateDocumentFixture();
+    await denied(
+      "select * from public.reserve_patient_document($1,$2,$3,'bypass.pdf','application/pdf',6,'exam','shared')",
+      [a, pa, users.doctor.id],
+    );
+    await denied(
+      "insert into public.patient_documents(tenant_id,patient_id,uploaded_by,original_filename,storage_path,content_type,byte_size,category,visibility) values($1,$2,$3,'forged.pdf','patient-documents/forged','application/pdf',6,'exam','shared')",
+      [a, pa, users.doctor.id],
+    );
+    await denied(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents','patient-documents/forged')",
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [document.storage_path],
+    );
+    await switchActor("patient");
+    assert.equal(
+      (await db.query("select id from public.patient_documents where id=$1", [document.document_id]))
+        .rows.length,
+      0,
+    );
+    assert.equal(
+      (await db.query("select name from storage.objects where name=$1", [document.storage_path]))
+        .rows.length,
+      0,
+    );
+    await switchActor("doctor");
+    await completePrivateDocument(document.document_id);
+    await switchActor("patient");
+    assert.equal(
+      (await db.query("select id from public.patient_documents where id=$1", [document.document_id]))
+        .rows.length,
+      1,
+    );
+    assert.equal(
+      (await db.query("select name from storage.objects where name=$1", [document.storage_path]))
+        .rows.length,
+      1,
+    );
+    await db.exec("reset role");
+    const audit = await db.query<{ n: number; payload: string }>(
+      "select count(*)::int n,json_agg(a)::text payload from public.audit_events a where entity_type='patient_documents' and entity_id=$1",
+      [document.document_id],
+    );
+    assert.equal(audit.rows[0].n, 2);
+    assert.ok(!audit.rows[0].payload.includes("synthetic-result.pdf"));
+  });
+});
+
+test("private documents isolate internal files and immediately follow care-account revocation", async () => {
+  await asUser("doctor", async () => {
+    const shared = await privateDocumentFixture("shared");
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [shared.storage_path],
+    );
+    await completePrivateDocument(shared.document_id);
+    const internal = await reservePrivateDocument(
+      "internal.pdf",
+      "clinical_document",
+      "internal",
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [internal.storage_path],
+    );
+    await completePrivateDocument(internal.document_id);
+    for (const role of ["admin", "nurse", "other", "outsider", "suspended"]) {
+      await switchActor(role);
+      assert.equal(
+        (await db.query("select id from public.patient_documents where id=$1", [shared.document_id]))
+          .rows.length,
+        0,
+      );
+      assert.equal(
+        (await db.query("select name from storage.objects where name=$1", [shared.storage_path]))
+          .rows.length,
+        0,
+      );
+    }
+    await switchActor("patient");
+    assert.equal(
+      (await db.query("select id from public.patient_documents where id=$1", [shared.document_id]))
+        .rows.length,
+      1,
+    );
+    assert.equal(
+      (await db.query("select id from public.patient_documents where id=$1", [internal.document_id]))
+        .rows.length,
+      0,
+    );
+    await denied(
+      "select * from public.reserve_patient_document($1,$2,$3,'forbidden.pdf','application/pdf',6,'exam','internal')",
+      [a, pa, users.patient.id],
+    );
+    await db.exec("set local role service_role");
+    await denied(
+      "select * from public.reserve_patient_document($1,$2,$3,'forbidden.pdf','application/pdf',6,'exam','internal')",
+      [a, pa, users.patient.id],
+    );
+    await switchActor("patient");
+    const patientShared = await reservePrivateDocumentAs(
+      "patient",
+      "patient-shared.pdf",
+      "exam",
+      "shared",
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [patientShared.storage_path],
+    );
+    await completePrivateDocumentAs("patient", patientShared.document_id);
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.patient_documents where id=$1", [patientShared.document_id]))
+        .rows.length,
+      1,
+    );
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=1 where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+      [a, pa, users.doctor.id],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.patient_documents where id=$1", [shared.document_id]))
+        .rows.length,
+      0,
+    );
+    assert.equal(
+      (await db.query("select name from storage.objects where name=$1", [shared.storage_path]))
+        .rows.length,
+      0,
+    );
+  });
+});
+
+test("document completion rejects missing files and audit failure leaves no reservation", async () => {
+  await asUser("doctor", async () => {
+    const document = await privateDocumentFixture();
+    await denied("select public.complete_patient_document($1,$2,$3)", [
+      a,
+      document.document_id,
+      users.doctor.id,
+    ]);
+    assert.equal(
+      (await db.query<{ status: string }>("select status from public.patient_documents where id=$1", [
+        document.document_id,
+      ])).rows[0].status,
+      "reserved",
+    );
+    await db.exec("reset role");
+    await db.exec(
+      "create function private.synthetic_document_audit_failure() returns trigger language plpgsql as $$ begin if new.entity_type='patient_documents' then raise exception 'Synthetic document audit failure'; end if; return new; end; $$; create trigger synthetic_document_audit_failure before insert on public.audit_events for each row execute function private.synthetic_document_audit_failure();",
+    );
+    await switchActor("doctor");
+    await db.exec("set local role service_role");
+    await denied(
+      "select * from public.reserve_patient_document($1,$2,$3,'must-rollback.pdf','application/pdf',6,'exam','shared')",
+      [a, pa, users.doctor.id],
+    );
+    await db.exec("reset role");
+    assert.equal(
+      (await db.query("select id from public.patient_documents where original_filename='must-rollback.pdf'"))
+        .rows.length,
+      0,
+    );
   });
 });

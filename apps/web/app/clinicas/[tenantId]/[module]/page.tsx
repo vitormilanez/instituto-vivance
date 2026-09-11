@@ -16,6 +16,8 @@ import { CheckInError, staffCheckIns } from "@/modules/check-ins/service";
 import { CheckInWorkspace } from "@/components/check-in-workspace";
 import { staffLongitudinal } from "@/modules/longitudinal/service";
 import { StaffLongitudinalWorkspace } from "@/components/longitudinal-workspace";
+import { staffDocuments } from "@/modules/documents/service";
+import { StaffDocumentsWorkspace } from "@/components/documents-workspace";
 export const dynamic = "force-dynamic";
 
 export default async function ModulePage({
@@ -94,6 +96,35 @@ export default async function ModulePage({
             initial={await staffCheckIns(tenantId, query.pagina)}
           />
         )}
+      </ClinicShell>
+    );
+  }
+  if (slug === "documentos") {
+    if (clinic.role === "admin")
+      return (
+        <ClinicShell clinic={clinic} active="documentos">
+          <h1>Documentos</h1>
+          <section className="panel">
+            <h2>Acesso clínico restrito</h2>
+            <p>
+              O perfil administrativo não acessa arquivos de pacientes nem seus
+              metadados clínicos.
+            </p>
+          </section>
+        </ClinicShell>
+      );
+    const query = await searchParams;
+    return (
+      <ClinicShell clinic={clinic} active="documentos">
+        <div className="page-heading">
+          <div>
+            <h1>Documentos</h1>
+            <p>Exames e arquivos privados no contexto de cada paciente.</p>
+          </div>
+        </div>
+        <StaffDocumentsWorkspace
+          initial={await staffDocuments(tenantId, query.pagina)}
+        />
       </ClinicShell>
     );
   }

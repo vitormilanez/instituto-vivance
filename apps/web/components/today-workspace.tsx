@@ -69,12 +69,13 @@ export function PatientCareLinks({
         <span>Cadastro e registros disponíveis.</span>
         <span>Abrir ficha</span>
       </Link>
-      <div className="care-context-future">
+      <Link href={`${base}/documentos`}>
         <strong>Acompanhamento e exames</strong>
         <span>
-          Check-ins disponíveis. Documentos entram nos próximos módulos.
+          Check-ins e documentos privados disponíveis conforme o vínculo de cuidado.
         </span>
-      </div>
+        <span>Abrir documentos</span>
+      </Link>
     </div>
   );
 }

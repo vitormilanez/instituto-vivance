@@ -50,8 +50,8 @@ export const staffModules = [
     action: "Adicionar documento",
     tabs: ["Todos os arquivos", "Exames", "Documentos clínicos"],
     columns: ["Arquivo", "Paciente", "Enviado em", "Tipo"],
-    empty: "Os documentos serão reunidos aqui",
-    detail: "O envio e o acesso privado aos arquivos ainda serão integrados.",
+    empty: "Nenhum documento disponível",
+    detail: "Os arquivos autorizados aparecerão neste espaço privado.",
   },
   {
     slug: "mensagens",
@@ -148,7 +148,7 @@ export const patientSections = [
     title: "Meus documentos",
     group: "cuidado",
     description:
-      "Aqui ficarão os exames e arquivos compartilhados com a clínica.",
+      "Exames e arquivos compartilhados com a clínica.",
   },
 ] as const;
 export type PatientSection = (typeof patientSections)[number];

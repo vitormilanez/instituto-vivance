@@ -61,8 +61,8 @@ export default async function MyProfile({
         <h2>Seu acompanhamento</h2>
         <p>
           Consulte seus horários na área Meu cuidado → Consultas. Planos de
-          cuidado, documentos e mensagens serão disponibilizados nas próximas
-          etapas.
+          cuidado e documentos compartilhados ficam em Meu cuidado. Mensagens
+          serão disponibilizadas em uma próxima etapa.
         </p>
       </section>
     </PatientShell>

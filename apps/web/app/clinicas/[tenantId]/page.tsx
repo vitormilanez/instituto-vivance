@@ -58,7 +58,6 @@ export default async function Dashboard({
       title: "Documentos",
       text: "Arquivos e exames do paciente.",
       href: `${base}/documentos`,
-      pending: true,
     },
     {
       title: "Equipe de cuidado",

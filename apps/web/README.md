@@ -13,9 +13,10 @@ Primeira fatia funcional, não o MVP clínico completo. O protótipo Cloudflare 
 - Equipe de cuidado: convite pendente de médico/enfermagem, aceite explícito, suspensão/reativação e atribuição/aceite/revogação de responsabilidade por paciente. O administrador opera metadados sem abrir conteúdo clínico. Ver [escopo e validação](../../docs/EQUIPE_VINCULOS_MVP.md).
 - Plano de cuidado interno versionado, aprovação médica separada da publicação, portal de orientações vigentes, ciência de leitura, substituição e retirada com histórico.
 - Check-ins manuais com relato original, medida opcional e revisão interna; Evolução compõe medidas e linha do tempo somente de dados persistidos, com origem e separação entre equipe/paciente.
-- Estrutura navegável sem mocks para documentos, mensagens, relatórios e IA; ações futuras desativadas.
-- Área do paciente em `/clinicas/:tenantId/meu-cuidado/hoje`, com Hoje, Meu cuidado, Conversas e Evolução. A visão principal e Consultas mostram o próximo compromisso real, seu estado e o profissional; plano, diário e evolução estão conectados. Tratamento, documentos e mensagens permanecem sem integração clínica. Perfil cadastral preservado.
-- API versionada por módulo: `/api/v1/clinics`, `/api/v1/clinics/:tenantId/patients`, `/api/v1/clinics/:tenantId/appointments`, `/api/v1/clinics/:tenantId/encounters` (incluindo `/:encounterId/addenda`), `/api/v1/clinics/:tenantId/team` e `/api/v1/clinics/:tenantId/audit`.
+- Documentos privados: PDF/JPG/PNG até 5 MB, upload direto assinado, bucket não público, validação de tamanho/assinatura antes de disponibilizar, acesso por vínculo e download temporário. Uso interno e compartilhado ficam separados. Ver [escopo e limites](../../docs/DOCUMENTOS_MVP.md).
+- Estrutura navegável sem mocks para mensagens, relatórios e IA; ações futuras permanecem desativadas.
+- Área do paciente em `/clinicas/:tenantId/meu-cuidado/hoje`, com Hoje, Meu cuidado, Conversas e Evolução. A visão principal e Consultas mostram o próximo compromisso real, seu estado e o profissional; plano, diário, evolução e documentos compartilhados estão conectados. Tratamento e mensagens permanecem sem integração clínica. Perfil cadastral preservado.
+- API versionada por módulo: `/api/v1/clinics`, `/api/v1/clinics/:tenantId/patients`, `/api/v1/clinics/:tenantId/appointments`, `/api/v1/clinics/:tenantId/encounters` (incluindo `/:encounterId/addenda`), `/api/v1/clinics/:tenantId/team`, `/api/v1/clinics/:tenantId/documents` (incluindo `/:documentId/complete` e `/:documentId/download`) e `/api/v1/clinics/:tenantId/audit`.
 - Auditoria de criação/alteração de clínica, vínculo e cadastro na mesma transação, sem cópia dos valores pessoais.
 - Histórico somente para administrador; sem permissão da aplicação para forjar ou apagar eventos.
 - Banco com RLS e verificação de sessão existente, expiração, usuário bloqueado/excluído, clínica e vínculo ativos.
@@ -88,7 +89,7 @@ Recuperação: o login oferece **Esqueci minha senha** em `/esqueci-minha-senha`
 
 ## Limites desta entrega
 
-Não implementados: arquivos, mensagens persistentes, notificações, áudios e IA. Agendamento, atendimento manual interno, adendos, gestão operacional de equipe/vínculos, planos/publicação, check-ins e evolução neutra estão implementados. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
+Não implementados: mensagens persistentes, notificações, áudios e IA. Documentos privados, agendamento, atendimento manual interno, adendos, gestão operacional de equipe/vínculos, planos/publicação, check-ins e evolução neutra estão implementados no checkout. A migração e a Edge Function de documentos ainda precisam ser aplicadas ao Supabase de desenvolvimento antes da validação autenticada ou de qualquer Preview. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
 
 Sem homologação para atendimento real. MFA, limites contra abuso, fluxo completo de primeiro acesso, restauração de backups, política de retenção e revisão clínica/privacidade permanecem critérios de entrada em operação. A inspeção de segurança do schema não certifica todo o produto.
 

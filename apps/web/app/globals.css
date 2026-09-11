@@ -2336,9 +2336,25 @@ button.calendar-day[aria-pressed="true"] {
 .check-in-measure legend { padding:0 6px; color:#405c7e; font-weight:650; }
 .patient-check-ins > .section-heading { margin-bottom:18px; }
 .patient-check-ins .panel + .panel { margin-top:20px; }
+.document-upload-panel summary { color:var(--navy); font-size:17px; font-weight:700; }
+.document-upload-panel > p { max-width:68ch; margin:6px 0 0; color:var(--muted); font-size:14px; }
+.document-upload-form { display:grid; gap:14px; margin-top:20px; max-width:620px; }
+.document-upload-form button { justify-self:start; }
+.document-board { margin-top:28px; }
+.document-board > .section-heading { margin-bottom:18px; }
+.document-board > .section-heading p { margin:5px 0 0; font-size:14px; }
+.document-list { border-top:1px solid var(--border); }
+.document-row { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:20px 0; border-bottom:1px solid var(--border); }
+.document-row > div { min-width:0; }
+.document-row h3 { margin:0; overflow-wrap:anywhere; font-size:17px; }
+.document-row p { margin:6px 0; color:var(--muted); font-size:14px; }
+.document-row small { color:#526782; font-size:12px; }
+.document-row .button { flex:0 0 auto; }
 @media (max-width:650px) {
   .check-in-measure { grid-template-columns:1fr; }
   .check-in-card .section-heading,.patient-check-ins .section-heading { align-items:flex-start; }
+  .document-row { align-items:flex-start; flex-direction:column; }
+  .document-row .button { width:100%; text-align:center; }
 }
 .longitudinal-workspace { display:grid; gap:22px; }
 .longitudinal-patient-picker { display:flex; align-items:end; gap:16px; margin:0; padding:20px 24px; }

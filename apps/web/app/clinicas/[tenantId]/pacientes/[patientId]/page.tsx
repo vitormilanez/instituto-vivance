@@ -113,6 +113,27 @@ export default async function Patient({
             </dl>
           </section>
         </>
+      ) : active === "Documentos" ? (
+        context.clinic.role === "admin" ? (
+          <section className="panel">
+            <h2>Acesso clínico restrito</h2>
+            <p>
+              O perfil administrativo não acessa arquivos de pacientes nem seus
+              metadados clínicos.
+            </p>
+          </section>
+        ) : (
+          <section className="panel">
+            <h2>Documentos privados</h2>
+            <p>
+              Os arquivos deste paciente aparecem em Documentos somente para
+              profissionais com vínculo de cuidado ativo.
+            </p>
+            <Link className="button secondary" href={`/clinicas/${tenantId}/documentos`}>
+              Abrir documentos
+            </Link>
+          </section>
+        )
       ) : (
         <>
           <DevelopmentNotice />
@@ -151,8 +172,8 @@ export default async function Patient({
       <section className="panel future-care">
         <h2>Próximas etapas do cuidado</h2>
         <p>
-          Agenda, Atendimentos e Planos já estão disponíveis. Check-ins e
-          documentos serão conectados nas próximas etapas.
+          Agenda, Atendimentos, Planos, Check-ins e Documentos já estão
+          disponíveis conforme as permissões de cada pessoa.
         </p>
         <p>
           Esta ficha reúne os dados cadastrais. Os registros de consulta ficam

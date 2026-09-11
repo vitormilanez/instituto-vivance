@@ -23,6 +23,11 @@ const actions = [
   },
   { label: "Meu diário", text: "Como você está se sentindo", slug: "diario" },
   {
+    label: "Meus documentos",
+    text: "Arquivos compartilhados com a clínica",
+    slug: "documentos",
+  },
+  {
     label: "Próximo retorno",
     text: "Consultas com a clínica",
     slug: "consultas",
@@ -162,7 +167,9 @@ export function PatientArea({
                       ? "Abrir check-ins"
                       : action.slug === "evolucao"
                         ? "Abrir evolução"
-                      : "Conhecer a área"}
+                        : action.slug === "documentos"
+                        ? "Abrir documentos"
+                        : "Conhecer a área"}
                 </span>
               </Link>
             ))}
@@ -210,7 +217,7 @@ export function PatientArea({
                     <span>{item.description}</span>
                   </Link>
                   <span className="quiet-label">
-                    {["plano", "consultas", "diario", "evolucao"].includes(
+                    {["plano", "consultas", "diario", "evolucao", "documentos"].includes(
                       item.slug,
                     )
                       ? "Disponível"
