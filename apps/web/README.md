@@ -10,9 +10,10 @@ Primeira fatia funcional, não o MVP clínico completo. O protótipo Cloudflare 
 - Painel da clínica com 8 ações rápidas e contagem real; busca por nome, ficha cadastral individual e histórico em páginas próprias.
 - Agenda real: criar, remarcar e cancelar consultas/retornos; calendário mensal, conflito de horários, versão otimista e auditoria. Ver [escopo e validação](../../docs/AGENDA_MVP.md).
 - Atendimento manual: início explícito pela agenda, rascunho, retomada, finalização, versões e adendos imutáveis, com acesso por vínculo clínico ativo e escrita exclusiva do médico autor. Ver [escopo e validação](../../docs/ATENDIMENTO_MVP.md).
+- Equipe de cuidado: convite pendente de médico/enfermagem, aceite explícito, suspensão/reativação e atribuição/aceite/revogação de responsabilidade por paciente. O administrador opera metadados sem abrir conteúdo clínico. Ver [escopo e validação](../../docs/EQUIPE_VINCULOS_MVP.md).
 - Estrutura navegável sem mocks para planos, acompanhamento, documentos, mensagens, relatórios e IA; ações futuras desativadas.
 - Área do paciente em `/clinicas/:tenantId/meu-cuidado/hoje`, com Hoje, Meu cuidado, Conversas e Evolução. Consultas já lê os próprios horários reais; orientações, tratamento, diário e documentos ainda sem integração clínica. Perfil cadastral preservado.
-- API versionada por módulo: `/api/v1/clinics`, `/api/v1/clinics/:tenantId/patients`, `/api/v1/clinics/:tenantId/appointments`, `/api/v1/clinics/:tenantId/encounters` (incluindo `/:encounterId/addenda`) e `/api/v1/clinics/:tenantId/audit`.
+- API versionada por módulo: `/api/v1/clinics`, `/api/v1/clinics/:tenantId/patients`, `/api/v1/clinics/:tenantId/appointments`, `/api/v1/clinics/:tenantId/encounters` (incluindo `/:encounterId/addenda`), `/api/v1/clinics/:tenantId/team` e `/api/v1/clinics/:tenantId/audit`.
 - Auditoria de criação/alteração de clínica, vínculo e cadastro na mesma transação, sem cópia dos valores pessoais.
 - Histórico somente para administrador; sem permissão da aplicação para forjar ou apagar eventos.
 - Banco com RLS e verificação de sessão existente, expiração, usuário bloqueado/excluído, clínica e vínculo ativos.
@@ -21,7 +22,7 @@ Médico, enfermagem e administrador têm acesso ao **cadastro demográfico da su
 
 Dois acessos de teste (médico e paciente) foram criados por solicitação do titular no ambiente de desenvolvimento. Identidades, senhas e e-mails não são seeds nem ficam no repositório. A ficha de teste foi criada de forma persistida e vinculada ao usuário paciente. Login de ambos validado contra o Auth; RLS retorna somente a própria ficha ao paciente e nenhuma auditoria para qualquer dos dois papéis. Migração `20260911004732_patient_account_access.sql`, com chaves compostas e nenhum direito de escrita para os usuários sobre o vínculo.
 
-Verificações dos slices 3 e 3B: 56 testes de regras/isolamento e navegação, lint, TypeScript e build. O 3B adiciona controle de concorrência obrigatório no banco e adendos com autoria/data/número gerados pelo banco; evidências e a pendência de validação persistente em navegador estão no documento do slice. O advisor registra proteção contra senhas vazadas desativada; é pendência de configuração para operação, sem alterar a senha de testes solicitada. [Orientação do Supabase](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+Verificações até o slice 3C: 66 testes de regras/isolamento e navegação, lint, TypeScript e build. O fluxo persistente de adendo do 3B foi fechado em novo registro sintético; o 3C adiciona gestão versionada de equipe e vínculos. O advisor registra proteção contra senhas vazadas desativada; é pendência de configuração para operação, sem alterar a senha de testes solicitada. [Orientação do Supabase](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
 
 ## Rodar localmente
 
@@ -42,7 +43,7 @@ Vercel: Root Directory `apps/web`, framework Next.js, Node.js 24.x. `sourceFiles
 
 Atendimento manual publicado em 10/09/2026, código `128aacf`, deployment Preview `dpl_3scv4m6KDATCJZRHGfM31T8iGPe4` READY, no mesmo endereço fixo. [Evidências e limites dos slices 3 e 3B](../../docs/ATENDIMENTO_MVP.md). Salvamento explícito; finalização e adendos não publicam ao paciente.
 
-Adendos e integridade publicados em Preview em 11/09/2026, código funcional `6f14c3b`, deployment `dpl_7rDEyw7LvpLfNEihdSoyb1C89okA` READY, sem merge ou promoção Production. O alias fixo protegido já aponta para essa versão. A rota sem sessão e os checks do PR foram validados; o envio persistente em navegador será feito somente em um novo registro sintético autorizado, sem alterar os registros preservados.
+Adendos e integridade publicados em Preview em 11/09/2026, código funcional `6f14c3b`, deployment `dpl_7rDEyw7LvpLfNEihdSoyb1C89okA` READY, sem merge ou promoção Production. O fluxo persistente foi fechado depois em um novo registro sintético autorizado, sem alterar os dois registros anteriores.
 
 ### Registro histórico da primeira publicação
 
@@ -81,7 +82,7 @@ Recuperação: o login oferece **Esqueci minha senha** em `/esqueci-minha-senha`
 
 ## Limites desta entrega
 
-Não implementados: plano de cuidado, publicação clínica ao paciente, check-ins, gestão operacional de vínculos clínicos, arquivos, áudios, IA e envio de convite pela interface. Agendamento, atendimento manual interno, adendos, aceitação de convite, definição e recuperação da senha estão implementados. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
+Não implementados: plano de cuidado, publicação clínica ao paciente, check-ins, arquivos, áudios e IA. Agendamento, atendimento manual interno, adendos, gestão operacional de equipe/vínculos, convite pela interface, aceitação de convite, definição e recuperação da senha estão implementados. Não importar componentes antigos que usem demonstrações para preencher essas lacunas. Usar fontes reais ao migrar cada módulo, preservando o desenho visual onde for reaproveitável.
 
 Sem homologação para atendimento real. MFA, limites contra abuso, fluxo completo de primeiro acesso, restauração de backups, política de retenção e revisão clínica/privacidade permanecem critérios de entrada em operação. A inspeção de segurança do schema não certifica todo o produto.
 

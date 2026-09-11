@@ -80,6 +80,97 @@ summary {
 input {
   caret-color: var(--blue);
 }
+.field select,
+.team-admin-grid select {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid #98a9bf;
+  border-radius: 10px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+}
+.invitation-panel {
+  margin: 24px 0;
+}
+.invitation-panel .compact-button {
+  margin-top: 12px;
+}
+.team-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.team-section {
+  margin-top: 24px;
+}
+.team-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+}
+.team-list > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px 24px;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.team-list > li:last-child {
+  border-bottom: 0;
+}
+.team-list > li.selected-row {
+  margin-inline: -16px;
+  padding-inline: 16px;
+  border-radius: 12px;
+  background: #edf3fb;
+}
+.team-list strong,
+.team-list span,
+.team-list small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.team-list span {
+  color: var(--muted);
+  margin-top: 4px;
+}
+.team-list small {
+  margin-top: 6px;
+}
+.row-controls,
+.button-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.compact-button {
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+.inline-confirm {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid #98a9bf;
+  border-radius: 12px;
+  background: #f6f9fe;
+}
+.inline-confirm h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+.inline-confirm p:last-of-type {
+  margin-bottom: 16px;
+}
+.wide-confirm {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
 .workspace {
   display: grid;
   grid-template-columns: 224px minmax(0, 1fr);
@@ -376,6 +467,16 @@ a.quick-action:hover {
   }
   .patient-facts {
     grid-template-columns: 1fr;
+  }
+  .team-admin-grid {
+    grid-template-columns: 1fr;
+  }
+  .team-list > li {
+    grid-template-columns: 1fr;
+  }
+  .row-controls,
+  .button-row {
+    justify-content: flex-start;
   }
   .patient-list > li > a {
     align-items: flex-start;

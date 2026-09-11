@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { clinics, AccessError, roleLabels } from "@/modules/identity/service";
 import { Header } from "@/components/header";
+import { ClinicInvitations } from "@/components/clinic-invitations";
 export const dynamic = "force-dynamic";
 export default async function Clinics() {
   const context = await clinics().catch((error) => {
@@ -14,7 +15,8 @@ export default async function Clinics() {
       <main id="conteudo" className="container">
         <h1>Minhas clínicas</h1>
         <p>Escolha a clínica para abrir seu painel de trabalho.</p>
-        {context.clinics.length === 0 ? (
+        <ClinicInvitations invitations={context.invitations} />
+        {context.clinics.length === 0 && context.invitations.length === 0 ? (
           <section className="panel empty">
             <h2>Aguardando liberação de acesso</h2>
             <p>
@@ -22,7 +24,7 @@ export default async function Clinics() {
               a liberação ao administrador.
             </p>
           </section>
-        ) : (
+        ) : context.clinics.length > 0 ? (
           <ul className="clinic-list">
             {context.clinics.map((c) => (
               <li key={c.id} className="panel">
@@ -45,12 +47,12 @@ export default async function Clinics() {
               </li>
             ))}
           </ul>
-        )}
+        ) : null}
         <p className="notice">
           {context.clinics.length > 0 &&
           context.clinics.every((c) => c.role === "patient")
             ? "Seu perfil e suas consultas já estão disponíveis. Planos e mensagens serão liberados nas próximas entregas."
-            : "Já disponíveis: visão geral, cadastro de pacientes e agenda. Atendimentos e acompanhamento serão liberados nas próximas entregas."}
+            : "Já disponíveis: visão geral, cadastro de pacientes, agenda, atendimentos e equipe de cuidado."}
         </p>
       </main>
     </>

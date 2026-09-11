@@ -160,6 +160,48 @@ export type Database = {
           },
         ];
       };
+      care_relationships: {
+        Row: {
+          accepted_at: string | null;
+          created_at: string;
+          created_by: string;
+          expected_version: number | null;
+          id: string;
+          patient_id: string;
+          professional_id: string;
+          revoked_at: string | null;
+          status: string;
+          tenant_id: string;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          patient_id: string;
+          professional_id: string;
+          status?: string;
+          tenant_id: string;
+        };
+        Update: {
+          expected_version?: number | null;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "care_relationships_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "care_relationships_tenant_id_professional_id_fkey";
+            columns: ["tenant_id", "professional_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
       audit_events: {
         Row: {
           action: string;
@@ -203,16 +245,18 @@ export type Database = {
       };
       memberships: {
         Row: {
+          accepted_at: string | null;
           display_name: string | null;
           created_at: string;
+          expected_version: number | null;
           role: string;
           status: string;
           tenant_id: string;
           user_id: string;
+          version: number;
         };
         Insert: {
           display_name?: string | null;
-          created_at?: string;
           role: string;
           status?: string;
           tenant_id: string;
@@ -220,11 +264,8 @@ export type Database = {
         };
         Update: {
           display_name?: string | null;
-          created_at?: string;
-          role?: string;
+          expected_version?: number | null;
           status?: string;
-          tenant_id?: string;
-          user_id?: string;
         };
         Relationships: [
           {

@@ -58,13 +58,12 @@ export default async function Dashboard({
       pending: true,
     },
     {
-      title: "Histórico de ações",
+      title: "Equipe de cuidado",
       text:
         context.clinic.role === "admin"
-          ? "Consulte as alterações registradas."
-          : "Reservado ao administrador.",
-      href: context.clinic.role === "admin" ? `${base}/historico` : undefined,
-      restricted: context.clinic.role !== "admin",
+          ? "Gerencie acessos e vínculos."
+          : "Revise suas responsabilidades.",
+      href: `${base}/equipe`,
     },
   ];
   return (
@@ -114,7 +113,7 @@ export default async function Dashboard({
                 <strong>{action.title}</strong>
                 <span>{action.text}</span>
                 <span className="action-state">
-                  {action.restricted ? "Acesso restrito" : "Em breve"}
+                  Em breve
                 </span>
               </div>
             ),

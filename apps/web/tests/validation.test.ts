@@ -6,6 +6,13 @@ import {
   pageNumber,
   sameOrigin,
 } from "../lib/validation.ts";
+import {
+  careAssignmentInput,
+  careRelationshipChangeInput,
+  membershipAcceptanceInput,
+  membershipManagementInput,
+  teamInvitationInput,
+} from "../modules/team/validation.ts";
 
 test("normalizes demographic input without creating placeholder values", () => {
   assert.deepEqual(
@@ -96,4 +103,68 @@ test("origin uses the actual HTTP authority, never an untrusted forwarded host",
     ),
     false,
   );
+});
+test("team invitation accepts only bounded doctor or nursing identity fields", () => {
+  assert.deepEqual(
+    teamInvitationInput({
+      email: "  TESTE@EXAMPLE.COM ",
+      display_name: "  Pessoa   de Teste ",
+      role: "nurse",
+    }),
+    {
+      email: "teste@example.com",
+      display_name: "Pessoa de Teste",
+      role: "nurse",
+    },
+  );
+  for (const input of [
+    { email: "invalido", display_name: "Pessoa", role: "doctor" },
+    { email: "a@example.com", display_name: "A", role: "doctor" },
+    { email: "a@example.com", display_name: "Pessoa", role: "admin" },
+    {
+      email: "a@example.com",
+      display_name: "Pessoa",
+      role: "doctor",
+      tenant_id: "forged",
+    },
+  ])
+    assert.throws(() => teamInvitationInput(input));
+});
+test("team mutations require optimistic versions and allowlisted actions", () => {
+  assert.deepEqual(membershipAcceptanceInput({ version: 3 }), { version: 3 });
+  assert.deepEqual(
+    membershipManagementInput({ version: 2, action: "suspend" }),
+    { version: 2, action: "suspend" },
+  );
+  assert.deepEqual(
+    careRelationshipChangeInput({ version: 4, action: "revoke" }),
+    { version: 4, action: "revoke" },
+  );
+  for (const value of [0, -1, 1.5, "1", null]) {
+    assert.throws(() => membershipAcceptanceInput({ version: value }));
+    assert.throws(() =>
+      membershipManagementInput({ version: value, action: "suspend" }),
+    );
+  }
+  assert.throws(() =>
+    careRelationshipChangeInput({ version: 1, action: "delete" }),
+  );
+  assert.throws(() =>
+    membershipManagementInput({ version: 1, action: "promote" }),
+  );
+});
+test("care assignment validates both identifiers and rejects actor injection", () => {
+  const first = "00000000-0000-4000-8000-000000000001";
+  const second = "00000000-0000-4000-8000-000000000002";
+  assert.deepEqual(
+    careAssignmentInput({ patient_id: first, professional_id: second }),
+    { patient_id: first, professional_id: second },
+  );
+  for (const input of [
+    { patient_id: "invalid", professional_id: second },
+    { patient_id: first, professional_id: "invalid" },
+    { patient_id: first, professional_id: second, status: "active" },
+    { patient_id: first, professional_id: second, created_by: first },
+  ])
+    assert.throws(() => careAssignmentInput(input));
 });

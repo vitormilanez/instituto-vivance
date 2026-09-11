@@ -92,6 +92,28 @@ export default async function Patient({
         </>
       )}
       <section className="panel future-care">
+        <h2>Equipe de cuidado</h2>
+        {context.clinic.role === "admin" ? (
+          <>
+            <p>
+              Atribua ou revise os profissionais responsáveis por este paciente.
+              A atribuição só libera acesso clínico após o aceite do profissional.
+            </p>
+            <Link
+              className="button secondary"
+              href={`/clinicas/${tenantId}/equipe?paciente=${patientId}`}
+            >
+              Gerenciar equipe deste paciente
+            </Link>
+          </>
+        ) : (
+          <p>
+            Consulte em Equipe de cuidado se este paciente está entre suas
+            responsabilidades ativas.
+          </p>
+        )}
+      </section>
+      <section className="panel future-care">
         <h2>Próximas etapas do cuidado</h2>
         <p>
           Agenda e Atendimentos já estão disponíveis no menu. Planos, acompanhamento

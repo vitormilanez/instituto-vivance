@@ -23,6 +23,10 @@ test("native runtime does not import the Cloudflare prototype or demonstration p
         /cloudflare:workers|CareDemoProvider|ensureDemoAccounts|DEMO_USERS|care-demo-store|patient-mvp-data|demo-routes|demoPatients/,
       );
       assert.doesNotMatch(code, /(?:from\s*|import\s*)['"]\.\.\/\.\.\/\.\.\//);
+      assert.doesNotMatch(
+        code,
+        /SUPABASE_SECRET_KEYS|SUPABASE_SERVICE_ROLE_KEY|sb_secret_/,
+      );
     }
   const dependencies = JSON.parse(
     readFileSync(join(root, "package.json"), "utf8"),
@@ -30,4 +34,17 @@ test("native runtime does not import the Cloudflare prototype or demonstration p
   assert.equal(dependencies.vinext, undefined);
   assert.equal(dependencies.wrangler, undefined);
   assert.deepEqual(readdirSync(join(root, "public")).sort(), ["brand"]);
+});
+test("team invitation keeps privileged Auth access inside its authenticated edge boundary", () => {
+  const repository = fileURLToPath(new URL("../../../", import.meta.url));
+  const edge = readFileSync(
+    join(repository, "supabase/functions/invite-staff/index.ts"),
+    "utf8",
+  );
+  assert.match(edge, /auth\.getUser\(token\)/);
+  assert.match(edge, /role.*admin/);
+  assert.match(edge, /status.*active/);
+  assert.match(edge, /inviteUserByEmail/);
+  assert.match(edge, /status:\s*"invited"/);
+  assert.doesNotMatch(edge, /console\.(?:log|error)|user_metadata.*role/);
 });

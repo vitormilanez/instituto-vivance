@@ -2,6 +2,7 @@ import { AccessError } from "@/modules/identity/service";
 import { InputError } from "./validation";
 import { AgendaError } from "@/modules/agenda/service";
 import { EncounterError } from "@/modules/encounters/service";
+import { TeamError } from "@/modules/team/service";
 
 export function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -13,6 +14,8 @@ export function json(body: unknown, status = 200) {
   });
 }
 export function apiError(error: unknown) {
+  if (error instanceof TeamError)
+    return json({ error: error.message }, error.status);
   if (error instanceof EncounterError)
     return json({ error: error.message }, error.status);
   if (error instanceof AgendaError)

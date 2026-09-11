@@ -440,6 +440,244 @@ test("clinical start is explicit, idempotent and creates an active care link ato
     );
   });
 });
+test("doctor explicitly accepts an administrator assignment when starting a scheduled encounter", async () => {
+  await asUser("admin", async () => {
+    const assigned = await db.query<{ id: string; status: string; version: number }>(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'assigned') returning id,status,version",
+      [a, pa, users.doctor.id],
+    );
+    assert.deepEqual(
+      { status: assigned.rows[0].status, version: assigned.rows[0].version },
+      { status: "assigned", version: 1 },
+    );
+    await switchActor("doctor");
+    const appointment = await book();
+    await db.query("select public.start_encounter($1,$2,true)", [
+      a,
+      appointment.id,
+    ]);
+    const accepted = (
+      await db.query<{ status: string; version: number; accepted_at: string }>(
+        "select status,version,accepted_at from public.care_relationships where id=$1",
+        [assigned.rows[0].id],
+      )
+    ).rows[0];
+    assert.equal(accepted.status, "active");
+    assert.equal(accepted.version, 2);
+    assert.ok(accepted.accepted_at);
+  });
+});
+test("team invitation is pending, grants no access, and requires the invitee's versioned acceptance", async () => {
+  await asUser("admin", async () => {
+    const invited = await db.query<{
+      status: string;
+      version: number;
+      accepted_at: string | null;
+    }>(
+      "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,'nurse','invited','Synthetic invitee') returning status,version,accepted_at",
+      [a, users.outsider.id],
+    );
+    assert.deepEqual(invited.rows[0], {
+      status: "invited",
+      version: 1,
+      accepted_at: null,
+    });
+    await switchActor("outsider");
+    assert.equal((await db.query("select id from public.tenants")).rows.length, 1);
+    assert.equal(
+      (await db.query("select user_id from public.memberships")).rows.length,
+      1,
+    );
+    assert.equal((await db.query("select id from public.patients")).rows.length, 0);
+    assert.equal((await db.query("select id from public.encounters")).rows.length, 0);
+    await denied(
+      "update public.memberships set status='active',expected_version=2 where tenant_id=$1 and user_id=$2",
+      [a, users.outsider.id],
+    );
+    const accepted = await db.query<{
+      status: string;
+      version: number;
+      accepted_at: string;
+    }>(
+      "update public.memberships set status='active',expected_version=1 where tenant_id=$1 and user_id=$2 returning status,version,accepted_at",
+      [a, users.outsider.id],
+    );
+    assert.equal(accepted.rows[0].status, "active");
+    assert.equal(accepted.rows[0].version, 2);
+    assert.ok(accepted.rows[0].accepted_at);
+    assert.equal((await db.query("select id from public.patients")).rows.length, 1);
+    await denied("update public.memberships set role='admin' where user_id=$1", [
+      users.outsider.id,
+    ]);
+    await switchActor("admin");
+    const audit = await db.query<{ actor_user_id: string }>(
+      "select actor_user_id from public.audit_events where entity_type='memberships' and entity_id=$1 order by created_at",
+      [users.outsider.id],
+    );
+    assert.deepEqual(
+      audit.rows.map((row) => row.actor_user_id),
+      [users.admin.id, users.outsider.id],
+    );
+  });
+});
+test("only an active administrator can invite bounded clinical roles", async () => {
+  await asUser("doctor", async () => {
+    await denied(
+      "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,'nurse','invited','Denied')",
+      [a, users.outsider.id],
+    );
+  });
+  await asUser("admin", async () => {
+    for (const [tenant, user, role] of [
+      [a, users.outsider.id, "admin"],
+      [a, users.outsider.id, "patient"],
+      [a, users.admin.id, "nurse"],
+      [b, users.outsider.id, "nurse"],
+    ])
+      await denied(
+        "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,$3,'invited','Denied')",
+        [tenant, user, role],
+      );
+  });
+});
+test("care assignment, professional acceptance, revocation and suspension change access immediately", async () => {
+  await asUser("doctor", async () => {
+    const { id: encounterId } = await startClinical();
+    await switchActor("admin");
+    assert.equal(
+      (await db.query("select id from public.encounters where id=$1", [encounterId]))
+        .rows.length,
+      0,
+    );
+    const assigned = await db.query<{ id: string; version: number; status: string }>(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'assigned') returning id,version,status",
+      [a, pa, users.nurse.id],
+    );
+    const relationshipId = assigned.rows[0].id;
+    assert.deepEqual(
+      { version: assigned.rows[0].version, status: assigned.rows[0].status },
+      { version: 1, status: "assigned" },
+    );
+    await denied(
+      "update public.care_relationships set status='active',expected_version=1 where id=$1",
+      [relationshipId],
+    );
+    await switchActor("nurse");
+    assert.equal(
+      (await db.query("select id from public.encounters where id=$1", [encounterId]))
+        .rows.length,
+      0,
+    );
+    const accepted = await db.query<{ version: number; status: string }>(
+      "update public.care_relationships set status='active',expected_version=1 where id=$1 returning version,status",
+      [relationshipId],
+    );
+    assert.deepEqual(accepted.rows[0], { version: 2, status: "active" });
+    assert.equal(
+      (await db.query("select id from public.encounters where id=$1", [encounterId]))
+        .rows.length,
+      1,
+    );
+    await switchActor("admin");
+    await denied(
+      "update public.care_relationships set status='revoked',expected_version=1 where id=$1",
+      [relationshipId],
+    );
+    const revoked = await db.query<{ version: number; status: string }>(
+      "update public.care_relationships set status='revoked',expected_version=2 where id=$1 returning version,status",
+      [relationshipId],
+    );
+    assert.deepEqual(revoked.rows[0], { version: 3, status: "revoked" });
+    await switchActor("nurse");
+    assert.equal((await db.query("select id from public.encounters")).rows.length, 0);
+    await switchActor("admin");
+    const reassigned = await db.query<{ version: number; status: string }>(
+      "update public.care_relationships set status='assigned',expected_version=3 where id=$1 returning version,status",
+      [relationshipId],
+    );
+    assert.deepEqual(reassigned.rows[0], { version: 4, status: "assigned" });
+    await switchActor("nurse");
+    await db.query(
+      "update public.care_relationships set status='active',expected_version=4 where id=$1",
+      [relationshipId],
+    );
+    assert.equal((await db.query("select id from public.encounters")).rows.length, 1);
+    await switchActor("admin");
+    const suspended = await db.query<{ version: number; status: string }>(
+      "update public.memberships set status='suspended',expected_version=1 where tenant_id=$1 and user_id=$2 returning version,status",
+      [a, users.nurse.id],
+    );
+    assert.deepEqual(suspended.rows[0], { version: 2, status: "suspended" });
+    await switchActor("nurse");
+    assert.equal((await db.query("select id from public.encounters")).rows.length, 0);
+    assert.equal(
+      (await db.query("select id from public.care_relationships")).rows.length,
+      0,
+    );
+    await switchActor("admin");
+    const suspendedRevocation = await db.query<{ version: number; status: string }>(
+      "update public.care_relationships set status='revoked',expected_version=5 where id=$1 returning version,status",
+      [relationshipId],
+    );
+    assert.deepEqual(suspendedRevocation.rows[0], {
+      version: 6,
+      status: "revoked",
+    });
+    await denied(
+      "update public.care_relationships set status='assigned',expected_version=6 where id=$1",
+      [relationshipId],
+    );
+    await db.query(
+      "update public.memberships set status='active',expected_version=2 where tenant_id=$1 and user_id=$2",
+      [a, users.nurse.id],
+    );
+    const reassignedAfterReactivation = await db.query<{
+      version: number;
+      status: string;
+    }>(
+      "update public.care_relationships set status='assigned',expected_version=6 where id=$1 returning version,status",
+      [relationshipId],
+    );
+    assert.deepEqual(reassignedAfterReactivation.rows[0], {
+      version: 7,
+      status: "assigned",
+    });
+    await switchActor("nurse");
+    await db.query(
+      "update public.care_relationships set status='active',expected_version=7 where id=$1",
+      [relationshipId],
+    );
+    assert.equal((await db.query("select id from public.encounters")).rows.length, 1);
+  });
+});
+test("care administration rejects other clinics, inactive or wrong-role professionals and identity changes", async () => {
+  await asUser("admin", async () => {
+    for (const [tenant, patient, professional] of [
+      [b, pb, users.other.id],
+      [a, pa, users.suspended.id],
+      [a, pa, users.patient.id],
+    ])
+      await denied(
+        "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'assigned')",
+        [tenant, patient, professional],
+      );
+    await denied(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'active')",
+      [a, pa, users.nurse.id],
+    );
+    const assigned = await db.query<{ id: string }>(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'assigned') returning id",
+      [a, pa, users.nurse.id],
+    );
+    await denied(
+      "update public.care_relationships set professional_id=$1 where id=$2",
+      [users.doctor.id, assigned.rows[0].id],
+    );
+    await denied("delete from public.care_relationships where id=$1", [
+      assigned.rows[0].id,
+    ]);
+  });
+});
 test("clinical draft saves preserve snapshots, stale versions do not overwrite, finalized text is immutable", async () => {
   await asUser("doctor", async () => {
     const { id } = await startClinical();
@@ -595,7 +833,7 @@ test("addenda deny admin, patient, another clinic, non-author and revoked or inv
       [a, users.outsider.id],
     );
     await db.query(
-      "insert into public.care_relationships(tenant_id,patient_id,professional_id) values($1,$2,$3)",
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'active')",
       [a, pa, users.nurse.id],
     );
     for (const role of ["admin", "patient", "nurse", "outsider", "other"]) {
@@ -717,7 +955,7 @@ test("nurse with provisioned care link reads but cannot write; revocation and se
     const { id, appointment } = await startClinical();
     await db.exec("reset role");
     await db.query(
-      "insert into public.care_relationships(tenant_id,patient_id,professional_id) values($1,$2,$3)",
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'active')",
       [a, pa, users.nurse.id],
     );
     await switchActor("nurse");

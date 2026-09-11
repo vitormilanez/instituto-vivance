@@ -13,13 +13,18 @@ export function ClinicShell({
   children,
 }: {
   clinic: ClinicAccess;
-  active: "home" | "patients" | "audit" | StaffModuleSlug;
+  active: "home" | "patients" | "team" | "audit" | StaffModuleSlug;
   children: ReactNode;
 }) {
   const base = `/clinicas/${clinic.id}`;
   const links = [
     { key: "home", label: "Visão geral", href: base },
     { key: "patients", label: "Pacientes", href: `${base}/pacientes` },
+    {
+      key: "team",
+      label: "Equipe de cuidado",
+      href: `${base}/equipe`,
+    },
     ...staffModules.map((module) => ({
       key: module.slug,
       label: module.title,
