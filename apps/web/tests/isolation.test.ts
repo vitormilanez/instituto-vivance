@@ -2151,3 +2151,67 @@ test("audit failure rolls back the patient mutation", async () => {
     0,
   );
 });
+
+async function checkInFixture() {
+  await startClinical("2099-11-01T12:00:00Z", "2099-11-01T12:30:00Z");
+  await db.exec("reset role");
+  await db.query("insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",[a,pa,users.patient.id]);
+  await switchActor("doctor");
+  return (await db.query<{id:string}>("select public.request_care_check_in($1,$2,'How have you been since the last visit?','2099-11-03') id",[a,pa])).rows[0].id;
+}
+
+test("manual check-in preserves the patient report, is idempotent and requires human review", async () => {
+  await asUser("doctor", async () => {
+    const id=await checkInFixture();
+    await denied("insert into public.care_check_ins(tenant_id,patient_id,prompt) values($1,$2,'Forged')",[a,pa]);
+    await switchActor("patient");
+    assert.equal((await db.query("select id from public.care_check_ins where id=$1",[id])).rows.length,1);
+    await denied("select public.submit_care_check_in($1,$2,'Original report',null,null,null,current_date,false)",[a,id]);
+    const submission=(await db.query<{id:string}>("select public.submit_care_check_in($1,$2,'Original patient report','Weight',72.4,'kg',current_date,true) id",[a,id])).rows[0].id;
+    assert.equal((await db.query<{id:string}>("select public.submit_care_check_in($1,$2,'Replay ignored',null,null,null,current_date,true) id",[a,id])).rows[0].id,submission);
+    assert.equal((await db.query<{report:string}>("select report from public.care_check_in_submissions where id=$1",[submission])).rows[0].report,"Original patient report");
+    await denied("update public.care_check_in_submissions set report='Changed'");
+    assert.equal((await db.query("select id from public.care_check_in_reviews")).rows.length,0);
+    await switchActor("doctor");
+    const review=(await db.query<{id:string}>("select public.review_care_check_in($1,$2,'Reviewed by the care team.',true) id",[a,id])).rows[0].id;
+    assert.equal((await db.query<{status:string}>("select status from public.care_check_ins where id=$1",[id])).rows[0].status,"reviewed");
+    await switchActor("patient");
+    assert.equal((await db.query("select id from public.care_check_in_reviews where id=$1",[review])).rows.length,0);
+    await db.exec("reset role");
+    const audit=await db.query<{n:number;payload:string}>("select count(*)::int n,json_agg(a)::text payload from public.audit_events a where entity_id in ($1,$2,$3)",[id,submission,review]);
+    assert.equal(audit.rows[0].n,5);
+    assert.ok(!audit.rows[0].payload.includes("Original patient report"));
+  });
+});
+
+test("check-in denies unrelated roles and immediately follows care and account revocation", async () => {
+  await asUser("doctor", async () => {
+    const id=await checkInFixture();
+    for(const role of ["admin","nurse","other","outsider","suspended"]){
+      await switchActor(role);
+      assert.equal((await db.query("select id from public.care_check_ins where id=$1",[id])).rows.length,0);
+      await denied("select public.request_care_check_in($1,$2,'Denied',null)",[a,pa]);
+    }
+    await db.exec("reset role");
+    await db.query("delete from public.patient_accounts where tenant_id=$1 and patient_id=$2",[a,pa]);
+    await switchActor("patient");
+    assert.equal((await db.query("select id from public.care_check_ins where id=$1",[id])).rows.length,0);
+    await denied("select public.submit_care_check_in($1,$2,'Denied',null,null,null,current_date,true)",[a,id]);
+    await db.exec("reset role");
+    await db.query("delete from public.care_relationships where tenant_id=$1 and patient_id=$2 and professional_id=$3",[a,pa,users.doctor.id]);
+    await switchActor("doctor");
+    assert.equal((await db.query("select id from public.care_check_ins where id=$1",[id])).rows.length,0);
+  });
+});
+
+test("check-in submission rolls back when its audit cannot be recorded", async () => {
+  await asUser("doctor", async () => {
+    const id=await checkInFixture();
+    await db.exec("reset role");
+    await db.exec("create function private.synthetic_check_in_audit_failure() returns trigger language plpgsql as $$ begin if new.entity_type='care_check_in_submissions' then raise exception 'Synthetic audit failure'; end if; return new; end; $$; create trigger synthetic_check_in_audit_failure before insert on public.audit_events for each row execute function private.synthetic_check_in_audit_failure();");
+    await switchActor("patient");
+    await denied("select public.submit_care_check_in($1,$2,'Must roll back',null,null,null,current_date,true)",[a,id]);
+    assert.equal((await db.query("select id from public.care_check_in_submissions where check_in_id=$1",[id])).rows.length,0);
+    assert.equal((await db.query<{status:string}>("select status from public.care_check_ins where id=$1",[id])).rows[0].status,"pending");
+  });
+});

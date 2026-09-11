@@ -19,20 +19,41 @@ export async function todayWorkspace(id: string) {
     agenda.appointments.find(
       (a) => a.status === "scheduled" && a.ends_at > now,
     );
-  const pending = await client
-    .from("encounters")
-    .select(
-      "id,patient_id,appointment_id,updated_at,patients!encounters_tenant_id_patient_id_fkey(display_name)",
-    )
-    .eq("tenant_id", id)
-    .eq("doctor_id", user.id)
-    .eq("status", "draft")
-    .order("updated_at")
-    .order("id")
-    .limit(6);
-  if (pending.error) throw new Error("Unable to load care pending items");
+  const [drafts, checkIns] = await Promise.all([
+    client
+      .from("encounters")
+      .select(
+        "id,patient_id,appointment_id,updated_at,patients!encounters_tenant_id_patient_id_fkey(display_name)",
+      )
+      .eq("tenant_id", id)
+      .eq("doctor_id", user.id)
+      .eq("status", "draft")
+      .order("updated_at")
+      .order("id")
+      .limit(5),
+    client
+      .from("care_check_ins")
+      .select(
+        "id,patient_id,submitted_at,patients!care_check_ins_tenant_id_patient_id_fkey(display_name)",
+      )
+      .eq("tenant_id", id)
+      .eq("status", "submitted")
+      .order("submitted_at")
+      .order("id")
+      .limit(5),
+  ]);
+  if (drafts.error || checkIns.error)
+    throw new Error("Unable to load care pending items");
   const context = next ? await patientCareContext(id, next.patient_id) : null;
-  return { ...agenda, next, context, pending: pending.data ?? [], now, today };
+  return {
+    ...agenda,
+    next,
+    context,
+    drafts: drafts.data ?? [],
+    checkIns: checkIns.data ?? [],
+    now,
+    today,
+  };
 }
 
 export async function patientCareContext(id: string, patientId: string) {

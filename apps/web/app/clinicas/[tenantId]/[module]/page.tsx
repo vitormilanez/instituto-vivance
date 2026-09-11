@@ -10,6 +10,8 @@ import {
   ModuleTabs,
 } from "@/components/module-ui";
 import { EmptyCalendar } from "@/components/empty-calendar";
+import { staffCheckIns } from "@/modules/check-ins/service";
+import { CheckInWorkspace } from "@/components/check-in-workspace";
 export const dynamic = "force-dynamic";
 
 export default async function ModulePage({
@@ -17,7 +19,7 @@ export default async function ModulePage({
   searchParams,
 }: {
   params: Promise<{ tenantId: string; module: string }>;
-  searchParams: Promise<{ aba?: string | string[] }>;
+  searchParams: Promise<{ aba?: string | string[]; pagina?: string }>;
 }) {
   const { tenantId, module: slug } = await params;
   const area = findStaffModule(slug);
@@ -27,6 +29,28 @@ export default async function ModulePage({
     if (error instanceof AccessError) notFound();
     throw error;
   });
+  if (slug === "acompanhamento") {
+    if (clinic.role === "admin")
+      return (
+        <ClinicShell clinic={clinic} active="acompanhamento">
+          <h1>Acompanhamento</h1>
+          <section className="panel">
+            <h2>Acesso clínico restrito</h2>
+            <p>
+              O perfil administrativo não acessa relatos, medidas ou revisões
+              clínicas.
+            </p>
+          </section>
+        </ClinicShell>
+      );
+    return (
+      <ClinicShell clinic={clinic} active="acompanhamento">
+        <CheckInWorkspace
+          initial={await staffCheckIns(tenantId, (await searchParams).pagina)}
+        />
+      </ClinicShell>
+    );
+  }
   const active = selectedTab(area.tabs, (await searchParams).aba);
   const date = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",

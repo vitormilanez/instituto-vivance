@@ -2323,3 +2323,20 @@ button.calendar-day[aria-pressed="true"] {
   .calendar-schedule .appointment-patient strong { font-size:17px; }
 }
 .plan-approval textarea { width:100%; font:inherit; padding:12px; border:1px solid var(--border); border-radius:12px; color:var(--ink); resize:vertical; }
+.check-in-request summary { cursor:pointer; color:var(--navy); font-size:17px; font-weight:700; }
+.check-in-request form,.check-in-review { display:grid; gap:14px; margin-top:20px; }
+.check-in-board { margin-top:28px; }
+.check-in-card { scroll-margin-top:110px; }
+.check-in-card:target { outline:2px solid #a7cec5; outline-offset:4px; }
+.check-in-card blockquote,.patient-check-ins blockquote { margin:20px 0; padding:16px 18px; border-left:3px solid #8cbeb2; border-radius:0 12px 12px 0; background:#f1f8f6; color:var(--navy); font-size:16px; }
+.check-in-report,.check-in-review-note { margin-top:18px; padding:18px; border:1px solid var(--border); border-radius:14px; background:#f8fbff; }
+.check-in-report > span,.check-in-report small,.check-in-review-note small { color:#526782; font-size:12px; }
+.check-in-report p,.check-in-review-note p { white-space:pre-wrap; overflow-wrap:anywhere; }
+.check-in-measure { display:grid; grid-template-columns:2fr 1fr 1fr; gap:12px; min-width:0; padding:16px; border:1px solid var(--border); border-radius:14px; }
+.check-in-measure legend { padding:0 6px; color:#405c7e; font-weight:650; }
+.patient-check-ins > .section-heading { margin-bottom:18px; }
+.patient-check-ins .panel + .panel { margin-top:20px; }
+@media (max-width:650px) {
+  .check-in-measure { grid-template-columns:1fr; }
+  .check-in-card .section-heading,.patient-check-ins .section-heading { align-items:flex-start; }
+}

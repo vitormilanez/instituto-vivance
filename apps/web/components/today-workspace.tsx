@@ -71,7 +71,9 @@ export function PatientCareLinks({
       </Link>
       <div className="care-context-future">
         <strong>Acompanhamento e exames</strong>
-        <span>Check-ins e documentos ainda não conectados.</span>
+        <span>
+          Check-ins disponíveis. Documentos entram nos próximos módulos.
+        </span>
       </div>
     </div>
   );
@@ -87,7 +89,8 @@ export function TodayWorkspace({
   data: Awaited<ReturnType<typeof todayWorkspace>>;
 }) {
   const { next } = data;
-  const active = next && data.pending.find((p) => p.appointment_id === next.id);
+  const active = next && data.drafts.find((p) => p.appointment_id === next.id);
+  const attentionCount = data.checkIns.length + data.drafts.length;
   return (
     <>
       <div className="page-heading">
@@ -187,33 +190,47 @@ export function TodayWorkspace({
         >
           <div className="section-heading">
             <h2 id="attention-title">Precisa de atenção</h2>
+            {attentionCount > 0 && (
+              <span className="quiet-label">{attentionCount}</span>
+            )}
           </div>
           <p>
-            Registros seus ainda em rascunho. Pendências de trabalho, não
-            alertas de risco clínico.
+            Relatos para revisão e registros seus em rascunho. Pendências de
+            trabalho, não alertas de risco clínico.
           </p>
-          {data.pending.length ? (
+          {attentionCount ? (
             <ul>
-              {data.pending.slice(0, 5).map((p) => (
-                <li key={p.id}>
-                  <strong>{p.patients?.display_name ?? "Paciente"}</strong>
-                  <p>Atendimento iniciado, ainda não finalizado.</p>
-                  <Link href={`${base}/atendimentos/${p.id}`}>
-                    Retomar registro
+              {data.checkIns.map((item) => (
+                <li key={item.id}>
+                  <strong>{item.patients?.display_name ?? "Paciente"}</strong>
+                  <p>Check-in enviado e aguardando revisão humana.</p>
+                  <Link href={`${base}/acompanhamento#check-in-${item.id}`}>
+                    Revisar relato
                   </Link>
                 </li>
               ))}
+              {data.drafts
+                .slice(0, Math.max(0, 5 - data.checkIns.length))
+                .map((p) => (
+                  <li key={p.id}>
+                    <strong>{p.patients?.display_name ?? "Paciente"}</strong>
+                    <p>Atendimento iniciado, ainda não finalizado.</p>
+                    <Link href={`${base}/atendimentos/${p.id}`}>
+                      Retomar registro
+                    </Link>
+                  </li>
+                ))}
             </ul>
           ) : (
             <div className="empty">
-              <h3>Nenhum rascunho pendente</h3>
+              <h3>Nenhuma pendência</h3>
               <p>
-                Mensagens, exames e check-ins terão suas próprias pendências
-                quando conectados.
+                Novos check-ins enviados e atendimentos em rascunho aparecerão
+                aqui.
               </p>
             </div>
           )}
-          <Link href={`${base}/atendimentos`}>Ver atendimentos</Link>
+          <Link href={`${base}/acompanhamento`}>Ver acompanhamento</Link>
         </aside>
         <section
           className="panel today-schedule"

@@ -4,6 +4,7 @@ import { AgendaError } from "@/modules/agenda/service";
 import { EncounterError } from "@/modules/encounters/service";
 import { TeamError } from "@/modules/team/service";
 import { CarePlanError } from "@/modules/care-plans/service";
+import { CheckInError } from "@/modules/check-ins/service";
 
 export function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -15,6 +16,8 @@ export function json(body: unknown, status = 200) {
   });
 }
 export function apiError(error: unknown) {
+  if (error instanceof CheckInError)
+    return json({ error: error.message }, error.status);
   if (error instanceof CarePlanError)
     return json({ error: error.message }, error.status);
   if (error instanceof TeamError)

@@ -37,15 +37,104 @@ export type Database = {
   };
   public: {
     Tables: {
+      care_check_ins: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          prompt: string;
+          due_on: string | null;
+          status: string;
+          requested_by: string;
+          requested_at: string;
+          submitted_at: string | null;
+          reviewed_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "care_check_ins_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      care_check_in_submissions: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          check_in_id: string;
+          patient_id: string;
+          actor_user_id: string;
+          report: string;
+          measure_label: string | null;
+          measure_value: number | null;
+          measure_unit: string | null;
+          reported_on: string;
+          submitted_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      care_check_in_reviews: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          check_in_id: string;
+          patient_id: string;
+          reviewer_id: string;
+          note: string;
+          reviewed_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       care_plan_publications: {
-        Row: CarePlanContent & { id:string; tenant_id:string; plan_id:string; patient_id:string; source_version:number; revision:number; review_on:string; doctor_display_name:string; approved_at:string; published_by:string; published_at:string; closed_at:string|null; closed_by:string|null; withdrawal_reason:string|null };
-        Insert:never; Update:never;
+        Row: CarePlanContent & {
+          id: string;
+          tenant_id: string;
+          plan_id: string;
+          patient_id: string;
+          source_version: number;
+          revision: number;
+          review_on: string;
+          doctor_display_name: string;
+          approved_at: string;
+          published_by: string;
+          published_at: string;
+          closed_at: string | null;
+          closed_by: string | null;
+          withdrawal_reason: string | null;
+        };
+        Insert: never;
+        Update: never;
         Relationships: [];
       };
       care_plan_receipts: {
-        Row: {id:string; tenant_id:string; publication_id:string; patient_id:string; actor_user_id:string; acknowledged_at:string};
-        Insert:never; Update:never;
-        Relationships: [{foreignKeyName:"care_plan_receipts_tenant_id_publication_id_patient_id_fkey";columns:["tenant_id","publication_id","patient_id"];isOneToOne:false;referencedRelation:"care_plan_publications";referencedColumns:["tenant_id","id","patient_id"]}];
+        Row: {
+          id: string;
+          tenant_id: string;
+          publication_id: string;
+          patient_id: string;
+          actor_user_id: string;
+          acknowledged_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "care_plan_receipts_tenant_id_publication_id_patient_id_fkey";
+            columns: ["tenant_id", "publication_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "care_plan_publications";
+            referencedColumns: ["tenant_id", "id", "patient_id"];
+          },
+        ];
       };
       care_plans: {
         Row: CarePlanRow;
@@ -482,9 +571,65 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      publish_care_plan: {Args:{target_tenant:string;target_plan:string;read_version:number;previous_publication:string|null;confirmed:boolean};Returns:string};
-      withdraw_care_plan: {Args:{target_tenant:string;target_plan:string;target_publication:string;reason:string;confirmed:boolean};Returns:string};
-      acknowledge_care_plan: {Args:{target_tenant:string;target_publication:string;confirmed:boolean};Returns:string};
+      request_care_check_in: {
+        Args: {
+          target_tenant: string;
+          target_patient: string;
+          prompt_text: string;
+          due_on: string | null;
+        };
+        Returns: string;
+      };
+      submit_care_check_in: {
+        Args: {
+          target_tenant: string;
+          target_check_in: string;
+          report_text: string;
+          measure_label: string | null;
+          measure_value: number | null;
+          measure_unit: string | null;
+          reported_on: string;
+          confirmed: boolean;
+        };
+        Returns: string;
+      };
+      review_care_check_in: {
+        Args: {
+          target_tenant: string;
+          target_check_in: string;
+          note_text: string;
+          confirmed: boolean;
+        };
+        Returns: string;
+      };
+      publish_care_plan: {
+        Args: {
+          target_tenant: string;
+          target_plan: string;
+          read_version: number;
+          previous_publication: string | null;
+          confirmed: boolean;
+        };
+        Returns: string;
+      };
+      withdraw_care_plan: {
+        Args: {
+          target_tenant: string;
+          target_plan: string;
+          target_publication: string;
+          reason: string;
+          confirmed: boolean;
+        };
+        Returns: string;
+      };
+      acknowledge_care_plan: {
+        Args: {
+          target_tenant: string;
+          target_publication: string;
+          confirmed: boolean;
+        };
+        Returns: string;
+      };
       list_encounters_page: {
         Args: {
           target_tenant: string;

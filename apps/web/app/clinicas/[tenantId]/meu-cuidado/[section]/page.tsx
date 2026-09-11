@@ -10,8 +10,10 @@ import { listAppointments } from "@/modules/agenda/service";
 import { clinicDate } from "@/modules/agenda/validation";
 import { AppointmentList } from "@/components/agenda";
 import { requestInstant } from "@/lib/request-time";
-import {patientPublications} from "@/modules/care-plans/publication-service";
-import {PublishedPlans} from "@/components/published-plans";
+import { patientPublications } from "@/modules/care-plans/publication-service";
+import { PublishedPlans } from "@/components/published-plans";
+import { patientCheckIns } from "@/modules/check-ins/service";
+import { PatientCheckIns } from "@/components/patient-check-ins";
 export const dynamic = "force-dynamic";
 
 export default async function PatientAreaPage({
@@ -19,7 +21,7 @@ export default async function PatientAreaPage({
   searchParams,
 }: {
   params: Promise<{ tenantId: string; section: string }>;
-  searchParams:Promise<{pagina?:string}>;
+  searchParams: Promise<{ pagina?: string }>;
 }) {
   const { tenantId, section: slug } = await params;
   const section = findPatientSection(slug);
@@ -35,7 +37,17 @@ export default async function PatientAreaPage({
   const requestDate = requestInstant();
   const now = requestDate.getTime();
   const currentTime = requestDate.toISOString();
-  const published=patient&&["plano","hoje"].includes(slug)?await patientPublications(tenantId,slug==="plano"?(await searchParams).pagina:undefined):null;
+  const published =
+    patient && ["plano", "hoje"].includes(slug)
+      ? await patientPublications(
+          tenantId,
+          slug === "plano" ? (await searchParams).pagina : undefined,
+        )
+      : null;
+  const checkIns =
+    patient && slug === "diario"
+      ? await patientCheckIns(tenantId, (await searchParams).pagina)
+      : null;
   const appointments =
     slug === "consultas" || slug === "hoje"
       ? await listAppointments(
@@ -48,7 +60,10 @@ export default async function PatientAreaPage({
     <PatientShell clinic={clinic} active={section.group}>
       {patient ? (
         <header className="patient-portal-header">
-          <span className="patient-avatar patient-avatar-large" aria-hidden="true">
+          <span
+            className="patient-avatar patient-avatar-large"
+            aria-hidden="true"
+          >
             {patient.display_name
               .split(/\s+/)
               .filter(Boolean)
@@ -88,15 +103,17 @@ export default async function PatientAreaPage({
           contato com a clínica.
         </p>
       )}
-      {slug==="plano"&&published?<PublishedPlans initial={published}/>:appointments ? (
+      {slug === "diario" && checkIns ? (
+        <PatientCheckIns initial={checkIns} today={clinicDate()} />
+      ) : slug === "plano" && published ? (
+        <PublishedPlans initial={published} />
+      ) : appointments ? (
         section.slug === "consultas" ? (
           <section className="panel patient-appointments-panel">
             <div className="section-heading">
               <div>
                 <h2>Suas consultas</h2>
-                <p>
-                  Últimos 30 dias e próximos 60 dias · horário de Brasília.
-                </p>
+                <p>Últimos 30 dias e próximos 60 dias · horário de Brasília.</p>
               </div>
             </div>
             {appointments.truncated && (
@@ -118,12 +135,14 @@ export default async function PatientAreaPage({
             base={`/clinicas/${tenantId}/meu-cuidado`}
             appointments={appointments.appointments}
             currentTime={currentTime}
-            latestPublication={published?.publications[0]??null}
+            latestPublication={published?.publications[0] ?? null}
           />
         )
       ) : (
         <>
-          {!["hoje","plano","cuidado"].includes(section.slug) && <DevelopmentNotice />}
+          {!["hoje", "plano", "cuidado", "diario"].includes(section.slug) && (
+            <DevelopmentNotice />
+          )}
           <PatientArea
             section={section}
             base={`/clinicas/${tenantId}/meu-cuidado`}
