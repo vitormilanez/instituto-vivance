@@ -54,6 +54,15 @@ Agendamento, nome semelhante, conhecimento do UUID e vínculo à clínica não c
 
 Esta entrega é para testes, não homologação clínica. Antes de dados de saúde reais: revisão profissional dos campos e fluxos, gestão/revogação operacional de vínculos, credenciais fortes/MFA, política de retenção, restauração de backups e revisão de segurança. Também faltam busca/paginação clínica completa e revisão detalhada de acessibilidade. Não há assinatura digital certificada, monitoramento clínico automático ou edição/destruição de adendos.
 
+## Publicação verificada — 11/09/2026 (slice 3B)
+
+- Código funcional `6f14c3b` na branch `codex/vercel-supabase-foundation` e PR #11, sem merge para `main` ou promoção Production. Os dois checks `verify` do GitHub passaram.
+- Preview `dpl_7rDEyw7LvpLfNEihdSoyb1C89okA`, **READY**, `target: preview`, Next.js 16.3.4 e build remoto concluído. URL imutável: https://instituto-vivance-9mznzz1on-vtr-consulting.vercel.app.
+- Alias de testes atualizado e verificado: https://instituto-vivance-testes-vtr-consulting.vercel.app. Visitante anônimo recebeu redirecionamento para o login da Vercel; a verificação autenticada pela CLI recebeu a aplicação com `private, no-cache, no-store`.
+- A nova rota de adendo sem sessão da aplicação retornou 401 e `Cache-Control: private, no-store`; nenhuma linha foi inserida. A consulta de logs de erro do deployment, após as verificações, não retornou entradas no intervalo de 15 minutos observado.
+- A tela autenticada do médico foi validada localmente. O fluxo completo online do médico e a persistência de um adendo em navegador ainda dependem de um novo registro sintético autorizado; os dois atendimentos finalizados existentes foram preservados.
+- Não houve nova variável, mudança de plano, compra, troca de senha, liberação de domínio público ou publicação automática.
+
 ## Publicação verificada — 10/09/2026
 
 - Código funcional `12908c6`; orientação de disponibilidade na ficha/painel ajustada em `128aacf`. Branch `codex/vercel-supabase-foundation`, sem merge para main ou promoção Production.
