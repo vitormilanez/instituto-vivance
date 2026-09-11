@@ -5,15 +5,30 @@ import type { FormEvent } from "react";
 import type { Appointment, AgendaOptions } from "@/modules/agenda/service";
 import { clinicDate, localToInstant } from "@/modules/agenda/validation";
 
+const statusPresentation: Record<
+  string,
+  { label: string; className: string }
+> = {
+  scheduled: { label: "Agendado", className: "scheduled" },
+  in_progress: { label: "Em atendimento", className: "in-progress" },
+  completed: { label: "Concluído", className: "completed" },
+  cancelled: { label: "Cancelado", className: "cancelled" },
+  no_show: { label: "Falta", className: "no-show" },
+};
+
 export function AppointmentList({
   appointments,
+  currentTime,
   onEdit,
   onCancel,
+  onNoShow,
   onStart,
 }: {
   appointments: Appointment[];
+  currentTime: string;
   onEdit?: (appointment: Appointment) => void;
   onCancel?: (appointment: Appointment) => void;
+  onNoShow?: (appointment: Appointment) => void;
   onStart?: (appointment: Appointment) => void;
 }) {
   if (!appointments.length)
@@ -24,45 +39,82 @@ export function AppointmentList({
       </div>
     );
   return (
-    <ul className="list">
+    <ul className="list appointment-list">
       {appointments.map((a) => (
-        <li key={a.id}>
-          <strong>
-            {a.patients?.display_name ?? "Consulta"} ·{" "}
-            {a.kind === "return" ? "Retorno" : "Consulta"}
-          </strong>
-          <p>
-            {new Date(a.starts_at).toLocaleString("pt-BR", {
+        <li className="appointment-row" key={a.id}>
+          <div className="appointment-time">
+            <strong>
+              {new Date(a.starts_at).toLocaleTimeString("pt-BR", {
+                timeZone: "America/Sao_Paulo",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </strong>
+            <span>
+              {new Date(a.starts_at).toLocaleDateString("pt-BR", {
               timeZone: "America/Sao_Paulo",
-              dateStyle: "short",
-              timeStyle: "short",
+                day: "2-digit",
+                month: "short",
             })}
-            –
-            {new Date(a.ends_at).toLocaleTimeString("pt-BR", {
+            </span>
+          </div>
+          <div className="appointment-patient">
+            <span className="patient-avatar" aria-hidden="true">
+              {(a.patients?.display_name ?? "Consulta")
+                .split(/\s+/)
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0])
+                .join("")
+                .toUpperCase()}
+            </span>
+            <span>
+              <strong>{a.patients?.display_name ?? "Consulta"}</strong>
+              <small>
+                {a.kind === "return" ? "Retorno" : "Consulta"} ·{" "}
+                {new Date(a.starts_at).toLocaleTimeString("pt-BR", {
               timeZone: "America/Sao_Paulo",
               hour: "2-digit",
               minute: "2-digit",
-            })}
-          </p>
-          <small>
-            Médico: {a.memberships?.display_name ?? "Profissional da clínica"}
-          </small>
-          <span className="badge">
-            {a.status === "cancelled" ? "Cancelado" : "Agendado"}
+                })}
+                –
+                {new Date(a.ends_at).toLocaleTimeString("pt-BR", {
+                  timeZone: "America/Sao_Paulo",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </small>
+              <small>{a.doctor_display_name}</small>
+            </span>
+          </div>
+          <span
+            className={`badge appointment-status ${statusPresentation[a.status]?.className ?? "unknown"}`}
+          >
+            {statusPresentation[a.status]?.label ?? "Estado indisponível"}
           </span>
-          {a.status === "scheduled" && onStart && (
-            <button onClick={() => onStart(a)}>Abrir atendimento</button>
-          )}
-          {a.status === "scheduled" && onEdit && onCancel && (
-            <div className="agenda-actions">
-              <button className="secondary" onClick={() => onEdit(a)}>
-                Editar agendamento
-              </button>
-              <button className="secondary" onClick={() => onCancel(a)}>
-                Cancelar agendamento
-              </button>
+          {a.status === "scheduled" &&
+            (onStart || onEdit || onCancel || onNoShow) && (
+            <div className="appointment-actions">
+              {onStart && (
+                <button onClick={() => onStart(a)}>Abrir atendimento</button>
+              )}
+              {onEdit && (
+                <button className="secondary" onClick={() => onEdit(a)}>
+                  Editar
+                </button>
+              )}
+              {onNoShow && a.starts_at <= currentTime && (
+                <button className="secondary" onClick={() => onNoShow(a)}>
+                  Registrar falta
+                </button>
+              )}
+              {onCancel && (
+                <button className="secondary" onClick={() => onCancel(a)}>
+                  Cancelar
+                </button>
+              )}
             </div>
-          )}
+            )}
         </li>
       ))}
     </ul>
@@ -73,23 +125,30 @@ export function Agenda({
   tenantId,
   date,
   today,
+  currentTime,
   appointments,
   options,
   truncated,
   canStart = false,
+  canManage = false,
 }: {
   tenantId: string;
   date: string;
   today: string;
+  currentTime: string;
   appointments: Appointment[];
   options: AgendaOptions;
   truncated: boolean;
   canStart?: boolean;
+  canManage?: boolean;
 }) {
   const router = useRouter();
   const [navigating, startTransition] = useTransition();
   const [editing, setEditing] = useState<Appointment | "new" | null>(null);
-  const [cancelling, setCancelling] = useState<Appointment | null>(null);
+  const [closing, setClosing] = useState<{
+    appointment: Appointment;
+    status: "cancelled" | "no_show";
+  } | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -97,12 +156,19 @@ export function Agenda({
   const [starting, setStarting] = useState<Appointment | null>(null);
   const [accepted, setAccepted] = useState(false);
   const startPanel = useRef<HTMLElement>(null);
+  const activePanel = useRef<HTMLElement>(null);
   useEffect(() => {
     if (starting) {
       startPanel.current?.focus();
       startPanel.current?.scrollIntoView({ block: "start" });
     }
   }, [starting]);
+  useEffect(() => {
+    if (editing || closing) {
+      activePanel.current?.focus();
+      activePanel.current?.scrollIntoView({ block: "start" });
+    }
+  }, [editing, closing]);
   async function startCare(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!starting || pending || !accepted) return;
@@ -114,6 +180,7 @@ export function Agenda({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           appointment_id: starting.id,
+          appointment_version: starting.version,
           accept_care: accepted,
         }),
       });
@@ -140,7 +207,6 @@ export function Agenda({
   const days = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
   const counts = new Map<string, number>();
   for (const appointment of appointments) {
-    if (appointment.status !== "scheduled") continue;
     const day = clinicDate(new Date(appointment.starts_at));
     counts.set(day, (counts.get(day) ?? 0) + 1);
   }
@@ -148,8 +214,14 @@ export function Agenda({
     returns
       ? a.kind === "return" &&
         a.status === "scheduled" &&
-        a.starts_at > new Date().toISOString()
+        a.starts_at > currentTime
       : clinicDate(new Date(a.starts_at)) === date,
+  );
+  const nextAppointment = chosen.find(
+    (appointment) =>
+      appointment.status === "in_progress" ||
+      (appointment.status === "scheduled" &&
+        appointment.ends_at >= currentTime),
   );
   const edit = editing && editing !== "new" ? editing : null;
   function selectDate(next: string) {
@@ -166,7 +238,7 @@ export function Agenda({
   }
   function open(value: Appointment | "new") {
     setEditing(value);
-    setCancelling(null);
+    setClosing(null);
     setError("");
     setNotice("");
   }
@@ -221,22 +293,29 @@ export function Agenda({
       setPending(false);
     }
   }
-  async function cancel() {
-    if (!cancelling) return;
+  async function closeAppointment() {
+    if (!closing) return;
     setPending(true);
     setError("");
     try {
       await mutate(
-        { status: "cancelled", version: cancelling.version },
-        cancelling,
+        { status: closing.status, version: closing.appointment.version },
+        closing.appointment,
       );
-      setCancelling(null);
+      const wasNoShow = closing.status === "no_show";
+      setClosing(null);
       setNotice(
-        "Agendamento cancelado. O registro foi preservado no histórico.",
+        wasNoShow
+          ? "Falta registrada. O horário e o histórico foram preservados."
+          : "Agendamento cancelado. O registro foi preservado no histórico.",
       );
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Não foi possível cancelar.");
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Não foi possível atualizar o agendamento.",
+      );
     } finally {
       setPending(false);
     }
@@ -248,8 +327,49 @@ export function Agenda({
           <h1>Agenda</h1>
           <p>Consultas e retornos · horário de Brasília (UTC−3).</p>
         </div>
-        <button onClick={() => open("new")}>Agendar consulta</button>
+        {canManage && (
+          <button onClick={() => open("new")}>Agendar consulta</button>
+        )}
       </div>
+      {nextAppointment && !returns && (
+        <section className="agenda-focus-card" aria-label="Próximo atendimento do dia">
+          <div className="agenda-focus-time">
+            <span>Próximo atendimento</span>
+            <strong>
+              {new Date(nextAppointment.starts_at).toLocaleTimeString("pt-BR", {
+                timeZone: "America/Sao_Paulo",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </strong>
+          </div>
+          <div className="agenda-focus-patient">
+            <span className="patient-avatar patient-avatar-large" aria-hidden="true">
+              {(nextAppointment.patients?.display_name ?? "Consulta")
+                .split(/\s+/)
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0])
+                .join("")
+                .toUpperCase()}
+            </span>
+            <div>
+              <h2>{nextAppointment.patients?.display_name ?? "Consulta"}</h2>
+              <p>
+                {nextAppointment.kind === "return" ? "Retorno" : "Consulta"}
+                {" · "}
+                {nextAppointment.doctor_display_name}
+              </p>
+            </div>
+          </div>
+          <span
+            className={`appointment-status ${statusPresentation[nextAppointment.status]?.className ?? "unknown"}`}
+          >
+            {statusPresentation[nextAppointment.status]?.label ??
+              "Estado indisponível"}
+          </span>
+        </section>
+      )}
       {notice && (
         <p className="notice" role="status">
           {notice}
@@ -262,8 +382,10 @@ export function Agenda({
       )}
       {editing && (
         <section
-          className="panel"
+          className="panel agenda-form-panel"
           aria-label={edit ? "Editar agendamento" : "Novo agendamento"}
+          tabIndex={-1}
+          ref={activePanel}
         >
           <h2>{edit ? "Editar agendamento" : "Novo agendamento"}</h2>
           {(!options.patients.length || !options.doctors.length) && (
@@ -310,7 +432,7 @@ export function Agenda({
                   </option>
                   {options.doctors.map((d) => (
                     <option key={d.user_id} value={d.user_id}>
-                      {d.display_name ?? `Médico ${d.user_id.slice(0, 8)}`}
+                      {d.display_name}
                     </option>
                   ))}
                 </select>
@@ -405,7 +527,7 @@ export function Agenda({
       )}
       {starting && (
         <section
-          className="panel"
+          className="panel agenda-form-panel"
           aria-label="Iniciar cuidado"
           tabIndex={-1}
           ref={startPanel}
@@ -446,17 +568,32 @@ export function Agenda({
           </form>
         </section>
       )}
-      {cancelling && (
-        <section className="panel" aria-label="Confirmar cancelamento">
-          <h2>Cancelar este agendamento?</h2>
+      {closing && (
+        <section
+          className="panel"
+          aria-label={
+            closing.status === "no_show"
+              ? "Confirmar falta"
+              : "Confirmar cancelamento"
+          }
+          tabIndex={-1}
+          ref={activePanel}
+        >
+          <h2>
+            {closing.status === "no_show"
+              ? "Registrar falta neste agendamento?"
+              : "Cancelar este agendamento?"}
+          </h2>
           <p>
-            {cancelling.patients?.display_name} ·{" "}
-            {new Date(cancelling.starts_at).toLocaleString("pt-BR", {
+            {closing.appointment.patients?.display_name} ·{" "}
+            {new Date(closing.appointment.starts_at).toLocaleString("pt-BR", {
               timeZone: "America/Sao_Paulo",
             })}
           </p>
           <p>
-            O horário será liberado. O registro e o histórico serão mantidos.
+            {closing.status === "no_show"
+              ? "O paciente será identificado como ausente. O registro será mantido no histórico e o horário ficará encerrado."
+              : "O horário será liberado. O registro e o histórico serão mantidos."}
           </p>
           {error && (
             <p role="alert" className="feedback">
@@ -464,20 +601,24 @@ export function Agenda({
             </p>
           )}
           <div className="agenda-actions">
-            <button disabled={pending} onClick={cancel}>
-              {pending ? "Cancelando…" : "Confirmar cancelamento"}
+            <button disabled={pending} onClick={closeAppointment}>
+              {pending
+                ? "Salvando…"
+                : closing.status === "no_show"
+                  ? "Confirmar falta"
+                  : "Confirmar cancelamento"}
             </button>
             <button
               className="secondary"
               disabled={pending}
-              onClick={() => setCancelling(null)}
+              onClick={() => setClosing(null)}
             >
-              Manter agendamento
+              Voltar sem alterar
             </button>
           </div>
         </section>
       )}
-      <div className="agenda-actions">
+      <div className="agenda-actions agenda-view-controls">
         <button
           className="secondary"
           aria-pressed={!returns}
@@ -579,24 +720,39 @@ export function Agenda({
           ) : (
             <AppointmentList
               appointments={chosen}
+              currentTime={currentTime}
               onStart={
                 canStart
                   ? (a) => {
                       setStarting(a);
                       setEditing(null);
-                      setCancelling(null);
+                      setClosing(null);
                       setAccepted(false);
                       setError("");
                     }
                   : undefined
               }
-              onEdit={open}
-              onCancel={(a) => {
-                setCancelling(a);
-                setEditing(null);
-                setError("");
-                setNotice("");
-              }}
+              onEdit={canManage ? open : undefined}
+              onNoShow={
+                canManage
+                  ? (appointment) => {
+                      setClosing({ appointment, status: "no_show" });
+                      setEditing(null);
+                      setError("");
+                      setNotice("");
+                    }
+                  : undefined
+              }
+              onCancel={
+                canManage
+                  ? (appointment) => {
+                      setClosing({ appointment, status: "cancelled" });
+                      setEditing(null);
+                      setError("");
+                      setNotice("");
+                    }
+                  : undefined
+              }
             />
           )}
         </section>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { PatientSection } from "@/modules/workspace/navigation";
 import { patientSections } from "@/modules/workspace/navigation";
+import type { Appointment } from "@/modules/agenda/service";
 import { EmptyConversation, EmptyModule, FutureButton } from "./module-ui";
 
 const actions = [
@@ -31,32 +32,114 @@ const actions = [
 export function PatientArea({
   section,
   base,
+  appointments = [],
+  currentTime,
 }: {
   section: PatientSection;
   base: string;
+  appointments?: Appointment[];
+  currentTime: string;
 }) {
+  const nextAppointment = appointments.find(
+    (appointment) =>
+      appointment.status === "in_progress" ||
+      (appointment.status === "scheduled" &&
+        appointment.ends_at >= currentTime),
+  );
+  const latestCompleted = [...appointments]
+    .reverse()
+    .find((appointment) => appointment.status === "completed");
   if (section.slug === "hoje")
     return (
       <>
         <div className="patient-overview">
-          <section className="panel">
-            <h2>Consultas e retornos</h2>
-            <EmptyModule title="Consulte seus horários">
-              Veja os agendamentos registrados pela equipe. Para marcar ou
-              alterar um horário, entre em contato com a clínica.
-            </EmptyModule>
+          <section className="patient-next-appointment">
+            <div className="patient-card-heading">
+              <h2>Próxima consulta</h2>
+              {nextAppointment && (
+                <span
+                  className={`appointment-status ${
+                    nextAppointment.status === "in_progress"
+                      ? "in-progress"
+                      : "scheduled"
+                  }`}
+                >
+                  {nextAppointment.status === "in_progress"
+                    ? "Em atendimento"
+                    : "Agendada"}
+                </span>
+              )}
+            </div>
+            {nextAppointment ? (
+              <div className="patient-appointment-content">
+                <strong>
+                  {new Date(nextAppointment.starts_at).toLocaleDateString(
+                    "pt-BR",
+                    {
+                      timeZone: "America/Sao_Paulo",
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                    },
+                  )}
+                </strong>
+                <span className="patient-appointment-time">
+                  {new Date(nextAppointment.starts_at).toLocaleTimeString(
+                    "pt-BR",
+                    {
+                      timeZone: "America/Sao_Paulo",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    },
+                  )}
+                </span>
+                <p>
+                  {nextAppointment.kind === "return" ? "Retorno" : "Consulta"}
+                  {" · "}
+                  {nextAppointment.doctor_display_name}
+                </p>
+              </div>
+            ) : (
+              <div className="patient-appointment-empty">
+                <h3>Nenhuma próxima consulta registrada</h3>
+                <p>
+                  Quando a equipe agendar um horário, ele aparecerá aqui.
+                </p>
+              </div>
+            )}
             <Link className="text-action" href={`${base}/consultas`}>
-              Ver minhas consultas
+              Ver todos os horários
             </Link>
           </section>
-          <section className="panel">
-            <h2>Seu plano de cuidado</h2>
-            <EmptyModule title="Um lugar para suas orientações">
-              Os planos revisados pela equipe serão disponibilizados nesta área
-              após a integração.
-            </EmptyModule>
-            <Link className="text-action" href={`${base}/plano`}>
-              Conhecer as orientações
+          <section className="panel patient-followup-card">
+            <h2>Seu acompanhamento</h2>
+            {latestCompleted ? (
+              <div className="patient-last-appointment">
+                <span>Último atendimento</span>
+                <strong>
+                  {new Date(latestCompleted.starts_at).toLocaleDateString(
+                    "pt-BR",
+                    { timeZone: "America/Sao_Paulo", dateStyle: "long" },
+                  )}
+                </strong>
+                <p>{latestCompleted.doctor_display_name}</p>
+              </div>
+            ) : (
+              <div className="patient-last-appointment">
+                <span>Histórico conectado</span>
+                <strong>Ainda não há atendimento concluído</strong>
+                <p>Seu histórico será formado a partir das consultas reais.</p>
+              </div>
+            )}
+            <div className="patient-followup-note">
+              <strong>Orientações médicas</strong>
+              <p>
+                Somente planos revisados e publicados pela equipe aparecerão
+                nesta área.
+              </p>
+            </div>
+            <Link className="text-action" href={`${base}/cuidado`}>
+              Abrir meu cuidado
             </Link>
           </section>
         </div>

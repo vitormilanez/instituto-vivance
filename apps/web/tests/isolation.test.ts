@@ -47,12 +47,13 @@ before(async () => {
   for (const [name, u] of Object.entries(users)) {
     if (name === "outsider") continue;
     await db.query(
-      "insert into public.memberships(tenant_id,user_id,role,status) values($1,$2,$3,$4)",
+      "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,$3,$4,$5)",
       [
         name === "other" ? b : a,
         u.id,
         ["other", "suspended"].includes(name) ? "doctor" : name,
         name === "suspended" ? "suspended" : "active",
+        `Synthetic ${name}`,
       ],
     );
   }
@@ -134,14 +135,17 @@ test("agenda blocks cross-clinic patients, wrong-role and suspended doctors", as
     await asUser("admin", async () => {
       await assert.rejects(
         book(patient, doctor),
-        /foreign key|Active doctor required/,
+        /foreign key|Active doctor required|Registered doctor name required/,
       );
     });
 });
 test("agenda rejects anonymous, patient, outsider, suspended and cross-tenant writes", async () => {
   for (const role of ["patient", "outsider", "suspended", "other"])
     await asUser(role, async () => {
-      await assert.rejects(book(), /row-level security|Active doctor required/);
+      await assert.rejects(
+        book(),
+        /row-level security|Active doctor required|Registered doctor name required/,
+      );
     });
   await db.exec("begin; set local role anon");
   try {
@@ -170,7 +174,7 @@ test("agenda optimistic edits reject stale version and cancellation preserves re
   await asUser("admin", async () => {
     const created = await book();
     const updated = await db.query<{ version: number }>(
-      "update public.appointments set starts_at='2099-09-10T14:00Z', ends_at='2099-09-10T14:30Z' where id=$1 and version=1 returning version",
+      "update public.appointments set expected_version=1,starts_at='2099-09-10T14:00Z', ends_at='2099-09-10T14:30Z' where id=$1 and version=1 returning version",
       [created.id],
     );
     assert.equal(updated.rows[0].version, 2);
@@ -183,10 +187,10 @@ test("agenda optimistic edits reject stale version and cancellation preserves re
       ).rows.length,
       0,
     );
-    await db.query(
-      "update public.appointments set status='cancelled' where id=$1",
-      [created.id],
-    );
+    await db.query("select public.transition_appointment($1,$2,2,'cancelled')", [
+      a,
+      created.id,
+    ]);
     assert.equal(
       (
         await db.query(
@@ -213,11 +217,11 @@ test("agenda optimistic edits reject stale version and cancellation preserves re
       "2099-09-10T14:30Z",
     );
     await assert.rejects(
-      db.query(
-        "update public.appointments set status='scheduled' where id=$1",
-        [created.id],
-      ),
-      /immutable/,
+      db.query("select public.transition_appointment($1,$2,3,'cancelled')", [
+        a,
+        created.id,
+      ]),
+      /Only scheduled appointments/,
     );
   });
 });
@@ -244,6 +248,10 @@ test("patient sees only linked appointments, doctor name, and cannot edit", asyn
       JSON.stringify({ sub: users.admin.id, session_id: users.admin.session }),
     ]);
     const own = await book();
+    await db.query("select public.transition_appointment($1,$2,1,'cancelled')", [
+      a,
+      own.id,
+    ]);
     await db.query("select set_config('request.jwt.claims',$1,true)", [
       JSON.stringify({ sub: users.other.id, session_id: users.other.session }),
     ]);
@@ -268,15 +276,25 @@ test("patient sees only linked appointments, doctor name, and cannot edit", asyn
           [users.doctor.id],
         )
       ).rows.length,
-      1,
+      0,
     );
     assert.equal(
       (
-        await db.query(
-          "update public.appointments set status='cancelled' returning id",
+        await db.query<{ doctor_display_name: string }>(
+          "select doctor_display_name from public.appointments where id=$1",
+          [own.id],
         )
-      ).rows.length,
+      ).rows[0].doctor_display_name,
+      "Synthetic doctor",
+    );
+    assert.equal(
+      (await db.query("select id from public.appointment_status_events")).rows
+        .length,
       0,
+    );
+    await denied(
+      "select public.transition_appointment($1,$2,1,'cancelled')",
+      [a, own.id],
     );
     await db.query("select set_config('request.jwt.claims',$1,true)", [
       JSON.stringify({ sub: users.patient.id, session_id: randomUUID() }),
@@ -293,7 +311,7 @@ test("doctor cannot read or change colleague appointments; patient overlap is bl
   await db.exec("begin");
   try {
     await db.query(
-      "insert into public.memberships(tenant_id,user_id,role) values($1,$2,'doctor')",
+      "insert into public.memberships(tenant_id,user_id,role,display_name) values($1,$2,'doctor','Synthetic colleague')",
       [a, users.other.id],
     );
     await db.query("select set_config('request.jwt.claims',$1,true)", [
@@ -311,16 +329,20 @@ test("doctor cannot read or change colleague appointments; patient overlap is bl
       (await db.query("select * from public.appointments")).rows.length,
       0,
     );
-    assert.equal(
-      (
-        await db.query(
-          "update public.appointments set status='cancelled' where id=$1 returning id",
-          [colleague.id],
-        )
-      ).rows.length,
-      0,
+    await denied(
+      "select public.transition_appointment($1,$2,1,'cancelled')",
+      [a, colleague.id],
     );
-    await assert.rejects(book(), /exclusion constraint/);
+    await denied(
+      "insert into public.appointments(tenant_id,patient_id,doctor_id,starts_at,ends_at) values($1,$2,$3,$4,$5)",
+      [
+        a,
+        pa,
+        users.doctor.id,
+        "2099-09-10T12:00:00Z",
+        "2099-09-10T12:30:00Z",
+      ],
+    );
   } finally {
     await db.exec("rollback");
   }
@@ -342,6 +364,93 @@ test("appointment audit failure rolls back the booking", async () => {
     (await db.query("select * from public.appointments")).rows.length,
     0,
   );
+});
+
+test("doctor names are required for new bookings and existing snapshots never change", async () => {
+  await db.exec("begin");
+  try {
+    await db.exec("set local role authenticated");
+    await db.query("select set_config('request.jwt.claims',$1,true)", [
+      JSON.stringify({ sub: users.admin.id, session_id: users.admin.session }),
+    ]);
+    const original = await book();
+    await db.exec("reset role");
+    await db.query(
+      "update public.memberships set display_name='Synthetic renamed doctor' where tenant_id=$1 and user_id=$2",
+      [a, users.doctor.id],
+    );
+    await db.exec("set local role authenticated");
+    const renamed = await book(
+      pa,
+      users.doctor.id,
+      a,
+      "2099-09-10T15:00:00Z",
+      "2099-09-10T15:30:00Z",
+    );
+    const snapshots = await db.query<{ id: string; doctor_display_name: string }>(
+      "select id,doctor_display_name from public.appointments where id in ($1,$2) order by id",
+      [original.id, renamed.id],
+    );
+    assert.deepEqual(
+      Object.fromEntries(
+        snapshots.rows.map((row) => [row.id, row.doctor_display_name]),
+      ),
+      {
+        [original.id]: "Synthetic doctor",
+        [renamed.id]: "Synthetic renamed doctor",
+      },
+    );
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,'doctor','active','Synthetic reassigned doctor')",
+      [a, users.other.id],
+    );
+    await db.exec("set local role authenticated");
+    const reassigned = await db.query<{ doctor_display_name: string }>(
+      "update public.appointments set doctor_id=$1,expected_version=1 where id=$2 returning doctor_display_name",
+      [users.other.id, original.id],
+    );
+    assert.equal(
+      reassigned.rows[0].doctor_display_name,
+      "Synthetic reassigned doctor",
+    );
+    await db.exec("reset role");
+    await db.query(
+      "update public.memberships set display_name=null where tenant_id=$1 and user_id=$2",
+      [a, users.doctor.id],
+    );
+    await db.exec("set local role authenticated");
+    await db.exec("savepoint invalid_doctor_name");
+    await assert.rejects(
+      book(
+        pa,
+        users.doctor.id,
+        a,
+        "2099-09-10T16:00:00Z",
+        "2099-09-10T16:30:00Z",
+      ),
+      /Registered doctor name required/,
+    );
+    await db.exec("rollback to savepoint invalid_doctor_name");
+    await db.exec("reset role");
+    await db.query(
+      "update public.memberships set display_name='doctor@example.test' where tenant_id=$1 and user_id=$2",
+      [a, users.doctor.id],
+    );
+    await db.exec("set local role authenticated");
+    await assert.rejects(
+      book(
+        pa,
+        users.doctor.id,
+        a,
+        "2099-09-10T17:00:00Z",
+        "2099-09-10T17:30:00Z",
+      ),
+      /Registered doctor name required/,
+    );
+  } finally {
+    await db.exec("rollback");
+  }
 });
 
 async function asUser(
@@ -378,11 +487,14 @@ async function denied(query: string, values: unknown[] = []) {
     await db.exec("rollback to savepoint denial; release savepoint denial");
   }
 }
-async function startClinical() {
-  const appointment = await book();
+async function startClinical(
+  start = "2099-09-10T12:00:00Z",
+  end = "2099-09-10T12:30:00Z",
+) {
+  const appointment = await book(pa, users.doctor.id, a, start, end);
   const values = [a, appointment.id];
   const result = await db.query<{ id: string }>(
-    "select public.start_encounter($1,$2,true) as id",
+    "select public.start_encounter($1,$2,true,1) as id",
     values,
   );
   return { id: result.rows[0].id, appointment: appointment.id };
@@ -417,16 +529,16 @@ test("clinical start is explicit, idempotent and creates an active care link ato
       (await db.query("select * from public.care_relationships")).rows.length,
       0,
     );
-    await denied("select public.start_encounter($1,$2,false)", [
+    await denied("select public.start_encounter($1,$2,false,1)", [
       a,
       appointment.id,
     ]);
     const first = await db.query<{ id: string }>(
-      "select public.start_encounter($1,$2,true) id",
+      "select public.start_encounter($1,$2,true,1) id",
       [a, appointment.id],
     );
     const second = await db.query<{ id: string }>(
-      "select public.start_encounter($1,$2,true) id",
+      "select public.start_encounter($1,$2,true,1) id",
       [a, appointment.id],
     );
     assert.equal(first.rows[0].id, second.rows[0].id);
@@ -438,6 +550,308 @@ test("clinical start is explicit, idempotent and creates an active care link ato
       (await db.query("select * from public.encounter_versions")).rows.length,
       1,
     );
+  });
+});
+
+test("a stale agenda screen cannot start a rescheduled appointment", async () => {
+  await asUser("doctor", async () => {
+    const appointment = await book();
+    await db.query(
+      "update public.appointments set expected_version=1,starts_at='2099-09-10T13:00:00Z',ends_at='2099-09-10T13:30:00Z' where id=$1",
+      [appointment.id],
+    );
+    await denied("select public.start_encounter($1,$2,true,1)", [
+      a,
+      appointment.id,
+    ]);
+    assert.equal((await db.query("select id from public.encounters")).rows.length, 0);
+    const state = (
+      await db.query<{ status: string; version: number }>(
+        "select status,version from public.appointments where id=$1",
+        [appointment.id],
+      )
+    ).rows[0];
+    assert.deepEqual(state, { status: "scheduled", version: 2 });
+    await db.query("select public.start_encounter($1,$2,true,2)", [
+      a,
+      appointment.id,
+    ]);
+    assert.equal((await db.query("select id from public.encounters")).rows.length, 1);
+  });
+});
+
+test("agenda and encounter advance atomically from scheduled to in progress and completed", async () => {
+  await asUser("doctor", async () => {
+    const appointment = await book();
+    const first = await db.query<{ id: string }>(
+      "select public.start_encounter($1,$2,true,1) id",
+      [a, appointment.id],
+    );
+    const started = (
+      await db.query<{
+        status: string;
+        version: number;
+        has_started_at: boolean;
+      }>(
+        "select status,version,started_at is not null has_started_at from public.appointments where id=$1",
+        [appointment.id],
+      )
+    ).rows[0];
+    assert.deepEqual(started, {
+      status: "in_progress",
+      version: 2,
+      has_started_at: true,
+    });
+    await denied(
+      "insert into public.appointments(tenant_id,patient_id,doctor_id,starts_at,ends_at) values($1,$2,$3,$4,$5)",
+      [
+        a,
+        pa,
+        users.doctor.id,
+        "2099-09-10T12:00:00Z",
+        "2099-09-10T12:30:00Z",
+      ],
+    );
+
+    const repeated = await db.query<{ id: string }>(
+      "select public.start_encounter($1,$2,true,1) id",
+      [a, appointment.id],
+    );
+    assert.equal(repeated.rows[0].id, first.rows[0].id);
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.appointment_status_events where appointment_id=$1",
+          [appointment.id],
+        )
+      ).rows.length,
+      1,
+    );
+
+    await saveClinical(
+      first.rows[0].id,
+      1,
+      "Synthetic completion",
+      "Synthetic record",
+      "finalized",
+    );
+    const completed = (
+      await db.query<{
+        status: string;
+        version: number;
+        has_completed_at: boolean;
+      }>(
+        "select status,version,completed_at is not null has_completed_at from public.appointments where id=$1",
+        [appointment.id],
+      )
+    ).rows[0];
+    assert.deepEqual(completed, {
+      status: "completed",
+      version: 3,
+      has_completed_at: true,
+    });
+    const events = await db.query<{
+      from_status: string;
+      to_status: string;
+      actor_user_id: string;
+    }>(
+      "select from_status,to_status,actor_user_id from public.appointment_status_events where appointment_id=$1 order by created_at,id",
+      [appointment.id],
+    );
+    assert.deepEqual(events.rows, [
+      {
+        from_status: "scheduled",
+        to_status: "in_progress",
+        actor_user_id: users.doctor.id,
+      },
+      {
+        from_status: "in_progress",
+        to_status: "completed",
+        actor_user_id: users.doctor.id,
+      },
+    ]);
+    await denied(
+      "select public.transition_appointment($1,$2,3,'no_show')",
+      [a, appointment.id],
+    );
+    await denied(
+      "insert into public.appointments(tenant_id,patient_id,doctor_id,starts_at,ends_at) values($1,$2,$3,$4,$5)",
+      [
+        a,
+        pa,
+        users.doctor.id,
+        "2099-09-10T12:00:00Z",
+        "2099-09-10T12:30:00Z",
+      ],
+    );
+  });
+});
+
+test("cancelled and no-show transitions are versioned, audited, terminal and release the slot", async () => {
+  await asUser("admin", async () => {
+    const missed = await book();
+    await denied(
+      "select public.transition_appointment($1,$2,2,'no_show')",
+      [a, missed.id],
+    );
+    await denied(
+      "select public.transition_appointment($1,$2,1,'no_show')",
+      [a, missed.id],
+    );
+    // Test-only setup: simulate that the valid future booking has reached its
+    // start time without waiting for the wall clock.
+    await db.exec("reset role");
+    await db.exec("alter table public.appointments disable trigger appointments_validate");
+    await db.query(
+      "update public.appointments set starts_at=clock_timestamp()-interval '1 hour',ends_at=clock_timestamp()-interval '30 minutes' where id=$1",
+      [missed.id],
+    );
+    await db.exec("alter table public.appointments enable trigger appointments_validate");
+    await switchActor("admin");
+    await db.query("select public.transition_appointment($1,$2,1,'no_show')", [
+      a,
+      missed.id,
+    ]);
+    const missedState = (
+      await db.query<{
+        status: string;
+        version: number;
+        has_no_show_at: boolean;
+      }>(
+        "select status,version,no_show_at is not null has_no_show_at from public.appointments where id=$1",
+        [missed.id],
+      )
+    ).rows[0];
+    assert.deepEqual(missedState, {
+      status: "no_show",
+      version: 2,
+      has_no_show_at: true,
+    });
+    await denied(
+      "select public.transition_appointment($1,$2,2,'cancelled')",
+      [a, missed.id],
+    );
+
+    const replacement = await book();
+    await denied(
+      "update public.appointments set status='cancelled' where id=$1",
+      [replacement.id],
+    );
+    await db.query(
+      "select public.transition_appointment($1,$2,1,'cancelled')",
+      [a, replacement.id],
+    );
+    const cancelledState = (
+      await db.query<{
+        status: string;
+        version: number;
+        has_cancelled_at: boolean;
+      }>(
+        "select status,version,cancelled_at is not null has_cancelled_at from public.appointments where id=$1",
+        [replacement.id],
+      )
+    ).rows[0];
+    assert.deepEqual(cancelledState, {
+      status: "cancelled",
+      version: 2,
+      has_cancelled_at: true,
+    });
+    await book();
+    const events = await db.query<{ to_status: string }>(
+      "select to_status from public.appointment_status_events where appointment_id in ($1,$2) order by to_status",
+      [missed.id, replacement.id],
+    );
+    assert.deepEqual(
+      events.rows.map((row) => row.to_status),
+      ["cancelled", "no_show"],
+    );
+  });
+});
+
+test("clinical listing uses a stable cursor, literal search and encounter RLS", async () => {
+  await asUser("doctor", async () => {
+    const created: string[] = [];
+    for (const [start, end] of [
+      ["2099-09-10T12:00:00Z", "2099-09-10T12:30:00Z"],
+      ["2099-09-10T13:00:00Z", "2099-09-10T13:30:00Z"],
+      ["2099-09-10T14:00:00Z", "2099-09-10T14:30:00Z"],
+    ])
+      created.push((await startClinical(start, end)).id);
+
+    const expected = await db.query<{ id: string }>(
+      "select id from public.encounters order by created_at desc,id desc",
+    );
+    const first = await db.query<{ id: string; created_at: string }>(
+      "select id,created_at from public.list_encounters_page($1,'',null,null,2)",
+      [a],
+    );
+    assert.deepEqual(
+      first.rows.map((row) => row.id),
+      expected.rows.slice(0, 2).map((row) => row.id),
+    );
+    await saveClinical(created[0], 1, "Synthetic pagination", "Stable cursor");
+    const cursor = first.rows.at(-1)!;
+    const second = await db.query<{ id: string }>(
+      "select id from public.list_encounters_page($1,'',$2,$3,2)",
+      [a, cursor.created_at, cursor.id],
+    );
+    assert.deepEqual(
+      [...first.rows, ...second.rows].map((row) => row.id),
+      expected.rows.map((row) => row.id),
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.list_encounters_page($1,'Synthetic A',null,null,20)",
+          [a],
+        )
+      ).rows.length,
+      3,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.list_encounters_page($1,'%',null,null,20)",
+          [a],
+        )
+      ).rows.length,
+      0,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.list_encounters_page($1,'Synthetic A',null,null,20)",
+          [b],
+        )
+      ).rows.length,
+      0,
+    );
+    await switchActor("admin");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.list_encounters_page($1,'',null,null,20)",
+          [a],
+        )
+      ).rows.length,
+      0,
+    );
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,'doctor','active','Synthetic linked colleague')",
+      [a, users.other.id],
+    );
+    await db.query(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'active')",
+      [a, pa, users.other.id],
+    );
+    await switchActor("other");
+    const colleagueView = await db.query<{ doctor_display_name: string }>(
+      "select doctor_display_name from public.list_encounters_page($1,'',null,null,20)",
+      [a],
+    );
+    assert.equal(colleagueView.rows.length, 3);
+    assert.equal(colleagueView.rows[0].doctor_display_name, "Synthetic doctor");
   });
 });
 test("doctor explicitly accepts an administrator assignment when starting a scheduled encounter", async () => {
@@ -452,7 +866,7 @@ test("doctor explicitly accepts an administrator assignment when starting a sche
     );
     await switchActor("doctor");
     const appointment = await book();
-    await db.query("select public.start_encounter($1,$2,true)", [
+    await db.query("select public.start_encounter($1,$2,true,1)", [
       a,
       appointment.id,
     ]);
@@ -932,7 +1346,7 @@ test("clinical records and snapshots deny admin, patient, unlinked staff and oth
         0,
         role,
       );
-      await denied("select public.start_encounter($1,$2,true)", [
+      await denied("select public.start_encounter($1,$2,true,1)", [
         a,
         appointment,
       ]);
@@ -983,7 +1397,7 @@ test("nurse with provisioned care link reads but cannot write; revocation and se
       (await db.query("select id from public.encounters")).rows.length,
       0,
     );
-    await denied("select public.start_encounter($1,$2,true)", [a, appointment]);
+    await denied("select public.start_encounter($1,$2,true,1)", [a, appointment]);
     await db.exec("reset role");
     await db.query(
       "update public.care_relationships set status='active' where tenant_id=$1",
@@ -1008,21 +1422,21 @@ test("started appointments cannot be reassigned or cancelled; cancelled appointm
     const { appointment } = await startClinical();
     await switchActor("admin");
     await denied(
-      "update public.appointments set status='cancelled' where id=$1",
-      [appointment],
+      "select public.transition_appointment($1,$2,2,'cancelled')",
+      [a, appointment],
     );
     await denied(
-      "update public.appointments set starts_at=starts_at+interval '1 hour',ends_at=ends_at+interval '1 hour' where id=$1",
+      "update public.appointments set expected_version=2,starts_at=starts_at+interval '1 hour',ends_at=ends_at+interval '1 hour' where id=$1",
       [appointment],
     );
   });
   await asUser("doctor", async () => {
     const appointment = await book();
-    await db.query(
-      "update public.appointments set status='cancelled' where id=$1",
-      [appointment.id],
-    );
-    await denied("select public.start_encounter($1,$2,true)", [
+    await db.query("select public.transition_appointment($1,$2,1,'cancelled')", [
+      a,
+      appointment.id,
+    ]);
+    await denied("select public.start_encounter($1,$2,true,1)", [
       a,
       appointment.id,
     ]);
@@ -1056,6 +1470,44 @@ test("finalization requires clinical text; cross-tenant identity and audit failu
     assert.equal(record.rows[0].reason, "");
     assert.equal(
       (await db.query("select id from public.encounter_versions")).rows.length,
+      1,
+    );
+  });
+});
+
+test("appointment audit failure rolls back clinical finalization and keeps both records coherent", async () => {
+  await asUser("doctor", async () => {
+    const { id, appointment } = await startClinical();
+    await db.exec("reset role");
+    await db.exec(
+      "alter table public.audit_events add constraint completion_audit_failure check(entity_type<>'appointments') not valid",
+    );
+    await switchActor("doctor");
+    await denied(
+      "update public.encounters set expected_version=1,reason='Synthetic finalization',evolution='Must rollback',status='finalized' where tenant_id=$1 and id=$2",
+      [a, id],
+    );
+    const encounter = (
+      await db.query<{ status: string; version: number }>(
+        "select status,version from public.encounters where id=$1",
+        [id],
+      )
+    ).rows[0];
+    const scheduled = (
+      await db.query<{ status: string; version: number }>(
+        "select status,version from public.appointments where id=$1",
+        [appointment],
+      )
+    ).rows[0];
+    assert.deepEqual(encounter, { status: "draft", version: 1 });
+    assert.deepEqual(scheduled, { status: "in_progress", version: 2 });
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.appointment_status_events where appointment_id=$1",
+          [appointment],
+        )
+      ).rows.length,
       1,
     );
   });

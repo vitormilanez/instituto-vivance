@@ -78,10 +78,13 @@ export function appointmentPatch(value: unknown) {
   const { version, ...body } = value as Record<string, unknown>;
   if (!Number.isSafeInteger(version) || (version as number) < 1)
     throw new InputError("Recarregue o agendamento antes de alterar.");
-  if (body.status === "cancelled" && Object.keys(body).length === 1)
+  if (
+    (body.status === "cancelled" || body.status === "no_show") &&
+    Object.keys(body).length === 1
+  )
     return {
       version: version as number,
-      values: { status: "cancelled" as const },
+      transition: body.status,
     };
   return { version: version as number, values: appointmentInput(body) };
 }

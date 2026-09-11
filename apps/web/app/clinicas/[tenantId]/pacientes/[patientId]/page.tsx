@@ -34,12 +34,27 @@ export default async function Patient({
       <Link className="back-link" href={`/clinicas/${tenantId}/pacientes`}>
         Voltar aos pacientes
       </Link>
-      <div className="page-heading">
-        <div>
+      <header className="clinical-patient-header patient-record-header">
+        <span className="patient-avatar patient-avatar-xl" aria-hidden="true">
+          {p.display_name
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part[0])
+            .join("")
+            .toUpperCase()}
+        </span>
+        <div className="clinical-patient-title">
           <h1>{p.display_name}</h1>
-          <p>Ficha cadastral · {context.clinic.name}</p>
+          <p>Contexto do paciente · {context.clinic.name}</p>
+          <p>
+            {p.birth_date
+              ? `Nascimento: ${p.birth_date.split("-").reverse().join("/")}`
+              : "Nascimento não informado"}
+          </p>
         </div>
-      </div>
+        <span className="appointment-status scheduled">Cadastro ativo</span>
+      </header>
       <ModuleTabs
         tabs={tabs}
         active={active}

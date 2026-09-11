@@ -13,32 +13,54 @@ export function PatientShell({
   active: string;
   children: ReactNode;
 }) {
+  const base = `/clinicas/${clinic.id}/meu-cuidado`;
+  const primarySections = patientSections.slice(0, 4);
   return (
     <>
-      <Header />
-      <div className="patient-workspace">
-        <div className="patient-context">
-          <span>{clinic.name}</span>
+      <Header homeHref={`${base}/hoje`} />
+      <div className="patient-shell-grid">
+        <aside className="patient-sidebar">
+          <div className="patient-sidebar-context">
+            <span>Seu cuidado com</span>
+            <strong>{clinic.name}</strong>
+          </div>
+          <nav aria-label="Navegação do paciente">
+            {primarySections.map((section) => (
+              <Link
+                key={section.slug}
+                href={`${base}/${section.slug}`}
+                aria-current={active === section.slug ? "page" : undefined}
+              >
+                {section.title}
+              </Link>
+            ))}
+          </nav>
           <Link
+            className="patient-profile-link"
             href={`/clinicas/${clinic.id}/meu-perfil`}
             aria-current={active === "perfil" ? "page" : undefined}
           >
             Meu perfil
           </Link>
-        </div>
-        <nav className="patient-navigation" aria-label="Navegação do paciente">
-          {patientSections.slice(0, 4).map((section) => (
-            <Link
-              key={section.slug}
-              href={`/clinicas/${clinic.id}/meu-cuidado/${section.slug}`}
-              aria-current={active === section.slug ? "page" : undefined}
-            >
-              {section.title}
-            </Link>
-          ))}
-        </nav>
-        <main id="conteudo">{children}</main>
+        </aside>
+        <main id="conteudo" className="patient-workspace">
+          {children}
+        </main>
       </div>
+      <nav
+        className="patient-navigation patient-navigation-mobile"
+        aria-label="Navegação do paciente"
+      >
+        {primarySections.map((section) => (
+          <Link
+            key={section.slug}
+            href={`${base}/${section.slug}`}
+            aria-current={active === section.slug ? "page" : undefined}
+          >
+            {section.title}
+          </Link>
+        ))}
+      </nav>
     </>
   );
 }

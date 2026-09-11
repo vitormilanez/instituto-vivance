@@ -58,6 +58,7 @@ export type Database = {
           appointment_id: string;
           patient_id: string;
           doctor_id: string;
+          doctor_display_name: string;
           status: string;
           reason: string;
           evolution: string;
@@ -80,6 +81,13 @@ export type Database = {
           expected_version?: number | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "encounters_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: true;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "encounters_tenant_id_patient_id_fkey";
             columns: ["tenant_id", "patient_id"];
@@ -112,17 +120,45 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      appointment_status_events: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          appointment_id: string;
+          from_status: string;
+          to_status: string;
+          actor_user_id: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "appointment_status_events_tenant_id_appointment_id_fkey";
+            columns: ["tenant_id", "appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
       appointments: {
         Row: {
           id: string;
           tenant_id: string;
           patient_id: string;
           doctor_id: string;
+          doctor_display_name: string;
           starts_at: string;
           ends_at: string;
           kind: string;
           status: string;
           version: number;
+          expected_version: number | null;
+          started_at: string | null;
+          completed_at: string | null;
+          cancelled_at: string | null;
+          no_show_at: string | null;
           created_by: string;
           created_at: string;
           updated_at: string;
@@ -141,7 +177,7 @@ export type Database = {
           starts_at?: string;
           ends_at?: string;
           kind?: string;
-          status?: string;
+          expected_version?: number | null;
         };
         Relationships: [
           {
@@ -380,13 +416,42 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      list_encounters_page: {
+        Args: {
+          target_tenant: string;
+          search_text?: string;
+          before_created_at?: string | null;
+          before_id?: string | null;
+          page_limit?: number;
+        };
+        Returns: {
+          id: string;
+          patient_id: string;
+          doctor_id: string;
+          status: string;
+          created_at: string;
+          updated_at: string;
+          patient_display_name: string;
+          doctor_display_name: string;
+        }[];
+      };
       start_encounter: {
         Args: {
           target_tenant: string;
           target_appointment: string;
           accept_care: boolean;
+          read_version: number;
         };
         Returns: string;
+      };
+      transition_appointment: {
+        Args: {
+          target_tenant: string;
+          target_appointment: string;
+          read_version: number;
+          target_status: string;
+        };
+        Returns: number;
       };
     };
     Enums: {

@@ -17,47 +17,83 @@ export function ClinicShell({
   children: ReactNode;
 }) {
   const base = `/clinicas/${clinic.id}`;
-  const links = [
-    { key: "home", label: "Visão geral", href: base },
-    { key: "patients", label: "Pacientes", href: `${base}/pacientes` },
-    {
-      key: "team",
-      label: "Equipe de cuidado",
-      href: `${base}/equipe`,
-    },
-    ...staffModules.map((module) => ({
+  const moduleLinks = staffModules.map((module) => ({
       key: module.slug,
       label: module.title,
       href: `${base}/${module.slug}`,
-    })),
+    }));
+  const links = [
+    { key: "home", label: "Visão geral", href: base },
+    { key: "patients", label: "Pacientes", href: `${base}/pacientes` },
+    ...moduleLinks,
+    { key: "team", label: "Equipe de cuidado", href: `${base}/equipe` },
     ...(clinic.role === "admin"
-      ? [
-          {
-            key: "audit",
-            label: "Histórico de ações",
-            href: `${base}/historico`,
-          },
-        ]
+      ? [{ key: "audit", label: "Histórico de ações", href: `${base}/historico` }]
       : []),
   ];
+  const navigationGroups = [
+    {
+      label: "Cuidado",
+      links: links.filter((link) =>
+        ["home", "agenda", "patients", "atendimentos"].includes(link.key),
+      ),
+    },
+    {
+      label: "Acompanhamento",
+      links: links.filter((link) =>
+        ["planos", "acompanhamento", "documentos", "mensagens"].includes(
+          link.key,
+        ),
+      ),
+    },
+    {
+      label: "Clínica",
+      links: links.filter((link) =>
+        ["team", "relatorios", "ia", "audit"].includes(link.key),
+      ),
+    },
+  ];
+  const activeLabel = links.find((link) => link.key === active)?.label ?? "Clínica";
+  const clinicInitials = clinic.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
   return (
     <>
-      <Header />
+      <Header
+        variant="staff"
+        homeHref={base}
+        title={activeLabel}
+        context={`${clinic.name} · ${roleLabels[clinic.role]}`}
+      />
       <div className="workspace">
         <aside className="workspace-nav">
           <div className="workspace-identity">
-            <strong>{clinic.name}</strong>
-            <span>{roleLabels[clinic.role]}</span>
+            <span className="workspace-avatar" aria-hidden="true">
+              {clinicInitials}
+            </span>
+            <span>
+              <strong>{clinic.name}</strong>
+              <small>{roleLabels[clinic.role]}</small>
+            </span>
           </div>
           <nav aria-label="Navegação da clínica">
-            {links.map((link) => (
-              <Link
-                key={link.key}
-                href={link.href}
-                aria-current={active === link.key ? "page" : undefined}
-              >
-                {link.label}
-              </Link>
+            {navigationGroups.map((group) => (
+              <div className="workspace-nav-group" key={group.label}>
+                <span className="workspace-nav-label">{group.label}</span>
+                {group.links.map((link) => (
+                  <Link
+                    key={link.key}
+                    href={link.href}
+                    aria-current={active === link.key ? "page" : undefined}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
             ))}
           </nav>
           <p className="workspace-note">Seu espaço para organizar o cuidado.</p>

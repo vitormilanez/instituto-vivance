@@ -30,10 +30,25 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
     canEdit,
     canAddendum,
     versions,
-    historyTruncated,
+    versionCursor,
+    nextVersionCursor,
     addenda,
-    addendaTruncated,
+    addendumCursor,
+    nextAddendumCursor,
   } = detail;
+  const doctorName = e.doctor_display_name;
+  function historyHref(
+    beforeVersion: number | null,
+    beforeAddendum: number | null,
+  ) {
+    const params = new URLSearchParams();
+    if (beforeVersion !== null)
+      params.set("versoes_antes_de", String(beforeVersion));
+    if (beforeAddendum !== null)
+      params.set("adendos_antes_de", String(beforeAddendum));
+    const query = params.toString();
+    return `/clinicas/${e.tenant_id}/atendimentos/${e.id}${query ? `?${query}` : ""}`;
+  }
   const recordDirty = reason !== e.reason || evolution !== e.evolution;
   const addendumDirty =
     addendumReason.length > 0 || addendumContent.length > 0;
@@ -154,38 +169,72 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
   }
   return (
     <>
-      <Link href={`/clinicas/${e.tenant_id}/atendimentos`}>
+      <Link className="back-link" href={`/clinicas/${e.tenant_id}/atendimentos`}>
         Voltar aos atendimentos
       </Link>
-      <div className="page-heading">
-        <div>
+      <header className="clinical-patient-header">
+        <span className="patient-avatar patient-avatar-xl" aria-hidden="true">
+          {(e.patients?.display_name ?? "Atendimento")
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part[0])
+            .join("")
+            .toUpperCase()}
+        </span>
+        <div className="clinical-patient-title">
           <h1>{e.patients?.display_name ?? "Atendimento"}</h1>
           <p>
             {e.status === "finalized"
               ? "Atendimento finalizado"
               : "Registro do atendimento"}{" "}
-            · Médico: {e.memberships?.display_name ?? "Médico responsável"}
+            · Médico: {doctorName}
           </p>
           <p>Iniciado em {clinicalTime(e.created_at)} · Horário de Brasília</p>
         </div>
-      </div>
+        <span
+          className={`appointment-status ${
+            e.status === "finalized" ? "completed" : "in-progress"
+          }`}
+        >
+          {e.status === "finalized" ? "Concluído" : "Em atendimento"}
+        </span>
+      </header>
+      <dl className="encounter-context-strip" aria-label="Contexto do atendimento">
+        <div>
+          <dt>Paciente</dt>
+          <dd>{e.patients?.display_name ?? "Não identificado"}</dd>
+        </div>
+        <div>
+          <dt>Profissional responsável</dt>
+          <dd>{doctorName}</dd>
+        </div>
+        <div>
+          <dt>Registro atual</dt>
+          <dd>Versão {e.version}</dd>
+        </div>
+      </dl>
       <section className="panel encounter-record" aria-label="Registro clínico">
-        <h2>
-          {e.status === "finalized"
-            ? "Registro finalizado"
-            : "Rascunho clínico"}
-        </h2>
-        <p>
-          Uso interno da equipe autorizada. Finalizar não publica orientações
-          para o paciente.
-        </p>
-        <p role="status" aria-live="polite">
-          {pending
-            ? "Salvando…"
-            : recordDirty
-              ? "Alterações não salvas"
-              : `Versão ${e.version} salva em ${clinicalTime(e.updated_at)}`}
-        </p>
+        <div className="section-heading encounter-record-heading">
+          <div>
+            <h2>
+              {e.status === "finalized"
+                ? "Registro finalizado"
+                : "Registro da consulta"}
+            </h2>
+            <p>
+              Uso interno da equipe autorizada. Finalizar não publica
+              orientações para o paciente.
+            </p>
+          </div>
+          <span className={`record-save-state ${recordDirty ? "unsaved" : ""}`} role="status" aria-live="polite">
+            {pending
+              ? "Salvando…"
+              : recordDirty
+                ? "Alterações não salvas"
+                : `Versão ${e.version} · ${clinicalTime(e.updated_at)}`}
+          </span>
+        </div>
         {notice && (
           <p className="notice" role="status">
             {notice}
@@ -295,7 +344,7 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
       </section>
       {e.status === "finalized" && (
         <section
-          className="panel encounter-addenda"
+          className="panel encounter-addenda clinical-history-panel"
           aria-label="Adendos ao registro final"
         >
           <h2>Adendos ao registro final</h2>
@@ -314,9 +363,6 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
               {addendumError}
             </p>
           )}
-          {addendaTruncated && (
-            <p>Exibindo os 100 adendos mais recentes.</p>
-          )}
           {addenda.length ? (
             <ul className="list addendum-list">
               {addenda.map((addendum) => (
@@ -326,7 +372,7 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
                     {clinicalTime(addendum.created_at)}
                   </h3>
                   <p>
-                    Autor: {e.memberships?.display_name ?? "Médico responsável"}
+                    Autor: {doctorName}
                     {" · "}referente à versão {addendum.encounter_version}
                   </p>
                   <h4>Motivo do adendo</h4>
@@ -338,6 +384,22 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
             </ul>
           ) : (
             <p>Nenhum adendo registrado.</p>
+          )}
+          {(nextAddendumCursor || addendumCursor) && (
+            <div className="pagination">
+              {nextAddendumCursor && (
+                <Link
+                  href={historyHref(versionCursor, nextAddendumCursor)}
+                >
+                  Ver adendos anteriores
+                </Link>
+              )}
+              {addendumCursor && (
+                <Link href={historyHref(versionCursor, null)}>
+                  Voltar aos adendos mais recentes
+                </Link>
+              )}
+            </div>
           )}
           {canAddendum && (
             <form
@@ -427,13 +489,12 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
           )}
         </section>
       )}
-      <section className="panel" aria-label="Histórico clínico">
+      <section className="panel clinical-history-panel" aria-label="Histórico clínico">
         <h2>Histórico de versões</h2>
         <p>
           Cada salvamento preserva a versão anterior. Autoria e horário são
           registrados pelo sistema.
         </p>
-        {historyTruncated && <p>Exibindo as 100 versões mais recentes.</p>}
         <ul className="list">
           {versions.map((v) => (
             <li key={v.id}>
@@ -444,7 +505,7 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
                   {clinicalTime(v.created_at)}
                 </summary>
                 <p>
-                  Autor: {e.memberships?.display_name ?? "Médico responsável"}
+                  Autor: {doctorName}
                 </p>
                 <h3>Motivo da consulta</h3>
                 <p className="clinical-text">{v.reason || "Não registrado."}</p>
@@ -456,6 +517,20 @@ export function EncounterEditor({ initial }: { initial: EncounterDetail }) {
             </li>
           ))}
         </ul>
+        {(nextVersionCursor || versionCursor) && (
+          <div className="pagination">
+            {nextVersionCursor && (
+              <Link href={historyHref(nextVersionCursor, addendumCursor)}>
+                Ver versões anteriores
+              </Link>
+            )}
+            {versionCursor && (
+              <Link href={historyHref(null, addendumCursor)}>
+                Voltar às versões mais recentes
+              </Link>
+            )}
+          </div>
+        )}
       </section>
     </>
   );

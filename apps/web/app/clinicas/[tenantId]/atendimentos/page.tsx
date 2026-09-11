@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireClinic, AccessError } from "@/modules/identity/service";
 import { listEncounters } from "@/modules/encounters/service";
 import { ClinicShell } from "@/components/clinic-shell";
+import { EncounterDirectory } from "@/components/encounter-directory";
 export const dynamic = "force-dynamic";
 export default async function EncountersPage({
   params,
@@ -45,40 +46,7 @@ export default async function EncountersPage({
           </Link>
         )}
       </div>
-      <section className="panel">
-        <h2>Registros clínicos</h2>
-        {result.encounters.length ? (
-          <ul className="list">
-            {result.encounters.map((e) => (
-              <li key={e.id}>
-                <strong>{e.patients?.display_name ?? "Paciente"}</strong>
-                <p>
-                  {e.status === "draft" ? "Em rascunho" : "Finalizado"} ·
-                  Atualizado em{" "}
-                  {new Date(e.updated_at).toLocaleString("pt-BR", {
-                    timeZone: "America/Sao_Paulo",
-                  })}
-                </p>
-                <Link href={`/clinicas/${tenantId}/atendimentos/${e.id}`}>
-                  {e.status === "draft" && e.doctor_id === result.userId
-                    ? "Continuar atendimento"
-                    : "Consultar registro"}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="empty">
-            <h3>Nenhum atendimento disponível</h3>
-            <p>
-              {result.clinic.role === "doctor"
-                ? "Na agenda, abra uma consulta e confirme o início do atendimento."
-                : "Os registros aparecerão após a atribuição de um vínculo de cuidado ativo."}
-            </p>
-          </div>
-        )}
-        {result.truncated && <p>Exibindo os 100 registros mais recentes.</p>}
-      </section>
+      <EncounterDirectory tenantId={tenantId} initial={result} />
     </ClinicShell>
   );
 }

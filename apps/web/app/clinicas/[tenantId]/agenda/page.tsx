@@ -5,6 +5,7 @@ import { agendaDate, clinicDate } from "@/modules/agenda/validation";
 import { InputError } from "@/lib/validation";
 import { ClinicShell } from "@/components/clinic-shell";
 import { Agenda } from "@/components/agenda";
+import { requestInstant } from "@/lib/request-time";
 export const dynamic = "force-dynamic";
 export default async function AgendaPage({
   params,
@@ -15,6 +16,7 @@ export default async function AgendaPage({
 }) {
   const { tenantId } = await params;
   const today = clinicDate();
+  const currentTime = requestInstant().toISOString();
   const load = async () => {
     const date = agendaDate((await searchParams).data ?? today);
     const [year, month] = date.split("-").map(Number);
@@ -37,7 +39,11 @@ export default async function AgendaPage({
       <Agenda
         tenantId={tenantId}
         today={today}
+        currentTime={currentTime}
         canStart={context.clinic.role === "doctor"}
+        canManage={["admin", "doctor", "nurse"].includes(
+          context.clinic.role,
+        )}
         {...context}
       />
     </ClinicShell>

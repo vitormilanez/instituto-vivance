@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
+import { Geist } from "next/font/google";
 import "./globals.css";
+
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+});
+
 export const metadata: Metadata = {
   title: "VIVANCE — Cuidado contínuo",
   description: "Acesso à área de cuidado Vivance.",
@@ -12,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body>
+      <body className={geist.variable}>
         <a className="skip-link" href="#conteudo">
           Ir para o conteúdo
         </a>

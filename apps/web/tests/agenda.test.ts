@@ -50,8 +50,12 @@ test("appointment input rejects actor, role, tenant and status injection", () =>
 });
 test("editing requires optimistic version and cancellation cannot carry mutations", () => {
   assert.deepEqual(appointmentPatch({ status: "cancelled", version: 1 }), {
-    values: { status: "cancelled" },
+    transition: "cancelled",
     version: 1,
+  });
+  assert.deepEqual(appointmentPatch({ status: "no_show", version: 3 }), {
+    transition: "no_show",
+    version: 3,
   });
   assert.deepEqual(appointmentPatch({ ...base, version: 2 }), {
     values: base,
@@ -62,4 +66,6 @@ test("editing requires optimistic version and cancellation cannot carry mutation
   assert.throws(() =>
     appointmentPatch({ ...base, status: "cancelled", version: 1 }),
   );
+  for (const status of ["scheduled", "in_progress", "completed", "fake"])
+    assert.throws(() => appointmentPatch({ status, version: 1 }));
 });

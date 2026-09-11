@@ -17,7 +17,7 @@ export class AgendaError extends Error {
   }
 }
 const fields =
-  "id, patient_id, doctor_id, starts_at, ends_at, kind, status, version, patients!appointments_tenant_id_patient_id_fkey(display_name), memberships!appointments_tenant_id_doctor_id_fkey(display_name)" as const;
+  "id, patient_id, doctor_id, doctor_display_name, starts_at, ends_at, kind, status, version, started_at, completed_at, cancelled_at, no_show_at, patients!appointments_tenant_id_patient_id_fkey(display_name)" as const;
 export async function agendaContext(id: string) {
   return requireClinic(tenantId(id), ["admin", "doctor", "nurse", "patient"]);
 }
@@ -63,21 +63,35 @@ export async function agendaOptions(id: string) {
       .eq("tenant_id", id)
       .eq("role", "doctor")
       .eq("status", "active")
+      .order("display_name")
       .order("user_id"),
   ]);
   if (patients.error || doctors.error)
     throw new Error("Unable to load scheduling options");
   return {
     patients: patients.data ?? [],
-    doctors: (doctors.data ?? []).filter(
-      (d) => clinic.role !== "doctor" || d.user_id === user.id,
-    ),
+    doctors: (doctors.data ?? [])
+      .filter(
+        (d) =>
+          Boolean(d.display_name?.trim()) &&
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(d.display_name!.trim()) &&
+          (clinic.role !== "doctor" || d.user_id === user.id),
+      )
+      .map((doctor) => ({
+        user_id: doctor.user_id,
+        display_name: doctor.display_name!.trim(),
+      })),
   };
 }
 function databaseError(error: { code?: string }) {
   if (error.code === "23P01")
     throw new AgendaError(
       "O médico ou o paciente já tem um agendamento nesse horário. Escolha outro horário.",
+      409,
+    );
+  if (error.code === "40001")
+    throw new AgendaError(
+      "O agendamento foi alterado por outra ação. Atualize a agenda antes de tentar novamente.",
       409,
     );
   if (["23503", "23514", "42501"].includes(error.code ?? ""))
@@ -88,7 +102,11 @@ function databaseError(error: { code?: string }) {
   throw new Error("Unable to save appointment");
 }
 export async function createAppointment(id: string, input: unknown) {
-  const { client } = await requireClinic(tenantId(id));
+  const { client } = await requireClinic(tenantId(id), [
+    "admin",
+    "doctor",
+    "nurse",
+  ]);
   const values = appointmentInput(input);
   const { data, error } = await client
     .from("appointments")
@@ -103,12 +121,39 @@ export async function updateAppointment(
   appointmentId: string,
   input: unknown,
 ) {
-  const { client } = await requireClinic(tenantId(id));
+  const { client } = await requireClinic(tenantId(id), [
+    "admin",
+    "doctor",
+    "nurse",
+  ]);
   tenantId(appointmentId);
-  const { version, values } = appointmentPatch(input);
+  const change = appointmentPatch(input);
+  if ("transition" in change && change.transition) {
+    const transition = await client.rpc("transition_appointment", {
+      target_tenant: id,
+      target_appointment: appointmentId,
+      read_version: change.version,
+      target_status: change.transition,
+    });
+    if (transition.error) databaseError(transition.error);
+    const current = await client
+      .from("appointments")
+      .select(fields)
+      .eq("tenant_id", id)
+      .eq("id", appointmentId)
+      .maybeSingle();
+    if (current.error) databaseError(current.error);
+    if (!current.data)
+      throw new AgendaError(
+        "O agendamento não está disponível para sua conta.",
+        404,
+      );
+    return current.data;
+  }
+  const { version, values } = change;
   const { data, error } = await client
     .from("appointments")
-    .update(values)
+    .update({ ...values, expected_version: version })
     .eq("tenant_id", id)
     .eq("id", appointmentId)
     .eq("version", version)
