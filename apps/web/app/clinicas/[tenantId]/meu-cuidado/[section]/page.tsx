@@ -14,6 +14,8 @@ import { patientPublications } from "@/modules/care-plans/publication-service";
 import { PublishedPlans } from "@/components/published-plans";
 import { patientCheckIns } from "@/modules/check-ins/service";
 import { PatientCheckIns } from "@/components/patient-check-ins";
+import { patientLongitudinal } from "@/modules/longitudinal/service";
+import { PatientLongitudinalWorkspace } from "@/components/longitudinal-workspace";
 export const dynamic = "force-dynamic";
 
 export default async function PatientAreaPage({
@@ -47,6 +49,10 @@ export default async function PatientAreaPage({
   const checkIns =
     patient && slug === "diario"
       ? await patientCheckIns(tenantId, (await searchParams).pagina)
+      : null;
+  const longitudinal =
+    patient && slug === "evolucao"
+      ? await patientLongitudinal(tenantId)
       : null;
   const appointments =
     slug === "consultas" || slug === "hoje"
@@ -103,7 +109,12 @@ export default async function PatientAreaPage({
           contato com a clínica.
         </p>
       )}
-      {slug === "diario" && checkIns ? (
+      {slug === "evolucao" && longitudinal ? (
+        <PatientLongitudinalWorkspace
+          initial={longitudinal}
+          base={`/clinicas/${tenantId}/meu-cuidado`}
+        />
+      ) : slug === "diario" && checkIns ? (
         <PatientCheckIns initial={checkIns} today={clinicDate()} />
       ) : slug === "plano" && published ? (
         <PublishedPlans initial={published} />
@@ -140,9 +151,13 @@ export default async function PatientAreaPage({
         )
       ) : (
         <>
-          {!["hoje", "plano", "cuidado", "diario"].includes(section.slug) && (
-            <DevelopmentNotice />
-          )}
+          {![
+            "hoje",
+            "plano",
+            "cuidado",
+            "diario",
+            "evolucao",
+          ].includes(section.slug) && <DevelopmentNotice />}
           <PatientArea
             section={section}
             base={`/clinicas/${tenantId}/meu-cuidado`}

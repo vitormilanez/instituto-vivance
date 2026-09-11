@@ -160,6 +160,8 @@ export function PatientArea({
                     ? "Abrir orientações"
                     : action.slug === "diario"
                       ? "Abrir check-ins"
+                      : action.slug === "evolucao"
+                        ? "Abrir evolução"
                       : "Conhecer a área"}
                 </span>
               </Link>
@@ -177,27 +179,6 @@ export function PatientArea({
           os canais habituais da clínica.
         </p>
       </>
-    );
-  if (section.slug === "evolucao")
-    return (
-      <div className="patient-overview">
-        <section className="panel">
-          <div className="section-heading">
-            <h2>Minhas medidas</h2>
-            <FutureButton>Atualizar medidas</FutureButton>
-          </div>
-          <EmptyModule title="Suas medidas, sem estimativas">
-            Peso e outras medidas serão exibidos somente após o registro real. O
-            envio ainda não está disponível.
-          </EmptyModule>
-        </section>
-        <section className="panel">
-          <h2>Histórico de evolução</h2>
-          <EmptyModule title="Seu histórico será construído aqui">
-            Não há gráficos ilustrativos ou resultados calculados nesta versão.
-          </EmptyModule>
-        </section>
-      </div>
     );
   return (
     <>
@@ -229,7 +210,9 @@ export function PatientArea({
                     <span>{item.description}</span>
                   </Link>
                   <span className="quiet-label">
-                    {["plano", "consultas", "diario"].includes(item.slug)
+                    {["plano", "consultas", "diario", "evolucao"].includes(
+                      item.slug,
+                    )
                       ? "Disponível"
                       : "Em desenvolvimento"}
                   </span>

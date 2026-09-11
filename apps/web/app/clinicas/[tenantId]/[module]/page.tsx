@@ -1,5 +1,7 @@
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
 import { AccessError, requireClinic } from "@/modules/identity/service";
+import { InputError } from "@/lib/validation";
 import { findStaffModule, selectedTab } from "@/modules/workspace/navigation";
 import { ClinicShell } from "@/components/clinic-shell";
 import {
@@ -10,8 +12,10 @@ import {
   ModuleTabs,
 } from "@/components/module-ui";
 import { EmptyCalendar } from "@/components/empty-calendar";
-import { staffCheckIns } from "@/modules/check-ins/service";
+import { CheckInError, staffCheckIns } from "@/modules/check-ins/service";
 import { CheckInWorkspace } from "@/components/check-in-workspace";
+import { staffLongitudinal } from "@/modules/longitudinal/service";
+import { StaffLongitudinalWorkspace } from "@/components/longitudinal-workspace";
 export const dynamic = "force-dynamic";
 
 export default async function ModulePage({
@@ -19,7 +23,11 @@ export default async function ModulePage({
   searchParams,
 }: {
   params: Promise<{ tenantId: string; module: string }>;
-  searchParams: Promise<{ aba?: string | string[]; pagina?: string }>;
+  searchParams: Promise<{
+    aba?: string | string[];
+    pagina?: string;
+    paciente?: string;
+  }>;
 }) {
   const { tenantId, module: slug } = await params;
   const area = findStaffModule(slug);
@@ -43,11 +51,49 @@ export default async function ModulePage({
           </section>
         </ClinicShell>
       );
+    const query = await searchParams;
+    const active = query.aba === "evolucao" ? "evolucao" : "check-ins";
+    const base = `/clinicas/${tenantId}/acompanhamento`;
+    const longitudinal =
+      active === "evolucao"
+        ? await staffLongitudinal(tenantId, query.paciente).catch((error) => {
+            if (error instanceof CheckInError || error instanceof InputError)
+              redirect(`${base}?aba=evolucao`);
+            throw error;
+          })
+        : null;
     return (
       <ClinicShell clinic={clinic} active="acompanhamento">
-        <CheckInWorkspace
-          initial={await staffCheckIns(tenantId, (await searchParams).pagina)}
-        />
+        <div className="page-heading">
+          <div>
+            <h1>Acompanhamento</h1>
+            <p>Relatos, medidas e publicações com data e origem.</p>
+          </div>
+        </div>
+        <nav className="module-tabs" aria-label="Áreas do acompanhamento">
+          <Link
+            href={`${base}?aba=check-ins`}
+            aria-current={active === "check-ins" ? "page" : undefined}
+          >
+            Check-ins
+          </Link>
+          <Link
+            href={`${base}?aba=evolucao`}
+            aria-current={active === "evolucao" ? "page" : undefined}
+          >
+            Evolução
+          </Link>
+        </nav>
+        {longitudinal ? (
+          <StaffLongitudinalWorkspace
+            initial={longitudinal}
+            base={base}
+          />
+        ) : (
+          <CheckInWorkspace
+            initial={await staffCheckIns(tenantId, query.pagina)}
+          />
+        )}
       </ClinicShell>
     );
   }

@@ -70,12 +70,6 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
   }
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <h1>Acompanhamento</h1>
-          <p>Relatos recebidos entre consultas, com origem e revisão humana.</p>
-        </div>
-      </div>
       {error && (
         <p className="notice" role="alert">
           {error}

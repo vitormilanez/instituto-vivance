@@ -2340,3 +2340,32 @@ button.calendar-day[aria-pressed="true"] {
   .check-in-measure { grid-template-columns:1fr; }
   .check-in-card .section-heading,.patient-check-ins .section-heading { align-items:flex-start; }
 }
+.longitudinal-workspace { display:grid; gap:22px; }
+.longitudinal-patient-picker { display:flex; align-items:end; gap:16px; margin:0; padding:20px 24px; }
+.longitudinal-patient-picker .field { flex:1; margin:0; }
+.longitudinal-section { padding:28px; border:1px solid var(--border); border-radius:20px; background:#fff; box-shadow:0 12px 32px rgba(3,19,45,.05); }
+.longitudinal-section .section-heading { margin-bottom:20px; }
+.longitudinal-section .section-heading p { margin:5px 0 0; font-size:14px; }
+.measurement-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; }
+.measurement-card { display:flex; flex-direction:column; min-height:154px; padding:20px; border:1px solid #c9e2dc; border-radius:15px; background:#f1f8f6; }
+.measurement-card > span { color:#486c64; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+.measurement-card strong { margin-top:12px; color:#123d35; font-size:27px; }
+.measurement-card p { margin:8px 0; font-size:13px; }
+.measurement-card small { margin-top:auto; color:#526782; }
+.longitudinal-empty { padding:30px 12px; text-align:left; }
+.longitudinal-timeline { list-style:none; margin:0; padding:0; }
+.longitudinal-timeline li { display:grid; grid-template-columns:145px minmax(0,1fr); gap:20px; padding:22px 0; border-top:1px solid var(--border); }
+.longitudinal-timeline time { color:#526782; font-size:13px; font-variant-numeric:tabular-nums; }
+.longitudinal-timeline li > div > span { color:#147f6d; font-size:12px; font-weight:750; letter-spacing:.06em; text-transform:uppercase; }
+.longitudinal-timeline h3 { margin:6px 0; font-size:18px; }
+.longitudinal-timeline p { margin:6px 0 10px; white-space:pre-wrap; overflow-wrap:anywhere; }
+.longitudinal-timeline small { color:#526782; }
+.timeline-internal-note { margin-top:14px; padding:14px 16px; border-left:3px solid #d9a631; border-radius:0 12px 12px 0; background:#fff9e9; }
+.timeline-internal-note p { margin:5px 0 0; font-size:14px; }
+@media (max-width:650px) {
+  .longitudinal-patient-picker { display:grid; align-items:stretch; }
+  .longitudinal-patient-picker button { width:100%; }
+  .longitudinal-section { padding:20px; }
+  .measurement-grid { grid-template-columns:1fr; }
+  .longitudinal-timeline li { grid-template-columns:1fr; gap:7px; }
+}
