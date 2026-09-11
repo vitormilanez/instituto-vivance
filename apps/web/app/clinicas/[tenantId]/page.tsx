@@ -33,13 +33,11 @@ export default async function Dashboard({
       title: "Agenda",
       text: "Horários e compromissos da equipe.",
       href: `${base}/agenda`,
-      pending: true,
     },
     {
       title: "Atendimento",
       text: "Registro e evolução das consultas.",
       href: `${base}/atendimentos`,
-      pending: true,
     },
     {
       title: "Planos de cuidado",
@@ -90,8 +88,9 @@ export default async function Dashboard({
           </span>
         </div>
         <p>
-          Cadastre os pacientes e organize consultas e retornos na Agenda. O
-          acompanhamento clínico será liberado nas próximas entregas.
+          Cadastre os pacientes e organize consultas e retornos na Agenda.
+          Médicos podem iniciar o registro em Atendimentos; o conteúdo clínico
+          exige vínculo de cuidado ativo.
         </p>
       </section>
       <section aria-labelledby="quick-actions">

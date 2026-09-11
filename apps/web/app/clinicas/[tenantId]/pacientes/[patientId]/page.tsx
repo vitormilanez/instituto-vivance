@@ -94,12 +94,12 @@ export default async function Patient({
       <section className="panel future-care">
         <h2>Próximas etapas do cuidado</h2>
         <p>
-          A Agenda já está disponível no menu. Atendimentos, evolução, planos e
-          documentos ainda não estão disponíveis nesta versão.
+          Agenda e Atendimentos já estão disponíveis no menu. Planos, acompanhamento
+          e documentos serão conectados nas próximas etapas.
         </p>
         <p>
-          Esta ficha reúne os dados cadastrais. O registro clínico será liberado
-          com acesso específico para a equipe responsável pelo cuidado.
+          Esta ficha reúne os dados cadastrais. Os registros de consulta ficam em
+          Atendimentos, com acesso restrito à equipe com vínculo de cuidado ativo.
         </p>
       </section>
     </ClinicShell>
