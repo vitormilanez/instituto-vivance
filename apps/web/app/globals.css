@@ -489,6 +489,38 @@ input {
   background: white;
   color: var(--ink);
 }
+.agenda-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+.agenda-fields select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #c7cecb;
+  border-radius: 8px;
+  padding: 10px;
+  background: white;
+  color: inherit;
+  font: inherit;
+}
+.agenda-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0;
+}
+.agenda-dot {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  margin: 2px auto 0;
+}
 .field {
   margin-bottom: 20px;
 }

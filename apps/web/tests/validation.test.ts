@@ -62,3 +62,38 @@ test("blocks cross-origin and missing-origin cookie mutations", () => {
   );
   assert.equal(sameOrigin(new Request("https://vivance.example/api")), false);
 });
+test("origin uses the actual HTTP authority, never an untrusted forwarded host", () => {
+  const headers = { host: "127.0.0.1:3010", origin: "http://127.0.0.1:3010" };
+  assert.equal(
+    sameOrigin(new Request("http://localhost:3010/api", { headers })),
+    true,
+  );
+  assert.equal(
+    sameOrigin(
+      new Request("http://localhost:3010/api", {
+        headers: { ...headers, origin: "http://localhost:3010" },
+      }),
+    ),
+    false,
+  );
+  assert.equal(
+    sameOrigin(
+      new Request("http://localhost:3010/api", {
+        headers: {
+          ...headers,
+          origin: "https://evil.example",
+          "x-forwarded-host": "evil.example",
+        },
+      }),
+    ),
+    false,
+  );
+  assert.equal(
+    sameOrigin(
+      new Request("https://app.example/api", {
+        headers: { host: "app.example", origin: "http://app.example" },
+      }),
+    ),
+    false,
+  );
+});

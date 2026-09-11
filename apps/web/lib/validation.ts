@@ -70,5 +70,15 @@ export function pageNumber(value: string | null | undefined): number {
 
 export function sameOrigin(request: Request): boolean {
   const origin = request.headers.get("origin");
-  return origin !== null && origin === new URL(request.url).origin;
+  if (!origin || origin === "null") return false;
+  const url = new URL(request.url);
+  // Next's local URL uses the bind hostname (localhost), while the browser may
+  // request 127.0.0.1. Host is the HTTP authority; do not trust X-Forwarded-Host.
+  const authority = request.headers.get("host") ?? url.host;
+  if (!/^[a-z0-9.\-:\[\]]+$/i.test(authority)) return false;
+  try {
+    return origin === new URL(`${url.protocol}//${authority}`).origin;
+  } catch {
+    return false;
+  }
 }

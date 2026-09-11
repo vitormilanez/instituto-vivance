@@ -7,9 +7,9 @@ export const staffModules = [
     action: "Agendar consulta",
     tabs: ["Calendário", "Próximos retornos"],
     columns: ["Paciente", "Data e horário", "Profissional", "Situação"],
-    empty: "A agenda ainda não está conectada",
+    empty: "Nenhum agendamento neste período",
     detail:
-      "Os compromissos aparecerão aqui quando o agendamento estiver disponível.",
+      "As consultas e os retornos agendados pela equipe aparecerão aqui.",
   },
   {
     slug: "atendimentos",

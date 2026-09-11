@@ -14,6 +14,54 @@ export type Database = {
   };
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          doctor_id: string;
+          starts_at: string;
+          ends_at: string;
+          kind: string;
+          status: string;
+          version: number;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          tenant_id: string;
+          patient_id: string;
+          doctor_id: string;
+          starts_at: string;
+          ends_at: string;
+          kind?: string;
+        };
+        Update: {
+          patient_id?: string;
+          doctor_id?: string;
+          starts_at?: string;
+          ends_at?: string;
+          kind?: string;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "appointments_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "appointments_tenant_id_doctor_id_fkey";
+            columns: ["tenant_id", "doctor_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
       audit_events: {
         Row: {
           action: string;
@@ -57,6 +105,7 @@ export type Database = {
       };
       memberships: {
         Row: {
+          display_name: string | null;
           created_at: string;
           role: string;
           status: string;
@@ -64,6 +113,7 @@ export type Database = {
           user_id: string;
         };
         Insert: {
+          display_name?: string | null;
           created_at?: string;
           role: string;
           status?: string;
@@ -71,6 +121,7 @@ export type Database = {
           user_id: string;
         };
         Update: {
+          display_name?: string | null;
           created_at?: string;
           role?: string;
           status?: string;

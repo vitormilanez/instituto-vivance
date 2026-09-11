@@ -1,12 +1,13 @@
 // Synthetic fixtures exist ONLY in an ephemeral, in-process PostgreSQL engine.
 // This suite never connects to the Supabase project or creates real Auth accounts.
 import { PGlite } from "@electric-sql/pglite";
+import { btree_gist } from "@electric-sql/pglite/contrib/btree_gist";
 import { before, after, test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 
-const db = new PGlite();
+const db = new PGlite({ extensions: { btree_gist } });
 const a = randomUUID(),
   b = randomUUID();
 const users = Object.fromEntries(
@@ -21,7 +22,7 @@ before(async () => {
   await db.exec(`
     create role anon nologin; create role authenticated nologin;
     create schema auth;
-    create table auth.users(id uuid primary key, banned_until timestamptz, deleted_at timestamptz);
+    create table auth.users(id uuid primary key, email text, banned_until timestamptz, deleted_at timestamptz);
     create table auth.sessions(id uuid primary key, user_id uuid references auth.users, not_after timestamptz);
     create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
     create function auth.uid() returns uuid language sql stable as $$ select (auth.jwt()->>'sub')::uuid $$;
@@ -62,6 +63,285 @@ before(async () => {
 });
 after(async () => {
   await db.close();
+});
+
+async function book(
+  patient = pa,
+  doctor = users.doctor.id,
+  tenant = a,
+  start = "2099-09-10T12:00:00Z",
+  end = "2099-09-10T12:30:00Z",
+) {
+  const result = await db.query<{ id: string; version: number }>(
+    "insert into public.appointments(tenant_id,patient_id,doctor_id,starts_at,ends_at) values($1,$2,$3,$4,$5) returning id,version",
+    [tenant, patient, doctor, start, end],
+  );
+  return result.rows[0];
+}
+test("agenda allows staff scheduling, with atomic audit and server-owned version", async () => {
+  for (const role of ["admin", "doctor", "nurse"])
+    await asUser(role, async () => {
+      const created = await book();
+      assert.equal(created.version, 1);
+      const row = (
+        await db.query<{ created_by: string }>(
+          "select created_by from public.appointments where id=$1",
+          [created.id],
+        )
+      ).rows[0];
+      assert.equal(row.created_by, users[role].id);
+      if (role === "admin")
+        assert.equal(
+          (
+            await db.query(
+              "select id from public.audit_events where entity_type='appointments' and entity_id=$1",
+              [created.id],
+            )
+          ).rows.length,
+          1,
+        );
+    });
+});
+test("agenda prevents overlapping bookings and allows adjacent slots", async () => {
+  await asUser("admin", async () => {
+    await book();
+    await book(
+      pa,
+      users.doctor.id,
+      a,
+      "2099-09-10T12:30:00Z",
+      "2099-09-10T13:00:00Z",
+    );
+    await assert.rejects(
+      book(
+        pa,
+        users.doctor.id,
+        a,
+        "2099-09-10T12:15:00Z",
+        "2099-09-10T12:45:00Z",
+      ),
+      /exclusion constraint/,
+    );
+  });
+});
+test("agenda blocks cross-clinic patients, wrong-role and suspended doctors", async () => {
+  for (const [patient, doctor] of [
+    [pb, users.doctor.id],
+    [pa, users.patient.id],
+    [pa, users.suspended.id],
+    [pa, users.other.id],
+  ])
+    await asUser("admin", async () => {
+      await assert.rejects(
+        book(patient, doctor),
+        /foreign key|Active doctor required/,
+      );
+    });
+});
+test("agenda rejects anonymous, patient, outsider, suspended and cross-tenant writes", async () => {
+  for (const role of ["patient", "outsider", "suspended", "other"])
+    await asUser(role, async () => {
+      await assert.rejects(book(), /row-level security|Active doctor required/);
+    });
+  await db.exec("begin; set local role anon");
+  try {
+    await assert.rejects(
+      db.query("select * from public.appointments"),
+      /permission denied/,
+    );
+  } finally {
+    await db.exec("rollback");
+  }
+});
+test("agenda rejects past bookings and invalid durations in direct database writes", async () => {
+  for (const [start, end] of [
+    ["2020-01-01T12:00Z", "2020-01-01T12:30Z"],
+    ["2099-01-01T12:00Z", "2099-01-01T12:01Z"],
+    ["2099-01-01T12:00Z", "2099-01-01T21:00Z"],
+  ])
+    await asUser("admin", async () => {
+      await assert.rejects(
+        book(pa, users.doctor.id, a, start, end),
+        /future|check constraint/,
+      );
+    });
+});
+test("agenda optimistic edits reject stale version and cancellation preserves record", async () => {
+  await asUser("admin", async () => {
+    const created = await book();
+    const updated = await db.query<{ version: number }>(
+      "update public.appointments set starts_at='2099-09-10T14:00Z', ends_at='2099-09-10T14:30Z' where id=$1 and version=1 returning version",
+      [created.id],
+    );
+    assert.equal(updated.rows[0].version, 2);
+    assert.equal(
+      (
+        await db.query(
+          "update public.appointments set kind='return' where id=$1 and version=1 returning id",
+          [created.id],
+        )
+      ).rows.length,
+      0,
+    );
+    await db.query(
+      "update public.appointments set status='cancelled' where id=$1",
+      [created.id],
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.appointments where id=$1 and status='cancelled'",
+          [created.id],
+        )
+      ).rows.length,
+      1,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.audit_events where entity_id=$1",
+          [created.id],
+        )
+      ).rows.length,
+      3,
+    );
+    await book(
+      pa,
+      users.doctor.id,
+      a,
+      "2099-09-10T14:00Z",
+      "2099-09-10T14:30Z",
+    );
+    await assert.rejects(
+      db.query(
+        "update public.appointments set status='scheduled' where id=$1",
+        [created.id],
+      ),
+      /immutable/,
+    );
+  });
+});
+test("agenda identity, actor, version and deletion cannot be forged", async () => {
+  for (const mutation of [
+    "delete from public.appointments",
+    "update public.appointments set tenant_id=gen_random_uuid()",
+    "update public.appointments set created_by=gen_random_uuid()",
+    "update public.appointments set version=999",
+  ])
+    await asUser("admin", async () => {
+      await book();
+      await assert.rejects(db.query(mutation), /permission denied/);
+    });
+});
+test("patient sees only linked appointments, doctor name, and cannot edit", async () => {
+  await db.exec("begin");
+  try {
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,user_id,patient_id) values($1,$2,$3)",
+      [a, users.patient.id, pa],
+    );
+    await db.query("select set_config('request.jwt.claims',$1,true)", [
+      JSON.stringify({ sub: users.admin.id, session_id: users.admin.session }),
+    ]);
+    const own = await book();
+    await db.query("select set_config('request.jwt.claims',$1,true)", [
+      JSON.stringify({ sub: users.other.id, session_id: users.other.session }),
+    ]);
+    await book(pb, users.other.id, b);
+    await db.exec("set local role authenticated");
+    await db.query("select set_config('request.jwt.claims',$1,true)", [
+      JSON.stringify({
+        sub: users.patient.id,
+        session_id: users.patient.session,
+      }),
+    ]);
+    assert.deepEqual(
+      (
+        await db.query<{ id: string }>("select id from public.appointments")
+      ).rows.map((r) => r.id),
+      [own.id],
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select user_id from public.memberships where user_id=$1",
+          [users.doctor.id],
+        )
+      ).rows.length,
+      1,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "update public.appointments set status='cancelled' returning id",
+        )
+      ).rows.length,
+      0,
+    );
+    await db.query("select set_config('request.jwt.claims',$1,true)", [
+      JSON.stringify({ sub: users.patient.id, session_id: randomUUID() }),
+    ]);
+    assert.equal(
+      (await db.query("select * from public.appointments")).rows.length,
+      0,
+    );
+  } finally {
+    await db.exec("rollback");
+  }
+});
+test("doctor cannot read or change colleague appointments; patient overlap is blocked across doctors", async () => {
+  await db.exec("begin");
+  try {
+    await db.query(
+      "insert into public.memberships(tenant_id,user_id,role) values($1,$2,'doctor')",
+      [a, users.other.id],
+    );
+    await db.query("select set_config('request.jwt.claims',$1,true)", [
+      JSON.stringify({ sub: users.admin.id, session_id: users.admin.session }),
+    ]);
+    const colleague = await book(pa, users.other.id);
+    await db.exec("set local role authenticated");
+    await db.query("select set_config('request.jwt.claims',$1,true)", [
+      JSON.stringify({
+        sub: users.doctor.id,
+        session_id: users.doctor.session,
+      }),
+    ]);
+    assert.equal(
+      (await db.query("select * from public.appointments")).rows.length,
+      0,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "update public.appointments set status='cancelled' where id=$1 returning id",
+          [colleague.id],
+        )
+      ).rows.length,
+      0,
+    );
+    await assert.rejects(book(), /exclusion constraint/);
+  } finally {
+    await db.exec("rollback");
+  }
+});
+test("appointment audit failure rolls back the booking", async () => {
+  await db.exec("begin");
+  try {
+    await db.exec(
+      "alter table public.audit_events add constraint test_reject_appointment check (entity_type <> 'appointments') not valid; set local role authenticated",
+    );
+    await db.query("select set_config('request.jwt.claims',$1,true)", [
+      JSON.stringify({ sub: users.admin.id, session_id: users.admin.session }),
+    ]);
+    await assert.rejects(book(), /test_reject_appointment/);
+  } finally {
+    await db.exec("rollback");
+  }
+  assert.equal(
+    (await db.query("select * from public.appointments")).rows.length,
+    0,
+  );
 });
 
 async function asUser(

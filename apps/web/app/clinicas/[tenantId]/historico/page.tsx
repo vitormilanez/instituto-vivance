@@ -21,6 +21,7 @@ export default async function Audit({
     throw error;
   });
   const labels: Record<string, string> = {
+    appointments: "Agendamento",
     patient_accounts: "Acesso do paciente",
     patients: "Paciente",
     tenants: "Clínica",
@@ -49,8 +50,14 @@ export default async function Audit({
             {context.events.map((e) => (
               <li key={e.id}>
                 <strong>
-                  {e.action === "insert" ? "Cadastro" : "Atualização"} ·{" "}
-                  {labels[e.entity_type] ?? "Registro"}
+                  {e.entity_type === "appointments" &&
+                  e.changed_fields.includes("status") &&
+                  e.action === "update"
+                    ? "Cancelamento"
+                    : e.action === "insert"
+                      ? "Cadastro"
+                      : "Atualização"}{" "}
+                  · {labels[e.entity_type] ?? "Registro"}
                 </strong>
                 <small>
                   {new Date(e.created_at).toLocaleString("pt-BR", {
