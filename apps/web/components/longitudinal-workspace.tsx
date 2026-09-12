@@ -58,9 +58,19 @@ function Measures({ measures }: { measures: MeasurementSeries[] }) {
 export function StaffLongitudinalWorkspace({
   initial,
   base,
+  showPatientPicker = true,
+  showMeasures = true,
+  showTimeline = true,
+  backHref,
+  backLabel = "Voltar para a fila de check-ins",
 }: {
   initial: StaffLongitudinal;
   base: string;
+  showPatientPicker?: boolean;
+  showMeasures?: boolean;
+  showTimeline?: boolean;
+  backHref?: string;
+  backLabel?: string;
 }) {
   const events = [
     ...initial.checkIns.flatMap((item) =>
@@ -100,25 +110,28 @@ export function StaffLongitudinalWorkspace({
     );
   return (
     <div className="longitudinal-workspace">
-      <form className="panel longitudinal-patient-picker" method="get">
-        <input type="hidden" name="aba" value="evolucao" />
-        <label className="field">
-          Paciente
-          <select name="paciente" defaultValue={initial.selectedPatient.id}>
-            {initial.patients.map((patient) => (
-              <option key={patient.id} value={patient.id}>
-                {patient.display_name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button className="secondary">Abrir evolução</button>
-      </form>
-      <Measures measures={initial.measures} />
-      <section
-        className="longitudinal-section"
-        aria-labelledby="staff-timeline-title"
-      >
+      {showPatientPicker && (
+        <form className="panel longitudinal-patient-picker" method="get">
+          <input type="hidden" name="aba" value="evolucao" />
+          <label className="field">
+            Paciente
+            <select name="paciente" defaultValue={initial.selectedPatient.id}>
+              {initial.patients.map((patient) => (
+                <option key={patient.id} value={patient.id}>
+                  {patient.display_name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="secondary">Abrir evolução</button>
+        </form>
+      )}
+      {showMeasures && <Measures measures={initial.measures} />}
+      {showTimeline && (
+        <section
+          className="longitudinal-section"
+          aria-labelledby="staff-timeline-title"
+        >
         <div className="section-heading">
           <div>
             <h2 id="staff-timeline-title">Linha do tempo</h2>
@@ -158,8 +171,9 @@ export function StaffLongitudinalWorkspace({
             específico para itens anteriores.
           </p>
         )}
-      </section>
-      <Link href={`${base}?aba=check-ins`}>Voltar para a fila de check-ins</Link>
+        </section>
+      )}
+      <Link href={backHref ?? `${base}?aba=check-ins`}>{backLabel}</Link>
     </div>
   );
 }

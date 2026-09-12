@@ -224,6 +224,40 @@ function DocumentList({
   );
 }
 
+export function StaffPatientDocumentsPanel({
+  initial,
+  base,
+}: {
+  initial: StaffDocuments;
+  base: string;
+}) {
+  const pageHref = (page: number) => `${base}&pagina=${page}`;
+  return (
+    <section className="document-board" aria-labelledby="patient-documents-title">
+      <div className="section-heading">
+        <div>
+          <h2 id="patient-documents-title">Documentos privados</h2>
+          <p>Arquivos disponíveis para este paciente e seu vínculo de cuidado.</p>
+        </div>
+        <span className="quiet-label">{initial.documents.length} nesta página</span>
+      </div>
+      <DocumentList
+        documents={initial.documents}
+        tenant={initial.clinic.id}
+        showPatient={false}
+      />
+      <nav className="agenda-actions" aria-label="Páginas de documentos deste paciente">
+        {initial.page > 1 && <Link href={pageHref(initial.page - 1)}>Anterior</Link>}
+        {initial.hasNext && <Link href={pageHref(initial.page + 1)}>Próxima</Link>}
+      </nav>
+      <p className="module-footnote">
+        Disponível não significa revisado pela equipe. O arquivo não é
+        interpretado ou altera o plano de cuidado automaticamente.
+      </p>
+    </section>
+  );
+}
+
 export function StaffDocumentsWorkspace({ initial }: { initial: StaffDocuments }) {
   const base = `/clinicas/${initial.clinic.id}/documentos`;
   return (

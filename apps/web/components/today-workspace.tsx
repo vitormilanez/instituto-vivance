@@ -22,10 +22,12 @@ export function PatientCareLinks({
   base,
   patientId,
   context,
+  recordBase,
 }: {
   base: string;
   patientId: string;
   context: Awaited<ReturnType<typeof patientCareContext>>;
+  recordBase?: string;
 }) {
   return (
     <div className="care-context-links">
@@ -69,7 +71,7 @@ export function PatientCareLinks({
         <span>Cadastro e registros disponíveis.</span>
         <span>Abrir ficha</span>
       </Link>
-      <Link href={`${base}/documentos`}>
+      <Link href={recordBase ? `${recordBase}?aba=Documentos` : `${base}/documentos`}>
         <strong>Acompanhamento e exames</strong>
         <span>
           Check-ins e documentos privados disponíveis conforme o vínculo de cuidado.

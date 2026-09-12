@@ -117,18 +117,25 @@ export async function completeDocument(id: string, document: string) {
   return { id: response.id };
 }
 
-export async function staffDocuments(id: string, pageInput?: string) {
+export async function staffDocuments(
+  id: string,
+  pageInput?: string,
+  patientInput?: string,
+) {
   const tenant = tenantId(id);
   const page = documentPage(pageInput);
+  const patient = patientInput ? tenantId(patientInput) : null;
   const { client, clinic, user } = await requireClinic(tenant, ["doctor", "nurse"]);
+  let documentQuery = client
+    .from("patient_documents")
+    .select(
+      "*,patients!patient_documents_tenant_id_patient_id_fkey(display_name)",
+    )
+    .eq("tenant_id", tenant)
+    .eq("status", "available");
+  if (patient) documentQuery = documentQuery.eq("patient_id", patient);
   const [documents, relationships] = await Promise.all([
-    client
-      .from("patient_documents")
-      .select(
-        "*,patients!patient_documents_tenant_id_patient_id_fkey(display_name)",
-      )
-      .eq("tenant_id", tenant)
-      .eq("status", "available")
+    documentQuery
       .order("created_at", { ascending: false })
       .order("id")
       .range((page - 1) * 20, page * 20),
@@ -144,13 +151,19 @@ export async function staffDocuments(id: string, pageInput?: string) {
   ]);
   if (documents.error || relationships.error)
     databaseFailure(documents.error?.code ?? relationships.error?.code);
+  const patients = (relationships.data ?? []).map((relationship) => ({
+    id: relationship.patient_id,
+    display_name: relationship.patients?.display_name ?? "Paciente",
+  }));
+  if (patient && !patients.some((item) => item.id === patient))
+    throw new DocumentError(
+      "Seu vínculo de cuidado com este paciente não está ativo.",
+      403,
+    );
   return {
     clinic,
     documents: ((documents.data ?? []).slice(0, 20) as StaffDocument[]),
-    patients: (relationships.data ?? []).map((relationship) => ({
-      id: relationship.patient_id,
-      display_name: relationship.patients?.display_name ?? "Paciente",
-    })),
+    patients,
     page,
     hasNext: (documents.data?.length ?? 0) > 20,
   };

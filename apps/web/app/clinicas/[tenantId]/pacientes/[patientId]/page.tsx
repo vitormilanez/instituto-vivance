@@ -4,14 +4,15 @@ import { getPatient } from "@/modules/patients/service";
 import { AccessError } from "@/modules/identity/service";
 import { InputError } from "@/lib/validation";
 import { ClinicShell } from "@/components/clinic-shell";
-import {
-  DevelopmentNotice,
-  EmptyModule,
-  ModuleTabs,
-} from "@/components/module-ui";
+import { ModuleTabs } from "@/components/module-ui";
 import { selectedTab } from "@/modules/workspace/navigation";
 import { patientCareContext } from "@/modules/workspace/today";
 import { PatientCareLinks } from "@/components/today-workspace";
+import { StaffLongitudinalWorkspace } from "@/components/longitudinal-workspace";
+import { CheckInError } from "@/modules/check-ins/service";
+import { staffLongitudinal } from "@/modules/longitudinal/service";
+import { DocumentError, staffDocuments } from "@/modules/documents/service";
+import { StaffPatientDocumentsPanel } from "@/components/documents-workspace";
 export const dynamic = "force-dynamic";
 
 export default async function Patient({
@@ -19,9 +20,10 @@ export default async function Patient({
   searchParams,
 }: {
   params: Promise<{ tenantId: string; patientId: string }>;
-  searchParams: Promise<{ aba?: string | string[] }>;
+  searchParams: Promise<{ aba?: string | string[]; pagina?: string }>;
 }) {
   const { tenantId, patientId } = await params;
+  const query = await searchParams;
   const context = await getPatient(tenantId, patientId).catch((error) => {
     if (error instanceof AccessError && error.status === 401) redirect("/");
     if (error instanceof AccessError || error instanceof InputError) notFound();
@@ -30,10 +32,28 @@ export default async function Patient({
   if (!context.patient) notFound();
   const p = context.patient;
   const tabs = ["Visão geral", "Linha do tempo", "Documentos", "Evolução"];
-  const active = selectedTab(tabs, (await searchParams).aba);
+  const active = selectedTab(tabs, query.aba);
+  const recordBase = `/clinicas/${tenantId}/pacientes/${patientId}`;
+  const clinicalArea = context.clinic.role !== "admin";
   const care =
-    context.clinic.role !== "admin" && active === "Visão geral"
+    clinicalArea && active === "Visão geral"
       ? await patientCareContext(tenantId, patientId)
+      : null;
+  const longitudinal =
+    clinicalArea && ["Linha do tempo", "Evolução"].includes(active)
+      ? await staffLongitudinal(tenantId, patientId).catch((error) => {
+          if (error instanceof CheckInError || error instanceof InputError)
+            notFound();
+          throw error;
+        })
+      : null;
+  const documents =
+    clinicalArea && active === "Documentos"
+      ? await staffDocuments(tenantId, query.pagina, patientId).catch((error) => {
+          if (error instanceof DocumentError || error instanceof InputError)
+            notFound();
+          throw error;
+        })
       : null;
   return (
     <ClinicShell clinic={context.clinic} active="patients">
@@ -64,7 +84,7 @@ export default async function Patient({
       <ModuleTabs
         tabs={tabs}
         active={active}
-        base={`/clinicas/${tenantId}/pacientes/${patientId}`}
+        base={recordBase}
       />
       {active === "Visão geral" ? (
         <>
@@ -76,6 +96,7 @@ export default async function Patient({
                 base={`/clinicas/${tenantId}`}
                 patientId={patientId}
                 context={care}
+                recordBase={recordBase}
               />
             </section>
           )}
@@ -113,39 +134,38 @@ export default async function Patient({
             </dl>
           </section>
         </>
-      ) : active === "Documentos" ? (
-        context.clinic.role === "admin" ? (
-          <section className="panel">
-            <h2>Acesso clínico restrito</h2>
-            <p>
-              O perfil administrativo não acessa arquivos de pacientes nem seus
-              metadados clínicos.
-            </p>
-          </section>
-        ) : (
-          <section className="panel">
-            <h2>Documentos privados</h2>
-            <p>
-              Os arquivos deste paciente aparecem em Documentos somente para
-              profissionais com vínculo de cuidado ativo.
-            </p>
-            <Link className="button secondary" href={`/clinicas/${tenantId}/documentos`}>
-              Abrir documentos
-            </Link>
-          </section>
-        )
-      ) : (
-        <>
-          <DevelopmentNotice />
-          <section className="panel">
-            <h2>{active}</h2>
-            <EmptyModule title="Esta parte da ficha ainda será conectada">
-              Os registros clínicos serão disponibilizados após a integração e a
-              definição das permissões da equipe de cuidado.
-            </EmptyModule>
-          </section>
-        </>
-      )}
+      ) : !clinicalArea ? (
+        <section className="panel">
+          <h2>Acesso clínico restrito</h2>
+          <p>
+            O perfil administrativo pode organizar vínculos, mas não acessa
+            documentos, relatos, medidas ou histórico clínico.
+          </p>
+        </section>
+      ) : active === "Documentos" && documents ? (
+        <StaffPatientDocumentsPanel
+          initial={documents}
+          base={`${recordBase}?aba=Documentos`}
+        />
+      ) : active === "Linha do tempo" && longitudinal ? (
+        <StaffLongitudinalWorkspace
+          initial={longitudinal}
+          base={recordBase}
+          showPatientPicker={false}
+          showMeasures={false}
+          backHref={`${recordBase}?aba=Visão%20geral`}
+          backLabel="Voltar à visão geral do paciente"
+        />
+      ) : active === "Evolução" && longitudinal ? (
+        <StaffLongitudinalWorkspace
+          initial={longitudinal}
+          base={recordBase}
+          showPatientPicker={false}
+          showTimeline={false}
+          backHref={`${recordBase}?aba=Linha%20do%20tempo`}
+          backLabel="Abrir linha do tempo do paciente"
+        />
+      ) : null}
       <section className="panel future-care">
         <h2>Equipe de cuidado</h2>
         {context.clinic.role === "admin" ? (
