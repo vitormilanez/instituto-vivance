@@ -2,6 +2,14 @@
 
 Atualizado em 11/09/2026. Referência central de continuidade: distingue entregas verificadas, próximo trabalho e limites do piloto. Não autoriza uso clínico real.
 
+## Atualização de execução — 12/09/2026
+
+A prioridade abaixo de 11/09 é histórica. A base já incorpora 7B.1/7B.2 e a correção de primeiro acesso (PR #15 merged). Por solicitação do titular, **3E/4E — convite de paciente e onboarding** precede agora 7B.3. Ver [escopo, decisões e validação](ONBOARDING_MVP.md) e [plano visual e sequência](PLANO_PROXIMOS_SLICES_2026-09-12.md).
+
+Implementação no checkout `instituto-vivance-onboarding`, branch `codex/onboarding-paciente`, base `7b49597`. Médico e administrador convidam; WhatsApp usa link manual e o paciente informa e-mail ao abrir. O onboarding opcional tem foto, medidas, cinco perguntas, exames e revisão consentida; o médico vê a versão enviada na ficha. A área normal permanece utilizável. Oito ações rápidas e Agenda existentes preservadas.
+
+Estado: código integrado e testes locais, sem publicação nem aplicação remota da nova migration. A próxima evolução é **7B.3 — conectar pré-consulta ao atendimento**, depois 7B.4 e 7B.5. Escolha de agentes registrada em `AGENTS.md`: Sol/Medium para acesso/banco; Terra/Medium para interface. IA e áudio continuam adiados.
+
 ## 1. Onde continuar
 
 ### Prioridade vigente — fluxos e layout, sem áudio e IA (11/09/2026)

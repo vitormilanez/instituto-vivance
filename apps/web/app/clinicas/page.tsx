@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { clinics, AccessError, roleLabels } from "@/modules/identity/service";
 import { Header } from "@/components/header";
+import { PatientInvitations } from "@/components/patient-invitations";
+import { listMyPatientInvitations } from "@/modules/onboarding/service";
 import { ClinicInvitations } from "@/components/clinic-invitations";
 export const dynamic = "force-dynamic";
 export default async function Clinics() {
@@ -9,14 +11,18 @@ export default async function Clinics() {
     if (error instanceof AccessError && error.status === 401) redirect("/");
     throw error;
   });
+  const patientInvitations = await listMyPatientInvitations();
   return (
     <>
       <Header />
       <main id="conteudo" className="container">
         <h1>Minhas clínicas</h1>
-        <p>Escolha a clínica para abrir seu painel de trabalho.</p>
+        <p>Escolha a clínica para continuar.</p>
         <ClinicInvitations invitations={context.invitations} />
-        {context.clinics.length === 0 && context.invitations.length === 0 ? (
+        <PatientInvitations invitations={patientInvitations} />
+        {context.clinics.length === 0 &&
+        context.invitations.length === 0 &&
+        patientInvitations.length === 0 ? (
           <section className="panel empty">
             <h2>Aguardando liberação de acesso</h2>
             <p>
@@ -51,7 +57,7 @@ export default async function Clinics() {
         <p className="notice">
           {context.clinics.length > 0 &&
           context.clinics.every((c) => c.role === "patient")
-            ? "Seu perfil e suas consultas já estão disponíveis. Planos e mensagens serão liberados nas próximas entregas."
+            ? "Abra Meu cuidado para ver suas consultas, orientações e conversas com o médico."
             : "Já disponíveis: visão geral, cadastro de pacientes, agenda, atendimentos e equipe de cuidado."}
         </p>
       </main>

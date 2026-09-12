@@ -701,6 +701,66 @@ export type Database = {
           },
         ];
       };
+      patient_invitations: {
+        Row: {
+          id: string; tenant_id: string; display_name: string; channel: string;
+          recipient_email: string | null; recipient_phone: string | null;
+          token_hash: string | null; doctor_id: string; invited_by: string;
+          status: string; delivery_status: string; expires_at: string;
+          version: number;
+          claimed_at: string | null; accepted_at: string | null;
+          accepted_by: string | null; patient_id: string | null;
+          created_at: string; updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      patient_onboarding: {
+        Row: {
+          tenant_id: string; patient_id: string; user_id: string;
+          status: string; current_step: string; skipped_steps: string[];
+          questionnaire_version: string;
+          exam_document_ids: string[]; photo_document_id: string | null;
+          birth_date: string | null; weight_kg: number | null;
+          height_cm: number | null; waist_cm: number | null;
+          measured_on: string | null; answer_goal: string;
+          answer_history: string; answer_routine: string;
+          answer_treatments: string; answer_questions: string;
+          share_consent: boolean; version: number;
+          expected_version: number | null; submitted_at: string | null;
+          created_at: string; updated_at: string;
+        };
+        Insert: never;
+        Update: {
+          current_step?: string; skipped_steps?: string[];
+          exam_document_ids?: string[]; photo_document_id?: string | null;
+          birth_date?: string | null; weight_kg?: number | null;
+          height_cm?: number | null; waist_cm?: number | null;
+          measured_on?: string | null; answer_goal?: string;
+          answer_history?: string; answer_routine?: string;
+          answer_treatments?: string; answer_questions?: string;
+          share_consent?: boolean; expected_version: number;
+        };
+        Relationships: [];
+      };
+      patient_onboarding_submissions: {
+        Row: {
+          id: string; tenant_id: string; patient_id: string; user_id: string;
+          source_version: number; current_step: string; skipped_steps: string[];
+          questionnaire_version: string;
+          exam_document_ids: string[]; photo_document_id: string | null;
+          birth_date: string | null; weight_kg: number | null;
+          height_cm: number | null; waist_cm: number | null;
+          measured_on: string | null; answer_goal: string;
+          answer_history: string; answer_routine: string;
+          answer_treatments: string; answer_questions: string;
+          share_consent: boolean; submitted_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       patients: {
         Row: {
           birth_date: string | null;
@@ -765,6 +825,41 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      list_my_patient_invitations: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          id: string; tenant_id: string; clinic_name: string;
+          display_name: string; status: string; expires_at: string;
+          created_at: string;
+        }[];
+      };
+      accept_patient_invitation: {
+        Args: { target_invitation: string; explicit_accept: boolean };
+        Returns: {
+          invitation_id: string; tenant_id: string; patient_id: string;
+          onboarding_version: number;
+        }[];
+      };
+      submit_patient_onboarding: {
+        Args: { target_tenant: string; read_version: number; explicit_share_consent: boolean };
+        Returns: number;
+      };
+      get_my_patient_onboarding_context: {
+        Args: { target_tenant: string };
+        Returns: { clinic_name: string; doctor_name: string }[];
+      };
+      list_clinic_patient_invitations: {
+        Args: { target_tenant: string };
+        Returns: {
+          id: string; display_name: string; channel: string; status: string;
+          doctor_id: string; delivery_status: string; expires_at: string;
+          created_at: string;
+        }[];
+      };
+      revoke_patient_invitation: {
+        Args: { target_tenant: string; target_invitation: string };
+        Returns: boolean;
+      };
       mark_in_app_notification_read: {
         Args: {
           target_tenant: string;

@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  InputError,
   patientInput,
   tenantId,
   pageNumber,
@@ -14,6 +15,13 @@ import {
   teamInvitationInput,
 } from "../modules/team/validation.ts";
 import { notificationPreferenceInput } from "../modules/notifications/validation.ts";
+import {
+  acceptInvitationInput,
+  claimInvitationInput,
+  onboardingPatchInput,
+  onboardingSubmissionInput,
+  patientInvitationInput,
+} from "../modules/onboarding/validation.ts";
 
 test("normalizes demographic input without creating placeholder values", () => {
   assert.deepEqual(
@@ -184,4 +192,34 @@ test("notification preferences accept only an explicit in-app boolean", () => {
       recipient_user_id: "forged",
     }),
   );
+});
+test("patient invitations keep recipient channels exclusive and server-owned", () => {
+  assert.deepEqual(patientInvitationInput({ displayName: "  Maria   Silva ", channel: "email", email: " MARIA@EXAMPLE.COM " }), {
+    displayName: "Maria Silva", channel: "email", email: "maria@example.com", doctorId: undefined,
+  });
+  assert.deepEqual(patientInvitationInput({ displayName: "Maria", channel: "whatsapp", phone: "+55 (11) 99999-9999" }), {
+    displayName: "Maria", channel: "whatsapp", phone: "+5511999999999", doctorId: undefined,
+  });
+  assert.throws(() => patientInvitationInput({ displayName: "Maria", channel: "whatsapp", phone: "+5511999999999", email: "forged@example.com" }));
+  assert.throws(() => patientInvitationInput({ displayName: "Maria", channel: "email", email: "m@example.com", invitedBy: "forged" }));
+});
+test("claim, accept and submit require bounded token and explicit consent", () => {
+  assert.deepEqual(claimInvitationInput({ token: "a".repeat(43), email: "P@EXAMPLE.COM" }), { token: "a".repeat(43), email: "p@example.com" });
+  assert.throws(() => claimInvitationInput({ token: "short", email: "p@example.com" }));
+  assert.deepEqual(acceptInvitationInput({ invitationId: "00000000-0000-4000-8000-000000000001", accept: true }), { invitationId: "00000000-0000-4000-8000-000000000001", accept: true });
+  assert.throws(() => acceptInvitationInput({ invitationId: "00000000-0000-4000-8000-000000000001", accept: false }));
+  assert.deepEqual(onboardingSubmissionInput({ version: 2, shareConsent: true }), { version: 2, shareConsent: true });
+  assert.throws(() => onboardingSubmissionInput({ version: 2, shareConsent: false }));
+});
+test("onboarding patch is partial, bounded and versioned", () => {
+  assert.deepEqual(onboardingPatchInput({ version: 3, currentStep: "questions", skippedSteps: ["profile", "profile"], answers: { goal: "", questions: "Dúvida" }, measurements: { weightKg: null } }), {
+    expected_version: 3, current_step: "questions", skipped_steps: ["profile"], answer_goal: "", answer_questions: "Dúvida", weight_kg: null,
+  });
+  assert.throws(() => onboardingPatchInput({ version: 1 }));
+  assert.throws(() => onboardingPatchInput({ version: 1, answers: { goal: "x".repeat(4001) } }));
+  assert.throws(() => onboardingPatchInput({ version: 1, examDocumentIds: Array(51).fill("00000000-0000-4000-8000-000000000001") }));
+});
+
+test("onboarding rejects impossible ISO dates with a user input error", () => {
+  assert.throws(() => onboardingPatchInput({version:1, profile:{birthDate:"2026-99-99"}}), InputError);
 });

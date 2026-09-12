@@ -4,6 +4,9 @@ import { listPatients } from "@/modules/patients/service";
 import { AccessError } from "@/modules/identity/service";
 import { InputError, pageNumber, patientSearch } from "@/lib/validation";
 import { ClinicShell } from "@/components/clinic-shell";
+import { PatientInvitationForm } from "@/components/patient-invitation-form";
+import { PatientInvitationList } from "@/components/patient-invitation-list";
+import { listClinicPatientInvitations } from "@/modules/onboarding/service";
 import { PatientForm } from "@/components/forms";
 export const dynamic = "force-dynamic";
 
@@ -26,6 +29,12 @@ export default async function Patients({
     if (error instanceof AccessError || error instanceof InputError) notFound();
     throw error;
   });
+  const canInvite =
+    context.clinic.role === "admin" || context.clinic.role === "doctor";
+  const invitationContext = canInvite
+    ? await listClinicPatientInvitations(tenantId)
+    : { doctors: [], invitations: [] };
+  const doctors = invitationContext.doctors;
   const base = `/clinicas/${tenantId}/pacientes`;
   const pageHref = (page: number) =>
     `${base}?${new URLSearchParams({ q: context.term, page: String(page) })}`;
@@ -36,8 +45,11 @@ export default async function Patients({
           <h1>Pacientes</h1>
           <p>Encontre um cadastro ou adicione uma pessoa à clínica.</p>
         </div>
-        <Link className="button" href="#novo-paciente">
-          Cadastrar paciente
+        <Link
+          className="button"
+          href={canInvite ? "#convidar-paciente" : "#novo-paciente"}
+        >
+          {canInvite ? "Convidar paciente" : "Cadastrar paciente"}
         </Link>
       </div>
       <div className="grid">
@@ -119,10 +131,27 @@ export default async function Patients({
             )}
           </nav>
         </section>
-        <aside className="panel" id="novo-paciente">
-          <h2>Novo paciente</h2>
-          <p>Informe os dados básicos para abrir a ficha.</p>
-          <PatientForm tenantId={tenantId} />
+        <aside>
+          {canInvite && (
+            <div id="convidar-paciente">
+              <PatientInvitationForm
+                tenantId={tenantId}
+                role={context.clinic.role as "admin" | "doctor"}
+                doctors={doctors}
+              />
+            </div>
+          )}
+          {canInvite && (
+            <PatientInvitationList
+              tenantId={tenantId}
+              invitations={invitationContext.invitations}
+            />
+          )}
+          <section className="panel" id="novo-paciente">
+            <h2>Novo paciente</h2>
+            <p>Informe os dados básicos para abrir a ficha.</p>
+            <PatientForm tenantId={tenantId} />
+          </section>
         </aside>
       </div>
     </ClinicShell>

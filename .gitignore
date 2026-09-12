@@ -38,7 +38,7 @@ next-env.d.ts
 /work/
 
 # Isolated native Next.js application
-apps/*/node_modules/
+apps/*/node_modules
 apps/*/.next/
 apps/*/*.tsbuildinfo
 supabase/.temp/

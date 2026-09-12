@@ -1,3 +1,5 @@
+import { getSubmittedPatientOnboarding } from "@/modules/onboarding/service";
+import { OnboardingSummary } from "@/components/onboarding-summary";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getPatient } from "@/modules/patients/service";
@@ -35,6 +37,10 @@ export default async function Patient({
   const active = selectedTab(tabs, query.aba);
   const recordBase = `/clinicas/${tenantId}/pacientes/${patientId}`;
   const clinicalArea = context.clinic.role !== "admin";
+  const onboarding =
+    clinicalArea && active === "Visão geral"
+      ? await getSubmittedPatientOnboarding(tenantId, patientId)
+      : null;
   const care =
     clinicalArea && active === "Visão geral"
       ? await patientCareContext(tenantId, patientId)
@@ -49,11 +55,13 @@ export default async function Patient({
       : null;
   const documents =
     clinicalArea && active === "Documentos"
-      ? await staffDocuments(tenantId, query.pagina, patientId).catch((error) => {
-          if (error instanceof DocumentError || error instanceof InputError)
-            notFound();
-          throw error;
-        })
+      ? await staffDocuments(tenantId, query.pagina, patientId).catch(
+          (error) => {
+            if (error instanceof DocumentError || error instanceof InputError)
+              notFound();
+            throw error;
+          },
+        )
       : null;
   return (
     <ClinicShell clinic={context.clinic} active="patients">
@@ -81,13 +89,15 @@ export default async function Patient({
         </div>
         <span className="appointment-status scheduled">Cadastro ativo</span>
       </header>
-      <ModuleTabs
-        tabs={tabs}
-        active={active}
-        base={recordBase}
-      />
+      <ModuleTabs tabs={tabs} active={active} base={recordBase} />
       {active === "Visão geral" ? (
         <>
+          {onboarding && (
+            <OnboardingSummary
+              record={onboarding}
+              documentsHref={`${recordBase}?aba=Documentos`}
+            />
+          )}
           {care && (
             <section className="panel">
               <h2>Contexto do acompanhamento</h2>

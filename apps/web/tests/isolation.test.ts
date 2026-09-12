@@ -23,7 +23,7 @@ before(async () => {
     create role anon nologin; create role authenticated nologin; create role service_role nologin;
     create schema auth;
     create schema storage;
-    create table auth.users(id uuid primary key, email text, banned_until timestamptz, deleted_at timestamptz);
+    create table auth.users(id uuid primary key, email text, email_confirmed_at timestamptz, banned_until timestamptz, deleted_at timestamptz);
     create table auth.sessions(id uuid primary key, user_id uuid references auth.users, not_after timestamptz);
     create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
     create function auth.uid() returns uuid language sql stable as $$ select (auth.jwt()->>'sub')::uuid $$;
@@ -2388,10 +2388,11 @@ test("private documents isolate internal files and immediately follow care-accou
       [a, pa, users.patient.id],
     );
     await db.exec("set local role service_role");
-    await denied(
+    const patientInternal = await db.query<{ document_id: string }>(
       "select * from public.reserve_patient_document($1,$2,$3,'forbidden.pdf','application/pdf',6,'exam','internal')",
       [a, pa, users.patient.id],
     );
+    assert.equal(patientInternal.rows.length, 1);
     await switchActor("patient");
     const patientShared = await reservePrivateDocumentAs(
       "patient",
@@ -2979,5 +2980,125 @@ test("plan publication creates a generic notice only for the linked patient", as
         "Synthetic private guidance must stay in the publication",
       ),
     );
+  });
+});
+
+test("verified patient invitation acceptance atomically creates identity, active self-doctor care and onboarding", async () => {
+  await asUser("outsider", async () => {
+    await db.exec("reset role");
+    await db.query("update auth.users set email='new.patient@example.com',email_confirmed_at=clock_timestamp() where id=$1", [users.outsider.id]);
+    const invitation = await db.query<{ id: string }>(
+      "insert into public.patient_invitations(tenant_id,display_name,channel,recipient_email,doctor_id,invited_by,delivery_status) values($1,'New Patient','email','new.patient@example.com',$2,$2,'requested') returning id",
+      [a, users.doctor.id],
+    );
+    await switchActor("outsider");
+    const accepted = await db.query<{ patient_id: string }>("select patient_id from public.accept_patient_invitation($1,true)", [invitation.rows[0].id]);
+    assert.equal(accepted.rows.length, 1);
+    const patient = accepted.rows[0].patient_id;
+    assert.deepEqual((await db.query<{ role: string; status: string }>("select role,status from public.memberships where tenant_id=$1 and user_id=$2", [a, users.outsider.id])).rows, [{ role: "patient", status: "active" }]);
+    await db.exec("reset role");
+    assert.deepEqual((await db.query<{ status: string }>("select status from public.care_relationships where tenant_id=$1 and patient_id=$2", [a, patient])).rows, [{ status: "active" }]);
+    await switchActor("outsider");
+    assert.deepEqual((await db.query<{ status: string; questionnaire_version: string }>("select status,questionnaire_version from public.patient_onboarding where tenant_id=$1", [a])).rows, [{ status: "draft", questionnaire_version: "vivance-preconsulta-v1" }]);
+  });
+});
+
+test("admin-assigned invitation keeps doctor acceptance pending and fails closed when identities change", async () => {
+  await asUser("outsider", async () => {
+    await db.exec("reset role");
+    await db.query("update auth.users set email='assigned.patient@example.com',email_confirmed_at=clock_timestamp() where id=$1", [users.outsider.id]);
+    const invitation = await db.query<{ id: string }>(
+      "insert into public.patient_invitations(tenant_id,display_name,channel,recipient_email,doctor_id,invited_by,delivery_status) values($1,'Assigned Patient','email','assigned.patient@example.com',$2,$3,'requested') returning id",
+      [a, users.doctor.id, users.admin.id],
+    );
+    await switchActor("outsider");
+    const accepted = await db.query<{ patient_id: string }>("select patient_id from public.accept_patient_invitation($1,true)", [invitation.rows[0].id]);
+    await db.exec("reset role");
+    assert.equal((await db.query<{ status: string }>("select status from public.care_relationships where patient_id=$1", [accepted.rows[0].patient_id])).rows[0].status, "assigned");
+  });
+  await asUser("outsider", async () => {
+    await db.exec("reset role");
+    await db.query("update auth.users set email='unclaimed@example.com',email_confirmed_at=clock_timestamp() where id=$1", [users.outsider.id]);
+    const invitation = await db.query<{ id: string }>(
+      "insert into public.patient_invitations(tenant_id,display_name,channel,recipient_phone,token_hash,doctor_id,invited_by) values($1,'Unclaimed','whatsapp','+5511999999999',$3,$2,$2) returning id",
+      [a, users.doctor.id, "a".repeat(64)],
+    );
+    await switchActor("outsider");
+    await denied("select * from public.accept_patient_invitation($1,true)", [invitation.rows[0].id]);
+    await db.exec("reset role");
+    assert.equal((await db.query("select id from public.patients where display_name='Unclaimed'")).rows.length, 0);
+  });
+});
+
+test("onboarding draft is patient-private, versioned and exposes immutable consented submission only to active care", async () => {
+  await asUser("outsider", async () => {
+    await db.exec("reset role");
+    await db.query("update auth.users set email='onboarding@example.com',email_confirmed_at=clock_timestamp() where id=$1", [users.outsider.id]);
+    const invitation = await db.query<{ id: string }>(
+      "insert into public.patient_invitations(tenant_id,display_name,channel,recipient_email,doctor_id,invited_by) values($1,'Onboarding Patient','email','onboarding@example.com',$2,$2) returning id",
+      [a, users.doctor.id],
+    );
+    await switchActor("outsider");
+    const accepted = await db.query<{ patient_id: string }>("select patient_id from public.accept_patient_invitation($1,true)", [invitation.rows[0].id]);
+    const patient = accepted.rows[0].patient_id;
+    await db.exec("set local role service_role");
+    const document = await db.query<{ document_id: string; storage_path: string }>("select * from public.reserve_patient_document($1,$2,$3,'exam.pdf','application/pdf',6,'exam','internal')", [a, patient, users.outsider.id]);
+    await db.exec("reset role");
+    await db.query("insert into storage.objects(bucket_id,name) values('vivance-documents',$1)", [document.rows[0].storage_path]);
+    await db.exec("set local role service_role");
+    await db.query("select public.complete_patient_document($1,$2,$3)", [a, document.rows[0].document_id, users.outsider.id]);
+    await switchActor("doctor");
+    assert.equal((await db.query("select id from public.patient_onboarding_submissions where patient_id=$1", [patient])).rows.length, 0);
+    assert.equal((await db.query("select id from public.patient_documents where id=$1", [document.rows[0].document_id])).rows.length, 0);
+    assert.equal((await db.query("select name from storage.objects where name=$1", [document.rows[0].storage_path])).rows.length, 0);
+    await switchActor("outsider");
+    await db.query("update public.patient_onboarding set current_step='review',answer_goal='Synthetic goal',exam_document_ids=$3,expected_version=1 where tenant_id=$1 and patient_id=$2", [a, patient, [document.rows[0].document_id]]);
+    await denied("update public.patient_onboarding set answer_goal='stale',expected_version=1 where tenant_id=$1 and patient_id=$2", [a, patient]);
+    await db.query("select public.submit_patient_onboarding($1,2,true)", [a]);
+    assert.equal((await db.query("update public.patient_onboarding set answer_goal='changed',expected_version=3 where tenant_id=$1 and patient_id=$2 returning patient_id", [a, patient])).rows.length, 0);
+    await switchActor("doctor");
+    assert.equal((await db.query<{ answer_goal: string }>("select answer_goal from public.patient_onboarding_submissions where patient_id=$1", [patient])).rows[0].answer_goal, "Synthetic goal");
+    assert.equal((await db.query("select id from public.patient_documents where id=$1", [document.rows[0].document_id])).rows.length, 1);
+    assert.equal((await db.query("select name from storage.objects where name=$1", [document.rows[0].storage_path])).rows.length, 1);
+    await switchActor("admin");
+    assert.equal((await db.query("select patient_id from public.patient_onboarding_submissions where patient_id=$1", [patient])).rows.length, 0);
+    await db.exec("reset role");
+    await db.query("update public.care_relationships set status='revoked' where tenant_id=$1 and patient_id=$2", [a, patient]);
+    await switchActor("doctor");
+    assert.equal((await db.query("select patient_id from public.patient_onboarding_submissions where patient_id=$1", [patient])).rows.length, 0);
+    assert.equal((await db.query("select name from storage.objects where name=$1", [document.rows[0].storage_path])).rows.length, 0);
+    await db.exec("reset role");
+    await db.query("delete from auth.sessions where id=$1", [users.outsider.session]);
+    await switchActor("outsider");
+    assert.equal((await db.query("select patient_id from public.patient_onboarding where tenant_id=$1", [a])).rows.length, 0);
+    await denied("select public.submit_patient_onboarding($1,3,true)", [a]);
+    await db.exec("reset role");
+    await db.query("insert into auth.sessions(id,user_id) values($1,$2)", [users.outsider.session, users.outsider.id]);
+    await db.query("update public.memberships set status='suspended' where tenant_id=$1 and user_id=$2", [a, users.outsider.id]);
+    await switchActor("outsider");
+    assert.equal((await db.query("select patient_id from public.patient_onboarding where tenant_id=$1", [a])).rows.length, 0);
+    await denied("select public.submit_patient_onboarding($1,3,true)", [a]);
+  });
+});
+
+test("patient invitation revocation is creator-or-admin controlled and consumes WhatsApp token", async () => {
+  await asUser("doctor", async () => {
+    await db.exec("reset role");
+    const invitation = await db.query<{ id: string }>(
+      "insert into public.patient_invitations(tenant_id,display_name,channel,recipient_phone,token_hash,doctor_id,invited_by) values($1,'Revoked Patient','whatsapp','+5511888888888',$3,$2,$2) returning id",
+      [a, users.doctor.id, "b".repeat(64)],
+    );
+    await switchActor("outsider");
+    await denied("select public.revoke_patient_invitation($1,$2)", [a, invitation.rows[0].id]);
+    await switchActor("doctor");
+    assert.equal((await db.query<{ revoked: boolean }>("select public.revoke_patient_invitation($1,$2) revoked", [a, invitation.rows[0].id])).rows[0].revoked, true);
+    await db.exec("reset role");
+    assert.deepEqual((await db.query<{ status: string; token_hash: string | null }>("select status,token_hash from public.patient_invitations where id=$1", [invitation.rows[0].id])).rows, [{ status: "revoked", token_hash: null }]);
+    const adminTarget = await db.query<{ id: string }>(
+      "insert into public.patient_invitations(tenant_id,display_name,channel,recipient_phone,token_hash,doctor_id,invited_by) values($1,'Admin Revoke','whatsapp','+5511777777777',$3,$2,$2) returning id",
+      [a, users.doctor.id, "c".repeat(64)],
+    );
+    await switchActor("admin");
+    assert.equal((await db.query<{ revoked: boolean }>("select public.revoke_patient_invitation($1,$2) revoked", [a, adminTarget.rows[0].id])).rows[0].revoked, true);
   });
 });

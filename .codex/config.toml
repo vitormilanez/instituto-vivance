@@ -1,0 +1,9 @@
+# Vivance: padrão econômico. Seleções explícitas do app/sessão podem prevalecer.
+# Não altera o modelo de uma conversa já em execução.
+model = "gpt-5.6-terra"
+model_reasoning_effort = "medium"
+
+[agents]
+max_concurrent_threads_per_session = 2
+default_subagent_model = "gpt-5.6-terra"
+default_subagent_reasoning_effort = "medium"

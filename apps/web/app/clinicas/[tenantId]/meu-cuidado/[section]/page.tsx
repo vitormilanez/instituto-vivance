@@ -1,3 +1,8 @@
+import Link from "next/link";
+import {
+  getPatientOnboarding,
+  OnboardingError,
+} from "@/modules/onboarding/service";
 import { notFound, redirect } from "next/navigation";
 import { myPatientProfile } from "@/modules/patients/portal";
 import { AccessError } from "@/modules/identity/service";
@@ -40,6 +45,14 @@ export default async function PatientAreaPage({
       throw error;
     },
   );
+  const onboarding =
+    patient && slug === "hoje"
+      ? await getPatientOnboarding(tenantId).catch((error) => {
+          if (error instanceof OnboardingError && error.status === 404)
+            return null;
+          throw error;
+        })
+      : null;
   const requestDate = requestInstant();
   const now = requestDate.getTime();
   const currentTime = requestDate.toISOString();
@@ -56,9 +69,7 @@ export default async function PatientAreaPage({
       ? await patientCheckIns(tenantId, query.pagina)
       : null;
   const longitudinal =
-    patient && slug === "evolucao"
-      ? await patientLongitudinal(tenantId)
-      : null;
+    patient && slug === "evolucao" ? await patientLongitudinal(tenantId) : null;
   const documents =
     patient && slug === "documentos"
       ? await patientDocuments(tenantId, query.pagina)
@@ -121,6 +132,21 @@ export default async function PatientAreaPage({
             <p>{section.description}</p>
           </div>
         </div>
+      )}
+      {onboarding?.status === "draft" && (
+        <section className="panel">
+          <h2>Vamos preparar sua primeira conversa?</h2>
+          <p>
+            Conte um pouco sobre você, responda no seu ritmo e envie os exames
+            que quiser compartilhar. Você pode continuar depois.
+          </p>
+          <Link
+            className="button"
+            href={`/clinicas/${tenantId}/primeiros-passos`}
+          >
+            Continuar meu cadastro
+          </Link>
+        </section>
       )}
       {!patient && (
         <p className="notice">
