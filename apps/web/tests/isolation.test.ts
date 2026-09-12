@@ -2749,26 +2749,31 @@ test("in-app message notices are generic, recipient-bound, idempotent and respec
 test("processing jobs are private, idempotent, leased, retried and fail closed", async () => {
   await asUser("doctor", async () => {
     await startClinical();
+    const sourceKey = randomUUID();
     const first = await db.query<{ id: string }>(
-      "select private.enqueue_processing_job($1,$2,'audio_transcription','source:private-content') id",
-      [a, pa],
+      "select private.enqueue_processing_job($1,$2,'audio_transcription',$3) id",
+      [a, pa, sourceKey],
     );
     const duplicate = await db.query<{ id: string }>(
-      "select private.enqueue_processing_job($1,$2,'audio_transcription','source:private-content') id",
-      [a, pa],
+      "select private.enqueue_processing_job($1,$2,'audio_transcription',$3) id",
+      [a, pa, sourceKey],
     );
     assert.equal(first.rows[0].id, duplicate.rows[0].id);
     await denied(
-      "select private.enqueue_processing_job($1,$2,'clinical_draft','source:private-content')",
+      "select private.enqueue_processing_job($1,$2,'clinical_draft',$3)",
+      [a, pa, sourceKey],
+    );
+    await denied(
+      "select private.enqueue_processing_job($1,$2,'audio_transcription',$3)",
+      [a, pb, randomUUID()],
+    );
+    await denied(
+      "select private.enqueue_processing_job($1,$2,'audio_transcription','texto clínico não é uma chave')",
       [a, pa],
     );
     await denied(
-      "select private.enqueue_processing_job($1,$2,'audio_transcription','cross-tenant')",
-      [a, pb],
-    );
-    await denied(
-      "insert into public.processing_jobs(tenant_id,patient_id,job_type,idempotency_key,created_by) values($1,$2,'audio_transcription','forged',$3)",
-      [a, pa, users.doctor.id],
+      "insert into public.processing_jobs(tenant_id,patient_id,job_type,idempotency_key,created_by) values($1,$2,'audio_transcription',$3,$4)",
+      [a, pa, randomUUID(), users.doctor.id],
     );
     await denied("select * from public.claim_next_processing_job()");
 
@@ -2784,8 +2789,8 @@ test("processing jobs are private, idempotent, leased, retried and fail closed",
         0,
       );
       await denied(
-        "select private.enqueue_processing_job($1,$2,'audio_transcription','denied-' || $3)",
-        [a, pa, role],
+        "select private.enqueue_processing_job($1,$2,'audio_transcription',$3)",
+        [a, pa, randomUUID()],
       );
     }
 
@@ -2798,6 +2803,15 @@ test("processing jobs are private, idempotent, leased, retried and fail closed",
         )
       ).rows.length,
       1,
+    );
+    assert.deepEqual(
+      (
+        await db.query(
+          "select idempotency_key from public.processing_jobs where id=$1",
+          [first.rows[0].id],
+        )
+      ).rows,
+      [{ idempotency_key: sourceKey }],
     );
 
     await db.exec("set local role service_role");
@@ -2848,8 +2862,8 @@ test("processing jobs are private, idempotent, leased, retried and fail closed",
 
     await switchActor("doctor");
     const expiring = await db.query<{ id: string }>(
-      "select private.enqueue_processing_job($1,$2,'clinical_draft','source:lease-timeout') id",
-      [a, pa],
+      "select private.enqueue_processing_job($1,$2,'clinical_draft',$3) id",
+      [a, pa, randomUUID()],
     );
     await db.exec("set local role service_role");
     const firstLease = await db.query<{
@@ -2864,12 +2878,6 @@ test("processing jobs are private, idempotent, leased, retried and fail closed",
       [expiring.rows[0].id],
     );
     await db.exec("set local role service_role");
-    assert.deepEqual(
-      (
-        await db.query("select public.recover_expired_processing_jobs()")
-      ).rows,
-      [{ recover_expired_processing_jobs: 1 }],
-    );
     const reclaimed = await db.query<{
       job_id: string;
       attempt_count: number;
@@ -2898,7 +2906,7 @@ test("processing jobs are private, idempotent, leased, retried and fail closed",
     const audit = await db.query<{ payload: string }>(
       "select json_agg(a)::text payload from public.audit_events a where entity_type='processing_jobs'",
     );
-    assert.ok(!audit.rows[0].payload.includes("private-content"));
+    assert.ok(!audit.rows[0].payload.includes(sourceKey));
   });
 });
 

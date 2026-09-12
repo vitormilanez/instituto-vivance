@@ -8,7 +8,7 @@ A Vivance passa a ter uma base durável e privada para acompanhar tarefas técni
 
 - Médico ou enfermagem com vínculo de cuidado ativo pode ver, na clínica, a fila privada de tarefas daquele paciente.
 - Uma tarefa tem estados claros: pendente, em processamento, concluída ou falhou; a tela mostra apenas tipo, estado, tentativas e data.
-- A mesma origem não duplica trabalho: uma chave idempotente devolve a tarefa já existente quando o contexto é o mesmo.
+- A mesma origem não duplica trabalho: uma referência UUID opaca devolve a tarefa já existente quando o contexto é o mesmo.
 - Um executor de servidor, ainda não ativado, poderá recuperar uma reserva vencida, obter uma tarefa, concluí-la ou registrar uma falha controlada.
 
 ## POR QUE É NECESSÁRIA AGORA
@@ -17,17 +17,18 @@ A Vivance passa a ter uma base durável e privada para acompanhar tarefas técni
 
 ## Privacidade, acesso e execução
 
-- `processing_jobs` guarda somente clínica, paciente, tipo da tarefa, chave idempotente, estado, tentativas, reserva temporária e código genérico de falha. Não guarda áudio, texto clínico, prompt, resposta de fornecedor, token ou erro bruto.
+- `processing_jobs` guarda somente clínica, paciente, tipo da tarefa, referência UUID opaca, estado, tentativas, reserva temporária e código genérico de falha. A restrição do banco impede texto livre nessa referência; não há áudio, texto clínico, prompt, resposta de fornecedor, token ou erro bruto.
 - A leitura exige sessão, papel clínico (`doctor` ou `nurse`) e vínculo de cuidado ativo com o paciente. Paciente, administrador operacional, clínica diferente e vínculo revogado não veem a tarefa.
 - O navegador não recebe permissão de inserir ou atualizar a tabela. A criação genérica fica no schema privado e futuras jornadas exporão somente uma operação estreita própria.
 - O executor exige `service_role`; não há rota de navegador, Vercel Cron, Edge Function, fornecedor, segredo, gravação, transcrição ou IA ativados nesta entrega.
-- A reserva dura cinco minutos. Falha recuperável volta à fila com espera limitada; falha permanente ou estouro de tentativas encerra a tarefa. A auditoria registra a alteração sem copiar conteúdo de origem.
+- A reserva dura cinco minutos. Cada reserva reconcilia antes eventuais reservas vencidas; falha recuperável volta à fila com espera limitada, e falha permanente ou estouro de tentativas encerra a tarefa. A auditoria registra a alteração sem copiar a referência de origem.
 
 ## Rotas e migrações
 
 - Tela de equipe: `/clinicas/:tenantId/processamentos`
 - Banco de desenvolvimento: `20260912003803_processing_job_foundation`
 - Índice complementar do vínculo de autoria: `20260912003922_processing_job_created_by_index`
+- Endurecimento da referência opaca e da recuperação: `20260912005616_processing_job_privacy_hardening`
 
 ## Evidências de desenvolvimento
 
