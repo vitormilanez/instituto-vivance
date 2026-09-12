@@ -35,6 +35,18 @@ test("native runtime does not import the Cloudflare prototype or demonstration p
   assert.equal(dependencies.wrangler, undefined);
   assert.deepEqual(readdirSync(join(root, "public")).sort(), ["brand"]);
 });
+
+test("staff invitations fail closed without a production first-access redirect", () => {
+  const repository = fileURLToPath(new URL("../../../", import.meta.url));
+  const inviteFunction = readFileSync(
+    join(repository, "supabase/functions/invite-staff/index.ts"),
+    "utf8",
+  );
+  assert.match(inviteFunction, /TEAM_INVITE_REDIRECT_URL/);
+  assert.match(inviteFunction, /url\.protocol !== "https:"/);
+  assert.match(inviteFunction, /url\.pathname !== "\/primeiro-acesso"/);
+  assert.doesNotMatch(inviteFunction, /instituto-vivance-testes-vtr-consulting/);
+});
 test("team invitation keeps privileged Auth access inside its authenticated edge boundary", () => {
   const repository = fileURLToPath(new URL("../../../", import.meta.url));
   const edge = readFileSync(

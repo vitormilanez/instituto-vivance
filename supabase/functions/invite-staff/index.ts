@@ -1,9 +1,23 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 
-const inviteRedirect =
-  Deno.env.get("TEAM_INVITE_REDIRECT_URL") ??
-  "https://instituto-vivance-testes-vtr-consulting.vercel.app/primeiro-acesso";
+function inviteRedirect() {
+  const configured = Deno.env.get("TEAM_INVITE_REDIRECT_URL")?.trim();
+  if (!configured) return null;
+  try {
+    const url = new URL(configured);
+    if (
+      url.protocol !== "https:" ||
+      url.pathname !== "/primeiro-acesso" ||
+      url.search ||
+      url.hash
+    )
+      return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
 
 function configuredKey(dictionaryName: string, legacyName: string) {
   const dictionary = Deno.env.get(dictionaryName);
@@ -66,6 +80,12 @@ Deno.serve(async (request: Request) => {
     return response({ error: "Método não permitido." }, 405);
   if (!request.headers.get("content-type")?.startsWith("application/json"))
     return response({ error: "Use JSON." }, 415);
+  const redirectTo = inviteRedirect();
+  if (!redirectTo)
+    return response(
+      { error: "O serviço de convites está indisponível.", requestId },
+      503,
+    );
   const authorization = request.headers.get("authorization") ?? "";
   if (!authorization.startsWith("Bearer ") || authorization.length > 8192)
     return response({ error: "Entre novamente para continuar." }, 401);
@@ -148,7 +168,7 @@ Deno.serve(async (request: Request) => {
     if (!invitedUser) {
       const invited = await adminClient.auth.admin.inviteUserByEmail(
         values.email,
-        { redirectTo: inviteRedirect },
+        { redirectTo },
       );
       if (invited.error || !invited.data.user)
         return response(

@@ -90,7 +90,7 @@ O titular confirmou seu e-mail. Convite enviado pelo painel oficial do Supabase 
 
 `/primeiro-acesso` recebe o convite, remove os tokens do endereço, valida a sessão com o Auth e permite definir a senha. O cliente compartilha a sessão com o servidor por cookies. Links inválidos ou expirados não habilitam o formulário. Nenhuma senha padrão é criada, e credenciais não são registradas em logs.
 
-O Site URL do Supabase aponta para `https://instituto-vivance-testes-vtr-consulting.vercel.app/primeiro-acesso`. Esse retorno exato foi adicionado à lista autorizada, preservando o localhost e os retornos HTTPS anteriores. Configuração conferida após recarregar o painel, sem curingas. Usar o alias fixo ao divulgar a versão; os URLs imutáveis são evidência histórica. Configuração não equivale à validação de um novo e-mail de recuperação ponta a ponta; nenhum e-mail adicional foi enviado nesta publicação.
+Para a produção, o Site URL e a lista de Redirect URLs do Supabase devem incluir `https://institutovivance.app/primeiro-acesso`. A Edge Function `invite-staff` exige o segredo `TEAM_INVITE_REDIRECT_URL` com esse mesmo valor e falha fechada se ele estiver ausente ou inválido; ela não usa Preview como retorno implícito. Os aliases de Preview permanecem apenas como evidência histórica. A configuração não equivale à validação de um novo e-mail de recuperação ponta a ponta; nenhum e-mail adicional é enviado pela publicação.
 
 Entrada, seleção da clínica e leitura do cadastro existente foram verificadas no navegador. Nenhum cadastro público pode se promover ou criar uma clínica nesta versão.
 
