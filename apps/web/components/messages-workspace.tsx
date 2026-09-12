@@ -20,6 +20,7 @@ type ConversationInitial = {
   messages: StaffMessages["messages"];
   page: number;
   hasNext: boolean;
+  lastReadAt: string | null;
 };
 
 function conversationHref(
@@ -60,6 +61,8 @@ function ConversationWorkspace({
     : "";
   const previousSelectedKey = useRef(selectedKey);
   const messagesBeforeAttempt = useRef<Set<string>>(new Set());
+  const requestKey = useRef<string | null>(null);
+  const readAttempted = useRef<string | null>(null);
   const hasDraft = draft.trim().length > 0;
   const isStaffConversation = recipientParam === "paciente";
 
@@ -96,6 +99,7 @@ function ConversationWorkspace({
       setError("");
       setNotice("");
       setSendUncertain(false);
+      requestKey.current = null;
     };
     window.addEventListener("beforeunload", warnBeforeExit);
     document.addEventListener("click", protectNavigation, true);
@@ -112,6 +116,7 @@ function ConversationWorkspace({
     setError("");
     setNotice("");
     setSendUncertain(false);
+    requestKey.current = null;
   }, [selectedKey]);
 
   useEffect(() => {
@@ -127,7 +132,40 @@ function ConversationWorkspace({
     setError("");
     setSendUncertain(false);
     setNotice("Mensagem confirmada no histórico.");
+    requestKey.current = null;
   }, [draft, initial.messages, initial.userId, sendUncertain]);
+
+  useEffect(() => {
+    if (!selected || initial.page !== 1 || !initial.messages.length) return;
+    const latest = initial.messages.at(-1)!;
+    if (
+      latest.sender_id === initial.userId ||
+      latest.sent_at <= (initial.lastReadAt ?? "") ||
+      readAttempted.current === latest.id
+    )
+      return;
+    readAttempted.current = latest.id;
+    void fetch(`/api/v1/clinics/${initial.clinic.id}/messages/read`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        patient_id: selected.patientId,
+        doctor_id: selected.doctorId,
+        message_id: latest.id,
+      }),
+    }).then((response) => {
+      if (response.ok) router.refresh();
+      else readAttempted.current = null;
+    });
+  }, [
+    initial.clinic.id,
+    initial.lastReadAt,
+    initial.messages,
+    initial.page,
+    initial.userId,
+    router,
+    selected,
+  ]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -145,12 +183,16 @@ function ConversationWorkspace({
     messagesBeforeAttempt.current = new Set(
       initial.messages.map((message) => message.id),
     );
+    requestKey.current ??= crypto.randomUUID();
     try {
       const response = await fetch(
         `/api/v1/clinics/${initial.clinic.id}/messages`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Idempotency-Key": requestKey.current,
+          },
           signal: AbortSignal.timeout(20_000),
           body: JSON.stringify({
             patient_id: selected.patientId,
@@ -166,6 +208,7 @@ function ConversationWorkspace({
       if (!response.ok)
         throw new Error(result.error ?? "Não foi possível enviar a mensagem.");
       setDraft("");
+      requestKey.current = null;
       setNotice("Mensagem enviada.");
       router.refresh();
     } catch (reason) {
@@ -208,6 +251,9 @@ function ConversationWorkspace({
                 }
               >
                 <strong>{recipient.displayName}</strong>
+                {recipient.hasUnread && (
+                  <span className="conversation-unread">Nova mensagem</span>
+                )}
                 <small>
                   {recipient.lastMessageAt
                     ? `Última mensagem: ${clinicalTime(recipient.lastMessageAt)}`
@@ -308,7 +354,7 @@ function ConversationWorkspace({
                     Atualizar conversa
                   </button>
                   <button type="button" className="secondary" onClick={() => setSendUncertain(false)}>
-                    Não apareceu, liberar nova tentativa
+                    Não apareceu, tentar novamente
                   </button>
                 </div>
               )}

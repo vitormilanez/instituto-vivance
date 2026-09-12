@@ -36,6 +36,29 @@ export function messageInput(value: unknown) {
   };
 }
 
+export function messageRequestKey(value: string | null) {
+  if (!value) throw new InputError("Identificador de envio ausente.");
+  return tenantId(value);
+}
+
+export function messageReadInput(value: unknown) {
+  const body = record(value);
+  if (
+    Object.keys(body).some(
+      (key) => !["patient_id", "doctor_id", "message_id"].includes(key),
+    ) ||
+    typeof body.patient_id !== "string" ||
+    typeof body.doctor_id !== "string" ||
+    typeof body.message_id !== "string"
+  )
+    throw new InputError("Confira a conversa antes de marcar a leitura.");
+  return {
+    patientId: tenantId(body.patient_id),
+    doctorId: tenantId(body.doctor_id),
+    messageId: tenantId(body.message_id),
+  };
+}
+
 export function messagePage(value?: string): number {
   return pageNumber(value);
 }

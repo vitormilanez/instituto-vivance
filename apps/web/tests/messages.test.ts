@@ -3,6 +3,8 @@ import test from "node:test";
 import {
   messageInput,
   messagePage,
+  messageReadInput,
+  messageRequestKey,
   messageRecipient,
 } from "../modules/messages/validation.ts";
 
@@ -34,6 +36,28 @@ test("direct message input accepts only a bounded patient-doctor pair", () => {
       patient_id: patientId,
       doctor_id: doctorId,
       content: "x".repeat(4001),
+    }),
+  );
+});
+
+test("message operations require opaque request and read identifiers", () => {
+  assert.equal(messageRequestKey(patientId), patientId);
+  assert.throws(() => messageRequestKey(null));
+  assert.throws(() => messageRequestKey("retry-1"));
+  assert.deepEqual(
+    messageReadInput({
+      patient_id: patientId,
+      doctor_id: doctorId,
+      message_id: patientId,
+    }),
+    { patientId, doctorId, messageId: patientId },
+  );
+  assert.throws(() =>
+    messageReadInput({
+      patient_id: patientId,
+      doctor_id: doctorId,
+      message_id: patientId,
+      read_at: new Date().toISOString(),
     }),
   );
 });

@@ -2,7 +2,13 @@ import "server-only";
 import { requireClinic } from "@/modules/identity/service";
 import { tenantId } from "@/lib/validation";
 import type { Database } from "@/lib/supabase/database.types";
-import { messageInput, messagePage, messageRecipient } from "./validation";
+import {
+  messageInput,
+  messagePage,
+  messageReadInput,
+  messageRequestKey,
+  messageRecipient,
+} from "./validation";
 
 type ConversationRow =
   Database["public"]["Tables"]["care_conversations"]["Row"];
@@ -12,6 +18,7 @@ export type MessageRecipient = {
   id: string;
   displayName: string;
   lastMessageAt: string | null;
+  hasUnread: boolean;
 };
 export type SelectedConversation = {
   patientId: string;
@@ -43,7 +50,7 @@ function databaseFailure(code?: string): never {
 }
 
 function recentByRecipient(rows: ConversationRow[]) {
-  return new Map(rows.map((row) => [row.patient_id, row.last_message_at]));
+  return new Map(rows.map((row) => [row.patient_id, row]));
 }
 
 function sortRecipients(recipients: MessageRecipient[]) {
@@ -61,20 +68,38 @@ async function history(
   selected: SelectedConversation | null,
   page: number,
 ) {
-  if (!selected) return { messages: [] as MessageRow[], hasNext: false };
-  const result = await client
-    .from("care_messages")
-    .select("*")
-    .eq("tenant_id", tenant)
-    .eq("patient_id", selected.patientId)
-    .eq("doctor_id", selected.doctorId)
-    .order("sent_at", { ascending: false })
-    .order("id", { ascending: false })
-    .range((page - 1) * 20, page * 20);
-  if (result.error) databaseFailure(result.error.code);
+  if (!selected)
+    return {
+      messages: [] as MessageRow[],
+      hasNext: false,
+      lastReadAt: null as string | null,
+    };
+  const [result, read] = await Promise.all([
+    client
+      .from("care_messages")
+      .select(
+        "id,tenant_id,conversation_id,patient_id,doctor_id,sender_id,content,sent_at",
+      )
+      .eq("tenant_id", tenant)
+      .eq("patient_id", selected.patientId)
+      .eq("doctor_id", selected.doctorId)
+      .order("sent_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range((page - 1) * 20, page * 20),
+    client
+      .from("care_conversation_reads")
+      .select("last_read_sent_at")
+      .eq("tenant_id", tenant)
+      .eq("patient_id", selected.patientId)
+      .eq("doctor_id", selected.doctorId)
+      .maybeSingle(),
+  ]);
+  if (result.error || read.error)
+    databaseFailure(result.error?.code ?? read.error?.code);
   return {
     messages: (result.data ?? []).slice(0, 20).reverse(),
     hasNext: (result.data?.length ?? 0) > 20,
+    lastReadAt: read.data?.last_read_sent_at ?? null,
   };
 }
 
@@ -86,7 +111,7 @@ export async function staffMessages(
   const tenant = tenantId(id);
   const page = messagePage(pageInput);
   const { client, clinic, user } = await requireClinic(tenant, ["doctor"]);
-  const [relationships, conversations] = await Promise.all([
+  const [relationships, conversations, reads] = await Promise.all([
     client
       .from("care_relationships")
       .select(
@@ -98,20 +123,39 @@ export async function staffMessages(
       .order("patient_id"),
     client
       .from("care_conversations")
-      .select("patient_id,last_message_at")
+      .select("id,patient_id,doctor_id,last_message_at,last_sender_id")
       .eq("tenant_id", tenant)
       .eq("doctor_id", user.id),
+    client
+      .from("care_conversation_reads")
+      .select("conversation_id,last_read_sent_at")
+      .eq("tenant_id", tenant)
+      .eq("reader_id", user.id),
   ]);
-  if (relationships.error || conversations.error)
-    databaseFailure(relationships.error?.code ?? conversations.error?.code);
+  if (relationships.error || conversations.error || reads.error)
+    databaseFailure(
+      relationships.error?.code ?? conversations.error?.code ?? reads.error?.code,
+    );
   const latest = recentByRecipient(
     (conversations.data ?? []) as ConversationRow[],
+  );
+  const readByConversation = new Map(
+    (reads.data ?? []).map((read) => [
+      read.conversation_id,
+      read.last_read_sent_at,
+    ]),
   );
   const recipients = sortRecipients(
     (relationships.data ?? []).map((relationship) => ({
       id: relationship.patient_id,
       displayName: relationship.patients?.display_name ?? "Paciente",
-      lastMessageAt: latest.get(relationship.patient_id) ?? null,
+      lastMessageAt: latest.get(relationship.patient_id)?.last_message_at ?? null,
+      hasUnread: Boolean(
+        latest.get(relationship.patient_id)?.last_sender_id !== user.id &&
+          latest.get(relationship.patient_id)?.last_message_at &&
+          latest.get(relationship.patient_id)!.last_message_at >
+            (readByConversation.get(latest.get(relationship.patient_id)!.id) ?? ""),
+      ),
     })),
   );
   const recipient = messageRecipient(
@@ -161,9 +205,10 @@ export async function patientMessages(
       messages: [] as MessageRow[],
       page,
       hasNext: false,
+      lastReadAt: null as string | null,
     };
 
-  const [doctors, conversations] = await Promise.all([
+  const [doctors, conversations, reads] = await Promise.all([
     client
       .from("memberships")
       .select("user_id,display_name")
@@ -173,23 +218,40 @@ export async function patientMessages(
       .order("display_name"),
     client
       .from("care_conversations")
-      .select("doctor_id,last_message_at")
+      .select("id,patient_id,doctor_id,last_message_at,last_sender_id")
       .eq("tenant_id", tenant)
       .eq("patient_id", account.data.patient_id),
+    client
+      .from("care_conversation_reads")
+      .select("conversation_id,last_read_sent_at")
+      .eq("tenant_id", tenant)
+      .eq("reader_id", user.id),
   ]);
-  if (doctors.error || conversations.error)
-    databaseFailure(doctors.error?.code ?? conversations.error?.code);
+  if (doctors.error || conversations.error || reads.error)
+    databaseFailure(doctors.error?.code ?? conversations.error?.code ?? reads.error?.code);
   const latest = new Map(
-    (conversations.data ?? []).map((row) => [
+    ((conversations.data ?? []) as ConversationRow[]).map((row) => [
       row.doctor_id,
-      row.last_message_at,
+      row,
+    ]),
+  );
+  const readByConversation = new Map(
+    (reads.data ?? []).map((read) => [
+      read.conversation_id,
+      read.last_read_sent_at,
     ]),
   );
   const recipients = sortRecipients(
     (doctors.data ?? []).map((doctor) => ({
       id: doctor.user_id,
       displayName: doctor.display_name?.trim() || "Médico vinculado",
-      lastMessageAt: latest.get(doctor.user_id) ?? null,
+      lastMessageAt: latest.get(doctor.user_id)?.last_message_at ?? null,
+      hasUnread: Boolean(
+        latest.get(doctor.user_id)?.last_sender_id !== user.id &&
+          latest.get(doctor.user_id)?.last_message_at &&
+          latest.get(doctor.user_id)!.last_message_at >
+            (readByConversation.get(latest.get(doctor.user_id)!.id) ?? ""),
+      ),
     })),
   );
   const recipient = messageRecipient(
@@ -215,21 +277,41 @@ export async function patientMessages(
   };
 }
 
-export async function sendDirectMessage(id: string, input: unknown) {
+export async function sendDirectMessage(
+  id: string,
+  input: unknown,
+  requestKeyInput: string | null,
+) {
   const tenant = tenantId(id);
   const values = messageInput(input);
+  const requestKey = messageRequestKey(requestKeyInput);
   const { client } = await requireClinic(tenant, ["doctor", "patient"]);
   const result = await client.rpc("send_direct_message", {
     target_tenant: tenant,
     target_patient: values.patientId,
     target_doctor: values.doctorId,
     message_text: values.content,
+    request_key: requestKey,
   });
   if (result.error) databaseFailure(result.error.code);
   const sent = result.data?.[0];
   if (!sent?.conversation_id || !sent.message_id || !sent.sent_at)
     throw new Error("Direct message returned an invalid response");
   return sent;
+}
+
+export async function markDirectMessagesRead(id: string, input: unknown) {
+  const tenant = tenantId(id);
+  const values = messageReadInput(input);
+  const { client } = await requireClinic(tenant, ["doctor", "patient"]);
+  const result = await client.rpc("mark_direct_messages_read", {
+    target_tenant: tenant,
+    target_patient: values.patientId,
+    target_doctor: values.doctorId,
+    target_message: values.messageId,
+  });
+  if (result.error) databaseFailure(result.error.code);
+  return { readAt: result.data };
 }
 
 export type StaffMessages = Awaited<ReturnType<typeof staffMessages>>;

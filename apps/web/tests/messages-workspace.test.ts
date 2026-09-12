@@ -17,9 +17,13 @@ test("conversation keeps a draft through a send failure and guards navigation", 
   assert.match(workspace, /setDraft\(""\)/);
   assert.match(workspace, /sendUncertain/);
   assert.match(workspace, /Atualize a conversa e confira o histórico/);
-  assert.match(workspace, /Não apareceu, liberar nova tentativa/);
+  assert.match(workspace, /Não apareceu, tentar novamente/);
   assert.match(workspace, /Mensagem confirmada no histórico/);
   assert.match(workspace, /previousSelectedKey/);
+  assert.match(workspace, /crypto\.randomUUID/);
+  assert.match(workspace, /"Idempotency-Key": requestKey\.current/);
+  assert.match(workspace, /messages\/read/);
+  assert.match(workspace, /conversation-unread/);
 });
 
 test("conversation makes the recipient, sender and return path explicit", () => {

@@ -399,6 +399,7 @@ export type Database = {
           doctor_id: string;
           id: string;
           last_message_at: string;
+          last_sender_id: string | null;
           patient_id: string;
           tenant_id: string;
         };
@@ -419,10 +420,57 @@ export type Database = {
             referencedRelation: "memberships";
             referencedColumns: ["tenant_id", "user_id"];
           },
+          {
+            foreignKeyName: "care_conversations_tenant_id_last_sender_id_fkey";
+            columns: ["tenant_id", "last_sender_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
+      care_conversation_reads: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          conversation_id: string;
+          patient_id: string;
+          doctor_id: string;
+          reader_id: string;
+          last_read_message_id: string;
+          last_read_sent_at: string;
+          last_read_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "care_conversation_reads_tenant_id_conversation_id_patient_id_doctor_id_fkey";
+            columns: ["tenant_id", "conversation_id", "patient_id", "doctor_id"];
+            isOneToOne: false;
+            referencedRelation: "care_conversations";
+            referencedColumns: ["tenant_id", "id", "patient_id", "doctor_id"];
+          },
+          {
+            foreignKeyName: "care_conversation_reads_tenant_id_reader_id_fkey";
+            columns: ["tenant_id", "reader_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+          {
+            foreignKeyName: "care_conversation_reads_tenant_id_last_read_message_id_conversation_id_patient_id_doctor_id_fkey";
+            columns: ["tenant_id", "last_read_message_id", "conversation_id", "patient_id", "doctor_id"];
+            isOneToOne: false;
+            referencedRelation: "care_messages";
+            referencedColumns: ["tenant_id", "id", "conversation_id", "patient_id", "doctor_id"];
+          },
         ];
       };
       care_messages: {
         Row: {
+          client_request_id: string;
           content: string;
           conversation_id: string;
           doctor_id: string;
@@ -938,12 +986,22 @@ export type Database = {
           target_patient: string;
           target_doctor: string;
           message_text: string;
+          request_key: string;
         };
         Returns: {
           conversation_id: string;
           message_id: string;
           sent_at: string;
         }[];
+      };
+      mark_direct_messages_read: {
+        Args: {
+          target_tenant: string;
+          target_patient: string;
+          target_doctor: string;
+          target_message: string;
+        };
+        Returns: string;
       };
       request_care_check_in: {
         Args: {

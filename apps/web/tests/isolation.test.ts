@@ -2566,18 +2566,23 @@ async function directMessageFixture() {
   await switchActor("doctor");
 }
 
-async function sendSyntheticDirectMessage(actor: string, content: string) {
+async function sendSyntheticDirectMessage(
+  actor: string,
+  content: string,
+  requestKey = randomUUID(),
+) {
   await switchActor(actor);
   return (
     await db.query<{
       conversation_id: string;
       message_id: string;
       sent_at: string;
-    }>("select * from public.send_direct_message($1,$2,$3,$4)", [
+    }>("select * from public.send_direct_message($1,$2,$3,$4,$5)", [
       a,
       pa,
       users.doctor.id,
       content,
+      requestKey,
     ])
   ).rows[0];
 }
@@ -2638,11 +2643,12 @@ test("direct messages are append-only, patient-doctor only, and hide content fro
           .rows.length,
         0,
       );
-      await denied("select * from public.send_direct_message($1,$2,$3,$4)", [
+      await denied("select * from public.send_direct_message($1,$2,$3,$4,$5)", [
         a,
         pa,
         users.doctor.id,
         "Denied synthetic message",
+        randomUUID(),
       ]);
     }
     await db.exec("reset role");
@@ -2652,6 +2658,90 @@ test("direct messages are append-only, patient-doctor only, and hide content fro
     );
     assert.ok(!audit.rows[0].payload.includes("Synthetic direct doctor message"));
     assert.ok(!audit.rows[0].payload.includes("Synthetic patient reply"));
+  });
+});
+
+test("direct message retries are idempotent and read cursors belong to each participant", async () => {
+  await asUser("doctor", async () => {
+    await directMessageFixture();
+    const requestKey = randomUUID();
+    const first = await sendSyntheticDirectMessage(
+      "doctor",
+      "Retry-safe synthetic message",
+      requestKey,
+    );
+    const replay = await sendSyntheticDirectMessage(
+      "doctor",
+      "Retry-safe synthetic message",
+      requestKey,
+    );
+    assert.deepEqual(replay, first);
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.care_messages where client_request_id=$1",
+          [requestKey],
+        )
+      ).rows.length,
+      1,
+    );
+    await db.exec("reset role");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.in_app_notifications where event_key=$1",
+          [`message:${first.message_id}`],
+        )
+      ).rows.length,
+      1,
+    );
+    await switchActor("doctor");
+    await denied(
+      "select * from public.send_direct_message($1,$2,$3,$4,$5)",
+      [a, pa, users.doctor.id, "Different content", requestKey],
+    );
+    const latest = await sendSyntheticDirectMessage(
+      "doctor",
+      "Latest synthetic message",
+    );
+
+    await switchActor("patient");
+    await db.query(
+      "select public.mark_direct_messages_read($1,$2,$3,$4)",
+      [a, pa, users.doctor.id, latest.message_id],
+    );
+    await db.query(
+      "select public.mark_direct_messages_read($1,$2,$3,$4)",
+      [a, pa, users.doctor.id, first.message_id],
+    );
+    assert.deepEqual(
+      (
+        await db.query<{ last_read_message_id: string }>(
+          "select last_read_message_id from public.care_conversation_reads",
+        )
+      ).rows,
+      [{ last_read_message_id: latest.message_id }],
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.in_app_notifications where read_at is not null",
+        )
+      ).rows.length,
+      0,
+    );
+
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select reader_id from public.care_conversation_reads"))
+        .rows.length,
+      0,
+    );
+    await switchActor("admin");
+    await denied(
+      "select public.mark_direct_messages_read($1,$2,$3,$4)",
+      [a, pa, users.doctor.id, latest.message_id],
+    );
   });
 });
 
@@ -2671,11 +2761,12 @@ test("direct messaging follows care revocation and rolls back if its audit canno
           .rows.length,
         0,
       );
-      await denied("select * from public.send_direct_message($1,$2,$3,$4)", [
+      await denied("select * from public.send_direct_message($1,$2,$3,$4,$5)", [
         a,
         pa,
         users.doctor.id,
         "Denied after revocation",
+        randomUUID(),
       ]);
     }
   });
@@ -2687,11 +2778,12 @@ test("direct messaging follows care revocation and rolls back if its audit canno
       "create function private.synthetic_message_audit_failure() returns trigger language plpgsql as $$ begin if new.entity_type='care_messages' then raise exception 'Synthetic message audit failure'; end if; return new; end; $$; create trigger synthetic_message_audit_failure before insert on public.audit_events for each row execute function private.synthetic_message_audit_failure();",
     );
     await switchActor("doctor");
-    await denied("select * from public.send_direct_message($1,$2,$3,$4)", [
+    await denied("select * from public.send_direct_message($1,$2,$3,$4,$5)", [
       a,
       pa,
       users.doctor.id,
       "Must roll back",
+      randomUUID(),
     ]);
     await db.exec("reset role");
     assert.equal(
