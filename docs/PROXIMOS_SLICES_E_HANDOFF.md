@@ -330,7 +330,7 @@ Os cinco HTMLs são exportações do protótipo `lume-saude-prototipo...chatgpt.
 | Relatórios | Nenhuma entidade específica encontrada | Existem fontes (consulta, planos, check-ins, documentos), mas não relatório manual persistido, seleção de fontes/período, revisão/versionamento, publicação ao paciente ou exportação rastreável. `/relatorios` continua uma tela de integração pendente |
 | Processamento | `processing_jobs` | Base técnica existente, com tipos `audio_transcription`/`clinical_draft`. Não contém resultados de IA, gravações ou transcrições; não ativar só para preencher o estado “processando” do protótipo |
 
-**Reconciliação técnica antes da próxima migração:** duas migrações têm o mesmo nome funcional, mas identificadores locais/remotos diferentes: `team_and_care_relationships` local `20260911042022` / remoto `20260911043121`; `care_reassignment_requires_active_member` local `20260911044600` / remoto `20260911044758`. A existência das estruturas foi confirmada, mas a equivalência integral do SQL não foi verificada. Comparar o conteúdo/histórico antes de um futuro envio de migrações; não reaplicar nem “reparar” o histórico automaticamente. Isso não bloqueia composição de telas sem alteração de banco.
+**Reconciliação técnica concluída em 12/09:** os arquivos locais de `team_and_care_relationships` e `care_reassignment_requires_active_member` agora usam os identificadores já registrados no histórico remoto (`20260911043121` e `20260911044758`). Nenhuma dessas duas migrations foi reaplicada. As novas migrations do lote também foram alinhadas aos identificadores retornados pelo Supabase após aplicação.
 
 ### 8.3. Jornada e diagnóstico de fluxo/layout
 
