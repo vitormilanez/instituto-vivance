@@ -50,6 +50,9 @@ test("patient today chooses one next step from actual available context", () => 
     "/onboarding",
   );
   assert.match(area, /Seu próximo passo/);
+  assert.equal(area.match(/available: (?:true|false)/g)?.length, 8);
+  assert.match(area, /!action\.available/);
+  assert.match(area, /Em desenvolvimento/);
 });
 
 test("patient onboarding draft is presented as the next step instead of a duplicate panel", () => {

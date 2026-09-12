@@ -3084,9 +3084,89 @@ button.calendar-day[aria-pressed="true"] {
   flex-wrap: wrap;
   gap: 8px 20px;
 }
+
+/* A calm, task-first path through the patient portal. */
+.patient-portal-header {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+.patient-next-step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  padding: 26px 28px;
+  border-color: #c7d9ef;
+  background: var(--blue-soft);
+}
+.patient-next-step h2 {
+  max-width: 34ch;
+  margin: 0;
+}
+.patient-next-step p {
+  margin: 7px 0 0;
+}
+.patient-next-step .button {
+  min-width: 168px;
+  box-shadow: 0 9px 22px rgba(3, 19, 45, 0.14);
+  text-align: center;
+}
+.patient-overview {
+  grid-template-columns: minmax(0, 1.16fr) minmax(280px, 0.84fr);
+  gap: 24px;
+}
+.patient-next-appointment,
+.patient-followup-card {
+  min-height: 310px;
+}
+.patient-next-appointment.is-empty,
+.patient-followup-card.is-empty {
+  min-height: 250px;
+}
+.patient-shortcuts-heading {
+  align-items: end;
+  margin-bottom: 16px;
+}
+.patient-shortcuts-heading h2,
+.patient-shortcuts-heading p {
+  margin: 0;
+}
+.patient-shortcuts-heading p {
+  max-width: 62ch;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.patient-shortcuts .quick-actions {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.patient-shortcuts .quick-action {
+  min-height: 134px;
+  padding: 16px;
+  transition:
+    transform 160ms ease-out,
+    border-color 160ms ease-out,
+    background-color 160ms ease-out;
+}
+.patient-shortcuts a.quick-action:hover {
+  transform: translateY(-2px);
+}
+.patient-shortcuts .quick-action.unavailable {
+  border-style: dashed;
+  box-shadow: none;
+}
+.patient-care-tabs-hint {
+  display: none;
+  margin: -12px 0 20px;
+  color: var(--muted);
+  font-size: 12px;
+}
 @media (max-width: 1150px) {
   .patient-directory-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .patient-shortcuts .quick-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (max-width: 1100px) {
@@ -3101,6 +3181,26 @@ button.calendar-day[aria-pressed="true"] {
   }
   .patient-record-secondary {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .patient-next-step {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    padding: 22px;
+  }
+  .patient-next-step .button {
+    width: 100%;
+  }
+  .patient-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .patient-care-tabs-hint {
+    display: block;
+  }
+  .patient-navigation-mobile a {
+    min-height: 52px;
+    font-size: 12px;
+    line-height: 1.15;
+    text-align: center;
   }
 }
 @media (max-width: 650px) {
@@ -3133,6 +3233,12 @@ button.calendar-day[aria-pressed="true"] {
   }
   .quick-actions-compact .quick-action {
     min-height: 104px;
+  }
+  .patient-shortcuts .quick-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .patient-shortcuts .quick-action {
+    min-height: 112px;
   }
 }
 

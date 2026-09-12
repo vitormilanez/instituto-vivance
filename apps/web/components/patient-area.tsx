@@ -6,39 +6,75 @@ import { patientNextStep } from "@/modules/workspace/patient-next-step";
 import { EmptyModule, FutureButton } from "./module-ui";
 
 const actions = [
-  { label: "Orientações médicas", text: "Seu plano de cuidado", slug: "plano" },
+  {
+    label: "Orientações médicas",
+    text: "Seu plano de cuidado",
+    slug: "plano",
+    available: true,
+  },
   {
     label: "Mensagem para o médico",
     text: "Conversa direta e assíncrona",
     slug: "conversas",
+    available: true,
   },
   {
     label: "Tratamento",
     text: "Orientações sobre medicamentos",
     slug: "medicamentos",
+    available: false,
   },
   {
     label: "Minha evolução",
     text: "Seu histórico ao longo do tempo",
     slug: "evolucao",
+    available: true,
   },
-  { label: "Meu diário", text: "Como você está se sentindo", slug: "diario" },
+  {
+    label: "Meu diário",
+    text: "Como você está se sentindo",
+    slug: "diario",
+    available: true,
+  },
   {
     label: "Meus documentos",
     text: "Arquivos compartilhados com a clínica",
     slug: "documentos",
+    available: true,
   },
   {
     label: "Próximo retorno",
     text: "Consultas com a clínica",
     slug: "consultas",
+    available: true,
   },
   {
     label: "Meus relatórios",
     text: "Sínteses compartilhadas pelo médico",
     slug: "relatorios",
+    available: true,
   },
 ] as const;
+
+function actionState(action: (typeof actions)[number]) {
+  if (!action.available) return "Em desenvolvimento";
+  switch (action.slug) {
+    case "plano":
+      return "Abrir orientações";
+    case "diario":
+      return "Abrir check-ins";
+    case "evolucao":
+      return "Abrir evolução";
+    case "documentos":
+      return "Abrir documentos";
+    case "conversas":
+      return "Abrir conversas";
+    case "consultas":
+      return "Ver consultas";
+    default:
+      return "Ver relatórios";
+  }
+}
 
 export function PatientArea({
   section,
@@ -79,16 +115,25 @@ export function PatientArea({
   if (section.slug === "hoje")
     return (
       <>
-        <section className="panel patient-next-step" aria-labelledby="next-step-title">
-          <span className="quiet-label">Seu próximo passo</span>
-          <h2 id="next-step-title">{nextStep.title}</h2>
-          <p>{nextStep.detail}</p>
+        <section
+          className="panel patient-next-step"
+          aria-labelledby="next-step-title"
+        >
+          <div className="patient-next-step-copy">
+            <h2 id="next-step-title">
+              <span className="sr-only">Seu próximo passo: </span>
+              {nextStep.title}
+            </h2>
+            <p>{nextStep.detail}</p>
+          </div>
           <Link className="button" href={nextStep.href}>
             {nextStep.action}
           </Link>
         </section>
         <div className="patient-overview">
-          <section className="patient-next-appointment">
+          <section
+            className={`patient-next-appointment${nextAppointment ? "" : " is-empty"}`}
+          >
             <div className="patient-card-heading">
               <h2>Próxima consulta</h2>
               {nextAppointment && (
@@ -144,7 +189,11 @@ export function PatientArea({
               Ver todos os horários
             </Link>
           </section>
-          <section className="panel patient-followup-card">
+          <section
+            className={`panel patient-followup-card${
+              latestCompleted || latestPublication ? "" : " is-empty"
+            }`}
+          >
             <h2>Seu acompanhamento</h2>
             {latestCompleted ? (
               <div className="patient-last-appointment">
@@ -178,29 +227,22 @@ export function PatientArea({
           </section>
         </div>
         <section className="patient-shortcuts">
-          <h2>Outras áreas do seu cuidado</h2>
+          <div className="section-heading patient-shortcuts-heading">
+            <div>
+              <h2>Outras áreas do seu cuidado</h2>
+              <p>Acesse seus registros e os canais disponíveis na clínica.</p>
+            </div>
+          </div>
           <div className="quick-actions">
             {actions.map((action) => (
               <Link
-                className="quick-action"
+                className={`quick-action${action.available ? "" : " unavailable"}`}
                 href={`${base}/${action.slug}`}
                 key={action.slug}
               >
                 <strong>{action.label}</strong>
                 <span>{action.text}</span>
-                <span className="action-state">
-                  {action.slug === "plano"
-                    ? "Abrir orientações"
-                    : action.slug === "diario"
-                      ? "Abrir check-ins"
-                      : action.slug === "evolucao"
-                        ? "Abrir evolução"
-                      : action.slug === "documentos"
-                        ? "Abrir documentos"
-                        : action.slug === "conversas"
-                          ? "Abrir conversas"
-                          : "Conhecer a área"}
-                </span>
+                <span className="action-state">{actionState(action)}</span>
               </Link>
             ))}
           </div>
@@ -222,6 +264,9 @@ export function PatientArea({
             </Link>
           ))}
       </nav>
+      <p className="patient-care-tabs-hint">
+        Deslize para ver todas as áreas do seu cuidado.
+      </p>
       {section.slug === "cuidado" ? (
         <section className="panel">
           <h2>Seu cuidado, organizado</h2>
