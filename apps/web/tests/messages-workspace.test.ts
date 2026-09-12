@@ -10,10 +10,16 @@ const workspace = readFileSync(
 test("conversation keeps a draft through a send failure and guards navigation", () => {
   assert.match(workspace, /const \[draft, setDraft\] = useState\(""\)/);
   assert.match(workspace, /value=\{draft\}/);
-  assert.match(workspace, /Seu texto foi mantido; tente enviar novamente/);
+  assert.match(workspace, /Seu texto foi mantido/);
   assert.match(workspace, /beforeunload/);
   assert.match(workspace, /Você tem uma mensagem não enviada/);
-  assert.match(workspace, /onClick=\{confirmDraftNavigation\}/);
+  assert.match(workspace, /document\.addEventListener\("click"/);
+  assert.match(workspace, /setDraft\(""\)/);
+  assert.match(workspace, /sendUncertain/);
+  assert.match(workspace, /Atualize a conversa e confira o histórico/);
+  assert.match(workspace, /Não apareceu, liberar nova tentativa/);
+  assert.match(workspace, /Mensagem confirmada no histórico/);
+  assert.match(workspace, /previousSelectedKey/);
 });
 
 test("conversation makes the recipient, sender and return path explicit", () => {

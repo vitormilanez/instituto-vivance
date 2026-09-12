@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { PatientSection } from "@/modules/workspace/navigation";
 import { patientSections } from "@/modules/workspace/navigation";
 import type { Appointment } from "@/modules/agenda/service";
+import { patientNextStep } from "@/modules/workspace/patient-next-step";
 import { EmptyModule, FutureButton } from "./module-ui";
 
 const actions = [
@@ -41,6 +42,7 @@ export function PatientArea({
   currentTime,
   latestPublication = null,
   onboardingHref,
+  pendingCheckInId,
 }: {
   section: PatientSection;
   base: string;
@@ -48,6 +50,7 @@ export function PatientArea({
   currentTime: string;
   latestPublication?: { title: string; revision: number } | null;
   onboardingHref?: string | null;
+  pendingCheckInId?: string | null;
 }) {
   const nextAppointment = appointments.find(
     (appointment) =>
@@ -58,38 +61,16 @@ export function PatientArea({
   const latestCompleted = [...appointments]
     .reverse()
     .find((appointment) => appointment.status === "completed");
-  const nextStep = onboardingHref
-    ? {
-        title: "Continue seu cadastro",
-        detail:
-          "Conte um pouco sobre você e envie os exames que quiser compartilhar. Você pode continuar depois.",
-        action: "Continuar meu cadastro",
-        href: onboardingHref,
-      }
-    : latestPublication
-      ? {
-          title: "Veja suas orientações médicas",
-          detail: `${latestPublication.title} está disponível para você consultar.`,
-          action: "Abrir orientações",
-          href: `${base}/plano`,
-        }
-      : nextAppointment
-        ? {
-            title:
-              nextAppointment.status === "in_progress"
-                ? "Acompanhe sua consulta em andamento"
-                : "Confira sua próxima consulta",
-            detail: "Veja o horário e as informações já registradas pela clínica.",
-            action: "Ver consulta",
-            href: `${base}/consultas`,
-          }
-        : {
-            title: "Conheça seu espaço de conversas",
-            detail:
-              "Envie uma mensagem ao médico vinculado ao seu acompanhamento quando precisar.",
-            action: "Abrir conversas",
-            href: `${base}/conversas`,
-          };
+  const nextStep = patientNextStep({
+    base,
+    onboardingHref,
+    publishedPlanTitle: latestPublication?.title,
+    hasConsultationInProgress: Boolean(
+      appointments.some((appointment) => appointment.status === "in_progress"),
+    ),
+    hasUpcomingConsultation: Boolean(nextAppointment),
+    pendingCheckInId,
+  });
   if (section.slug === "hoje")
     return (
       <>

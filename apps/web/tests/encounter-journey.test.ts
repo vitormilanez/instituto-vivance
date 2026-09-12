@@ -27,6 +27,8 @@ test("encounter journey keeps the four manual stages distinct", () => {
   assert.match(editor, /Criar plano de cuidado/);
   assert.match(editor, /Há alterações não salvas/);
   assert.match(editor, /Aprovado, ainda não publicado/);
+  assert.match(editor, /if \(status === "finalized"\) setConfirming\(false\)/);
+  assert.match(editor, /<nav className="encounter-journey"[\s\S]*\{error &&/);
 });
 
 test("encounter preparation uses only the submitted onboarding available to care", () => {

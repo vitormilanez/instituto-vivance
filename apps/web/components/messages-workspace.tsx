@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { FormEvent, MouseEvent } from "react";
+import type { FormEvent } from "react";
 import type {
   MessageRecipient,
   PatientMessages,
@@ -53,7 +53,13 @@ function ConversationWorkspace({
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [sendUncertain, setSendUncertain] = useState(false);
   const selected = initial.selected;
+  const selectedKey = selected
+    ? `${selected.patientId}:${selected.doctorId}`
+    : "";
+  const previousSelectedKey = useRef(selectedKey);
+  const messagesBeforeAttempt = useRef<Set<string>>(new Set());
   const hasDraft = draft.trim().length > 0;
   const isStaffConversation = recipientParam === "paciente";
 
@@ -63,24 +69,65 @@ function ConversationWorkspace({
       event.preventDefault();
       event.returnValue = "";
     };
+    const protectNavigation = (event: MouseEvent) => {
+      if (
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      )
+        return;
+      const link = (event.target as Element | null)?.closest<HTMLAnchorElement>(
+        "a[href]",
+      );
+      if (!link || link.href === window.location.href) return;
+      if (
+        !window.confirm(
+          "Você tem uma mensagem não enviada. Deseja sair e descartar este texto?",
+        )
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        window.setTimeout(() => composer.current?.focus(), 0);
+        return;
+      }
+      setDraft("");
+      setError("");
+      setNotice("");
+      setSendUncertain(false);
+    };
     window.addEventListener("beforeunload", warnBeforeExit);
-    return () => window.removeEventListener("beforeunload", warnBeforeExit);
+    document.addEventListener("click", protectNavigation, true);
+    return () => {
+      window.removeEventListener("beforeunload", warnBeforeExit);
+      document.removeEventListener("click", protectNavigation, true);
+    };
   }, [hasDraft]);
 
-  function confirmDraftNavigation(event: MouseEvent<HTMLAnchorElement>) {
-    if (
-      !hasDraft ||
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey
-    )
-      return;
-    if (window.confirm("Você tem uma mensagem não enviada. Deseja sair e descartar este texto?")) return;
-    event.preventDefault();
-    window.setTimeout(() => composer.current?.focus(), 0);
-  }
+  useEffect(() => {
+    if (previousSelectedKey.current === selectedKey) return;
+    previousSelectedKey.current = selectedKey;
+    setDraft("");
+    setError("");
+    setNotice("");
+    setSendUncertain(false);
+  }, [selectedKey]);
+
+  useEffect(() => {
+    if (!sendUncertain || !draft.trim()) return;
+    const confirmed = initial.messages.some(
+      (message) =>
+        !messagesBeforeAttempt.current.has(message.id) &&
+        message.sender_id === initial.userId &&
+        message.content === draft.trim(),
+    );
+    if (!confirmed) return;
+    setDraft("");
+    setError("");
+    setSendUncertain(false);
+    setNotice("Mensagem confirmada no histórico.");
+  }, [draft, initial.messages, initial.userId, sendUncertain]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -94,6 +141,10 @@ function ConversationWorkspace({
     setPending(true);
     setError("");
     setNotice("");
+    setSendUncertain(false);
+    messagesBeforeAttempt.current = new Set(
+      initial.messages.map((message) => message.id),
+    );
     try {
       const response = await fetch(
         `/api/v1/clinics/${initial.clinic.id}/messages`,
@@ -118,10 +169,16 @@ function ConversationWorkspace({
       setNotice("Mensagem enviada.");
       router.refresh();
     } catch (reason) {
+      const uncertain =
+        !(reason instanceof Error) ||
+        reason.name === "TimeoutError" ||
+        reason.name === "AbortError" ||
+        reason instanceof TypeError;
+      setSendUncertain(uncertain);
       setError(
-        reason instanceof Error && reason.name !== "TimeoutError"
-          ? reason.message
-          : "A conexão demorou. Seu texto foi mantido; tente enviar novamente.",
+        uncertain
+          ? "Não conseguimos confirmar o envio. Seu texto foi mantido. Atualize a conversa e confira o histórico antes de tentar novamente."
+          : reason.message,
       );
     } finally {
       busy.current = false;
@@ -141,7 +198,6 @@ function ConversationWorkspace({
                 key={recipient.id}
                 className="conversation-recipient"
                 href={conversationHref(base, recipientParam, recipient.id)}
-                onClick={confirmDraftNavigation}
                 aria-current={
                   selected &&
                   (recipientParam === "paciente"
@@ -173,7 +229,6 @@ function ConversationWorkspace({
                   <Link
                     className="conversation-return-link"
                     href={`/clinicas/${initial.clinic.id}/pacientes/${selected.patientId}`}
-                    onClick={confirmDraftNavigation}
                   >
                     Voltar à ficha de {selected.displayName}
                   </Link>
@@ -181,7 +236,6 @@ function ConversationWorkspace({
                   <Link
                     className="conversation-return-link"
                     href={`/clinicas/${initial.clinic.id}/meu-cuidado`}
-                    onClick={confirmDraftNavigation}
                   >
                     Voltar ao meu cuidado
                   </Link>
@@ -227,7 +281,6 @@ function ConversationWorkspace({
                       : selected.doctorId,
                     initial.page - 1,
                   )}
-                  onClick={confirmDraftNavigation}
                 >
                   Anterior
                 </Link>
@@ -242,7 +295,6 @@ function ConversationWorkspace({
                       : selected.doctorId,
                     initial.page + 1,
                   )}
-                  onClick={confirmDraftNavigation}
                 >
                   Próxima
                 </Link>
@@ -250,6 +302,16 @@ function ConversationWorkspace({
             </nav>
             <form className="conversation-composer" onSubmit={submit}>
               {error && <p role="alert">{error}</p>}
+              {sendUncertain && (
+                <div className="conversation-recovery" role="group" aria-label="Recuperar envio incerto">
+                  <button type="button" className="secondary" onClick={() => router.refresh()}>
+                    Atualizar conversa
+                  </button>
+                  <button type="button" className="secondary" onClick={() => setSendUncertain(false)}>
+                    Não apareceu, liberar nova tentativa
+                  </button>
+                </div>
+              )}
               {notice && <p role="status">{notice}</p>}
               <label htmlFor="direct-message">Mensagem para {selected.displayName}</label>
               <textarea
@@ -271,7 +333,7 @@ function ConversationWorkspace({
               </p>
               <div>
                 <span>{draft.length}/4.000 caracteres</span>
-                <button disabled={pending}>
+                <button disabled={pending || sendUncertain}>
                   {pending ? "Enviando…" : "Enviar mensagem"}
                 </button>
               </div>

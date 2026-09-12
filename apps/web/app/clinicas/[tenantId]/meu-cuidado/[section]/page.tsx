@@ -64,7 +64,7 @@ export default async function PatientAreaPage({
         )
       : null;
   const checkIns =
-    patient && slug === "diario"
+    patient && ["diario", "hoje"].includes(slug)
       ? await patientCheckIns(tenantId, query.pagina)
       : null;
   const longitudinal =
@@ -184,6 +184,10 @@ export default async function PatientAreaPage({
               onboarding?.status === "draft"
                 ? `/clinicas/${tenantId}/primeiros-passos`
                 : null
+            }
+            pendingCheckInId={
+              checkIns?.checkIns.find((item) => item.status === "pending")?.id ??
+              null
             }
           />
         )

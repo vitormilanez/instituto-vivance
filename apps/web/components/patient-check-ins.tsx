@@ -66,7 +66,7 @@ function PatientCheckIn({
   }
 
   return (
-    <article className="panel patient-check-in">
+    <article id={`check-in-${item.id}`} className="panel patient-check-in">
       <div className="section-heading">
         <div>
           <h2>

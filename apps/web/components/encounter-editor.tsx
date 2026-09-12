@@ -83,6 +83,7 @@ export function EncounterEditor({
       )
     )
       return false;
+    if (next !== "closing") setConfirming(false);
     setStage(next);
     return true;
   }
@@ -190,6 +191,7 @@ export function EncounterEditor({
           : "Rascunho salvo. Você pode sair e continuar depois.",
       );
     } catch (error) {
+      if (status === "finalized") setConfirming(false);
       setError(
         error instanceof Error
           ? error.message
@@ -312,6 +314,16 @@ export function EncounterEditor({
           ))}
         </ol>
       </nav>
+      {notice && (
+        <p className="notice" role="status">
+          {notice}
+        </p>
+      )}
+      {error && (
+        <p className="feedback" role="alert">
+          {error}
+        </p>
+      )}
       {stage === "preparation" && (
         <section
           className="encounter-stage"
@@ -373,16 +385,6 @@ export function EncounterEditor({
                   : `Versão ${e.version} · ${clinicalTime(e.updated_at)}`}
             </span>
           </div>
-          {notice && (
-            <p className="notice" role="status">
-              {notice}
-            </p>
-          )}
-          {error && (
-            <p className="feedback" role="alert">
-              {error}
-            </p>
-          )}
           {canEdit ? (
             <form
               onSubmit={(event) => {
@@ -538,7 +540,7 @@ export function EncounterEditor({
                   disabled={pending}
                   onClick={() => {
                     setConfirming(false);
-                    changeStage("consultation");
+                    setStage("consultation");
                   }}
                 >
                   Continuar revisando
