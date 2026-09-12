@@ -8,7 +8,7 @@ A prioridade abaixo de 11/09 é histórica. A base já incorpora 7B.1/7B.2 e a c
 
 Implementação no checkout `instituto-vivance-onboarding`, branch `codex/onboarding-paciente`, base `7b49597`. Médico e administrador convidam; WhatsApp usa link manual e o paciente informa e-mail ao abrir. O onboarding opcional tem foto, medidas, cinco perguntas, exames e revisão consentida; o médico vê a versão enviada na ficha. A área normal permanece utilizável. Oito ações rápidas e Agenda existentes preservadas.
 
-Estado: código integrado e testes locais, sem publicação nem aplicação remota da nova migration. O **7B.3 — consulta manual em quatro etapas** também foi validado localmente: Preparo reúne a pré-consulta submetida, Plano mostra o estado real dos planos vinculados e Fechamento exige confirmação explícita. A próxima evolução é **7B.4 — conversas e continuidade móvel**, depois 7B.5. Escolha de agentes registrada em `AGENTS.md`: Sol/Medium para acesso/banco; Terra/Medium para interface. IA e áudio continuam adiados.
+Estado: código integrado e testes locais, sem publicação nem aplicação remota da nova migration. Os **7B.3 e 7B.4** também foram validados localmente: Preparo reúne a pré-consulta submetida; Plano mostra o estado real dos planos vinculados; Conversas preserva texto não enviado e confirma mudanças de contexto. A próxima evolução é **7B.5 — Hoje do paciente orientado ao próximo passo**, depois 5A.1. Escolha de agentes registrada em `AGENTS.md`: Sol/Medium para acesso/banco; Terra/Medium para interface. IA e áudio continuam adiados.
 
 ## 1. Onde continuar
 

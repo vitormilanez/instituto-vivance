@@ -9,11 +9,11 @@ O titular acrescentou **convite de paciente pelo médico ou administrador + onbo
 - **3E — Convite e entrada do paciente:** nome + e-mail ou telefone; médico convida para si, administrador escolhe médico da clínica; convite seguro, aceite e vínculo. WhatsApp usa link para envio manual, conforme escolha do titular; o paciente informa e-mail para criar/confirmar acesso. Não há disparo automático de WhatsApp.
 - **4E — Onboarding e pré-consulta inicial:** foto e medidas opcionais, cinco respostas dirigidas, etapa de exames, salvamento/retomada e opção de pular. Compartilhamento explícito e apresentação dos originais ao médico autorizado.
 - Referência executável: `docs/ONBOARDING_MVP.md` no checkout `instituto-vivance-onboarding`. Estado: 3E/4E implementados e validados localmente (119 testes, tipos, lint, build); ativação remota e prova de Auth/email/Storage conectados pendentes.
-- Abaixo fica preservada a avaliação original. Os incrementos 3E/4E e 7B.3 já foram validados localmente; o próximo slice é 7B.4.
+- Abaixo fica preservada a avaliação original. Os incrementos 3E/4E, 7B.3 e 7B.4 já foram validados localmente; o próximo slice é 7B.5.
 
 ## Decisão recomendada
 
-**Próximo slice funcional: 7B.4 — conversas e continuidade móvel.** A consulta agora reúne preparo, registro, plano e fechamento sem ações implícitas. O maior ganho imediato é tornar a conversa direta uma continuidade clara da ficha, preservando texto em falhas e mudanças de destinatário.
+**Próximo slice funcional: 7B.5 — Hoje do paciente orientado ao próximo passo.** Conversas agora preservam rascunhos e deixam claro quem participa. O maior ganho imediato é destacar uma ação concreta do paciente conforme os dados já existentes, sem criar orientação clínica automática.
 
 Preservar a identidade do protótipo e melhorar a clareza dentro de cada entrega. O objetivo visual é: **o médico entende o contexto e a próxima ação; o paciente entende o que fazer hoje**.
 
@@ -77,6 +77,10 @@ O documento `ENTREGA_MVP_PACIENTE_PARA_DEV.md`, de 09/09, descreve um MVP maior,
 ### Execução local — 7B.3 concluído em 12/09/2026
 
 O atendimento passou a organizar a tela em **Preparo, Consulta, Plano e Fechamento**. Preparo exibe somente o onboarding já enviado pela pessoa, com acesso aos documentos; Plano apresenta os planos realmente ligados ao atendimento e distingue rascunho, revisão, aprovação pendente de publicação e publicação vigente. Fechamento mantém a finalização como ação explícita: avançar entre etapas nunca salva, finaliza ou publica por conta própria. A saída de uma etapa com texto não salvo pede confirmação.
+
+### Execução local — 7B.4 concluído em 12/09/2026
+
+Conversas agora deixam claro o destinatário, o remetente e o retorno à ficha da pessoa ou ao Meu cuidado. O texto do compositor permanece disponível após falha de envio e a interface confirma antes de trocar de conversa, paginar, voltar ou fechar a página com uma mensagem não enviada. O envio continua direto, assíncrono e sem promessa de leitura ou reenvio idempotente.
 
 **Demonstração de saída do lote:** o médico retoma um atendimento, salva uma orientação, publica por ação explícita; o paciente encontra a orientação e responde a uma solicitação já existente; o médico localiza o relato e a conversa mantendo o mesmo paciente. Mostrar também ausência de registros e uma falha recuperável.
 

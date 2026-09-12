@@ -1096,6 +1096,20 @@ button.calendar-day[aria-pressed="true"] {
   color: var(--muted);
   font-size: 14px;
 }
+.conversation-return-link {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  margin-bottom: 10px;
+  color: var(--blue);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.conversation-return-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .conversation-messages {
   display: grid;
   gap: 12px;
@@ -1345,6 +1359,10 @@ button.calendar-day[aria-pressed="true"] {
   }
   .conversation-detail-heading {
     flex-wrap: wrap;
+  }
+  .conversation-return-link {
+    min-height: 44px;
+    margin-bottom: 4px;
   }
   .conversation-message {
     max-width: 100%;

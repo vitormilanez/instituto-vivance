@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { FormEvent } from "react";
+import type { FormEvent, MouseEvent } from "react";
 import type {
   MessageRecipient,
   PatientMessages,
@@ -48,17 +48,45 @@ function ConversationWorkspace({
 }) {
   const router = useRouter();
   const busy = useRef(false);
+  const composer = useRef<HTMLTextAreaElement>(null);
   const [pending, setPending] = useState(false);
+  const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const selected = initial.selected;
+  const hasDraft = draft.trim().length > 0;
+  const isStaffConversation = recipientParam === "paciente";
+
+  useEffect(() => {
+    if (!hasDraft) return;
+    const warnBeforeExit = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warnBeforeExit);
+    return () => window.removeEventListener("beforeunload", warnBeforeExit);
+  }, [hasDraft]);
+
+  function confirmDraftNavigation(event: MouseEvent<HTMLAnchorElement>) {
+    if (
+      !hasDraft ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return;
+    if (window.confirm("Você tem uma mensagem não enviada. Deseja sair e descartar este texto?")) return;
+    event.preventDefault();
+    window.setTimeout(() => composer.current?.focus(), 0);
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy.current || !selected) return;
-    const form = event.currentTarget;
-    const content = new FormData(form).get("content");
-    if (typeof content !== "string" || !content.trim()) {
+    const content = draft.trim();
+    if (!content) {
       setError("Escreva uma mensagem antes de enviar.");
       return;
     }
@@ -86,14 +114,14 @@ function ConversationWorkspace({
       } catch {}
       if (!response.ok)
         throw new Error(result.error ?? "Não foi possível enviar a mensagem.");
-      form.reset();
+      setDraft("");
       setNotice("Mensagem enviada.");
       router.refresh();
     } catch (reason) {
       setError(
         reason instanceof Error && reason.name !== "TimeoutError"
           ? reason.message
-          : "A conexão demorou. Atualize a página antes de tentar novamente.",
+          : "A conexão demorou. Seu texto foi mantido; tente enviar novamente.",
       );
     } finally {
       busy.current = false;
@@ -113,6 +141,7 @@ function ConversationWorkspace({
                 key={recipient.id}
                 className="conversation-recipient"
                 href={conversationHref(base, recipientParam, recipient.id)}
+                onClick={confirmDraftNavigation}
                 aria-current={
                   selected &&
                   (recipientParam === "paciente"
@@ -140,8 +169,25 @@ function ConversationWorkspace({
           <>
             <header className="conversation-detail-heading">
               <div>
-                <h2>Conversa com {selected.displayName}</h2>
-                <p>Mensagens diretas e assíncronas.</p>
+                {isStaffConversation ? (
+                  <Link
+                    className="conversation-return-link"
+                    href={`/clinicas/${initial.clinic.id}/pacientes/${selected.patientId}`}
+                    onClick={confirmDraftNavigation}
+                  >
+                    Voltar à ficha de {selected.displayName}
+                  </Link>
+                ) : (
+                  <Link
+                    className="conversation-return-link"
+                    href={`/clinicas/${initial.clinic.id}/meu-cuidado`}
+                    onClick={confirmDraftNavigation}
+                  >
+                    Voltar ao meu cuidado
+                  </Link>
+                )}
+                <h2>Conversa entre você e {selected.displayName}</h2>
+                <p>Destinatário: {selected.displayName} · mensagens diretas e assíncronas.</p>
               </div>
               <span className="quiet-label">Canal não emergencial</span>
             </header>
@@ -157,7 +203,7 @@ function ConversationWorkspace({
                       key={message.id}
                     >
                       <small>
-                        {ownMessage ? "Você" : selected.displayName} · {clinicalTime(message.sent_at)}
+                        Remetente: {ownMessage ? "Você" : selected.displayName} · {clinicalTime(message.sent_at)}
                       </small>
                       <p>{message.content}</p>
                     </article>
@@ -181,6 +227,7 @@ function ConversationWorkspace({
                       : selected.doctorId,
                     initial.page - 1,
                   )}
+                  onClick={confirmDraftNavigation}
                 >
                   Anterior
                 </Link>
@@ -195,6 +242,7 @@ function ConversationWorkspace({
                       : selected.doctorId,
                     initial.page + 1,
                   )}
+                  onClick={confirmDraftNavigation}
                 >
                   Próxima
                 </Link>
@@ -203,14 +251,17 @@ function ConversationWorkspace({
             <form className="conversation-composer" onSubmit={submit}>
               {error && <p role="alert">{error}</p>}
               {notice && <p role="status">{notice}</p>}
-              <label htmlFor="direct-message">Mensagem</label>
+              <label htmlFor="direct-message">Mensagem para {selected.displayName}</label>
               <textarea
                 id="direct-message"
                 name="content"
+                ref={composer}
                 rows={3}
                 maxLength={4000}
                 required
                 disabled={pending}
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
                 placeholder="Escreva sua mensagem"
                 aria-describedby="direct-message-boundary"
               />
@@ -219,7 +270,7 @@ function ConversationWorkspace({
                 aceita anexos nesta etapa; use Documentos para arquivos.
               </p>
               <div>
-                <span>Até 4.000 caracteres</span>
+                <span>{draft.length}/4.000 caracteres</span>
                 <button disabled={pending}>
                   {pending ? "Enviando…" : "Enviar mensagem"}
                 </button>
