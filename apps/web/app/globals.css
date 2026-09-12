@@ -2594,12 +2594,73 @@ button.calendar-day[aria-pressed="true"] {
   padding: 24px 0;
   border-top: 1px solid var(--border);
 }
+.processing-workspace {
+  display: grid;
+  gap: 22px;
+}
+.processing-boundary {
+  border: 1px solid #cad9e6;
+  border-radius: 14px;
+  background: #f5f9fc;
+  padding: 18px 20px;
+}
+.processing-boundary strong,
+.processing-boundary p,
+.processing-row h2,
+.processing-row p,
+.processing-empty h2,
+.processing-empty p {
+  margin: 0;
+}
+.processing-boundary p,
+.processing-row p,
+.processing-empty p {
+  margin-top: 6px;
+  color: var(--muted);
+}
+.processing-list {
+  border-top: 1px solid var(--border);
+}
+.processing-row {
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.processing-kind {
+  display: inline-block;
+  margin-bottom: 7px;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 700;
+}
+.processing-row h2,
+.processing-empty h2 {
+  color: var(--navy);
+  font-size: 18px;
+}
+.processing-meta {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 138px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: right;
+}
+.processing-empty {
+  padding: 28px 0;
+  border-top: 1px solid var(--border);
+}
 @media (max-width:650px) {
   .notifications-workspace { padding: 20px; }
   .notifications-preference,
   .notifications-heading,
   .notification-row { align-items: flex-start; flex-direction: column; gap: 12px; }
   .notification-row > span { text-align: left; }
+  .processing-row { align-items: flex-start; flex-direction: column; }
+  .processing-meta { min-width: 0; text-align: left; }
 }
 .longitudinal-patient-picker { display:flex; align-items:end; gap:16px; margin:0; padding:20px 24px; }
 .longitudinal-patient-picker .field { flex:1; margin:0; }

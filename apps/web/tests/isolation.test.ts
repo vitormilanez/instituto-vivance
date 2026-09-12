@@ -2746,6 +2746,162 @@ test("in-app message notices are generic, recipient-bound, idempotent and respec
   });
 });
 
+test("processing jobs are private, idempotent, leased, retried and fail closed", async () => {
+  await asUser("doctor", async () => {
+    await startClinical();
+    const first = await db.query<{ id: string }>(
+      "select private.enqueue_processing_job($1,$2,'audio_transcription','source:private-content') id",
+      [a, pa],
+    );
+    const duplicate = await db.query<{ id: string }>(
+      "select private.enqueue_processing_job($1,$2,'audio_transcription','source:private-content') id",
+      [a, pa],
+    );
+    assert.equal(first.rows[0].id, duplicate.rows[0].id);
+    await denied(
+      "select private.enqueue_processing_job($1,$2,'clinical_draft','source:private-content')",
+      [a, pa],
+    );
+    await denied(
+      "select private.enqueue_processing_job($1,$2,'audio_transcription','cross-tenant')",
+      [a, pb],
+    );
+    await denied(
+      "insert into public.processing_jobs(tenant_id,patient_id,job_type,idempotency_key,created_by) values($1,$2,'audio_transcription','forged',$3)",
+      [a, pa, users.doctor.id],
+    );
+    await denied("select * from public.claim_next_processing_job()");
+
+    for (const role of ["patient", "admin", "nurse", "other", "outsider", "suspended"]) {
+      await switchActor(role);
+      assert.equal(
+        (
+          await db.query(
+            "select id from public.processing_jobs where tenant_id=$1",
+            [a],
+          )
+        ).rows.length,
+        0,
+      );
+      await denied(
+        "select private.enqueue_processing_job($1,$2,'audio_transcription','denied-' || $3)",
+        [a, pa, role],
+      );
+    }
+
+    await switchActor("doctor");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.processing_jobs where tenant_id=$1",
+          [a],
+        )
+      ).rows.length,
+      1,
+    );
+
+    await db.exec("set local role service_role");
+    const claimed = await db.query<{
+      job_id: string;
+      attempt_count: number;
+      lease_token: string;
+    }>("select * from public.claim_next_processing_job()");
+    assert.deepEqual(
+      claimed.rows.map(({ job_id, attempt_count }) => ({ job_id, attempt_count })),
+      [{ job_id: first.rows[0].id, attempt_count: 1 }],
+    );
+    await denied(
+      "select public.complete_processing_job($1,$2)",
+      [claimed.rows[0].job_id, randomUUID()],
+    );
+    const retry = await db.query<{ status: string; available_at: unknown }>(
+      "select * from public.fail_processing_job($1,$2,'retryable')",
+      [claimed.rows[0].job_id, claimed.rows[0].lease_token],
+    );
+    assert.equal(retry.rows[0].status, "pending");
+    assert.ok(retry.rows[0].available_at);
+
+    await db.exec("reset role");
+    await db.query(
+      "update public.processing_jobs set available_at=clock_timestamp() where id=$1",
+      [first.rows[0].id],
+    );
+    await db.exec("set local role service_role");
+    const claimedAgain = await db.query<{
+      job_id: string;
+      attempt_count: number;
+      lease_token: string;
+    }>("select * from public.claim_next_processing_job()");
+    assert.deepEqual(
+      claimedAgain.rows.map(({ job_id, attempt_count }) => ({ job_id, attempt_count })),
+      [{ job_id: first.rows[0].id, attempt_count: 2 }],
+    );
+    assert.deepEqual(
+      (
+        await db.query("select public.complete_processing_job($1,$2)", [
+          claimedAgain.rows[0].job_id,
+          claimedAgain.rows[0].lease_token,
+        ])
+      ).rows,
+      [{ complete_processing_job: true }],
+    );
+
+    await switchActor("doctor");
+    const expiring = await db.query<{ id: string }>(
+      "select private.enqueue_processing_job($1,$2,'clinical_draft','source:lease-timeout') id",
+      [a, pa],
+    );
+    await db.exec("set local role service_role");
+    const firstLease = await db.query<{
+      job_id: string;
+      attempt_count: number;
+      lease_token: string;
+    }>("select * from public.claim_next_processing_job()");
+    assert.equal(firstLease.rows[0].job_id, expiring.rows[0].id);
+    await db.exec("reset role");
+    await db.query(
+      "update public.processing_jobs set last_started_at=clock_timestamp() - interval '6 minutes', lease_expires_at=clock_timestamp() - interval '1 second' where id=$1",
+      [expiring.rows[0].id],
+    );
+    await db.exec("set local role service_role");
+    assert.deepEqual(
+      (
+        await db.query("select public.recover_expired_processing_jobs()")
+      ).rows,
+      [{ recover_expired_processing_jobs: 1 }],
+    );
+    const reclaimed = await db.query<{
+      job_id: string;
+      attempt_count: number;
+      lease_token: string;
+    }>("select * from public.claim_next_processing_job()");
+    assert.equal(reclaimed.rows[0].job_id, expiring.rows[0].id);
+    assert.equal(reclaimed.rows[0].attempt_count, 2);
+    const failed = await db.query<{ status: string }>(
+      "select * from public.fail_processing_job($1,$2,'permanent')",
+      [reclaimed.rows[0].job_id, reclaimed.rows[0].lease_token],
+    );
+    assert.equal(failed.rows[0].status, "failed");
+
+    await switchActor("doctor");
+    const states = await db.query<{ status: string }>(
+      "select status from public.processing_jobs where tenant_id=$1 order by created_at,id",
+      [a],
+    );
+    assert.deepEqual(states.rows, [{ status: "completed" }, { status: "failed" }]);
+    await denied(
+      "update public.processing_jobs set job_type='clinical_draft' where id=$1",
+      [first.rows[0].id],
+    );
+
+    await db.exec("reset role");
+    const audit = await db.query<{ payload: string }>(
+      "select json_agg(a)::text payload from public.audit_events a where entity_type='processing_jobs'",
+    );
+    assert.ok(!audit.rows[0].payload.includes("private-content"));
+  });
+});
+
 test("plan publication creates a generic notice only for the linked patient", async () => {
   await asUser("doctor", async () => {
     const plan = await publicationFixture();

@@ -23,11 +23,13 @@ export function ClinicShell({
   children: ReactNode;
 }) {
   const base = `/clinicas/${clinic.id}`;
-  const moduleLinks = staffModules.map((module) => ({
-    key: module.slug,
-    label: module.title,
-    href: `${base}/${module.slug}`,
-  }));
+  const moduleLinks = staffModules
+    .filter((module) => clinic.role !== "admin" || module.slug !== "processamentos")
+    .map((module) => ({
+      key: module.slug,
+      label: module.title,
+      href: `${base}/${module.slug}`,
+    }));
   const links = [
     {
       key: "home",
@@ -63,6 +65,7 @@ export function ClinicShell({
           "acompanhamento",
           "documentos",
           "mensagens",
+          "processamentos",
           "notifications",
         ].includes(
           link.key,

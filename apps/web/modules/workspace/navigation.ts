@@ -64,6 +64,17 @@ export const staffModules = [
     detail: "Apenas o paciente e o médico com vínculo ativo acessam a conversa.",
   },
   {
+    slug: "processamentos",
+    title: "Processamentos",
+    description: "Acompanhe tarefas privadas e autorizadas do cuidado.",
+    action: "Nenhuma ação disponível",
+    tabs: ["Fila privada"],
+    columns: ["Tipo", "Estado", "Tentativas", "Atualização"],
+    empty: "Nenhum processamento disponível",
+    detail:
+      "Áudio e IA só criarão tarefas depois de suas decisões específicas.",
+  },
+  {
     slug: "relatorios",
     title: "Relatórios",
     description: "Organize os documentos produzidos pela equipe.",

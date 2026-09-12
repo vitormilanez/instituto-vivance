@@ -586,6 +586,46 @@ export type Database = {
           },
         ];
       };
+      processing_jobs: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          job_type: string;
+          idempotency_key: string;
+          status: string;
+          attempt_count: number;
+          max_attempts: number;
+          available_at: string;
+          last_started_at: string | null;
+          lease_token: string | null;
+          lease_expires_at: string | null;
+          last_error_code: string | null;
+          completed_at: string | null;
+          failed_at: string | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "processing_jobs_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "processing_jobs_tenant_id_created_by_fkey";
+            columns: ["tenant_id", "created_by"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
       patient_accounts: {
         Row: {
           created_at: string;
@@ -738,6 +778,34 @@ export type Database = {
           enabled: boolean;
         };
         Returns: boolean;
+      };
+      claim_next_processing_job: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          job_id: string;
+          tenant_id: string;
+          patient_id: string;
+          job_type: string;
+          attempt_count: number;
+          max_attempts: number;
+          lease_token: string;
+        }[];
+      };
+      recover_expired_processing_jobs: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+      complete_processing_job: {
+        Args: { target_job: string; target_lease: string };
+        Returns: boolean;
+      };
+      fail_processing_job: {
+        Args: {
+          target_job: string;
+          target_lease: string;
+          failure_code: string;
+        };
+        Returns: { status: string; available_at: string }[];
       };
       send_direct_message: {
         Args: {
