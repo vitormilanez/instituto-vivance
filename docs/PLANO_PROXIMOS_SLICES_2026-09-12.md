@@ -9,11 +9,11 @@ O titular acrescentou **convite de paciente pelo médico ou administrador + onbo
 - **3E — Convite e entrada do paciente:** nome + e-mail ou telefone; médico convida para si, administrador escolhe médico da clínica; convite seguro, aceite e vínculo. WhatsApp usa link para envio manual, conforme escolha do titular; o paciente informa e-mail para criar/confirmar acesso. Não há disparo automático de WhatsApp.
 - **4E — Onboarding e pré-consulta inicial:** foto e medidas opcionais, cinco respostas dirigidas, etapa de exames, salvamento/retomada e opção de pular. Compartilhamento explícito e apresentação dos originais ao médico autorizado.
 - Referência executável: `docs/ONBOARDING_MVP.md` no checkout `instituto-vivance-onboarding`. Estado: 3E/4E implementados e validados localmente (119 testes, tipos, lint, build); ativação remota e prova de Auth/email/Storage conectados pendentes.
-- Abaixo fica preservada a avaliação original. Os incrementos 3E/4E e 7B.3–7B.5 já foram validados localmente; o próximo slice é 5A.1.
+- Abaixo fica preservada a avaliação original. Os incrementos 3E/4E, 7B.3–7B.5, 5A.1/5A.2, 5B.1 e 7A.1 já foram validados localmente; o próximo slice é 7A.2.
 
 ## Decisão recomendada
 
-**Próximo slice funcional: 5A.1 — conferência humana de documentos.** O Hoje do paciente agora destaca uma ação concreta conforme dados reais já disponíveis. O maior ganho imediato é permitir que o médico registre a conferência de um arquivo, com autoria e histórico, sem alterar o original ou expor a nota interna.
+**Próximo slice funcional: 7A.2 — publicação e exportação autorizada do relatório.** A base interna já permite ao médico reunir fontes reais, preservar versões e aprovar explicitamente uma síntese. A evolução seguinte deve publicar somente a versão escolhida para o próprio paciente e gerar arquivo identificado, sem expor notas ou links internos.
 
 Preservar a identidade do protótipo e melhorar a clareza dentro de cada entrega. O objetivo visual é: **o médico entende o contexto e a próxima ação; o paciente entende o que fazer hoje**.
 
@@ -85,6 +85,13 @@ Conversas agora deixam claro o destinatário, o remetente e o retorno à ficha d
 ### Execução local — 7B.5 concluído em 12/09/2026
 
 O Hoje da pessoa passa a mostrar um único próximo passo, escolhido com dados existentes: retomar onboarding em rascunho, abrir orientações publicadas, conferir a próxima consulta ou abrir conversas. As demais áreas permanecem acessíveis abaixo, sem apresentar funcionalidades futuras como tarefas ativas e sem recomendar conduta clínica.
+
+### Execução local — 5A.1/5A.2, 5B.1 e 7A.1 concluídos em 12/09/2026
+
+- **Documentos:** o médico abre o original, registra conferência humana com decisão, nota interna, autoria e histórico. Enfermagem mantém o acesso permitido ao arquivo, sem metadados da revisão; paciente não recebe decisão nem nota interna. O arquivo e sua visibilidade não são alterados.
+- **Conversas:** repetição do mesmo envio usa uma chave própria da operação e não duplica a mensagem. Médico e paciente mantêm cursores de leitura independentes; ler a conversa não marca automaticamente o aviso interno.
+- **Relatório interno:** o médico escolhe pessoa, período, relatos e documentos já revisados, escreve a síntese e os pontos para consulta, salva rascunhos, fecha uma versão para revisão e aprova com confirmação explícita. A versão em revisão fica bloqueada para edição até voltar ao rascunho. O relatório permanece invisível ao paciente e ao administrador operacional.
+- **Evidência local:** 136 testes, tipos, lint, build e conferência visual agrupada passaram. A interface foi ajustada após a prova em navegador para datas em português, campos legíveis e ações em largura adequada no celular. As migrations estão somente no checkout; este worktree não está ligado a um projeto Supabase e nada foi aplicado remotamente.
 
 **Demonstração de saída do lote:** o médico retoma um atendimento, salva uma orientação, publica por ação explícita; o paciente encontra a orientação e responde a uma solicitação já existente; o médico localiza o relato e a conversa mantendo o mesmo paciente. Mostrar também ausência de registros e uma falha recuperável.
 

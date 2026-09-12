@@ -2523,6 +2523,102 @@ test("document review access immediately follows care revocation", async () => {
   });
 });
 
+test("manual care reports preserve sources and versions through explicit medical approval", async () => {
+  await asUser("doctor", async () => {
+    const checkIn = await checkInFixture();
+    await switchActor("patient");
+    const submission = (
+      await db.query<{ id: string }>(
+        "select public.submit_care_check_in($1,$2,'Relato original da pessoa','Peso',72.4,'kg',current_date,true) id",
+        [a, checkIn],
+      )
+    ).rows[0].id;
+    await switchActor("doctor");
+    const report = (
+      await db.query<{ id: string }>(
+        "select public.create_care_report($1,$2,current_date,current_date) id",
+        [a, pa],
+      )
+    ).rows[0].id;
+    const sources = JSON.stringify([{ type: "check_in", id: submission }]);
+    await db.query(
+      "select public.save_care_report($1,$2,1,'Acompanhamento','Síntese humana','Confirmar evolução','draft',$3::jsonb)",
+      [a, report, sources],
+    );
+    await denied(
+      "select public.save_care_report($1,$2,1,'Versão antiga','Síntese','Ponto','draft',$3::jsonb)",
+      [a, report, sources],
+    );
+    await db.query(
+      "select public.save_care_report($1,$2,2,'Acompanhamento','Síntese humana','Confirmar evolução','in_review',$3::jsonb)",
+      [a, report, sources],
+    );
+    await denied("select public.approve_care_report($1,$2,3,false)", [a, report]);
+    await db.query("select public.approve_care_report($1,$2,3,true)", [a, report]);
+    assert.deepEqual(
+      (
+        await db.query<{ status: string; version: number; approved: boolean }>(
+          "select status,version,approved_at is not null approved from public.care_reports where id=$1",
+          [report],
+        )
+      ).rows,
+      [{ status: "approved", version: 4, approved: true }],
+    );
+    assert.equal(
+      (
+        await db.query<{ n: number }>(
+          "select count(*)::int n from public.care_report_versions where report_id=$1",
+          [report],
+        )
+      ).rows[0].n,
+      4,
+    );
+    assert.deepEqual(
+      (
+        await db.query<{ source_label: string; source_id: string }>(
+          "select source_label,source_id from public.care_report_sources where report_id=$1",
+          [report],
+        )
+      ).rows,
+      [{ source_label: "Relato enviado pela pessoa", source_id: submission }],
+    );
+    await denied("update public.care_reports set title='Alterado' where id=$1", [report]);
+    await denied("delete from public.care_report_versions where report_id=$1", [report]);
+
+    for (const role of ["admin", "nurse", "patient", "other", "outsider", "suspended"]) {
+      await switchActor(role);
+      assert.equal(
+        (await db.query("select id from public.care_reports where id=$1", [report])).rows
+          .length,
+        0,
+      );
+      assert.equal(
+        (
+          await db.query("select id from public.care_report_versions where report_id=$1", [
+            report,
+          ])
+        ).rows.length,
+        0,
+      );
+      await denied(
+        "select public.create_care_report($1,$2,current_date,current_date)",
+        [a, pa],
+      );
+    }
+
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=1 where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+      [a, pa, users.doctor.id],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.care_reports where id=$1", [report])).rows.length,
+      0,
+    );
+  });
+});
+
 test("document completion rejects missing files and audit failure leaves no reservation", async () => {
   await asUser("doctor", async () => {
     const document = await privateDocumentFixture();

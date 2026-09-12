@@ -8,7 +8,14 @@ A prioridade abaixo de 11/09 é histórica. A base já incorpora 7B.1/7B.2 e a c
 
 Implementação no checkout `instituto-vivance-onboarding`, branch `codex/onboarding-paciente`, base `7b49597`. Médico e administrador convidam; WhatsApp usa link manual e o paciente informa e-mail ao abrir. O onboarding opcional tem foto, medidas, cinco perguntas, exames e revisão consentida; o médico vê a versão enviada na ficha. A área normal permanece utilizável. Oito ações rápidas e Agenda existentes preservadas.
 
-Estado: código integrado e testes locais, sem publicação nem aplicação remota da nova migration. Os **7B.3–7B.5** também foram validados localmente: Preparo reúne a pré-consulta submetida; Plano mostra o estado real dos planos vinculados; Conversas preserva texto não enviado; Hoje do paciente destaca um próximo passo real. A próxima evolução é **5A.1 — conferência humana de documentos**, depois 5B.1. Escolha de agentes registrada em `AGENTS.md`: Sol/Medium para acesso/banco; Terra/Medium para interface. IA e áudio continuam adiados.
+Estado: código integrado e testes locais, sem publicação nem aplicação remota das novas migrations. Os **7B.3–7B.5**, **5A.1/5A.2**, **5B.1** e **7A.1** foram validados localmente. Documentos têm revisão humana separada; Conversas reconciliam reenvio e leitura por participante; Relatórios permitem rascunho, revisão bloqueada e aprovação médica versionada. A próxima evolução é **7A.2 — publicação e exportação autorizada do relatório**. Escolha de agentes registrada em `AGENTS.md`: Sol/Medium para acesso/banco; Terra/Medium para interface. IA e áudio continuam adiados.
+
+### Fechamento local — 5A.1/5A.2, 5B.1 e 7A.1
+
+- Documentos: decisão e nota interna ficam em histórico próprio, somente para o médico autor com vínculo ativo; paciente e administração operacional não recebem a revisão.
+- Conversas: a chave de repetição via cabeçalho preserva uma única mensagem, e cada participante avança apenas o próprio cursor de leitura. Aviso interno e leitura da conversa permanecem eventos diferentes.
+- Relatórios: modelo próprio de relatório, fontes e versões; seleção manual de relatos e documentos revisados; controle de versão; envio para revisão; retorno ao rascunho; aprovação explícita e interna. Sem publicação, exportação, IA ou interpretação automática.
+- Verificação: 136 testes, tipos, lint, build e rodada visual agrupada passaram. Datas e ações foram refinadas para leitura amigável em desktop e celular. As migrations não foram comparadas nem aplicadas remotamente porque o checkout atual não possui vínculo Supabase.
 
 ## 1. Onde continuar
 

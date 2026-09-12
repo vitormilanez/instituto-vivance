@@ -21,6 +21,8 @@ import {
   staffMessages,
 } from "@/modules/messages/service";
 import { StaffMessagesWorkspace } from "@/components/messages-workspace";
+import { listReports } from "@/modules/reports/service";
+import { ReportsWorkspace } from "@/components/reports-workspace";
 export const dynamic = "force-dynamic";
 
 export default async function ModulePage({
@@ -167,6 +169,30 @@ export default async function ModulePage({
           </div>
         </div>
         <StaffMessagesWorkspace initial={initial} />
+      </ClinicShell>
+    );
+  }
+  if (slug === "relatorios") {
+    if (clinic.role !== "doctor")
+      return (
+        <ClinicShell clinic={clinic} active="relatorios">
+          <h1>Relatórios</h1>
+          <section className="panel">
+            <h2>Acesso clínico restrito</h2>
+            <p>Somente o médico autor prepara e revisa relatórios internos.</p>
+          </section>
+        </ClinicShell>
+      );
+    const query = await searchParams;
+    return (
+      <ClinicShell clinic={clinic} active="relatorios">
+        <div className="page-heading">
+          <div>
+            <h1>Relatórios</h1>
+            <p>Reúna fontes reais e prepare uma síntese para revisão médica.</p>
+          </div>
+        </div>
+        <ReportsWorkspace initial={await listReports(tenantId, query.pagina)} />
       </ClinicShell>
     );
   }

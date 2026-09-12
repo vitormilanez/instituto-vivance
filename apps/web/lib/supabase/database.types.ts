@@ -169,6 +169,66 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      care_reports: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          doctor_id: string;
+          doctor_display_name: string;
+          period_start: string;
+          period_end: string;
+          title: string;
+          summary: string;
+          consultation_points: string;
+          status: string;
+          version: number;
+          approved_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      care_report_sources: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          report_id: string;
+          patient_id: string;
+          source_type: string;
+          source_id: string;
+          source_label: string;
+          source_occurred_at: string;
+          included_by: string;
+          included_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      care_report_versions: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          report_id: string;
+          version: number;
+          status: string;
+          title: string;
+          summary: string;
+          consultation_points: string;
+          period_start: string;
+          period_end: string;
+          sources: Json;
+          approved_at: string | null;
+          actor_user_id: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       encounter_addenda: {
         Row: {
           id: string;
@@ -903,6 +963,37 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      create_care_report: {
+        Args: {
+          target_tenant: string;
+          target_patient: string;
+          report_period_start: string;
+          report_period_end: string;
+        };
+        Returns: string;
+      };
+      save_care_report: {
+        Args: {
+          target_tenant: string;
+          target_report: string;
+          read_version: number;
+          report_title: string;
+          report_summary: string;
+          report_consultation_points: string;
+          report_status: string;
+          source_refs: Json;
+        };
+        Returns: string;
+      };
+      approve_care_report: {
+        Args: {
+          target_tenant: string;
+          target_report: string;
+          read_version: number;
+          confirmed: boolean;
+        };
+        Returns: string;
+      };
       list_my_patient_invitations: {
         Args: Record<PropertyKey, never>;
         Returns: {
