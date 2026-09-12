@@ -9,6 +9,7 @@ import { DocumentError } from "@/modules/documents/service";
 import { ConversationError } from "@/modules/messages/service";
 import { NotificationError } from "@/modules/notifications/service";
 import { OnboardingError } from "@/modules/onboarding/service";
+import { ReportError } from "@/modules/reports/service";
 
 export function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -20,6 +21,8 @@ export function json(body: unknown, status = 200) {
   });
 }
 export function apiError(error: unknown) {
+  if (error instanceof ReportError)
+    return json({ error: error.message }, error.status);
   if (error instanceof OnboardingError)
     return json({ error: error.message }, error.status);
   if (error instanceof NotificationError)

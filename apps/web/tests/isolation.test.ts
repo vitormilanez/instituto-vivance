@@ -2619,6 +2619,229 @@ test("manual care reports preserve sources and versions through explicit medical
   });
 });
 
+test("report publication exposes only confirmed patient copy and records authorized exports", async () => {
+  await asUser("doctor", async () => {
+    const checkIn = await checkInFixture();
+    await switchActor("patient");
+    const submission = (
+      await db.query<{ id: string }>(
+        "select public.submit_care_check_in($1,$2,'Internal patient source','Peso',72.4,'kg',current_date,true) id",
+        [a, checkIn],
+      )
+    ).rows[0].id;
+    await switchActor("doctor");
+    const report = (
+      await db.query<{ id: string }>(
+        "select public.create_care_report($1,$2,current_date,current_date) id",
+        [a, pa],
+      )
+    ).rows[0].id;
+    const sources = JSON.stringify([{ type: "check_in", id: submission }]);
+    await db.query(
+      "select public.save_care_report($1,$2,1,'Internal title','Internal summary','Internal consultation point','in_review',$3::jsonb)",
+      [a, report, sources],
+    );
+    await db.query("select public.approve_care_report($1,$2,2,true)", [a, report]);
+    await denied(
+      "select public.publish_care_report($1,$2,3,null,'Patient title','Patient summary',false)",
+      [a, report],
+    );
+    const publication = (
+      await db.query<{ id: string }>(
+        "select public.publish_care_report($1,$2,3,null,'Patient title','Patient summary',true) id",
+        [a, report],
+      )
+    ).rows[0].id;
+    await denied(
+      "select public.publish_care_report($1,$2,3,null,'Duplicate','Duplicate',true)",
+      [a, report],
+    );
+    await denied(
+      "update public.care_report_publications set patient_summary='Forged' where id=$1",
+      [publication],
+    );
+
+    for (const role of ["admin", "nurse", "other", "outsider", "suspended"]) {
+      await switchActor(role);
+      assert.equal(
+        (
+          await db.query(
+            "select id from public.care_report_publications where id=$1",
+            [publication],
+          )
+        ).rows.length,
+        0,
+      );
+      await denied("select * from public.authorize_care_report_export($1,$2)", [a, publication]);
+      await denied(
+        "select public.withdraw_care_report($1,$2,$3,'Denied',true)",
+        [a, report, publication],
+      );
+    }
+
+    await switchActor("patient");
+    assert.deepEqual(
+      (
+        await db.query<{ patient_title: string; patient_summary: string }>(
+          "select patient_title,patient_summary from public.care_report_publications where id=$1",
+          [publication],
+        )
+      ).rows,
+      [{ patient_title: "Patient title", patient_summary: "Patient summary" }],
+    );
+    assert.equal((await db.query("select id from public.care_reports")).rows.length, 0);
+    assert.equal((await db.query("select id from public.care_report_versions")).rows.length, 0);
+    assert.equal((await db.query("select id from public.care_report_sources")).rows.length, 0);
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.authorize_care_report_export($1,$2)",
+          [a, publication],
+        )
+      ).rows.length,
+      1,
+    );
+    await denied("select id from public.care_report_export_events");
+    await denied("insert into public.care_report_export_events(tenant_id,publication_id,patient_id,requested_by) values($1,$2,$3,$4)", [a, publication, pa, users.patient.id]);
+    await db.exec("reset role");
+    assert.equal(
+      (
+        await db.query<{ n: number }>(
+          "select count(*)::int n from public.care_report_export_events where publication_id=$1 and requested_by=$2",
+          [publication, users.patient.id],
+        )
+      ).rows[0].n,
+      1,
+    );
+    const audit = await db.query<{ payload: string }>(
+      "select json_agg(a)::text payload from public.audit_events a where entity_id=$1",
+      [publication],
+    );
+    assert.ok(!audit.rows[0].payload.includes("Patient summary"));
+    assert.ok(!audit.rows[0].payload.includes("Internal summary"));
+  });
+});
+
+test("report replacement preserves the old publication until explicit replacement or withdrawal", async () => {
+  await asUser("doctor", async () => {
+    const checkIn = await checkInFixture();
+    await switchActor("patient");
+    const submission = (
+      await db.query<{ id: string }>(
+        "select public.submit_care_check_in($1,$2,'Source for replacement',null,null,null,current_date,true) id",
+        [a, checkIn],
+      )
+    ).rows[0].id;
+    await switchActor("doctor");
+    const report = (
+      await db.query<{ id: string }>(
+        "select public.create_care_report($1,$2,current_date,current_date) id",
+        [a, pa],
+      )
+    ).rows[0].id;
+    const sources = JSON.stringify([{ type: "check_in", id: submission }]);
+    await db.query(
+      "select public.save_care_report($1,$2,1,'Internal','First internal','Consultation','draft',$3::jsonb)",
+      [a, report, sources],
+    );
+    await db.query(
+      "select public.save_care_report($1,$2,2,'Internal','First internal','Consultation','in_review',$3::jsonb)",
+      [a, report, sources],
+    );
+    await db.query("select public.approve_care_report($1,$2,3,true)", [a, report]);
+    const first = (
+      await db.query<{ id: string }>(
+        "select public.publish_care_report($1,$2,4,null,'First patient title','First patient summary',true) id",
+        [a, report],
+      )
+    ).rows[0].id;
+    await db.exec("reset role");
+    await db.exec(
+      "create function private.synthetic_report_publication_audit_failure() returns trigger language plpgsql as $$ begin if new.entity_type='care_report_publications' then raise exception 'Synthetic report publication audit failure'; end if; return new; end; $$; create trigger synthetic_report_publication_audit_failure before insert on public.audit_events for each row execute function private.synthetic_report_publication_audit_failure();",
+    );
+    await switchActor("doctor");
+    await denied(
+      "select public.withdraw_care_report($1,$2,$3,'Must roll back',true)",
+      [a, report, first],
+    );
+    assert.deepEqual(
+      (
+        await db.query<{ status: string }>(
+          "select status from public.care_report_publications where id=$1",
+          [first],
+        )
+      ).rows,
+      [{ status: "published" }],
+    );
+    await db.exec("reset role");
+    await db.exec(
+      "drop trigger synthetic_report_publication_audit_failure on public.audit_events; drop function private.synthetic_report_publication_audit_failure();",
+    );
+    await switchActor("doctor");
+    await db.query("select public.reopen_care_report($1,$2,4,true)", [a, report]);
+    await switchActor("patient");
+    assert.deepEqual(
+      (
+        await db.query<{ id: string; patient_summary: string }>(
+          "select id,patient_summary from public.care_report_publications",
+        )
+      ).rows,
+      [{ id: first, patient_summary: "First patient summary" }],
+    );
+    await switchActor("doctor");
+    await db.query(
+      "select public.save_care_report($1,$2,5,'Internal','Second internal','Consultation','in_review',$3::jsonb)",
+      [a, report, sources],
+    );
+    await db.query("select public.approve_care_report($1,$2,6,true)", [a, report]);
+    await denied(
+      "select public.publish_care_report($1,$2,7,null,'Second title','Second summary',true)",
+      [a, report],
+    );
+    const second = (
+      await db.query<{ id: string }>(
+        "select public.publish_care_report($1,$2,7,$3,'Second title','Second summary',true) id",
+        [a, report, first],
+      )
+    ).rows[0].id;
+    await switchActor("patient");
+    assert.deepEqual(
+      (
+        await db.query<{ id: string; patient_summary: string }>(
+          "select id,patient_summary from public.care_report_publications",
+        )
+      ).rows,
+      [{ id: second, patient_summary: "Second summary" }],
+    );
+    await switchActor("doctor");
+    await denied(
+      "select public.withdraw_care_report($1,$2,$3,'Stale target',true)",
+      [a, report, first],
+    );
+    await db.query(
+      "select public.withdraw_care_report($1,$2,$3,'Needs a patient-facing correction',true)",
+      [a, report, second],
+    );
+    await switchActor("patient");
+    assert.equal(
+      (await db.query("select id from public.care_report_publications")).rows.length,
+      0,
+    );
+    await denied("select * from public.authorize_care_report_export($1,$2)", [a, second]);
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=1 where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+      [a, pa, users.doctor.id],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.care_report_publications")).rows.length,
+      0,
+    );
+    await denied("select * from public.authorize_care_report_export($1,$2)", [a, first]);
+  });
+});
+
 test("document completion rejects missing files and audit failure leaves no reservation", async () => {
   await asUser("doctor", async () => {
     const document = await privateDocumentFixture();

@@ -4,6 +4,9 @@ import {
   reportApprovalInput,
   reportCreateInput,
   reportPatchInput,
+  reportPublicationInput,
+  reportReopenInput,
+  reportWithdrawalInput,
 } from "../modules/reports/validation.ts";
 
 const patientId = "11111111-1111-4111-8111-111111111111";
@@ -121,4 +124,72 @@ test("approval requires an explicit confirmation for the current version", () =>
   });
   assert.throws(() => reportApprovalInput({ version: 3, confirmed: false }));
   assert.throws(() => reportApprovalInput({ version: 0, confirmed: true }));
+});
+
+test("publication accepts only explicit, patient-facing confirmed content", () => {
+  assert.deepEqual(
+    reportPublicationInput({
+      version: 4,
+      previous_publication: null,
+      title: "  Seu acompanhamento  ",
+      summary: "  Uma síntese preparada para você.  ",
+      confirmed: true,
+    }),
+    {
+      version: 4,
+      previousPublication: null,
+      title: "Seu acompanhamento",
+      summary: "Uma síntese preparada para você.",
+    },
+  );
+  assert.throws(() =>
+    reportPublicationInput({
+      version: 4,
+      previous_publication: null,
+      title: "",
+      summary: "Texto",
+      confirmed: true,
+    }),
+  );
+  assert.throws(() =>
+    reportPublicationInput({
+      version: 4,
+      previous_publication: null,
+      title: "Título",
+      summary: "Texto",
+      sources: [],
+      confirmed: true,
+    }),
+  );
+  assert.throws(() =>
+    reportPublicationInput({
+      version: 4,
+      previous_publication: null,
+      title: "Título",
+      summary: "Texto",
+      confirmed: false,
+    }),
+  );
+});
+
+test("withdrawal and revision require an explicit current target", () => {
+  assert.deepEqual(
+    reportWithdrawalInput({
+      publication_id: patientId,
+      reason: "  Precisa de correção  ",
+      confirmed: true,
+    }),
+    { publicationId: patientId, reason: "Precisa de correção" },
+  );
+  assert.deepEqual(reportReopenInput({ version: 4, confirmed: true }), {
+    version: 4,
+  });
+  assert.throws(() =>
+    reportWithdrawalInput({
+      publication_id: patientId,
+      reason: "",
+      confirmed: true,
+    }),
+  );
+  assert.throws(() => reportReopenInput({ version: 4, confirmed: false }));
 });

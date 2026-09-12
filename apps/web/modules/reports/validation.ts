@@ -129,3 +129,69 @@ export function reportApprovalInput(value: unknown) {
     throw new InputError("Confira a versão e confirme a aprovação médica.");
   return { version: body.version as number };
 }
+
+function currentVersion(body: Record<string, unknown>) {
+  if (!Number.isSafeInteger(body.version) || Number(body.version) < 1)
+    throw new InputError("Confira a versão atual do relatório.");
+  return body.version as number;
+}
+
+export function reportPublicationInput(value: unknown) {
+  const body = object(value);
+  if (
+    Object.keys(body).some(
+      (key) =>
+        ![
+          "version",
+          "previous_publication",
+          "title",
+          "summary",
+          "confirmed",
+        ].includes(key),
+    ) ||
+    body.confirmed !== true ||
+    (body.previous_publication !== null &&
+      typeof body.previous_publication !== "string")
+  )
+    throw new InputError("Confira e confirme o conteúdo da publicação.");
+  const result = {
+    version: currentVersion(body),
+    previousPublication:
+      body.previous_publication === null
+        ? null
+        : tenantId(body.previous_publication),
+    title: text(body.title, "Título para o paciente", 160),
+    summary: text(body.summary, "Texto para o paciente", 12000),
+  };
+  if (!result.title || !result.summary)
+    throw new InputError("Preencha o título e a síntese que o paciente verá.");
+  return result;
+}
+
+export function reportWithdrawalInput(value: unknown) {
+  const body = object(value);
+  if (
+    Object.keys(body).some(
+      (key) => !["publication_id", "reason", "confirmed"].includes(key),
+    ) ||
+    body.confirmed !== true ||
+    typeof body.publication_id !== "string"
+  )
+    throw new InputError("Confira e confirme a retirada da publicação.");
+  const reason = text(body.reason, "Motivo da retirada", 1000);
+  if (!reason) throw new InputError("Informe o motivo da retirada.");
+  return {
+    publicationId: tenantId(body.publication_id),
+    reason,
+  };
+}
+
+export function reportReopenInput(value: unknown) {
+  const body = object(value);
+  if (
+    Object.keys(body).some((key) => !["version", "confirmed"].includes(key)) ||
+    body.confirmed !== true
+  )
+    throw new InputError("Confirme a criação de uma nova versão.");
+  return { version: currentVersion(body) };
+}

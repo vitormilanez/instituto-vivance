@@ -181,7 +181,7 @@ export async function loadReport(id: string, reportInput: string) {
   if (report.error) failed(report.error.code);
   if (!report.data) throw new ReportError("Relatório não disponível.", 404);
   const reportRow = report.data;
-  const [sources, versions, patients, candidates] = await Promise.all([
+  const [sources, versions, publications, patients, candidates] = await Promise.all([
     client
       .from("care_report_sources")
       .select("*")
@@ -196,6 +196,14 @@ export async function loadReport(id: string, reportInput: string) {
       .eq("report_id", reportId)
       .order("version", { ascending: false })
       .limit(20),
+    client
+      .from("care_report_publications")
+      .select("*")
+      .eq("tenant_id", tenant)
+      .eq("report_id", reportId)
+      .order("published_at", { ascending: false })
+      .order("id")
+      .limit(20),
     reportPatients(tenant),
     sourceCandidates(
       client,
@@ -205,8 +213,12 @@ export async function loadReport(id: string, reportInput: string) {
       reportRow.period_end,
     ),
   ]);
-  if (sources.error || versions.error)
-    failed(sources.error?.code ?? versions.error?.code);
+  if (sources.error || versions.error || publications.error)
+    failed(
+      sources.error?.code ??
+        versions.error?.code ??
+        publications.error?.code,
+    );
   return {
     clinic,
     report: reportRow,
@@ -215,6 +227,7 @@ export async function loadReport(id: string, reportInput: string) {
         ?.displayName ?? "Paciente",
     sources: sources.data ?? [],
     versions: versions.data ?? [],
+    publications: publications.data ?? [],
     candidates,
   };
 }

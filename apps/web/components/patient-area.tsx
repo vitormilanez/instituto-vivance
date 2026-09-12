@@ -33,6 +33,11 @@ const actions = [
     text: "Consultas com a clínica",
     slug: "consultas",
   },
+  {
+    label: "Meus relatórios",
+    text: "Sínteses compartilhadas pelo médico",
+    slug: "relatorios",
+  },
 ] as const;
 
 export function PatientArea({
@@ -232,7 +237,7 @@ export function PatientArea({
                     <span>{item.description}</span>
                   </Link>
                   <span className="quiet-label">
-                    {["plano", "consultas", "diario", "evolucao", "documentos"].includes(
+                    {["plano", "consultas", "diario", "evolucao", "documentos", "relatorios"].includes(
                       item.slug,
                     )
                       ? "Disponível"
@@ -262,6 +267,8 @@ export function PatientArea({
                     ? "Seu diário será construído aqui"
                     : section.slug === "consultas"
                       ? "Suas consultas aparecerão aqui"
+                      : section.slug === "relatorios"
+                        ? "Seus relatórios aparecerão aqui"
                       : "Seus arquivos aparecerão aqui"
             }
           >

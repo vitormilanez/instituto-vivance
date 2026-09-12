@@ -191,6 +191,46 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      care_report_publications: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          report_id: string;
+          patient_id: string;
+          doctor_id: string;
+          source_version: number;
+          patient_title: string;
+          patient_summary: string;
+          period_start: string;
+          period_end: string;
+          clinic_display_name: string;
+          patient_display_name: string;
+          doctor_display_name: string;
+          approved_at: string;
+          published_by: string;
+          published_at: string;
+          status: string;
+          closed_at: string | null;
+          closed_by: string | null;
+          withdrawal_reason: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      care_report_export_events: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          publication_id: string;
+          patient_id: string;
+          requested_by: string;
+          requested_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       care_report_sources: {
         Row: {
           id: string;
@@ -993,6 +1033,44 @@ export type Database = {
           confirmed: boolean;
         };
         Returns: string;
+      };
+      publish_care_report: {
+        Args: {
+          target_tenant: string;
+          target_report: string;
+          read_version: number;
+          previous_publication: string | null;
+          public_title: string;
+          public_summary: string;
+          confirmed: boolean;
+        };
+        Returns: string;
+      };
+      withdraw_care_report: {
+        Args: {
+          target_tenant: string;
+          target_report: string;
+          target_publication: string;
+          reason: string;
+          confirmed: boolean;
+        };
+        Returns: string;
+      };
+      reopen_care_report: {
+        Args: {
+          target_tenant: string;
+          target_report: string;
+          read_version: number;
+          confirmed: boolean;
+        };
+        Returns: string;
+      };
+      authorize_care_report_export: {
+        Args: {
+          target_tenant: string;
+          target_publication: string;
+        };
+        Returns: Database["public"]["Tables"]["care_report_publications"]["Row"][];
       };
       list_my_patient_invitations: {
         Args: Record<PropertyKey, never>;

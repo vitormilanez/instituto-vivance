@@ -161,6 +161,12 @@ export const patientSections = [
     description:
       "Exames e arquivos compartilhados com a clínica.",
   },
+  {
+    slug: "relatorios",
+    title: "Meus relatórios",
+    group: "cuidado",
+    description: "Sínteses que seu médico revisou e compartilhou com você.",
+  },
 ] as const;
 export type PatientSection = (typeof patientSections)[number];
 export function findPatientSection(slug: string) {

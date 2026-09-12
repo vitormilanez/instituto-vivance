@@ -24,6 +24,8 @@ import { patientDocuments } from "@/modules/documents/service";
 import { PatientDocumentsWorkspace } from "@/components/documents-workspace";
 import { patientMessages } from "@/modules/messages/service";
 import { PatientMessagesWorkspace } from "@/components/messages-workspace";
+import { patientReportPublications } from "@/modules/reports/publication-service";
+import { PublishedReports } from "@/components/published-reports";
 export const dynamic = "force-dynamic";
 
 export default async function PatientAreaPage({
@@ -83,6 +85,10 @@ export default async function PatientAreaPage({
           },
         )
       : null;
+  const reports =
+    patient && slug === "relatorios"
+      ? await patientReportPublications(tenantId, query.pagina)
+      : null;
   const appointments =
     slug === "consultas" || slug === "hoje"
       ? await listAppointments(
@@ -138,7 +144,9 @@ export default async function PatientAreaPage({
           contato com a clínica.
         </p>
       )}
-      {slug === "conversas" && messages ? (
+      {slug === "relatorios" && reports ? (
+        <PublishedReports initial={reports} />
+      ) : slug === "conversas" && messages ? (
         <PatientMessagesWorkspace initial={messages} />
       ) : slug === "documentos" && documents ? (
         <PatientDocumentsWorkspace initial={documents} />
@@ -201,6 +209,7 @@ export default async function PatientAreaPage({
             "evolucao",
             "documentos",
             "conversas",
+            "relatorios",
           ].includes(section.slug) && <DevelopmentNotice />}
           <PatientArea
             section={section}

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import type { ReportDetail } from "@/modules/reports/service";
 import { clinicalTime } from "./encounter-editor";
+import { ReportPublication } from "./report-publication";
 
 const statusLabels: Record<string, string> = {
   draft: "Rascunho",
@@ -213,6 +214,8 @@ export function ReportEditor({ initial }: { initial: ReportDetail }) {
         </section>
       )}
 
+      <ReportPublication detail={initial} />
+
       <section className="report-history" aria-labelledby="report-history-title">
         <div className="section-heading"><h2 id="report-history-title">Histórico de versões</h2></div>
         <ol>
@@ -225,7 +228,7 @@ export function ReportEditor({ initial }: { initial: ReportDetail }) {
           ))}
         </ol>
       </section>
-      <p className="module-footnote">Este relatório é interno. Ele não substitui o registro oficial e não aparece para o paciente até uma publicação explícita futura.</p>
+      <p className="module-footnote">O relatório interno e suas fontes permanecem privados. O paciente recebe somente o texto confirmado na publicação.</p>
     </>
   );
 }
