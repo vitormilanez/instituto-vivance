@@ -8,7 +8,7 @@ A prioridade abaixo de 11/09 é histórica. A base já incorpora 7B.1/7B.2 e a c
 
 Implementação no checkout `instituto-vivance-onboarding`, branch `codex/onboarding-paciente`, base `7b49597`. Médico e administrador convidam; WhatsApp usa link manual e o paciente informa e-mail ao abrir. O onboarding opcional tem foto, medidas, cinco perguntas, exames e revisão consentida; o médico vê a versão enviada na ficha. A área normal permanece utilizável. Oito ações rápidas e Agenda existentes preservadas.
 
-Estado: código integrado e testes locais, sem publicação nem aplicação remota das novas migrations. Os **7B.3–7B.5**, **5A.1/5A.2**, **5B.1** e **7A.1/7A.2** foram validados localmente. Documentos têm revisão humana separada; Conversas reconciliam reenvio e leitura por participante; Relatórios cobrem rascunho, revisão, aprovação, publicação, substituição/retirada e PDF privado auditado. O próximo passo é o **Gate P operacional** ou uma decisão explícita sobre o lote posterior. IA e áudio continuam adiados.
+Estado: código integrado, migrations aplicadas no Supabase de desenvolvimento e Preview protegida pronta, sem Production. Os **7B.3–7B.5**, **5A.1/5A.2**, **5B.1** e **7A.1/7A.2** foram validados. Documentos têm revisão humana separada; Conversas reconciliam reenvio e leitura por participante; Relatórios cobrem rascunho, revisão, aprovação, publicação, substituição/retirada e PDF privado auditado. O próximo passo é a avaliação de jornada/UI com Impeccable e a prova autenticada com dados sintéticos. IA e áudio continuam adiados.
 
 ### Fechamento local — 5A.1/5A.2, 5B.1 e 7A.1
 
@@ -21,7 +21,7 @@ Estado: código integrado e testes locais, sem publicação nem aplicação remo
 
 - Relatórios: o conteúdo público é uma cópia confirmada própria, separada do relatório interno. Paciente acessa somente a publicação vigente; médico autor pode substituir, retirar, reabrir uma versão interna e exportar o histórico autorizado.
 - PDF: autoria, período e versão identificados; resposta privada, sem cache, com registro de acesso. Nenhuma fonte, nota privada ou ponto reservado para consulta é incluído.
-- Verificação: 141 testes, tipos, lint, build, PDF renderizado/lido e telas conferidas em desktop e 390 px. A migration continua local e não houve Preview, push, merge ou mudança remota.
+- Verificação: 141 testes, tipos, lint, build, PDF renderizado/lido e telas conferidas em desktop e 390 px. Seis migrations foram aplicadas no Supabase de desenvolvimento, a branch foi publicada e a Preview protegida `dpl_7spYPFzhBxDtst8F4AQADMJcjvBh` ficou READY. PR #16 aberta como rascunho; sem merge ou Production.
 
 ## 1. Onde continuar
 

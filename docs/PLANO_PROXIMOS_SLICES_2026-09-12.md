@@ -95,7 +95,7 @@ O Hoje da pessoa passa a mostrar um único próximo passo, escolhido com dados e
 
 ### Execução local — 7A.2 concluído em 12/09/2026
 
-O médico publica uma versão aprovada usando título e síntese próprios para o paciente, pode substituí-la somente a partir da versão atual ou retirá-la com motivo. O paciente acessa apenas a publicação vigente e baixa um PDF identificado por autoria, período e versão. Fontes, pontos para consulta e notas internas não fazem parte da publicação. O acesso ao arquivo é privado, sem cache e auditado. Foram aprovados 141 testes, tipos, lint, build, renderização e leitura do PDF e conferência visual em desktop e 390 px, sem rolagem horizontal. A migration permanece somente local.
+O médico publica uma versão aprovada usando título e síntese próprios para o paciente, pode substituí-la somente a partir da versão atual ou retirá-la com motivo. O paciente acessa apenas a publicação vigente e baixa um PDF identificado por autoria, período e versão. Fontes, pontos para consulta e notas internas não fazem parte da publicação. O acesso ao arquivo é privado, sem cache e auditado. Foram aprovados 141 testes, tipos, lint, build, renderização e leitura do PDF e conferência visual em desktop e 390 px, sem rolagem horizontal. As migrations do lote e o reforço de índices foram aplicados no Supabase de desenvolvimento; Preview protegida `dpl_7spYPFzhBxDtst8F4AQADMJcjvBh` pronta, sem Production.
 
 **Demonstração de saída do lote:** o médico retoma um atendimento, salva uma orientação, publica por ação explícita; o paciente encontra a orientação e responde a uma solicitação já existente; o médico localiza o relato e a conversa mantendo o mesmo paciente. Mostrar também ausência de registros e uma falha recuperável.
 

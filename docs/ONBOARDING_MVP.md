@@ -1,6 +1,6 @@
 # Convite e onboarding VIVANCE — Slices 3E e 4E
 
-12/09/2026 · implementação local integrada · não publicado.
+12/09/2026 · Supabase de desenvolvimento e Preview protegida atualizados · sem Production.
 
 ## Valor desta entrega
 
