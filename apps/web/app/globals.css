@@ -2567,6 +2567,18 @@ button.calendar-day[aria-pressed="true"] {
 .document-list { border-top:1px solid var(--border); }
 .document-row { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:20px 0; border-bottom:1px solid var(--border); }
 .document-row > div { min-width:0; }
+.document-summary { flex:1 1 320px; }
+.document-actions { display:flex; align-items:flex-end; flex:0 1 420px; flex-direction:column; gap:10px; }
+.document-review-status { display:block; width:max-content; max-width:100%; margin-top:10px; padding:5px 9px; border-radius:999px; background:var(--blue-soft); color:var(--navy); font-size:12px; font-weight:700; }
+.document-review-panel { width:min(100%, 420px); border:1px solid var(--border); border-radius:10px; background:#fff; }
+.document-review-panel summary { min-height:44px; padding:12px 14px; color:var(--navy); cursor:pointer; font-weight:700; }
+.document-review-form { display:grid; gap:12px; padding:0 14px 14px; }
+.document-review-form textarea { min-height:110px; resize:vertical; }
+.document-review-form button { justify-self:start; }
+.document-review-history { display:grid; gap:10px; margin:0 14px 16px; padding:0; list-style:none; }
+.document-review-history li { padding:12px; border-radius:8px; background:var(--surface-subtle); }
+.document-review-history span { display:block; margin-top:3px; color:var(--muted); font-size:12px; }
+.document-review-history p { margin:8px 0 0; color:var(--ink); white-space:pre-wrap; }
 .document-row h3 { margin:0; overflow-wrap:anywhere; font-size:17px; }
 .document-row p { margin:6px 0; color:var(--muted); font-size:14px; }
 .document-row small { color:#526782; font-size:12px; }
@@ -2576,6 +2588,7 @@ button.calendar-day[aria-pressed="true"] {
   .check-in-card .section-heading,.patient-check-ins .section-heading { align-items:flex-start; }
   .document-row { align-items:flex-start; flex-direction:column; }
   .document-row .button { width:100%; text-align:center; }
+  .document-actions, .document-review-panel { width:100%; }
 }
 .longitudinal-workspace { display:grid; gap:22px; }
 .notifications-workspace {

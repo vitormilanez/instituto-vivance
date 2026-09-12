@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   documentBytesMatch,
   documentIntent,
+  documentReviewInput,
   maxDocumentBytes,
 } from "../modules/documents/validation.ts";
 
@@ -55,6 +56,34 @@ test("document intent accepts only bounded private-document metadata", () => {
       byte_size: maxDocumentBytes + 1,
       category: "exam",
       visibility: "shared",
+    }),
+  );
+});
+
+test("document review requires a bounded internal note and explicit confirmation", () => {
+  assert.deepEqual(
+    documentReviewInput({
+      decision: "needs_follow_up",
+      internal_note: "  Solicitar nova imagem legível.  ",
+      confirmed: true,
+    }),
+    {
+      decision: "needs_follow_up",
+      internalNote: "Solicitar nova imagem legível.",
+    },
+  );
+  assert.throws(() =>
+    documentReviewInput({
+      decision: "approved",
+      internal_note: "Sem confirmação",
+      confirmed: false,
+    }),
+  );
+  assert.throws(() =>
+    documentReviewInput({
+      decision: "automatic_diagnosis",
+      internal_note: "Inválida",
+      confirmed: true,
     }),
   );
 });

@@ -24,6 +24,11 @@ const visibilityLabels: Record<string, string> = {
   internal: "Uso interno da equipe",
   shared: "Compartilhado com o paciente",
 };
+const reviewLabels: Record<string, string> = {
+  approved: "Conferido",
+  rejected: "Não utilizável",
+  needs_follow_up: "Precisa de acompanhamento",
+};
 
 function byteLimit() {
   return `${maxDocumentBytes / (1024 * 1024)} MB`;
@@ -178,10 +183,14 @@ function DocumentList({
   documents,
   tenant,
   showPatient,
+  reviews = [],
+  canReview = false,
 }: {
   documents: DocumentItem[];
   tenant: string;
   showPatient: boolean;
+  reviews?: StaffDocuments["reviews"];
+  canReview?: boolean;
 }) {
   if (!documents.length)
     return (
@@ -194,9 +203,12 @@ function DocumentList({
     <div className="document-list" aria-label="Documentos disponíveis">
       {documents.map((document) => {
         const staffDocument = document as StaffDocuments["documents"][number];
+        const documentReviews = reviews.filter(
+          (review) => review.document_id === document.id,
+        );
         return (
           <article className="document-row" key={document.id}>
-            <div>
+            <div className="document-summary">
               <h3>{document.original_filename}</h3>
               <p>
                 {categoryLabels[document.category] ?? "Documento"}
@@ -210,17 +222,141 @@ function DocumentList({
                   ? ` · ${visibilityLabels[document.visibility] ?? document.visibility}`
                   : ""}
               </small>
+              {canReview && (
+                <span className="document-review-status">
+                  {documentReviews.length
+                    ? `${reviewLabels[documentReviews[0].decision] ?? "Revisado"} · ${documentReviews.length} ${documentReviews.length === 1 ? "revisão" : "revisões"}`
+                    : "Aguardando revisão médica"}
+                </span>
+              )}
             </div>
-            <Link
-              className="button secondary"
-              href={`/api/v1/clinics/${tenant}/documents/${document.id}/download`}
-            >
-              Baixar
-            </Link>
+            <div className="document-actions">
+              <Link
+                className="button secondary"
+                href={`/api/v1/clinics/${tenant}/documents/${document.id}/download`}
+              >
+                Abrir original
+              </Link>
+              {canReview && (
+                <DocumentReviewPanel
+                  tenant={tenant}
+                  documentId={document.id}
+                  reviews={documentReviews}
+                />
+              )}
+            </div>
           </article>
         );
       })}
     </div>
+  );
+}
+
+function DocumentReviewPanel({
+  tenant,
+  documentId,
+  reviews,
+}: {
+  tenant: string;
+  documentId: string;
+  reviews: StaffDocuments["reviews"];
+}) {
+  const router = useRouter();
+  const busy = useRef(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy.current) return;
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    busy.current = true;
+    setPending(true);
+    setError("");
+    setNotice("");
+    try {
+      const response = await fetch(
+        `/api/v1/clinics/${tenant}/documents/${documentId}/review`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(20_000),
+          body: JSON.stringify({
+            decision: data.get("decision"),
+            internal_note: data.get("internal_note"),
+            confirmed: data.get("confirmed") === "on",
+          }),
+        },
+      );
+      const result = await response.json();
+      if (!response.ok)
+        throw new Error(result.error ?? "Não foi possível registrar a revisão.");
+      form.reset();
+      setNotice("Revisão registrada no histórico interno.");
+      router.refresh();
+    } catch (reason) {
+      setError(
+        reason instanceof Error && reason.name !== "TimeoutError"
+          ? reason.message
+          : "A conexão demorou. Sua nota continua no formulário; tente novamente.",
+      );
+    } finally {
+      busy.current = false;
+      setPending(false);
+    }
+  }
+
+  return (
+    <details className="document-review-panel">
+      <summary>{reviews.length ? "Ver histórico e revisar" : "Registrar revisão"}</summary>
+      {reviews.length > 0 && (
+        <ol className="document-review-history" aria-label="Histórico de revisões">
+          {reviews.map((review) => (
+            <li key={review.id}>
+              <strong>{reviewLabels[review.decision] ?? review.decision}</strong>
+              <span>
+                {review.memberships?.display_name?.trim() || "Médico responsável"} ·{" "}
+                {clinicalTime(review.reviewed_at)}
+              </span>
+              <p>{review.internal_note}</p>
+            </li>
+          ))}
+        </ol>
+      )}
+      <form className="document-review-form" onSubmit={submit}>
+        {error && <p role="alert">{error}</p>}
+        {notice && <p role="status">{notice}</p>}
+        <label className="field">
+          Resultado da revisão
+          <select name="decision" defaultValue="approved" disabled={pending}>
+            <option value="approved">Conferido</option>
+            <option value="needs_follow_up">Precisa de acompanhamento</option>
+            <option value="rejected">Arquivo não utilizável</option>
+          </select>
+        </label>
+        <label className="field">
+          Nota interna
+          <textarea
+            name="internal_note"
+            required
+            minLength={1}
+            maxLength={2000}
+            disabled={pending}
+            placeholder="Registre o que foi conferido e o próximo passo necessário."
+          />
+        </label>
+        <label className="publication-confirm">
+          <input name="confirmed" type="checkbox" required disabled={pending} />
+          Confirmo que revisei o arquivo original. Esta nota ficará somente para
+          médicos autorizados.
+        </label>
+        <button disabled={pending}>
+          {pending ? "Registrando…" : "Registrar no histórico"}
+        </button>
+      </form>
+    </details>
   );
 }
 
@@ -245,6 +381,8 @@ export function StaffPatientDocumentsPanel({
         documents={initial.documents}
         tenant={initial.clinic.id}
         showPatient={false}
+        reviews={initial.reviews}
+        canReview={initial.canReview}
       />
       <nav className="agenda-actions" aria-label="Páginas de documentos deste paciente">
         {initial.page > 1 && <Link href={pageHref(initial.page - 1)}>Anterior</Link>}
@@ -278,7 +416,13 @@ export function StaffDocumentsWorkspace({ initial }: { initial: StaffDocuments }
           </div>
           <span className="quiet-label">{initial.documents.length} nesta página</span>
         </div>
-        <DocumentList documents={initial.documents} tenant={initial.clinic.id} showPatient />
+        <DocumentList
+          documents={initial.documents}
+          tenant={initial.clinic.id}
+          showPatient
+          reviews={initial.reviews}
+          canReview={initial.canReview}
+        />
       </section>
       <nav className="agenda-actions" aria-label="Páginas de documentos">
         {initial.page > 1 && <Link href={`${base}?pagina=${initial.page - 1}`}>Anterior</Link>}

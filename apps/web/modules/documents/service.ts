@@ -8,12 +8,17 @@ import {
   documentId,
   documentIntent,
   documentPage,
+  documentReviewInput,
 } from "./validation";
 
 type DocumentRow = Database["public"]["Tables"]["patient_documents"]["Row"];
 type StaffDocument = DocumentRow & {
   patients: { display_name: string } | null;
 };
+type DocumentReviewRow =
+  Database["public"]["Tables"]["patient_document_reviews"]["Row"] & {
+    memberships: { display_name: string | null } | null;
+  };
 type ServerClient = Awaited<ReturnType<typeof createClient>>;
 
 export class DocumentError extends Error {
@@ -160,13 +165,54 @@ export async function staffDocuments(
       "Seu vínculo de cuidado com este paciente não está ativo.",
       403,
     );
+  const visibleDocuments = (documents.data ?? []).slice(0, 20) as StaffDocument[];
+  let reviews: DocumentReviewRow[] = [];
+  if (clinic.role === "doctor" && visibleDocuments.length) {
+    const reviewResult = await client
+      .from("patient_document_reviews")
+      .select(
+        "*,memberships!patient_document_reviews_tenant_id_reviewer_id_fkey(display_name)",
+      )
+      .eq("tenant_id", tenant)
+      .in(
+        "document_id",
+        visibleDocuments.map((document) => document.id),
+      )
+      .order("reviewed_at", { ascending: false })
+      .order("id", { ascending: false });
+    if (reviewResult.error) databaseFailure(reviewResult.error.code);
+    reviews = (reviewResult.data ?? []) as DocumentReviewRow[];
+  }
   return {
     clinic,
-    documents: ((documents.data ?? []).slice(0, 20) as StaffDocument[]),
+    documents: visibleDocuments,
+    reviews,
+    canReview: clinic.role === "doctor",
     patients,
     page,
     hasNext: (documents.data?.length ?? 0) > 20,
   };
+}
+
+export async function reviewDocument(
+  id: string,
+  document: string,
+  input: unknown,
+) {
+  const tenant = tenantId(id);
+  const documentUuid = documentId(document);
+  const values = documentReviewInput(input);
+  const { client } = await requireClinic(tenant, ["doctor"]);
+  const result = await client.rpc("review_patient_document", {
+    target_tenant: tenant,
+    target_document: documentUuid,
+    review_decision: values.decision,
+    internal_note: values.internalNote,
+    confirmed: true,
+  });
+  if (result.error) databaseFailure(result.error.code);
+  if (!result.data) throw new Error("Document review returned an invalid response");
+  return { id: result.data };
 }
 
 export async function patientDocuments(id: string, pageInput?: string) {

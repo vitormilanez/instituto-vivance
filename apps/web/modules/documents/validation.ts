@@ -12,6 +12,7 @@ const supportedContentTypes = {
 export type DocumentCategory = "exam" | "clinical_document";
 export type DocumentVisibility = "internal" | "shared";
 export type DocumentContentType = keyof typeof supportedContentTypes;
+export type DocumentReviewDecision = "approved" | "rejected" | "needs_follow_up";
 
 function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -80,6 +81,29 @@ export function documentCompletion(value: unknown) {
   const body = object(value);
   if (Object.keys(body).some((key) => key !== "confirmed") || body.confirmed !== true)
     throw new InputError("Confirme o envio do documento.");
+}
+
+export function documentReviewInput(value: unknown) {
+  const body = object(value);
+  if (
+    Object.keys(body).some(
+      (key) => !["decision", "internal_note", "confirmed"].includes(key),
+    ) ||
+    !["approved", "rejected", "needs_follow_up"].includes(
+      String(body.decision),
+    ) ||
+    typeof body.internal_note !== "string" ||
+    body.internal_note.trim().length < 1 ||
+    body.internal_note.trim().length > 2000 ||
+    body.confirmed !== true
+  )
+    throw new InputError(
+      "Escolha o resultado, escreva uma nota interna e confirme a revisão.",
+    );
+  return {
+    decision: body.decision as DocumentReviewDecision,
+    internalNote: body.internal_note.trim(),
+  };
 }
 
 export function documentPage(value?: string): number {
