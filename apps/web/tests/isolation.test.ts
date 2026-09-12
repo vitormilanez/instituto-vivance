@@ -2430,6 +2430,99 @@ test("private documents isolate internal files and immediately follow care-accou
   });
 });
 
+test("document reviews are immutable, doctor-only and hidden from patients", async () => {
+  await asUser("doctor", async () => {
+    const document = await privateDocumentFixture("shared");
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [document.storage_path],
+    );
+    await denied(
+      "select public.review_patient_document($1,$2,'approved','Internal human review',false)",
+      [a, document.document_id],
+    );
+    await completePrivateDocument(document.document_id);
+    const review = (
+      await db.query<{ id: string }>(
+        "select public.review_patient_document($1,$2,'approved','Internal human review',true) id",
+        [a, document.document_id],
+      )
+    ).rows[0].id;
+    const original = await db.query<{ visibility: string; storage_path: string }>(
+      "select visibility,storage_path from public.patient_documents where id=$1",
+      [document.document_id],
+    );
+    assert.deepEqual(original.rows, [
+      { visibility: "shared", storage_path: document.storage_path },
+    ]);
+    assert.deepEqual(
+      (
+        await db.query<{ decision: string; reviewer_id: string }>(
+          "select decision,reviewer_id from public.patient_document_reviews where id=$1",
+          [review],
+        )
+      ).rows,
+      [{ decision: "approved", reviewer_id: users.doctor.id }],
+    );
+    await denied(
+      "update public.patient_document_reviews set internal_note='changed' where id=$1",
+      [review],
+    );
+    await denied("delete from public.patient_document_reviews where id=$1", [review]);
+    for (const role of ["patient", "admin", "nurse", "other", "outsider", "suspended"]) {
+      await switchActor(role);
+      assert.equal(
+        (await db.query("select id from public.patient_document_reviews where id=$1", [review]))
+          .rows.length,
+        0,
+      );
+      await denied(
+        "select public.review_patient_document($1,$2,'rejected','Forbidden note',true)",
+        [a, document.document_id],
+      );
+    }
+    await db.exec("reset role");
+    const audit = await db.query<{ n: number; payload: string }>(
+      "select count(*)::int n,json_agg(a)::text payload from public.audit_events a where entity_type='patient_document_reviews' and entity_id=$1",
+      [review],
+    );
+    assert.equal(audit.rows[0].n, 1);
+    assert.ok(!audit.rows[0].payload.includes("Internal human review"));
+  });
+});
+
+test("document review access immediately follows care revocation", async () => {
+  await asUser("doctor", async () => {
+    const document = await privateDocumentFixture("internal");
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [document.storage_path],
+    );
+    await completePrivateDocument(document.document_id);
+    const review = (
+      await db.query<{ id: string }>(
+        "select public.review_patient_document($1,$2,'needs_follow_up','Repeat exam requested',true) id",
+        [a, document.document_id],
+      )
+    ).rows[0].id;
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=1 where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+      [a, pa, users.doctor.id],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.patient_document_reviews where id=$1", [review]))
+        .rows.length,
+      0,
+    );
+    await denied(
+      "select public.review_patient_document($1,$2,'approved','Late review',true)",
+      [a, document.document_id],
+    );
+  });
+});
+
 test("document completion rejects missing files and audit failure leaves no reservation", async () => {
   await asUser("doctor", async () => {
     const document = await privateDocumentFixture();

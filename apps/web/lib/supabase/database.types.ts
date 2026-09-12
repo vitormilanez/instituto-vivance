@@ -701,6 +701,36 @@ export type Database = {
           },
         ];
       };
+      patient_document_reviews: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          document_id: string;
+          patient_id: string;
+          reviewer_id: string;
+          decision: string;
+          internal_note: string;
+          reviewed_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "patient_document_reviews_tenant_id_document_id_patient_id_fkey";
+            columns: ["tenant_id", "document_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patient_documents";
+            referencedColumns: ["tenant_id", "id", "patient_id"];
+          },
+          {
+            foreignKeyName: "patient_document_reviews_tenant_id_reviewer_id_fkey";
+            columns: ["tenant_id", "reviewer_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
       patient_invitations: {
         Row: {
           id: string; tenant_id: string; display_name: string; channel: string;
@@ -975,6 +1005,16 @@ export type Database = {
           target_tenant: string;
           target_document: string;
           target_actor: string;
+        };
+        Returns: string;
+      };
+      review_patient_document: {
+        Args: {
+          target_tenant: string;
+          target_document: string;
+          review_decision: string;
+          internal_note: string;
+          confirmed: boolean;
         };
         Returns: string;
       };
