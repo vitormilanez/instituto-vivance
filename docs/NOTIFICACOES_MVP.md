@@ -33,6 +33,7 @@ Paciente e médico recebem, dentro da própria Vivance, um aviso persistente qua
 - Tipos, lint, build e `git diff --check` passaram.
 - No Supabase de desenvolvimento, as duas tabelas estão com RLS e uma política de leitura própria cada. O advisor não encontrou alerta novo introduzido por esta migração; os avisos existentes de senhas vazadas, funções antigas e desempenho permanecem fora desta fatia.
 - Médico e paciente sintéticos autenticados enviaram mensagens nos dois sentidos. A sequência visível foi: mensagem → aviso genérico → marcação de leitura → conversa correta; pausar a preferência suprimiu o próximo aviso e retomar restaurou a entrega. A tela do paciente foi conferida em 390 px. Clínica, identidades, sessões, mensagens, avisos, preferências e auditorias sintéticos foram removidos por IDs conferidos.
+- A Preview protegida `dpl_HYMJsHRXMNtiNCA1g1ZWLgZeqC1i` está pronta em https://instituto-vivance-mnyoog4i5-vtr-consulting.vercel.app. Visitante recebe a proteção Vercel; pela verificação autorizada a entrada respondeu `200` com cache privado e a nova API sem sessão respondeu `401` com `Cache-Control: private, no-store`. A CI `34660001112` passou. Não houve merge ou promoção para Production.
 
 ## Limites
 

@@ -32,6 +32,7 @@ Paciente e médico com vínculo de cuidado ativo podem trocar mensagens persiste
 - No Supabase de desenvolvimento, médico e paciente sintéticos autenticados enviaram e leram mensagens nos dois sentidos. Os testes cobriram isolamento, papéis bloqueados, revogação de vínculo/sessão, imutabilidade e rollback se a auditoria falhar.
 - No navegador local, médico e paciente percorreram a conversa real contra o Supabase de desenvolvimento; a tela do paciente foi conferida em 390 px.
 - A Preview protegida `dpl_FKoZk34nWhsT222zMLR9pNVPUhdf` está pronta em https://instituto-vivance-48gxuveol-vtr-consulting.vercel.app. Visitante recebe a proteção Vercel; a API de mensagens sem sessão responde `401` com `Cache-Control: private, no-store`.
+- A Preview atual do Slice 5C é `dpl_HYMJsHRXMNtiNCA1g1ZWLgZeqC1i`, em https://instituto-vivance-mnyoog4i5-vtr-consulting.vercel.app. Ela preserva a proteção Vercel, cache privado e resposta `401` sem sessão na API de preferência de avisos.
 - A clínica, os usuários, as sessões, as mensagens e as auditorias sintéticas desta prova foram removidos por IDs conferidos. Não houve uso de dado clínico real, merge ou promoção para Production.
 
 ## Limites desta entrega

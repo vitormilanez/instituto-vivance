@@ -31,7 +31,7 @@ Verificações do slice 3D: 61 cenários diretamente afetados de Agenda, Atendim
 
 Verificações do Slice 5B: 97 testes, tipos, lint e build passaram. As migrações `20260911173050_direct_patient_messages` e `20260911174240_message_foreign_key_indexes` estão aplicadas ao Supabase de desenvolvimento. A jornada médica e a do paciente foram exercitadas no navegador com dados sintéticos, inclusive em 390 px; depois foram removidos. A Preview protegida `dpl_FKoZk34nWhsT222zMLR9pNVPUhdf` está pronta, sem merge ou promoção Production.
 
-Verificações do Slice 5C: 100 testes, tipos, lint e build passaram. A migração `20260911234004_in_app_notifications` está aplicada ao Supabase de desenvolvimento. Médico e paciente sintéticos validaram mensagem → aviso genérico → conversa nos dois sentidos, preferência individual e supressão/retomada; a visão do paciente foi conferida em 390 px e todo registro sintético foi removido. A Preview será atualizada somente com este lote, sem merge ou promoção Production.
+Verificações do Slice 5C: 100 testes, tipos, lint e build passaram. A migração `20260911234004_in_app_notifications` está aplicada ao Supabase de desenvolvimento. Médico e paciente sintéticos validaram mensagem → aviso genérico → conversa nos dois sentidos, preferência individual e supressão/retomada; a visão do paciente foi conferida em 390 px e todo registro sintético foi removido. A Preview protegida `dpl_HYMJsHRXMNtiNCA1g1ZWLgZeqC1i` está pronta em https://instituto-vivance-mnyoog4i5-vtr-consulting.vercel.app; entrada autorizada respondeu `200` com cache privado e a nova API sem sessão `401` com `private, no-store`. CI `34660001112` passou, sem merge ou promoção Production.
 
 ## Rodar localmente
 
