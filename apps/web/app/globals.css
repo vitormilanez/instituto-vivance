@@ -2401,39 +2401,43 @@ button.calendar-day[aria-pressed="true"] {
 .publication-confirm { display:flex; align-items:flex-start; gap:.65rem; margin:1rem 0; }
 .publication-confirm input { width:auto; flex:0 0 auto; margin-top:.25rem; }
 .published-plan + .published-plan { margin-top:24px; }
-.today-workspace { display:grid; grid-template-columns:minmax(0, 2.4fr) minmax(260px, 1fr); gap:24px; margin-bottom:32px; align-items:start; }
-.today-workspace .panel { margin:0; padding:28px; }
-.today-next > h2, .today-attention h2, .today-schedule h2 { font-size:17px; color:#405c7e; }
-.today-patient { display:flex; align-items:center; gap:16px; margin:28px 0 20px; }
-.today-patient h3 { font-size:28px; letter-spacing:-.03em; margin:0; }
-.today-patient p { margin:6px 0 0; }
-.today-consultation-meta { display:flex; gap:20px; flex-wrap:wrap; font-size:14px; }
-.today-consultation-meta strong { font-variant-numeric:tabular-nums; }
-.today-context { border-top:1px solid var(--border); margin-top:24px; padding-top:22px; }
-.today-context > h3 { margin:0; font-size:18px; }
-.today-context > p { font-size:13px; margin:6px 0 18px; }
-.care-context-links { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:12px; }
-.care-context-links > a, .care-context-links > div { display:flex; flex-direction:column; gap:9px; padding:18px 14px; border:1px solid #d6e3f6; border-radius:14px; background:#f8fbff; min-width:0; text-decoration:none; }
-.care-context-links strong { font-size:14px; color:var(--navy); }
-.care-context-links span { font-size:12px; color:#516887; }
-.care-context-links a > span:last-child { margin-top:auto; padding-top:8px; color:var(--blue); font-weight:650; }
-.care-context-links > .care-context-plan { background:#f1f8f6; border-color:#c9e2dc; }
+.today-workspace { display:grid; grid-template-columns:minmax(0, 1fr) minmax(280px, .38fr); gap:20px; margin-bottom:32px; align-items:start; }
+.today-workspace .panel { margin:0; padding:28px; border-radius:18px; }
+.today-next { background:linear-gradient(135deg, #fff 0%, #f7fbfa 100%); }
+.today-next > h2, .today-attention h2, .today-schedule h2 { margin:0; color:#405c7e; font-size:12px; font-weight:750; letter-spacing:.1em; text-transform:uppercase; }
+.today-patient { display:flex; align-items:center; gap:14px; margin:20px 0 16px; }
+.today-patient h3 { font-size:26px; letter-spacing:-.035em; margin:0; }
+.today-patient p { margin:4px 0 0; color:#60708a; }
+.today-consultation-meta { display:flex; gap:10px 20px; flex-wrap:wrap; padding:13px 0; border-top:1px solid #e3eaf2; border-bottom:1px solid #e3eaf2; font-size:13px; color:#435a77; }
+.today-consultation-meta strong { color:var(--navy); font-variant-numeric:tabular-nums; }
+.today-consultation-meta span:last-child { flex-basis:100%; color:#5b6d88; }
+.today-context { margin-top:20px; }
+.today-context > h3 { margin:0; font-size:17px; letter-spacing:-.02em; }
+.today-context > p { font-size:13px; margin:5px 0 14px; color:#60708a; }
+.care-context-links { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.care-context-links > a, .care-context-links > div { display:flex; flex-direction:column; gap:6px; min-height:120px; padding:15px; border:1px solid #e0e8f1; border-radius:12px; background:#fff; min-width:0; text-decoration:none; transition:border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.care-context-links > a:hover { border-color:#9bc7bc; box-shadow:0 8px 20px rgba(7, 58, 46, .08); transform:translateY(-1px); }
+.care-context-links strong { font-size:13px; color:var(--navy); }
+.care-context-links span { font-size:12px; line-height:1.45; color:#61718a; }
+.care-context-links a > span:last-child { margin-top:auto; padding-top:5px; color:#126c5d; font-weight:700; }
+.care-context-links > .care-context-plan { background:#f4faf8; border-color:#d6e9e3; }
 .care-context-links > .care-context-future { background:#fafbfd; }
-.today-primary-action { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; border-top:1px solid var(--border); margin-top:24px; padding-top:22px; }
-.today-primary-action > span { font-size:12px; max-width:28ch; color:#526782; }
+.today-primary-action { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; margin-top:20px; padding-top:18px; border-top:1px solid #e3eaf2; }
+.today-primary-action > span { font-size:12px; max-width:30ch; color:#60708a; }
 .today-attention { grid-column:2; grid-row:1 / span 2; }
-.today-attention > p { font-size:13px; }
-.today-attention ul { list-style:none; padding:0; margin:20px 0; }
-.today-attention li { padding:20px 0; border-top:1px solid var(--border); }
-.today-attention li p { font-size:14px; margin:8px 0 14px; }
-.today-attention li a { font-size:14px; font-weight:650; }
+.today-attention > p { margin:10px 0 0; font-size:13px; line-height:1.5; color:#60708a; }
+.today-attention ul { list-style:none; padding:0; margin:18px 0; }
+.today-attention li { padding:16px 0; border-top:1px solid #e5ebf2; }
+.today-attention li strong { font-size:14px; }
+.today-attention li p { font-size:13px; line-height:1.45; margin:6px 0 10px; color:#60708a; }
+.today-attention li a { color:#126c5d; font-size:13px; font-weight:700; }
 .today-attention .empty { padding:24px 0; text-align:left; }
 .today-schedule { grid-column:1; }
-.today-timeline { list-style:none; padding:0; margin:18px 0 0; }
-.today-timeline li { display:grid; grid-template-columns:64px minmax(0,1fr) auto; gap:16px; align-items:center; padding:18px 12px; border-top:1px solid var(--border); }
-.today-timeline time { font-weight:700; font-variant-numeric:tabular-nums; }
-.today-timeline p { margin:5px 0 0; font-size:13px; }
-.today-timeline .is-next { background:#edf7f4; border-radius:12px; }
+.today-timeline { list-style:none; padding:0; margin:14px 0 0; }
+.today-timeline li { display:grid; grid-template-columns:64px minmax(0,1fr) auto; gap:14px; align-items:center; padding:15px 12px; border-top:1px solid #e5ebf2; }
+.today-timeline time { color:#243d5b; font-size:14px; font-weight:750; font-variant-numeric:tabular-nums; }
+.today-timeline p { margin:3px 0 0; font-size:13px; color:#60708a; }
+.today-timeline .is-next { background:#edf8f5; border-radius:10px; }
 .today-timeline a { color:var(--navy); }
 .appointment-row { scroll-margin-top:110px; }
 .appointment-row:target { background:#edf7f4; outline:2px solid #a7cec5; outline-offset:4px; }
