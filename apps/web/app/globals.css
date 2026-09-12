@@ -2140,6 +2140,20 @@ button.calendar-day[aria-pressed="true"] {
 .patient-appointment-empty p {
   margin-top: 7px;
 }
+.patient-next-step {
+  margin-bottom: 24px;
+  border-color: #c7d9ef;
+  background: linear-gradient(135deg, #ffffff, #edf5ff);
+}
+.patient-next-step h2 {
+  max-width: 26ch;
+  margin: 5px 0 6px;
+}
+.patient-next-step p {
+  max-width: 62ch;
+  margin: 0 0 18px;
+  color: var(--muted);
+}
 .patient-followup-card {
   display: flex;
   flex-direction: column;

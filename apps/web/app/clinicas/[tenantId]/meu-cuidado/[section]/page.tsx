@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   getPatientOnboarding,
   OnboardingError,
@@ -133,21 +132,6 @@ export default async function PatientAreaPage({
           </div>
         </div>
       )}
-      {onboarding?.status === "draft" && (
-        <section className="panel">
-          <h2>Vamos preparar sua primeira conversa?</h2>
-          <p>
-            Conte um pouco sobre você, responda no seu ritmo e envie os exames
-            que quiser compartilhar. Você pode continuar depois.
-          </p>
-          <Link
-            className="button"
-            href={`/clinicas/${tenantId}/primeiros-passos`}
-          >
-            Continuar meu cadastro
-          </Link>
-        </section>
-      )}
       {!patient && (
         <p className="notice">
           A equipe ainda precisa vincular sua conta à sua ficha. Entre em
@@ -196,6 +180,11 @@ export default async function PatientAreaPage({
             appointments={appointments.appointments}
             currentTime={currentTime}
             latestPublication={published?.publications[0] ?? null}
+            onboardingHref={
+              onboarding?.status === "draft"
+                ? `/clinicas/${tenantId}/primeiros-passos`
+                : null
+            }
           />
         )
       ) : (

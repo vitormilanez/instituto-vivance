@@ -40,12 +40,14 @@ export function PatientArea({
   appointments = [],
   currentTime,
   latestPublication = null,
+  onboardingHref,
 }: {
   section: PatientSection;
   base: string;
   appointments?: Appointment[];
   currentTime: string;
   latestPublication?: { title: string; revision: number } | null;
+  onboardingHref?: string | null;
 }) {
   const nextAppointment = appointments.find(
     (appointment) =>
@@ -56,9 +58,49 @@ export function PatientArea({
   const latestCompleted = [...appointments]
     .reverse()
     .find((appointment) => appointment.status === "completed");
+  const nextStep = onboardingHref
+    ? {
+        title: "Continue seu cadastro",
+        detail:
+          "Conte um pouco sobre você e envie os exames que quiser compartilhar. Você pode continuar depois.",
+        action: "Continuar meu cadastro",
+        href: onboardingHref,
+      }
+    : latestPublication
+      ? {
+          title: "Veja suas orientações médicas",
+          detail: `${latestPublication.title} está disponível para você consultar.`,
+          action: "Abrir orientações",
+          href: `${base}/plano`,
+        }
+      : nextAppointment
+        ? {
+            title:
+              nextAppointment.status === "in_progress"
+                ? "Acompanhe sua consulta em andamento"
+                : "Confira sua próxima consulta",
+            detail: "Veja o horário e as informações já registradas pela clínica.",
+            action: "Ver consulta",
+            href: `${base}/consultas`,
+          }
+        : {
+            title: "Conheça seu espaço de conversas",
+            detail:
+              "Envie uma mensagem ao médico vinculado ao seu acompanhamento quando precisar.",
+            action: "Abrir conversas",
+            href: `${base}/conversas`,
+          };
   if (section.slug === "hoje")
     return (
       <>
+        <section className="panel patient-next-step" aria-labelledby="next-step-title">
+          <span className="quiet-label">Seu próximo passo</span>
+          <h2 id="next-step-title">{nextStep.title}</h2>
+          <p>{nextStep.detail}</p>
+          <Link className="button" href={nextStep.href}>
+            {nextStep.action}
+          </Link>
+        </section>
         <div className="patient-overview">
           <section className="patient-next-appointment">
             <div className="patient-card-heading">
@@ -131,7 +173,7 @@ export function PatientArea({
               </div>
             ) : (
               <div className="patient-last-appointment">
-                <span>Histórico conectado</span>
+                <span>Seu histórico</span>
                 <strong>Ainda não há atendimento concluído</strong>
                 <p>Seu histórico será formado a partir das consultas reais.</p>
               </div>
@@ -150,7 +192,7 @@ export function PatientArea({
           </section>
         </div>
         <section className="patient-shortcuts">
-          <h2>O que você quer acompanhar?</h2>
+          <h2>Outras áreas do seu cuidado</h2>
           <div className="quick-actions">
             {actions.map((action) => (
               <Link
