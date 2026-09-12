@@ -6,8 +6,9 @@ import {
   staffModules,
   type StaffModuleSlug,
 } from "@/modules/workspace/navigation";
+import { unreadInAppNotificationCount } from "@/modules/notifications/service";
 
-export function ClinicShell({
+export async function ClinicShell({
   clinic,
   active,
   children,
@@ -23,6 +24,7 @@ export function ClinicShell({
   children: ReactNode;
 }) {
   const base = `/clinicas/${clinic.id}`;
+  const notificationCount = await unreadInAppNotificationCount(clinic.id);
   const moduleLinks = staffModules
     .filter((module) => clinic.role !== "admin" || module.slug !== "processamentos")
     .map((module) => ({
@@ -94,6 +96,7 @@ export function ClinicShell({
         variant="staff"
         homeHref={base}
         notificationsHref={`${base}/avisos`}
+        notificationCount={notificationCount}
         title={activeLabel}
         context={`${clinic.name} · ${roleLabels[clinic.role]}`}
       />

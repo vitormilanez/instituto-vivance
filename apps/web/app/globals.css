@@ -1439,6 +1439,7 @@ button {
   font-weight: 650;
   text-decoration: none;
 }
+.notification-count { align-items:center; background:#1268b3; border-radius:999px; color:#fff; display:inline-flex; font-size:.72rem; font-weight:800; justify-content:center; line-height:1; margin-left:6px; min-width:1.35rem; padding:3px 5px; }
 .topbar-actions form {
   margin: 0;
 }
@@ -2439,7 +2440,6 @@ button.calendar-day[aria-pressed="true"] {
 .today-timeline .is-next { background:#edf8f5; border-radius:10px; }
 .today-timeline a { color:var(--navy); }
 .appointment-row { scroll-margin-top:110px; }
-.appointment-row:target { background:#edf7f4; outline:2px solid #a7cec5; outline-offset:4px; }
 .calendar-schedule .appointment-row.is-next { background:#edf7f4; border-radius:12px; }
 .schedule-caption { font-size:14px; color:#486c64; }
 .staff-mobile-dock { display:none; }

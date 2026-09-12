@@ -28,3 +28,20 @@ test("individual document reads verify the active care relationship", () => {
     /if \(patient && !patients\.some\(\(item\) => item\.id === patient\)\)/,
   );
 });
+
+test("today omits clinical context when the focused appointment has no active care link", () => {
+  const today = readFileSync(
+    new URL("../modules/workspace/today.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(today, /\.eq\("professional_id", user\.id\)/);
+  assert.match(today, /\.eq\("status", "active"\)/);
+  assert.match(today, /if \(!relationship\.data\) return null/);
+  assert.match(
+    readFileSync(
+      new URL("../components/today-workspace.tsx", import.meta.url),
+      "utf8",
+    ),
+    /Não há contexto clínico disponível para este vínculo/,
+  );
+});
