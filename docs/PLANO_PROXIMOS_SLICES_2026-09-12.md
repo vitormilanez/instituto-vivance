@@ -9,11 +9,11 @@ O titular acrescentou **convite de paciente pelo médico ou administrador + onbo
 - **3E — Convite e entrada do paciente:** nome + e-mail ou telefone; médico convida para si, administrador escolhe médico da clínica; convite seguro, aceite e vínculo. WhatsApp usa link para envio manual, conforme escolha do titular; o paciente informa e-mail para criar/confirmar acesso. Não há disparo automático de WhatsApp.
 - **4E — Onboarding e pré-consulta inicial:** foto e medidas opcionais, cinco respostas dirigidas, etapa de exames, salvamento/retomada e opção de pular. Compartilhamento explícito e apresentação dos originais ao médico autorizado.
 - Referência executável: `docs/ONBOARDING_MVP.md` no checkout `instituto-vivance-onboarding`. Estado: 3E/4E implementados e validados localmente (119 testes, tipos, lint, build); ativação remota e prova de Auth/email/Storage conectados pendentes.
-- Abaixo fica preservada a avaliação original, cujo “próximo 7B.3” agora é precedido por 3E/4E.
+- Abaixo fica preservada a avaliação original. Os incrementos 3E/4E e 7B.3 já foram validados localmente; o próximo slice é 7B.4.
 
 ## Decisão recomendada
 
-**Próximo slice funcional: 7B.3 — consulta manual em quatro etapas.** A base já permite agendar, registrar atendimento, publicar plano e acompanhar relatos. O maior ganho imediato é fazer essas partes funcionarem como uma jornada clara, mantendo o paciente e os registros salvos entre as etapas.
+**Próximo slice funcional: 7B.4 — conversas e continuidade móvel.** A consulta agora reúne preparo, registro, plano e fechamento sem ações implícitas. O maior ganho imediato é tornar a conversa direta uma continuidade clara da ficha, preservando texto em falhas e mudanças de destinatário.
 
 Preservar a identidade do protótipo e melhorar a clareza dentro de cada entrega. O objetivo visual é: **o médico entende o contexto e a próxima ação; o paciente entende o que fazer hoje**.
 
@@ -73,6 +73,10 @@ O documento `ENTREGA_MVP_PACIENTE_PARA_DEV.md`, de 09/09, descreve um MVP maior,
 | 1 | **7B.3 — Consulta em quatro etapas** | Médico abre o paciente certo, consulta suas fontes, registra, prepara o plano e encerra vendo o estado de cada entrega | Reutilizar atendimento, versões, planos e publicações; sem migração inicialmente. Etapa visual não finaliza nem publica automaticamente |
 | 2 | **7B.4 — Conversas e continuidade móvel** | Médico encontra a conversa, responde e volta à ficha; paciente escreve e acompanha o histórico com clareza | Reutilizar conversas/avisos. Preservar texto em falha e proteger saída com texto não enviado. Não alegar idempotência ou recibo de mensagem |
 | 3 | **7B.5 — Hoje do paciente orientado ao próximo passo (novo desdobramento proposto)** | Paciente identifica uma ação principal entre responder uma solicitação ou abrir orientações; próxima consulta permanece visível | Compor dados existentes. Prioridade é operacional, sem classificar urgência; dados opcionais não bloqueiam navegação. Não ampliar a regra de oito atalhos da equipe para o paciente |
+
+### Execução local — 7B.3 concluído em 12/09/2026
+
+O atendimento passou a organizar a tela em **Preparo, Consulta, Plano e Fechamento**. Preparo exibe somente o onboarding já enviado pela pessoa, com acesso aos documentos; Plano apresenta os planos realmente ligados ao atendimento e distingue rascunho, revisão, aprovação pendente de publicação e publicação vigente. Fechamento mantém a finalização como ação explícita: avançar entre etapas nunca salva, finaliza ou publica por conta própria. A saída de uma etapa com texto não salvo pede confirmação.
 
 **Demonstração de saída do lote:** o médico retoma um atendimento, salva uma orientação, publica por ação explícita; o paciente encontra a orientação e responde a uma solicitação já existente; o médico localiza o relato e a conversa mantendo o mesmo paciente. Mostrar também ausência de registros e uma falha recuperável.
 

@@ -84,35 +84,63 @@ export async function loadEncounter(
   if (!data)
     throw new EncounterError("Atendimento não disponível para sua conta.", 404);
   let historyQuery = client
-      .from("encounter_versions")
-      .select("id,version,status,reason,evolution,actor_user_id,created_at")
-      .eq("tenant_id", clinicId)
-      .eq("encounter_id", encounterId)
-      .order("version", { ascending: false })
-      .limit(encounterDetailPageSize + 1);
+    .from("encounter_versions")
+    .select("id,version,status,reason,evolution,actor_user_id,created_at")
+    .eq("tenant_id", clinicId)
+    .eq("encounter_id", encounterId)
+    .order("version", { ascending: false })
+    .limit(encounterDetailPageSize + 1);
   if (beforeVersion !== undefined)
     historyQuery = historyQuery.lt("version", beforeVersion);
   let addendumQuery = client
-      .from("encounter_addenda")
-      .select(
-        "id,encounter_version,addendum_number,reason,content,actor_user_id,created_at",
-      )
-      .eq("tenant_id", clinicId)
-      .eq("encounter_id", encounterId)
-      .order("addendum_number", { ascending: false })
-      .limit(encounterDetailPageSize + 1);
+    .from("encounter_addenda")
+    .select(
+      "id,encounter_version,addendum_number,reason,content,actor_user_id,created_at",
+    )
+    .eq("tenant_id", clinicId)
+    .eq("encounter_id", encounterId)
+    .order("addendum_number", { ascending: false })
+    .limit(encounterDetailPageSize + 1);
   if (beforeAddendum !== undefined)
     addendumQuery = addendumQuery.lt("addendum_number", beforeAddendum);
-  const [history, addendumHistory] = await Promise.all([
+  const [history, addendumHistory, linkedPlanQuery] = await Promise.all([
     historyQuery,
     addendumQuery,
+    client
+      .from("care_plans")
+      .select("id,title,status,revision,updated_at")
+      .eq("tenant_id", clinicId)
+      .eq("encounter_id", encounterId)
+      .order("updated_at", { ascending: false })
+      .order("id")
+      .limit(11),
   ]);
   if (history.error) failed(history.error.code);
   if (addendumHistory.error) failed(addendumHistory.error.code);
+  if (linkedPlanQuery.error) failed(linkedPlanQuery.error.code);
   const versions = (history.data ?? []).slice(0, encounterDetailPageSize);
   const addenda = (addendumHistory.data ?? []).slice(
     0,
     encounterDetailPageSize,
+  );
+  const linkedPlans = (linkedPlanQuery.data ?? []).slice(0, 10);
+  const publicationQuery = linkedPlans.length
+    ? await client
+        .from("care_plan_publications")
+        .select("plan_id,source_version,status")
+        .eq("tenant_id", clinicId)
+        .eq("status", "published")
+        .in(
+          "plan_id",
+          linkedPlans.map((plan) => plan.id),
+        )
+    : { data: [], error: null };
+  if (publicationQuery.error) failed(publicationQuery.error.code);
+  const publishedSourceVersions = new Map(
+    (publicationQuery.data ?? []).map((publication) => [
+      publication.plan_id,
+      publication.source_version,
+    ]),
   );
   return {
     clinic,
@@ -121,13 +149,18 @@ export async function loadEncounter(
     versionCursor: beforeVersion ?? null,
     nextVersionCursor:
       (history.data?.length ?? 0) > encounterDetailPageSize
-        ? versions.at(-1)?.version ?? null
+        ? (versions.at(-1)?.version ?? null)
         : null,
     addenda,
+    linkedPlans: linkedPlans.map((plan) => ({
+      ...plan,
+      publishedSourceVersion: publishedSourceVersions.get(plan.id) ?? null,
+    })),
+    linkedPlansTruncated: (linkedPlanQuery.data?.length ?? 0) > 10,
     addendumCursor: beforeAddendum ?? null,
     nextAddendumCursor:
       (addendumHistory.data?.length ?? 0) > encounterDetailPageSize
-        ? addenda.at(-1)?.addendum_number ?? null
+        ? (addenda.at(-1)?.addendum_number ?? null)
         : null,
     canEdit:
       clinic.role === "doctor" &&

@@ -12,6 +12,38 @@
   --positive: #0b6b57;
   --attention: #8a5b09;
 }
+
+/* Consulta em quatro etapas: a troca de etapa apenas altera a visualização. */
+.encounter-journey { margin: 0 0 28px; overflow-x: auto; border-bottom: 1px solid var(--border); }
+.encounter-journey ol { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); min-width: 640px; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.encounter-journey button { display: grid; grid-template-columns: 28px minmax(0, 1fr); grid-template-rows: auto auto; width: 100%; min-height: 68px; gap: 0 10px; padding: 12px 14px; border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; color: var(--muted); text-align: left; }
+.encounter-journey button:hover, .encounter-journey li.current button { background: var(--blue-soft); color: var(--ink); }
+.encounter-journey li.current button { border-bottom-color: var(--blue); }
+.encounter-journey button > span { grid-row: 1 / -1; display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid currentColor; border-radius: 50%; font-size: 12px; font-weight: 750; }
+.encounter-journey li.current button > span { border-color: var(--blue); background: var(--blue); color: white; }
+.encounter-journey strong, .encounter-journey small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.encounter-journey strong { align-self: end; font-size: 14px; }
+.encounter-journey small { margin-top: 2px; font-size: 11px; }
+.encounter-stage-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin: 0 0 20px; }
+.encounter-stage-heading h2, .encounter-stage-heading p { margin: 0; }
+.encounter-stage-heading h2 { font-size: 23px; letter-spacing: -0.02em; }
+.encounter-stage-heading p, .encounter-stage-note { max-width: 62ch; margin-top: 5px; color: var(--muted); font-size: 14px; }
+.encounter-stage-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; max-width: 860px; margin-top: 20px; }
+.encounter-linked-plans { max-width: 860px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+.encounter-linked-plans h3, .encounter-closing-plans h3 { margin: 0 0 8px; font-size: 17px; }
+.encounter-linked-plans ul { display: grid; gap: 1px; margin: 14px 0 0; padding: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 12px; list-style: none; background: var(--border); }
+.encounter-linked-plans li { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; padding: 12px 14px; background: white; }
+.encounter-linked-plans a { min-width: 0; overflow-wrap: anywhere; font-weight: 700; }
+.encounter-linked-plans span { flex: 0 0 auto; color: var(--muted); font-size: 12px; text-align: right; }
+.encounter-closing-plans { max-width: 860px; margin-top: 20px; }
+@media (max-width: 760px) {
+  .encounter-journey ol { min-width: 560px; }
+  .encounter-stage-heading { display: grid; align-items: start; }
+  .encounter-stage-actions { justify-content: stretch; }
+  .encounter-stage-actions button { flex: 1 1 170px; }
+  .encounter-linked-plans li { display: block; }
+  .encounter-linked-plans span { display: block; margin-top: 4px; text-align: left; }
+}
 .encounter-record textarea,
 .encounter-addenda textarea {
   width: 100%;

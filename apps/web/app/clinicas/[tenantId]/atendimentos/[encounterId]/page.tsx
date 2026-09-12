@@ -4,6 +4,7 @@ import { EncounterError, loadEncounter } from "@/modules/encounters/service";
 import { InputError } from "@/lib/validation";
 import { ClinicShell } from "@/components/clinic-shell";
 import { EncounterEditor } from "@/components/encounter-editor";
+import { getSubmittedPatientOnboarding } from "@/modules/onboarding/service";
 export const dynamic = "force-dynamic";
 export default async function EncounterPage({
   params,
@@ -30,11 +31,16 @@ export default async function EncounterPage({
       notFound();
     throw e;
   });
+  const onboarding = await getSubmittedPatientOnboarding(
+    tenantId,
+    detail.encounter.patient_id,
+  );
   return (
     <ClinicShell clinic={detail.clinic} active="atendimentos">
       <EncounterEditor
         key={`${detail.encounter.id}:${page.versoes_antes_de ?? "latest"}:${page.adendos_antes_de ?? "latest"}`}
         initial={detail}
+        onboarding={onboarding}
       />
     </ClinicShell>
   );
