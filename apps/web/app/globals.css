@@ -2402,24 +2402,23 @@ button.calendar-day[aria-pressed="true"] {
 .publication-confirm input { width:auto; flex:0 0 auto; margin-top:.25rem; }
 .published-plan + .published-plan { margin-top:24px; }
 .today-workspace { display:grid; grid-template-columns:minmax(0, 1fr) minmax(280px, .38fr); gap:20px; margin-bottom:32px; align-items:start; }
-.today-workspace .panel { margin:0; padding:28px; border-radius:18px; }
-.today-next { background:linear-gradient(135deg, #fff 0%, #f7fbfa 100%); }
+.today-workspace .panel { margin:0; padding:28px; border-radius:16px; }
 .today-next > h2, .today-attention h2, .today-schedule h2 { margin:0; color:#405c7e; font-size:12px; font-weight:750; letter-spacing:.1em; text-transform:uppercase; }
 .today-patient { display:flex; align-items:center; gap:14px; margin:20px 0 16px; }
 .today-patient h3 { font-size:26px; letter-spacing:-.035em; margin:0; }
 .today-patient p { margin:4px 0 0; color:#60708a; }
 .today-consultation-meta { display:flex; gap:10px 20px; flex-wrap:wrap; padding:13px 0; border-top:1px solid #e3eaf2; border-bottom:1px solid #e3eaf2; font-size:13px; color:#435a77; }
 .today-consultation-meta strong { color:var(--navy); font-variant-numeric:tabular-nums; }
-.today-consultation-meta span:last-child { flex-basis:100%; color:#5b6d88; }
+.today-consultation-meta span:last-child { color:#5b6d88; }
 .today-context { margin-top:20px; }
 .today-context > h3 { margin:0; font-size:17px; letter-spacing:-.02em; }
 .today-context > p { font-size:13px; margin:5px 0 14px; color:#60708a; }
-.care-context-links { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-.care-context-links > a, .care-context-links > div { display:flex; flex-direction:column; gap:6px; min-height:120px; padding:15px; border:1px solid #e0e8f1; border-radius:12px; background:#fff; min-width:0; text-decoration:none; transition:border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
-.care-context-links > a:hover { border-color:#9bc7bc; box-shadow:0 8px 20px rgba(7, 58, 46, .08); transform:translateY(-1px); }
+.care-context-links { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:10px; }
+.care-context-links > a, .care-context-links > div { display:flex; flex-direction:column; gap:6px; min-height:120px; padding:15px; border:1px solid #e0e8f1; border-radius:12px; background:#fff; min-width:0; text-decoration:none; transition:border-color .15s ease, background-color .15s ease; }
+.care-context-links > a:hover { border-color:#9bc7bc; background:#f7fbfa; }
 .care-context-links strong { font-size:13px; color:var(--navy); }
 .care-context-links span { font-size:12px; line-height:1.45; color:#61718a; }
-.care-context-links a > span:last-child { margin-top:auto; padding-top:5px; color:#126c5d; font-weight:700; }
+.care-context-links a > span:last-child { margin-top:auto; padding-top:5px; color:var(--positive); font-weight:700; }
 .care-context-links > .care-context-plan { background:#f4faf8; border-color:#d6e9e3; }
 .care-context-links > .care-context-future { background:#fafbfd; }
 .today-primary-action { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; margin-top:20px; padding-top:18px; border-top:1px solid #e3eaf2; }
@@ -2430,7 +2429,7 @@ button.calendar-day[aria-pressed="true"] {
 .today-attention li { padding:16px 0; border-top:1px solid #e5ebf2; }
 .today-attention li strong { font-size:14px; }
 .today-attention li p { font-size:13px; line-height:1.45; margin:6px 0 10px; color:#60708a; }
-.today-attention li a { color:#126c5d; font-size:13px; font-weight:700; }
+.today-attention li a { color:var(--positive); font-size:13px; font-weight:700; }
 .today-attention .empty { padding:24px 0; text-align:left; }
 .today-schedule { grid-column:1; }
 .today-timeline { list-style:none; padding:0; margin:14px 0 0; }
