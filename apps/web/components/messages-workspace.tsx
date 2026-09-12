@@ -349,12 +349,13 @@ function ConversationWorkspace({
             <form className="conversation-composer" onSubmit={submit}>
               {error && <p role="alert">{error}</p>}
               {sendUncertain && (
-                <div className="conversation-recovery" role="group" aria-label="Recuperar envio incerto">
-                  <button type="button" className="secondary" onClick={() => router.refresh()}>
+                <div className="conversation-recovery" role="alert">
+                  <p>Não foi possível confirmar o envio. Confira o histórico antes de tentar novamente.</p>
+                  <button type="button" onClick={() => router.refresh()}>
                     Atualizar conversa
                   </button>
                   <button type="button" className="secondary" onClick={() => setSendUncertain(false)}>
-                    Não apareceu, tentar novamente
+                    Tentar novamente
                   </button>
                 </div>
               )}

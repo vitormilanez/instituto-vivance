@@ -237,14 +237,14 @@ function DocumentList({
               >
                 Abrir original
               </Link>
-              {canReview && (
-                <DocumentReviewPanel
-                  tenant={tenant}
-                  documentId={document.id}
-                  reviews={documentReviews}
-                />
-              )}
             </div>
+            {canReview && (
+              <DocumentReviewPanel
+                tenant={tenant}
+                documentId={document.id}
+                reviews={documentReviews}
+              />
+            )}
           </article>
         );
       })}

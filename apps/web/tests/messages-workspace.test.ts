@@ -17,7 +17,8 @@ test("conversation keeps a draft through a send failure and guards navigation", 
   assert.match(workspace, /setDraft\(""\)/);
   assert.match(workspace, /sendUncertain/);
   assert.match(workspace, /Atualize a conversa e confira o histórico/);
-  assert.match(workspace, /Não apareceu, tentar novamente/);
+  assert.match(workspace, /Confira o histórico antes de tentar novamente/);
+  assert.match(workspace, /Tentar novamente/);
   assert.match(workspace, /Mensagem confirmada no histórico/);
   assert.match(workspace, /previousSelectedKey/);
   assert.match(workspace, /crypto\.randomUUID/);

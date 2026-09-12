@@ -149,7 +149,7 @@ export function NotificationsWorkspace({
           <p>
             {unread
               ? `${unread} ${unread === 1 ? "não lido" : "não lidos"} nesta página.`
-              : "Nenhum aviso não lido nesta página."}
+              : "Sem avisos novos nesta página; os avisos lidos seguem abaixo."}
           </p>
         </div>
       </div>

@@ -131,7 +131,7 @@ export function ReportsWorkspace({ initial }: { initial: ReportsList }) {
         {initial.page > 1 && <Link href={`/clinicas/${initial.clinic.id}/relatorios?pagina=${initial.page - 1}`}>Anterior</Link>}
         {initial.hasNext && <Link href={`/clinicas/${initial.clinic.id}/relatorios?pagina=${initial.page + 1}`}>Próxima</Link>}
       </nav>
-      <p className="module-footnote">Relatórios aprovados continuam internos. Publicação e exportação pertencem ao próximo slice.</p>
+      <p className="module-footnote">A aprovação é interna. Quando houver decisão de compartilhar, a publicação exige confirmação separada e o PDF representa somente a versão publicada.</p>
     </>
   );
 }
