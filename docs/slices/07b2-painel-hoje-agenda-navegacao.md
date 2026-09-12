@@ -2,7 +2,7 @@
 
 ## Instrução para o Vercel Agent
 
-Implemente somente este slice em uma branch isolada e abra uma PR pequena para revisão. Use como base o `HEAD` remoto de `codex/slice-7b1-patient-record`; a última base funcional anterior a este documento é `9423832`.
+Implemente somente este slice em uma branch isolada e abra uma PR pequena para revisão. Use como base o `HEAD` remoto de `codex/slice-7b1-patient-record`. No momento deste handoff, a branch inclui a base funcional `9423832` e o refinamento visual da PR #13, incorporado em `b082a70`.
 
 - Branch sugerida: `vercel-agent/slice-7b2-dashboard-agenda`.
 - Base da PR: `codex/slice-7b1-patient-record`.
