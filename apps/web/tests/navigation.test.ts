@@ -72,7 +72,8 @@ test("today preserves the focused patient when opening the record and documents"
   );
   assert.match(workspace, /patientId=\{next\.patient_id\}/);
   assert.match(workspace, /recordBase=\{`\$\{base\}\/pacientes\/\$\{next\.patient_id\}`\}/);
-  assert.match(workspace, /Revise os registros disponíveis antes de iniciar\./);
+  assert.match(workspace, /Revise o contexto disponível e siga para o atendimento\./);
+  assert.match(workspace, /density="compact"/);
 });
 
 test("header displays only the RLS-backed unread notice counter", () => {

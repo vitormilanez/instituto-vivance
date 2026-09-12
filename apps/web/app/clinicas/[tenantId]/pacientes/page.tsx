@@ -52,8 +52,11 @@ export default async function Patients({
           {canInvite ? "Convidar paciente" : "Cadastrar paciente"}
         </Link>
       </div>
-      <div className="grid">
-        <section className="panel" aria-labelledby="patients-title">
+      <div className="grid patient-directory-grid">
+        <section
+          className="panel patient-directory-panel"
+          aria-labelledby="patients-title"
+        >
           <h2 id="patients-title">Cadastros da clínica</h2>
           <form action={base} className="search-form">
             <div>
@@ -131,7 +134,10 @@ export default async function Patients({
             )}
           </nav>
         </section>
-        <aside>
+        <aside
+          className="patient-directory-aside"
+          aria-label="Acesso e cadastro de pacientes"
+        >
           {canInvite && (
             <div id="convidar-paciente">
               <PatientInvitationForm

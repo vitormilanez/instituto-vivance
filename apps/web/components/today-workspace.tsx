@@ -23,14 +23,20 @@ export function PatientCareLinks({
   patientId,
   context,
   recordBase,
+  density = "full",
 }: {
   base: string;
   patientId: string;
   context: NonNullable<Awaited<ReturnType<typeof patientCareContext>>>;
   recordBase?: string;
+  density?: "compact" | "full";
 }) {
+  const publications = context.publications.slice(
+    0,
+    density === "compact" ? 1 : 5,
+  );
   return (
-    <div className="care-context-links">
+    <div className={`care-context-links care-context-links-${density}`}>
       {context.encounter ? (
         <Link href={`${base}/atendimentos/${context.encounter.id}`}>
           <strong>Última consulta</strong>
@@ -49,7 +55,7 @@ export function PatientCareLinks({
           <span>Nenhum registro finalizado disponível para este acesso.</span>
         </div>
       )}
-      {context.publications.slice(0, 5).map((p) => (
+      {publications.map((p) => (
         <Link
           className="care-context-plan"
           key={p.id}
@@ -71,7 +77,11 @@ export function PatientCareLinks({
         <span>Cadastro e registros disponíveis.</span>
         <span>Abrir ficha</span>
       </Link>
-      <Link href={recordBase ? `${recordBase}?aba=Documentos` : `${base}/documentos`}>
+      <Link
+        href={
+          recordBase ? `${recordBase}?aba=Documentos` : `${base}/documentos`
+        }
+      >
         <strong>Acompanhamento e exames</strong>
         <span>
           Check-ins e documentos privados disponíveis conforme o vínculo de cuidado.
@@ -111,7 +121,7 @@ export function TodayWorkspace({
           </p>
         </div>
         <Link className="button secondary" href={`${base}/agenda`}>
-          Abrir agenda
+          Ver agenda completa
         </Link>
       </div>
       <div className="today-workspace">
@@ -149,24 +159,10 @@ export function TodayWorkspace({
                 <span>{next.doctor_display_name}</span>
                 <span>Atendimento manual disponível</span>
               </div>
-              <div className="today-context">
-                <h3>Antes de atender</h3>
-                <p>
-                  {data.context
-                    ? "Contexto disponível para o seu vínculo de cuidado."
-                    : "Não há contexto clínico disponível para este vínculo."}
-                </p>
-                {data.context && (
-                  <PatientCareLinks
-                    base={base}
-                    patientId={next.patient_id}
-                    context={data.context}
-                    recordBase={`${base}/pacientes/${next.patient_id}`}
-                  />
-                )}
-              </div>
               <div className="today-primary-action">
-                <span>Revise os registros disponíveis antes de iniciar.</span>
+                <span>
+                  Revise o contexto disponível e siga para o atendimento.
+                </span>
                 <Link
                   className="button"
                   href={
@@ -177,6 +173,23 @@ export function TodayWorkspace({
                 >
                   {active ? "Retomar atendimento" : "Preparar atendimento"}
                 </Link>
+              </div>
+              <div className="today-context">
+                <h3>Contexto para esta consulta</h3>
+                <p>
+                  {data.context
+                    ? "Registros essenciais para orientar a próxima conversa."
+                    : "Não há contexto clínico disponível para este vínculo."}
+                </p>
+                {data.context && (
+                  <PatientCareLinks
+                    base={base}
+                    patientId={next.patient_id}
+                    context={data.context}
+                    recordBase={`${base}/pacientes/${next.patient_id}`}
+                    density="compact"
+                  />
+                )}
               </div>
             </>
           ) : (
@@ -197,14 +210,14 @@ export function TodayWorkspace({
           aria-labelledby="attention-title"
         >
           <div className="section-heading">
-            <h2 id="attention-title">Precisa de atenção</h2>
+            <h2 id="attention-title">Para revisar</h2>
             {attentionCount > 0 && (
               <span className="quiet-label">{attentionCount}</span>
             )}
           </div>
           <p>
-            Relatos para revisão e registros seus em rascunho. Pendências de
-            trabalho, não alertas de risco clínico.
+            Relatos recebidos e registros seus em rascunho. Esta é uma fila de
+            trabalho, sem classificação de risco clínico.
           </p>
           {attentionCount ? (
             <ul>
