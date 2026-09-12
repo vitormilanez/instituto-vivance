@@ -32,9 +32,11 @@ A Vivance passa a ter uma base durável e privada para acompanhar tarefas técni
 
 ## Evidências de desenvolvimento
 
-- As duas migrações estão aplicadas no Supabase de desenvolvimento. A tabela está com RLS; `authenticated` só pode ler pela política de vínculo de cuidado e não pode inserir/atualizar. As RPCs do executor são exclusivas de `service_role`.
-- A suíte local cobre criação idempotente, negação por papel, clínica e vínculo, ausência de escrita direta, reserva, token inválido, repetição, timeout, recuperação, falha definitiva e auditoria sem a chave de origem.
+- As migrações estão aplicadas no Supabase de desenvolvimento. A tabela está com RLS; `authenticated` só pode ler pela política de vínculo de cuidado e não pode inserir/atualizar. As RPCs do executor são exclusivas de `service_role`.
+- O endurecimento `20260912005616_processing_job_privacy_hardening` exige referência UUID opaca e faz cada reserva recuperar leases vencidos antes de escolher a próxima tarefa. Não havia tarefas legadas no ambiente antes da regra, e a contagem remota permanece zero.
+- A suíte local passou com 101 testes, incluindo criação idempotente, referência opaca, negação por papel, clínica e vínculo, ausência de escrita direta, reserva, token inválido, repetição, timeout, recuperação, falha definitiva e auditoria sem a referência de origem. Tipos, lint, build e `git diff --check` também passaram; a revisão independente com Terra confirmou a correção.
 - A visualização pública foi conferida em desktop e 390 px: entrada renderiza, rota privada sem sessão volta à entrada e não houve estouro horizontal. A jornada autenticada depende de uma sessão legítima já existente; nenhuma credencial foi criada ou retida para esta prova.
+- A Preview protegida `dpl_AXrcuRLcFZQS3toJEyNeWD5C1xdh` está pronta em https://instituto-vivance-r4ou6405z-vtr-consulting.vercel.app. A entrada autorizada respondeu `200` com cache privado; a rota sem sessão devolveu o redirecionamento Next para a entrada. Não houve erro nos logs observados. As CIs `34663311366` e `34663313351` passaram, sem merge ou promoção para Production.
 
 ## Limites
 
