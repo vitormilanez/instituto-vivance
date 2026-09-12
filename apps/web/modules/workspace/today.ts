@@ -2,6 +2,7 @@ import "server-only";
 import { requireClinic } from "@/modules/identity/service";
 import { listAppointments } from "@/modules/agenda/service";
 import { clinicDate } from "@/modules/agenda/validation";
+import { focusedAppointment } from "@/modules/agenda/focus";
 import { requestInstant } from "@/lib/request-time";
 
 // Read-only composition. Existing RLS remains the authority for every record.
@@ -14,11 +15,7 @@ export async function todayWorkspace(id: string) {
     requireClinic(id, ["doctor", "nurse"]),
     listAppointments(id, today, tomorrow.toISOString().slice(0, 10)),
   ]);
-  const next =
-    agenda.appointments.find((a) => a.status === "in_progress") ??
-    agenda.appointments.find(
-      (a) => a.status === "scheduled" && a.ends_at > now,
-    );
+  const next = focusedAppointment(agenda.appointments, now, today);
   const [drafts, checkIns] = await Promise.all([
     client
       .from("encounters")
@@ -57,7 +54,20 @@ export async function todayWorkspace(id: string) {
 }
 
 export async function patientCareContext(id: string, patientId: string) {
-  const { client } = await requireClinic(id, ["doctor", "nurse"]);
+  const { client, user } = await requireClinic(id, ["doctor", "nurse"]);
+  const relationship = await client
+    .from("care_relationships")
+    .select("id")
+    .eq("tenant_id", id)
+    .eq("patient_id", patientId)
+    .eq("professional_id", user.id)
+    .eq("status", "active")
+    .maybeSingle();
+  if (relationship.error)
+    throw new Error("Unable to verify patient care access");
+  // A scheduled or assigned appointment is not yet clinical authorization.
+  // Keep the focus appointment, but do not provide a fallback patient link.
+  if (!relationship.data) return null;
   const [encounter, publications] = await Promise.all([
     client
       .from("encounters")

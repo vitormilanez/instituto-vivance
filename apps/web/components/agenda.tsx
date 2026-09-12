@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import type { Appointment, AgendaOptions } from "@/modules/agenda/service";
 import { clinicDate, localToInstant } from "@/modules/agenda/validation";
+import { focusedAppointment } from "@/modules/agenda/focus";
 
 const statusPresentation: Record<string, { label: string; className: string }> =
   {
@@ -221,12 +222,7 @@ export function Agenda({
         a.starts_at > currentTime
       : clinicDate(new Date(a.starts_at)) === date,
   );
-  const nextAppointment = chosen.find(
-    (appointment) =>
-      appointment.status === "in_progress" ||
-      (appointment.status === "scheduled" &&
-        appointment.ends_at >= currentTime),
-  );
+  const nextAppointment = focusedAppointment(appointments, currentTime, date);
   const edit = editing && editing !== "new" ? editing : null;
   function selectDate(next: string) {
     startTransition(() =>

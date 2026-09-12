@@ -69,6 +69,27 @@ export async function inAppNotifications(id: string, pageInput?: string) {
   };
 }
 
+// The count intentionally reads no notice content. RLS still limits the
+// recipient, tenant, live session and current membership before it reaches the
+// header.
+export async function unreadInAppNotificationCount(id: string) {
+  const tenant = tenantId(id);
+  const { client, user } = await requireClinic(tenant, [
+    "admin",
+    "doctor",
+    "nurse",
+    "patient",
+  ]);
+  const { count, error } = await client
+    .from("in_app_notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("tenant_id", tenant)
+    .eq("recipient_user_id", user.id)
+    .is("read_at", null);
+  if (error) databaseFailure(error.code);
+  return count ?? 0;
+}
+
 export async function markInAppNotificationRead(
   id: string,
   noticeId: string,

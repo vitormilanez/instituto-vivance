@@ -52,7 +52,6 @@ export default async function Dashboard({
       title: "Acompanhamento",
       text: "Check-ins e evolução entre consultas.",
       href: `${base}/acompanhamento`,
-      pending: true,
     },
     {
       title: "Documentos",
@@ -113,7 +112,7 @@ export default async function Dashboard({
                 <strong>{action.title}</strong>
                 <span>{action.text}</span>
                 <span className="action-state">
-                  {action.pending ? "Conhecer a área" : "Abrir"}
+                  Abrir
                 </span>
               </Link>
             ) : (

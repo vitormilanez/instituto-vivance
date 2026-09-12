@@ -26,7 +26,7 @@ export function PatientCareLinks({
 }: {
   base: string;
   patientId: string;
-  context: Awaited<ReturnType<typeof patientCareContext>>;
+  context: NonNullable<Awaited<ReturnType<typeof patientCareContext>>>;
   recordBase?: string;
 }) {
   return (
@@ -151,17 +151,22 @@ export function TodayWorkspace({
               </div>
               <div className="today-context">
                 <h3>Antes de atender</h3>
-                <p>Contexto disponível para o seu vínculo de cuidado.</p>
+                <p>
+                  {data.context
+                    ? "Contexto disponível para o seu vínculo de cuidado."
+                    : "Não há contexto clínico disponível para este vínculo."}
+                </p>
                 {data.context && (
                   <PatientCareLinks
                     base={base}
                     patientId={next.patient_id}
                     context={data.context}
+                    recordBase={`${base}/pacientes/${next.patient_id}`}
                   />
                 )}
               </div>
               <div className="today-primary-action">
-                <span>Pré-consulta e IA ainda não conectadas.</span>
+                <span>Revise os registros disponíveis antes de iniciar.</span>
                 <Link
                   className="button"
                   href={

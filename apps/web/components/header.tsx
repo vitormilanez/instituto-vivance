@@ -6,19 +6,37 @@ export function Header({
   variant = "patient",
   homeHref = "/clinicas",
   notificationsHref,
+  notificationCount = 0,
   title,
   context,
 }: {
   variant?: "patient" | "staff";
   homeHref?: string;
   notificationsHref?: string;
+  notificationCount?: number;
   title?: string;
   context?: string;
 }) {
   const actions = (
     <div className="topbar-actions">
       <Link href="/clinicas">Minhas clínicas</Link>
-      {notificationsHref && <Link href={notificationsHref}>Avisos</Link>}
+      {notificationsHref && (
+        <Link
+          href={notificationsHref}
+          aria-label={
+            notificationCount > 0
+              ? `${notificationCount} avisos não lidos`
+              : undefined
+          }
+        >
+          Avisos
+          {notificationCount > 0 && (
+            <span className="notification-count" aria-hidden="true">
+              {notificationCount}
+            </span>
+          )}
+        </Link>
+      )}
       <form action={logout}>
         <button className="secondary" data-leave-clinic>
           Sair
