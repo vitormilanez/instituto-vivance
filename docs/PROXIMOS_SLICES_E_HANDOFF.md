@@ -2,6 +2,12 @@
 
 Atualizado em 11/09/2026. Referência central de continuidade: distingue entregas verificadas, próximo trabalho e limites do piloto. Não autoriza uso clínico real.
 
+## Continuidade entre computadores — 14/09/2026
+
+A conciliação do Git está registrada em [CONTINUIDADE_GIT_2026-09-14.md](CONTINUIDADE_GIT_2026-09-14.md). O branch `codex/reconcile-macs-2026-09-14` reúne a base de onboarding, os três commits locais de refinamento de interface até `c99d097` e o histórico remoto de 7B.2/autenticação. Usar esse branch para continuar a revisão; `main` permanece como base histórica do protótipo.
+
+Foi recuperada também a [avaliação do seed sintético](AVALIACAO_SEED_SINTETICO_SUPABASE.md), escrita sobre `64b9a6b` em 12/09. Ela é evidência histórica de planejamento; suas lacunas de revisão documental e relatórios devem ser confrontadas com as implementações posteriores descritas abaixo. Nenhuma carga de dados está autorizada por esta conciliação.
+
 ## Atualização de execução — 12/09/2026
 
 A prioridade abaixo de 11/09 é histórica. A base já incorpora 7B.1/7B.2 e a correção de primeiro acesso (PR #15 merged). Por solicitação do titular, **3E/4E — convite de paciente e onboarding** precede agora 7B.3. Ver [escopo, decisões e validação](ONBOARDING_MVP.md) e [plano visual e sequência](PLANO_PROXIMOS_SLICES_2026-09-12.md).

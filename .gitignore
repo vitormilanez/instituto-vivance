@@ -43,6 +43,11 @@ apps/*/.next/
 apps/*/*.tsbuildinfo
 supabase/.temp/
 
+# Per-machine settings and nested worktrees are preserved outside version control.
+/.codex/config.toml
+/.codex_tmp/
+/.impeccable/critique/
+
 # Local verification captures can contain authenticated clinic data.
 .impeccable/review/
 .impeccable/review/dashboard-desktop.png
