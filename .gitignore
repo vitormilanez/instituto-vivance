@@ -41,6 +41,7 @@ next-env.d.ts
 apps/*/node_modules
 apps/*/.next/
 apps/*/*.tsbuildinfo
+/tsconfig.tsbuildinfo
 supabase/.temp/
 
 # Per-machine settings and nested worktrees are preserved outside version control.

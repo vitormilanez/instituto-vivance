@@ -1,4 +1,6 @@
 {
+  // Configuração preservada exclusivamente para o protótipo Cloudflare legado.
+  // A aplicação atual é publicada pela Vercel a partir de apps/web.
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "instituto-vivans",
   "main": "vinext/server/app-router-entry",

@@ -1,5 +1,7 @@
 # Conferência visual — painel principal do médico
 
+> Registro histórico do protótipo Cloudflare. Para a aplicação atual, consulte `apps/web` e os documentos de continuidade em `docs/`.
+
 ## Evidências
 
 - Referência visual: `/Users/vitormilanez/.codex/generated_images/01a05a92-1816-7081-8c0e-62a2c4f52dd6/exec-82c296de-de88-4610-9d40-964e38891fcc.png`

@@ -1,6 +1,7 @@
 ---
 name: "VIVANCE"
 description: "Uma área de cuidado clara, elegante e orientada ao que o profissional precisa fazer agora."
+status: "Referência visual preservada; a implementação atual está em apps/web."
 colors:
   midnight: "#03132d"
   midnight-soft: "#082553"

@@ -1,5 +1,7 @@
 # Conferência visual — tela do paciente na área médica
 
+> Registro histórico do protótipo Cloudflare. Para a aplicação atual, consulte `apps/web` e os documentos de continuidade em `docs/`.
+
 ## Evidências
 
 - Referência visual do sistema VIVANCE: `/Users/vitormilanez/Desktop/Codes/Instituto Vivance/.impeccable/review/vivanse-dashboard-desktop-final3.png`
