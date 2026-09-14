@@ -23,6 +23,8 @@ import {
 import { StaffMessagesWorkspace } from "@/components/messages-workspace";
 import { listReports } from "@/modules/reports/service";
 import { ReportsWorkspace } from "@/components/reports-workspace";
+import { staffReturnPreparations } from "@/modules/return-preparation/service";
+import { StaffReturnPreparationWorkspace } from "@/components/return-preparation-workspace";
 export const dynamic = "force-dynamic";
 
 export default async function ModulePage({
@@ -101,6 +103,31 @@ export default async function ModulePage({
             initial={await staffCheckIns(tenantId, query.pagina)}
           />
         )}
+      </ClinicShell>
+    );
+  }
+  if (slug === "preparo") {
+    if (clinic.role !== "doctor")
+      return (
+        <ClinicShell clinic={clinic} active="preparo">
+          <h1>Preparo</h1>
+          <section className="panel">
+            <h2>Acesso clínico restrito</h2>
+            <p>Somente o médico responsável pelo retorno revisa as respostas enviadas.</p>
+          </section>
+        </ClinicShell>
+      );
+    const query = await searchParams;
+    return (
+      <ClinicShell clinic={clinic} active="preparo">
+        <div className="page-heading">
+          <div>
+            <h1>Preparo dos retornos</h1>
+            <p>Relatos enviados pelo paciente, ligados ao compromisso e preservados sem alterações.</p>
+          </div>
+          <Link className="button secondary" href={`/clinicas/${tenantId}/agenda`}>Abrir Agenda</Link>
+        </div>
+        <StaffReturnPreparationWorkspace initial={await staffReturnPreparations(tenantId, query.pagina)} />
       </ClinicShell>
     );
   }

@@ -10,6 +10,7 @@ import { ConversationError } from "@/modules/messages/service";
 import { NotificationError } from "@/modules/notifications/service";
 import { OnboardingError } from "@/modules/onboarding/service";
 import { ReportError } from "@/modules/reports/service";
+import { ReturnPreparationError } from "@/modules/return-preparation/service";
 
 export function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -21,6 +22,8 @@ export function json(body: unknown, status = 200) {
   });
 }
 export function apiError(error: unknown) {
+  if (error instanceof ReturnPreparationError)
+    return json({ error: error.message }, error.status);
   if (error instanceof ReportError)
     return json({ error: error.message }, error.status);
   if (error instanceof OnboardingError)

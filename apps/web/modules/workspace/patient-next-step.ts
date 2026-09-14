@@ -5,6 +5,7 @@ export type PatientNextStepInput = {
   hasConsultationInProgress: boolean;
   hasUpcomingConsultation: boolean;
   pendingCheckInId?: string | null;
+  pendingReturnPreparationId?: string | null;
 };
 
 export function patientNextStep(input: PatientNextStepInput) {
@@ -21,6 +22,13 @@ export function patientNextStep(input: PatientNextStepInput) {
       detail: "Seu médico deixou uma pergunta para acompanhar como você está.",
       action: "Responder agora",
       href: `${input.base}/diario#check-in-${input.pendingCheckInId}`,
+    };
+  if (input.pendingReturnPreparationId)
+    return {
+      title: "Prepare seu próximo retorno",
+      detail: "Seu médico enviou um roteiro curto. Você pode responder, salvar e continuar depois.",
+      action: "Começar preparo",
+      href: `${input.base}/hoje#preparo-${input.pendingReturnPreparationId}`,
     };
   if (input.onboardingHref)
     return {

@@ -13,6 +13,147 @@
   --attention: #8a5b09;
 }
 
+/* Return preparation extends the incumbent operational surface: one linked
+   return, a private patient draft, and an immutable review trail. */
+.preparation-workspace {
+  display: grid;
+  gap: 20px;
+}
+
+.preparation-card {
+  display: grid;
+  gap: 20px;
+}
+
+.preparation-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.preparation-heading h2,
+.preparation-heading p,
+.preparation-readonly h3,
+.preparation-readonly p {
+  margin: 0;
+}
+
+.preparation-heading p {
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.preparation-status {
+  flex: none;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: var(--blue-soft);
+  color: var(--navy-soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.preparation-status.submitted {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.preparation-status.reviewed {
+  background: var(--blue-soft);
+  color: var(--positive);
+}
+
+.preparation-status.cancelled {
+  background: var(--canvas);
+  color: var(--muted);
+}
+
+.preparation-guidance,
+.preparation-closed,
+.preparation-review-note {
+  margin: 0;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--canvas);
+  color: var(--muted);
+}
+
+.preparation-card fieldset {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.preparation-card .field > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.preparation-card textarea {
+  resize: vertical;
+}
+
+.preparation-readonly {
+  display: grid;
+  gap: 16px;
+}
+
+.preparation-readonly > div {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.preparation-readonly > div:last-of-type {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.preparation-readonly h3 {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.preparation-readonly p {
+  max-width: 72ch;
+  white-space: pre-wrap;
+}
+
+.preparation-review-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.preparation-review-grid form,
+.preparation-review-note {
+  position: sticky;
+  top: 20px;
+}
+
+@media (max-width: 760px) {
+  .preparation-heading,
+  .preparation-review-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .preparation-status {
+    justify-self: start;
+  }
+
+  .preparation-review-grid form,
+  .preparation-review-note {
+    position: static;
+  }
+}
+
 /* Consulta em quatro etapas: a troca de etapa apenas altera a visualização. */
 .encounter-journey { margin: 0 0 28px; overflow-x: auto; border-bottom: 1px solid var(--border); }
 .encounter-journey ol { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); min-width: 640px; gap: 2px; margin: 0; padding: 0; list-style: none; }

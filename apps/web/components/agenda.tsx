@@ -23,6 +23,8 @@ export function AppointmentList({
   onCancel,
   onNoShow,
   onStart,
+  onPrepare,
+  preparationStates = {},
 }: {
   appointments: Appointment[];
   currentTime: string;
@@ -31,6 +33,8 @@ export function AppointmentList({
   onCancel?: (appointment: Appointment) => void;
   onNoShow?: (appointment: Appointment) => void;
   onStart?: (appointment: Appointment) => void;
+  onPrepare?: (appointment: Appointment) => void;
+  preparationStates?: Record<string, string>;
 }) {
   if (!appointments.length)
     return (
@@ -98,8 +102,17 @@ export function AppointmentList({
             {statusPresentation[a.status]?.label ?? "Estado indisponível"}
           </span>
           {a.status === "scheduled" &&
-            (onStart || onEdit || onCancel || onNoShow) && (
+            (onStart || onEdit || onCancel || onNoShow || onPrepare) && (
               <div className="appointment-actions">
+                {onPrepare && a.kind === "return" && a.starts_at > currentTime && (
+                  <button
+                    className="secondary"
+                    disabled={Boolean(preparationStates[a.id])}
+                    onClick={() => onPrepare(a)}
+                  >
+                    {preparationStates[a.id] ? "Preparo solicitado" : "Solicitar preparo"}
+                  </button>
+                )}
                 {onStart && (
                   <button onClick={() => onStart(a)}>Abrir atendimento</button>
                 )}
@@ -136,6 +149,7 @@ export function Agenda({
   truncated,
   canStart = false,
   canManage = false,
+  preparationStates = {},
 }: {
   tenantId: string;
   date: string;
@@ -146,6 +160,7 @@ export function Agenda({
   truncated: boolean;
   canStart?: boolean;
   canManage?: boolean;
+  preparationStates?: Record<string, string>;
 }) {
   const router = useRouter();
   const [navigating, startTransition] = useTransition();
@@ -160,6 +175,8 @@ export function Agenda({
   const [returns, setReturns] = useState(false);
   const [starting, setStarting] = useState<Appointment | null>(null);
   const [accepted, setAccepted] = useState(false);
+  const [preparing, setPreparing] = useState<string | null>(null);
+  const requestKeys = useRef(new Map<string, string>());
   const startPanel = useRef<HTMLElement>(null);
   const activePanel = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -318,6 +335,31 @@ export function Agenda({
       );
     } finally {
       setPending(false);
+    }
+  }
+  async function requestPreparation(appointment: Appointment) {
+    if (preparing) return;
+    setPreparing(appointment.id);
+    setError("");
+    setNotice("");
+    const requestKey = requestKeys.current.get(appointment.id) ?? crypto.randomUUID();
+    requestKeys.current.set(appointment.id, requestKey);
+    try {
+      const response = await fetch(`/api/v1/clinics/${tenantId}/return-preparations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(20_000),
+        body: JSON.stringify({ appointment_id: appointment.id, request_key: requestKey }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Não foi possível solicitar o preparo.");
+      requestKeys.current.delete(appointment.id);
+      setNotice("Preparo solicitado. O paciente verá o roteiro em Hoje.");
+      router.refresh();
+    } catch (reason) {
+      setError(reason instanceof Error && reason.name !== "TimeoutError" ? reason.message : "A conexão demorou. Atualize a Agenda antes de tentar novamente.");
+    } finally {
+      setPreparing(null);
     }
   }
   return (
@@ -732,6 +774,8 @@ export function Agenda({
               appointments={chosen}
               nextId={nextAppointment?.id}
               currentTime={currentTime}
+              preparationStates={preparationStates}
+              onPrepare={canStart ? requestPreparation : undefined}
               onStart={
                 canStart
                   ? (a) => {

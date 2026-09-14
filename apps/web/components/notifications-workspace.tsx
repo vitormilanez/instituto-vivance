@@ -14,6 +14,21 @@ function noticeCopy(kind: string) {
       title: "Nova mensagem",
       description: "Você tem uma nova mensagem. Abra a conversa para ver.",
     };
+  if (kind === "return_preparation_requested")
+    return {
+      title: "Nova atualização solicitada",
+      description: "Há uma nova tarefa no seu cuidado. Abra Hoje para ver.",
+    };
+  if (kind === "return_preparation_submitted")
+    return {
+      title: "Nova atualização disponível",
+      description: "Há um novo item na sua fila de preparo.",
+    };
+  if (kind === "return_preparation_reviewed")
+    return {
+      title: "Atualização revisada",
+      description: "A equipe confirmou a revisão da sua atualização.",
+    };
   return {
     title: "Novas orientações",
     description: "Você tem novas orientações disponíveis.",

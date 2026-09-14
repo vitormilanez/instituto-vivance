@@ -56,7 +56,7 @@ export async function ClinicShell({
     {
       label: "Cuidado",
       links: links.filter((link) =>
-        ["home", "agenda", "patients", "atendimentos"].includes(link.key),
+        ["home", "agenda", "patients", "preparo", "atendimentos"].includes(link.key),
       ),
     },
     {
