@@ -2889,6 +2889,8 @@ async function sendSyntheticDirectMessage(
   actor: string,
   content: string,
   requestKey = randomUUID(),
+  referenceType: "document" | "care_plan" | null = null,
+  referenceId: string | null = null,
 ) {
   await switchActor(actor);
   return (
@@ -2896,15 +2898,248 @@ async function sendSyntheticDirectMessage(
       conversation_id: string;
       message_id: string;
       sent_at: string;
-    }>("select * from public.send_direct_message($1,$2,$3,$4,$5)", [
+    }>("select * from public.send_direct_message($1,$2,$3,$4,$5,$6,$7)", [
       a,
       pa,
       users.doctor.id,
       content,
       requestKey,
+      referenceType,
+      referenceId,
     ])
   ).rows[0];
 }
+
+test("direct messages accept only currently shared documents or the published care plan in both directions", async () => {
+  await asUser("doctor", async () => {
+    await directMessageFixture();
+    const shared = await reservePrivateDocument(
+      "shared-context.pdf",
+      "exam",
+      "shared",
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [shared.storage_path],
+    );
+    await completePrivateDocument(shared.document_id);
+    const internal = await reservePrivateDocument(
+      "private-context.pdf",
+      "clinical_document",
+      "internal",
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [internal.storage_path],
+    );
+    await completePrivateDocument(internal.document_id);
+
+    const plan = (
+      await db.query<{ id: string }>(
+        "insert into public.care_plans(tenant_id,patient_id) values($1,$2) returning id",
+        [a, pa],
+      )
+    ).rows[0].id;
+    const version = await approveFixture(plan, 1);
+    const publication = await publishFixture(plan, version);
+
+    const documentMessage = await sendSyntheticDirectMessage(
+      "doctor",
+      "Documento compartilhado",
+      randomUUID(),
+      "document",
+      shared.document_id,
+    );
+    const planMessage = await sendSyntheticDirectMessage(
+      "patient",
+      "Plano publicado",
+      randomUUID(),
+      "care_plan",
+      publication,
+    );
+    await switchActor("doctor");
+    assert.deepEqual(
+      (
+        await db.query<{ reference_type: string; reference_id: string }>(
+          "select reference_type,reference_id from public.care_messages where id in ($1,$2) order by content",
+          [documentMessage.message_id, planMessage.message_id],
+        )
+      ).rows,
+      [
+        { reference_type: "document", reference_id: shared.document_id },
+        { reference_type: "care_plan", reference_id: publication },
+      ],
+    );
+    await denied(
+      "select * from public.send_direct_message($1,$2,$3,'Private document',$4,'document',$5)",
+      [a, pa, users.doctor.id, randomUUID(), internal.document_id],
+    );
+    await denied(
+      "select * from public.send_direct_message($1,$2,$3,'Cross tenant',$4,'document',$5)",
+      [b, pb, users.doctor.id, randomUUID(), shared.document_id],
+    );
+    await db.query(
+      "update public.care_plans set status='draft',expected_version=$2 where id=$1",
+      [plan, version],
+    );
+    const nextVersion = await approveFixture(plan, version + 1, "New guidance");
+    const replacement = await publishFixture(plan, nextVersion, publication);
+    await denied(
+      "select * from public.send_direct_message($1,$2,$3,'Superseded plan',$4,'care_plan',$5)",
+      [a, pa, users.doctor.id, randomUUID(), publication],
+    );
+    await db.query(
+      "select public.withdraw_care_plan($1,$2,$3,'No longer current',true)",
+      [a, plan, replacement],
+    );
+    await denied(
+      "select * from public.send_direct_message($1,$2,$3,'Withdrawn plan',$4,'care_plan',$5)",
+      [a, pa, users.doctor.id, randomUUID(), replacement],
+    );
+    await db.exec("reset role");
+    await db.query(
+      "update public.patient_documents set visibility='internal' where id=$1",
+      [shared.document_id],
+    );
+    await switchActor("patient");
+    assert.equal(
+      (
+        await db.query(
+          "select title from public.care_plan_publications where id=$1 and status='published'",
+          [publication],
+        )
+      ).rows.length,
+      0,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select original_filename from public.patient_documents where id=$1 and visibility='shared'",
+          [shared.document_id],
+        )
+      ).rows.length,
+      0,
+    );
+    assert.equal(
+      (
+        await db.query("select id from public.care_messages where id=$1", [
+          planMessage.message_id,
+        ])
+      ).rows.length,
+      1,
+    );
+    assert.equal(
+      (
+        await db.query("select id from public.care_messages where id=$1", [
+          documentMessage.message_id,
+        ])
+      ).rows.length,
+      1,
+    );
+  });
+});
+
+test("shared context authorization follows role, care link and live session revocation", async () => {
+  await asUser("doctor", async () => {
+    await directMessageFixture();
+    const document = await reservePrivateDocument(
+      "access-context.pdf",
+      "exam",
+      "shared",
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [document.storage_path],
+    );
+    await completePrivateDocument(document.document_id);
+    for (const role of ["admin", "nurse", "other", "outsider", "suspended"]) {
+      await switchActor(role);
+      await denied(
+        "select * from public.send_direct_message($1,$2,$3,'Denied reference',$4,'document',$5)",
+        [a, pa, users.doctor.id, randomUUID(), document.document_id],
+      );
+    }
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=1 where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+      [a, pa, users.doctor.id],
+    );
+    for (const actor of ["doctor", "patient"]) {
+      await switchActor(actor);
+      await denied(
+        "select * from public.send_direct_message($1,$2,$3,'Revoked link',$4,'document',$5)",
+        [a, pa, users.doctor.id, randomUUID(), document.document_id],
+      );
+    }
+  });
+
+  await asUser("doctor", async () => {
+    await directMessageFixture();
+    const document = await reservePrivateDocument(
+      "session-context.pdf",
+      "exam",
+      "shared",
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [document.storage_path],
+    );
+    await completePrivateDocument(document.document_id);
+    await db.exec("reset role");
+    await db.query("delete from auth.sessions where id=$1", [users.doctor.session]);
+    await switchActor("doctor");
+    await denied(
+      "select * from public.send_direct_message($1,$2,$3,'Revoked session',$4,'document',$5)",
+      [a, pa, users.doctor.id, randomUUID(), document.document_id],
+    );
+  });
+});
+
+test("message reference is immutable and participates in retry idempotency", async () => {
+  await asUser("doctor", async () => {
+    await directMessageFixture();
+    const document = await reservePrivateDocument(
+      "idempotent-context.pdf",
+      "exam",
+      "shared",
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [document.storage_path],
+    );
+    await completePrivateDocument(document.document_id);
+    const requestKey = randomUUID();
+    const first = await sendSyntheticDirectMessage(
+      "doctor",
+      "Retry with reference",
+      requestKey,
+      "document",
+      document.document_id,
+    );
+    assert.deepEqual(
+      await sendSyntheticDirectMessage(
+        "doctor",
+        "Retry with reference",
+        requestKey,
+        "document",
+        document.document_id,
+      ),
+      first,
+    );
+    await denied(
+      "select * from public.send_direct_message($1,$2,$3,'Retry with reference',$4,null,null)",
+      [a, pa, users.doctor.id, requestKey],
+    );
+    await db.exec("reset role");
+    await assert.rejects(
+      db.query(
+        "update public.care_messages set reference_type=null,reference_id=null where id=$1",
+        [first.message_id],
+      ),
+      /immutable/,
+    );
+  });
+});
 
 test("direct messages are append-only, patient-doctor only, and hide content from operations", async () => {
   await asUser("doctor", async () => {

@@ -576,6 +576,8 @@ export type Database = {
           doctor_id: string;
           id: string;
           patient_id: string;
+          reference_id: string | null;
+          reference_type: string | null;
           sender_id: string;
           sent_at: string;
           tenant_id: string;
@@ -1290,6 +1292,8 @@ export type Database = {
           target_doctor: string;
           message_text: string;
           request_key: string;
+          message_reference_type?: string | null;
+          message_reference_id?: string | null;
         };
         Returns: {
           conversation_id: string;

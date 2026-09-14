@@ -14,6 +14,25 @@ type ConversationRow =
   Database["public"]["Tables"]["care_conversations"]["Row"];
 type MessageRow = Database["public"]["Tables"]["care_messages"]["Row"];
 
+export type MessageReferenceType = "document" | "care_plan";
+export type MessageReferenceOption = {
+  type: MessageReferenceType;
+  id: string;
+  label: string;
+  group: "Documentos compartilhados" | "Plano de cuidado publicado";
+};
+export type MessageReference =
+  | { available: false; label: "Conteúdo compartilhado indisponível" }
+  | {
+      available: true;
+      type: MessageReferenceType;
+      label: string;
+      href: string;
+    };
+export type DirectMessage = Omit<MessageRow, "reference_type" | "reference_id"> & {
+  reference: MessageReference | null;
+};
+
 export type MessageRecipient = {
   id: string;
   displayName: string;
@@ -67,10 +86,11 @@ async function history(
   tenant: string,
   selected: SelectedConversation | null,
   page: number,
+  patientView: boolean,
 ) {
   if (!selected)
     return {
-      messages: [] as MessageRow[],
+      messages: [] as DirectMessage[],
       hasNext: false,
       lastReadAt: null as string | null,
     };
@@ -78,7 +98,7 @@ async function history(
     client
       .from("care_messages")
       .select(
-        "id,tenant_id,conversation_id,patient_id,doctor_id,sender_id,content,sent_at",
+        "id,tenant_id,conversation_id,patient_id,doctor_id,sender_id,content,sent_at,client_request_id,reference_type,reference_id",
       )
       .eq("tenant_id", tenant)
       .eq("patient_id", selected.patientId)
@@ -96,11 +116,126 @@ async function history(
   ]);
   if (result.error || read.error)
     databaseFailure(result.error?.code ?? read.error?.code);
+  const rows = (result.data ?? []).slice(0, 20).reverse() as MessageRow[];
+  const documentIds = rows.flatMap((message) =>
+    message.reference_type === "document" && message.reference_id
+      ? [message.reference_id]
+      : [],
+  );
+  const publicationIds = rows.flatMap((message) =>
+    message.reference_type === "care_plan" && message.reference_id
+      ? [message.reference_id]
+      : [],
+  );
+  const [documents, publications] = await Promise.all([
+    documentIds.length
+      ? client
+          .from("patient_documents")
+          .select("id,original_filename")
+          .eq("tenant_id", tenant)
+          .eq("patient_id", selected.patientId)
+          .eq("status", "available")
+          .eq("visibility", "shared")
+          .in("id", documentIds)
+      : Promise.resolve({ data: [], error: null }),
+    publicationIds.length
+      ? client
+          .from("care_plan_publications")
+          .select("id,plan_id,title")
+          .eq("tenant_id", tenant)
+          .eq("patient_id", selected.patientId)
+          .eq("status", "published")
+          .in("id", publicationIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (documents.error || publications.error)
+    databaseFailure(documents.error?.code ?? publications.error?.code);
+  const documentById = new Map(
+    (documents.data ?? []).map((document) => [document.id, document]),
+  );
+  const publicationById = new Map(
+    (publications.data ?? []).map((publication) => [publication.id, publication]),
+  );
+  const messages: DirectMessage[] = rows.map((message) => {
+    const { reference_type, reference_id, ...visible } = message;
+    if (!reference_type || !reference_id) return { ...visible, reference: null };
+    if (reference_type === "document") {
+      const document = documentById.get(reference_id);
+      return {
+        ...visible,
+        reference: document
+          ? {
+              available: true,
+              type: "document",
+              label: document.original_filename,
+              href: `/api/v1/clinics/${tenant}/documents/${document.id}/download`,
+            }
+          : { available: false, label: "Conteúdo compartilhado indisponível" },
+      };
+    }
+    const publication = publicationById.get(reference_id);
+    return {
+      ...visible,
+      reference: publication
+        ? {
+            available: true,
+            type: "care_plan",
+            label: publication.title,
+            href: patientView
+              ? `/clinicas/${tenant}/meu-cuidado/plano#plano-${publication.id}`
+              : `/clinicas/${tenant}/planos/${publication.plan_id}`,
+          }
+        : { available: false, label: "Conteúdo compartilhado indisponível" },
+    };
+  });
   return {
-    messages: (result.data ?? []).slice(0, 20).reverse(),
+    messages,
     hasNext: (result.data?.length ?? 0) > 20,
     lastReadAt: read.data?.last_read_sent_at ?? null,
   };
+}
+
+async function referenceOptions(
+  client: Awaited<ReturnType<typeof requireClinic>>["client"],
+  tenant: string,
+  patientId: string | null,
+): Promise<MessageReferenceOption[]> {
+  if (!patientId) return [];
+  const [documents, publications] = await Promise.all([
+    client
+      .from("patient_documents")
+      .select("id,original_filename")
+      .eq("tenant_id", tenant)
+      .eq("patient_id", patientId)
+      .eq("status", "available")
+      .eq("visibility", "shared")
+      .order("created_at", { ascending: false })
+      .limit(50),
+    client
+      .from("care_plan_publications")
+      .select("id,title")
+      .eq("tenant_id", tenant)
+      .eq("patient_id", patientId)
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .limit(20),
+  ]);
+  if (documents.error || publications.error)
+    databaseFailure(documents.error?.code ?? publications.error?.code);
+  return [
+    ...(publications.data ?? []).map((publication) => ({
+      type: "care_plan" as const,
+      id: publication.id,
+      label: publication.title,
+      group: "Plano de cuidado publicado" as const,
+    })),
+    ...(documents.data ?? []).map((document) => ({
+      type: "document" as const,
+      id: document.id,
+      label: document.original_filename,
+      group: "Documentos compartilhados" as const,
+    })),
+  ];
 }
 
 export async function staffMessages(
@@ -171,13 +306,18 @@ export async function staffMessages(
           "Paciente",
       }
     : null;
+  const [conversationHistory, references] = await Promise.all([
+    history(client, tenant, selected, page, false),
+    referenceOptions(client, tenant, selected?.patientId ?? null),
+  ]);
   return {
     clinic,
     userId: user.id,
     recipients,
     selected,
     page,
-    ...(await history(client, tenant, selected, page)),
+    references,
+    ...conversationHistory,
   };
 }
 
@@ -202,10 +342,11 @@ export async function patientMessages(
       userId: user.id,
       recipients: [] as MessageRecipient[],
       selected: null as SelectedConversation | null,
-      messages: [] as MessageRow[],
+      messages: [] as DirectMessage[],
       page,
       hasNext: false,
       lastReadAt: null as string | null,
+      references: [] as MessageReferenceOption[],
     };
 
   const [doctors, conversations, reads] = await Promise.all([
@@ -267,13 +408,18 @@ export async function patientMessages(
           "Médico vinculado",
       }
     : null;
+  const [conversationHistory, references] = await Promise.all([
+    history(client, tenant, selected, page, true),
+    referenceOptions(client, tenant, selected?.patientId ?? null),
+  ]);
   return {
     clinic,
     userId: user.id,
     recipients,
     selected,
     page,
-    ...(await history(client, tenant, selected, page)),
+    references,
+    ...conversationHistory,
   };
 }
 
@@ -292,6 +438,8 @@ export async function sendDirectMessage(
     target_doctor: values.doctorId,
     message_text: values.content,
     request_key: requestKey,
+    message_reference_type: values.referenceType,
+    message_reference_id: values.referenceId,
   });
   if (result.error) databaseFailure(result.error.code);
   const sent = result.data?.[0];

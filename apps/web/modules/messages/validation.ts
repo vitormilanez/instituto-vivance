@@ -23,16 +23,35 @@ export function messageInput(value: unknown) {
   const body = record(value);
   if (
     Object.keys(body).some(
-      (key) => !["patient_id", "doctor_id", "content"].includes(key),
+      (key) =>
+        ![
+          "patient_id",
+          "doctor_id",
+          "content",
+          "reference_type",
+          "reference_id",
+        ].includes(key),
     ) ||
     typeof body.patient_id !== "string" ||
-    typeof body.doctor_id !== "string"
+    typeof body.doctor_id !== "string" ||
+    !(
+      (body.reference_type === undefined && body.reference_id === undefined) ||
+      (body.reference_type === null && body.reference_id === null) ||
+      (["document", "care_plan"].includes(String(body.reference_type)) &&
+        typeof body.reference_id === "string")
+    )
   )
     throw new InputError("Confira a conversa antes de enviar.");
   return {
     patientId: tenantId(body.patient_id),
     doctorId: tenantId(body.doctor_id),
     content: messageText(body.content),
+    referenceType:
+      body.reference_type === "document" || body.reference_type === "care_plan"
+        ? body.reference_type
+        : null,
+    referenceId:
+      typeof body.reference_id === "string" ? tenantId(body.reference_id) : null,
   };
 }
 
