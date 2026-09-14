@@ -8,6 +8,7 @@ const ACCOUNT = "vivance-asana-oauth";
 const CLIENT_SECRET_SERVICE = "com.vivance.asana.client-secret";
 const REFRESH_TOKEN_SERVICE = "com.vivance.asana.refresh-token";
 const PENDING_AUTH_SERVICE = "com.vivance.asana.pending-auth";
+const PERSONAL_ACCESS_TOKEN_SERVICE = "com.vivance.asana.personal-access-token";
 const CLIENT_ID = "1218186697086336";
 const PROJECT_GID = "1218186424803872";
 const REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob";
@@ -356,10 +357,13 @@ async function complete() {
 }
 
 async function accessToken() {
+  const personalAccessToken = await keychainGet(PERSONAL_ACCESS_TOKEN_SERVICE);
+  if (personalAccessToken) return personalAccessToken;
+
   const refreshToken = await keychainGet(REFRESH_TOKEN_SERVICE);
   const clientSecret = await keychainGet(CLIENT_SECRET_SERVICE);
   if (!refreshToken || !clientSecret) {
-    throw new Error("A integração ainda não foi autorizada. Execute npm run asana:authorize e depois npm run asana:complete.");
+    throw new Error("A integração ainda não foi autorizada. Guarde um PAT no Chaves do macOS ou execute npm run asana:authorize e depois npm run asana:complete.");
   }
 
   const response = await fetch("https://app.asana.com/-/oauth_token", {
@@ -444,12 +448,17 @@ async function seedBacklog() {
 }
 
 async function status() {
-  const [clientSecret, refreshToken] = await Promise.all([
+  const [personalAccessToken, clientSecret, refreshToken] = await Promise.all([
+    keychainGet(PERSONAL_ACCESS_TOKEN_SERVICE),
     keychainGet(CLIENT_SECRET_SERVICE),
     keychainGet(REFRESH_TOKEN_SERVICE),
   ]);
+  if (personalAccessToken) {
+    console.log("Integração conectada por token pessoal guardado no Chaves do macOS.");
+    return;
+  }
   if (!clientSecret) {
-    throw new Error("O segredo do cliente não está guardado no Chaves do macOS.");
+    throw new Error("Nenhum token pessoal ou segredo OAuth está guardado no Chaves do macOS.");
   }
   console.log(refreshToken ? "Integração conectada e pronta para renovar o acesso." : "Aplicativo configurado; falta concluir a autorização OAuth.");
 }
