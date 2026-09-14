@@ -4,9 +4,9 @@ Auditoria e conciliação realizadas em 14/09/2026, por solicitação do titular
 
 ## Base de continuação
 
-Usar o branch **`codex/reconcile-macs-2026-09-14`**. A cópia local de trabalho está em `~/Developer/instituto-vivance`, fora da pasta Desktop sincronizada pelo iCloud. A aplicação conectada continua em `apps/web`.
+Usar **`main`**, atualmente em `853eaea`, como fonte de verdade. O branch **`codex/reconcile-macs-2026-09-14`** permanece sincronizado como trilha de preservação. A cópia local de trabalho está em `~/Developer/instituto-vivance`, fora da pasta Desktop sincronizada pelo iCloud. A aplicação conectada continua em `apps/web`.
 
-Este branch reúne os históricos remotos e a evolução local recuperada; não representa merge em `main` nem publicação na Vercel.
+O conteúdo recuperado foi consolidado em `8b1c71a`, incorporado à `main` e complementado por `853eaea`, que reativou os deployments Git da Vercel.
 
 | Origem inspecionada | Commit original | Resultado |
 | --- | --- | --- |
@@ -58,9 +58,11 @@ Estes testes não substituem a homologação visual/autenticada nem o Gate P já
 
 ## GitHub, revisão e Vercel
 
-As PRs existentes #11 (fundação) e #16 (onboarding) permanecem como referências de revisão. Esta organização preserva seus branches e não altera seu estado de aprovação.
+As PRs #11 (fundação), #16 (onboarding) e #17 (conciliação) permanecem como referências de revisão. A `main` foi avançada para `853eaea` sem reescrever os commits existentes.
 
-O arquivo `vercel.json` recuperado mantém `git.deploymentEnabled: false`. A consulta ao projeto Vercel `instituto-vivance`, na equipe `vtr-consulting`, retornou 403 nesta sessão; portanto o commit atualmente publicado não foi confirmado. Publicação exige uma verificação separada com acesso à equipe correta.
+O projeto correto foi confirmado na equipe `VTR CONSULTING Pro` pela conta de trabalho. Os dois `vercel.json` agora mantêm `git.deploymentEnabled: true`, e o Ignored Build Step do projeto foi limitado a **Only build production**. O deployment `dpl_BKBQMZfYTwdJCvMz6XcuL3QopAux`, gerado de `main`/`853eaea`, ficou READY e foi promovido em 14/09/2026. O domínio oficial `https://institutovivance.app` e o alias técnico `https://instituto-vivance.vercel.app` responderam HTTP 200 após a promoção.
+
+Esta publicação é técnica. O Gate P, a revisão humana de privacidade/operação, MFA, restauração/rollback e a reconciliação explícita do ambiente de dados de Production continuam pendentes antes de qualquer dado de saúde real.
 
 ## Como retomar no outro Mac
 
@@ -70,7 +72,7 @@ O arquivo `vercel.json` recuperado mantém `git.deploymentEnabled: false`. A con
    ```sh
    git clone https://github.com/vitormilanez/instituto-vivance.git "$HOME/Developer/instituto-vivance"
    cd "$HOME/Developer/instituto-vivance"
-   git switch --track origin/codex/reconcile-macs-2026-09-14
+   git switch main
    ```
 
 3. Usar commits e push para transferir código entre computadores. Manter segredos e configurações de ambiente fora do Git.

@@ -1,12 +1,16 @@
 # Vivance — próximos slices e passagem de contexto
 
-Atualizado em 11/09/2026. Referência central de continuidade: distingue entregas verificadas, próximo trabalho e limites do piloto. Não autoriza uso clínico real.
+Atualizado em 14/09/2026. Referência central de continuidade: distingue entregas verificadas, próximo trabalho e limites do piloto. Não autoriza uso clínico real.
 
 ## Continuidade entre computadores — 14/09/2026
 
-A conciliação do Git está registrada em [CONTINUIDADE_GIT_2026-09-14.md](CONTINUIDADE_GIT_2026-09-14.md). O branch `codex/reconcile-macs-2026-09-14` reúne a base de onboarding, os três commits locais de refinamento de interface até `c99d097` e o histórico remoto de 7B.2/autenticação. Usar esse branch para continuar a revisão; `main` permanece como base histórica do protótipo.
+A conciliação do Git está registrada em [CONTINUIDADE_GIT_2026-09-14.md](CONTINUIDADE_GIT_2026-09-14.md). A `main`, em `853eaea`, é a fonte de verdade e reúne a base de onboarding, os três commits locais de refinamento de interface até `c99d097`, o histórico remoto de 7B.2/autenticação e a configuração atual de publicação. O branch `codex/reconcile-macs-2026-09-14` permanece sincronizado como trilha de preservação.
 
 Foi recuperada também a [avaliação do seed sintético](AVALIACAO_SEED_SINTETICO_SUPABASE.md), escrita sobre `64b9a6b` em 12/09. Ela é evidência histórica de planejamento; suas lacunas de revisão documental e relatórios devem ser confrontadas com as implementações posteriores descritas abaixo. Nenhuma carga de dados está autorizada por esta conciliação.
+
+### Publicação técnica — 14/09/2026
+
+O deployment Production `dpl_BKBQMZfYTwdJCvMz6XcuL3QopAux`, gerado de `main`/`853eaea`, ficou READY e foi promovido para `https://institutovivance.app`; o alias técnico `https://instituto-vivance.vercel.app` aponta para o mesmo deployment. A Vercel foi configurada para construir somente Production. Os dois endereços responderam HTTP 200 após a promoção. Isso não substitui Gate P nem autoriza dados de saúde reais.
 
 ## Atualização de execução — 12/09/2026
 
@@ -35,9 +39,9 @@ Estado: código integrado, migrations aplicadas no Supabase de desenvolvimento e
 
 Por decisão do titular, **5E/5F (áudio/transcrição) e 6A–6D (IA) ficam adiados**. A base 5D é preservada, sem ativar executor ou fornecedor. Antecipar o trabalho de usabilidade do 7B e os relatórios manuais do 7A, reaproveitando os módulos e o banco existentes.
 
-**Próximo slice recomendado: 7B.1 — ficha do paciente conectada**, com Visão geral → Linha do tempo → Documentos → Evolução mantendo o mesmo paciente. A evolução já existe no módulo Acompanhamento, mas ainda não está conectada à aba correspondente da ficha. O [relatório de cobertura e nova sequência](#8-relatório-de-cobertura--fluxos-layout-e-banco) detalha referências, evidências, lacunas e aceites. As novas subdivisões são propostas de execução, não entregas concluídas.
+O lote 7B.1–7B.5, 3E/4E, 5A.1/5A.2, 5B.1 e 7A.1/7A.2 está implementado e validado. O próximo passo é o **Gate P operacional** ou uma extensão posterior escolhida explicitamente, mantendo áudio/transcrição e IA adiados.
 
-Esta atualização é documental: não implementa telas, não altera banco, não publica Preview/Production e não modifica o Asana. Gate P permanece obrigatório antes de dados de saúde reais, mas não impede evolução de layout/fluxos com dados sintéticos.
+O Asana foi reconciliado em 14/09/2026: 7B.1 e o roadmap 7A–7B foram fechados com evidências, e a publicação/conciliação ganhou registro próprio em Done. Gate P permanece obrigatório antes de dados de saúde reais.
 
 ### Modelo de execução vigente — lotes locais (11/09/2026)
 
