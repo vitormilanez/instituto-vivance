@@ -18,7 +18,7 @@ export function OnboardingSummary({
 }) {
   const measures = record.measurements;
   return (
-    <section className="panel" aria-labelledby="onboarding-summary-title">
+    <section id="onboarding-summary" className="panel" aria-labelledby="onboarding-summary-title">
       <h2 id="onboarding-summary-title">Antes da primeira consulta</h2>
       <p>
         Respostas originais compartilhadas pelo paciente

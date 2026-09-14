@@ -22,7 +22,13 @@ export default async function Patient({
   searchParams,
 }: {
   params: Promise<{ tenantId: string; patientId: string }>;
-  searchParams: Promise<{ aba?: string | string[]; pagina?: string }>;
+  searchParams: Promise<{
+    aba?: string | string[];
+    pagina?: string;
+    inicio?: string;
+    fim?: string;
+    cursor?: string;
+  }>;
 }) {
   const { tenantId, patientId } = await params;
   const query = await searchParams;
@@ -47,9 +53,13 @@ export default async function Patient({
       : null;
   const longitudinal =
     clinicalArea && ["Linha do tempo", "Evolução"].includes(active)
-      ? await staffLongitudinal(tenantId, patientId).catch((error) => {
+      ? await staffLongitudinal(tenantId, patientId, {
+          from: query.inicio,
+          to: query.fim,
+          cursor: query.cursor,
+        }).catch((error) => {
           if (error instanceof CheckInError || error instanceof InputError)
-            notFound();
+            redirect(`${recordBase}?aba=Evolu%C3%A7%C3%A3o`);
           throw error;
         })
       : null;

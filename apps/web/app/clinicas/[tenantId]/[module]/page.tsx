@@ -36,6 +36,9 @@ export default async function ModulePage({
     aba?: string | string[];
     pagina?: string;
     paciente?: string;
+    inicio?: string;
+    fim?: string;
+    cursor?: string;
   }>;
 }) {
   const { tenantId, module: slug } = await params;
@@ -65,7 +68,7 @@ export default async function ModulePage({
     const base = `/clinicas/${tenantId}/acompanhamento`;
     const longitudinal =
       active === "evolucao"
-        ? await staffLongitudinal(tenantId, query.paciente).catch((error) => {
+        ? await staffLongitudinal(tenantId, query.paciente, { from: query.inicio, to: query.fim, cursor: query.cursor }).catch((error) => {
             if (error instanceof CheckInError || error instanceof InputError)
               redirect(`${base}?aba=evolucao`);
             throw error;

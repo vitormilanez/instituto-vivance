@@ -3,7 +3,7 @@ import type {
   PatientLongitudinal,
   StaffLongitudinal,
 } from "@/modules/longitudinal/service";
-import type { MeasurementSeries } from "@/modules/longitudinal/project";
+import { checkInSourceHref, measurementPageHref, onboardingSourceHref, type MeasurementPoint, type MeasurementSeries } from "@/modules/longitudinal/project";
 
 const date = (value: string) =>
   new Date(`${value.slice(0, 10)}T12:00:00Z`).toLocaleDateString("pt-BR", {
@@ -16,7 +16,28 @@ const instant = (value: string) =>
     timeStyle: "short",
   });
 
-function Measures({ measures }: { measures: MeasurementSeries[] }) {
+function measureHref(base: string, point: MeasurementPoint, patient: boolean, onboardingHref: string) {
+  if (point.source === "check_in")
+    return checkInSourceHref(base, patient, point.sourceId);
+  return onboardingHref;
+}
+
+function Measures({
+  measures, points, nextCursor, period, base, patient, selectedPatient, truncated, onboardingHref,
+}: {
+  measures: MeasurementSeries[];
+  points: MeasurementPoint[];
+  nextCursor: string | null;
+  period: { from: string | null; to: string | null };
+  base: string;
+  patient: boolean;
+  selectedPatient?: string;
+  truncated: boolean;
+  onboardingHref: string;
+}) {
+  const nextHref = nextCursor
+    ? measurementPageHref({ base, patient, patientId: selectedPatient, period, cursor: nextCursor })
+    : null;
   return (
     <section className="longitudinal-section" aria-labelledby="measures-title">
       <div className="section-heading">
@@ -25,26 +46,43 @@ function Measures({ measures }: { measures: MeasurementSeries[] }) {
           <p>Valores registrados pelo paciente, sem metas ou interpretação.</p>
         </div>
       </div>
+      <form className="longitudinal-period" method="get">
+        {selectedPatient && <input type="hidden" name="paciente" value={selectedPatient} />}
+        {!patient && (
+          <input
+            type="hidden"
+            name="aba"
+            value={base.includes("/acompanhamento") ? "evolucao" : "Evolução"}
+          />
+        )}
+        <label>De<input type="date" name="inicio" defaultValue={period.from ?? ""} /></label>
+        <label>Até<input type="date" name="fim" defaultValue={period.to ?? ""} /></label>
+        <button className="secondary">Aplicar período</button>
+      </form>
       {measures.length ? (
-        <div className="measurement-grid">
-          {measures.map((measure) => (
-            <article className="measurement-card" key={measure.key}>
-              <span>{measure.label}</span>
-              <strong>
-                {measure.latestValue} {measure.unit}
-              </strong>
-              <p>
-                {measure.count} {measure.count === 1 ? "registro" : "registros"}
-                {" · "}
-                {date(measure.firstOn)}
-                {measure.firstOn !== measure.lastOn
-                  ? ` a ${date(measure.lastOn)}`
-                  : ""}
-              </p>
-              <small>Origem: relato do paciente</small>
-            </article>
-          ))}
-        </div>
+        <>
+          <div className="measurement-grid">
+            {measures.map((measure) => (
+              <article className="measurement-card" key={measure.key}>
+                <span>{measure.label}</span>
+                <strong>{measure.latestValue} {measure.unit}</strong>
+                <p>{measure.count} {measure.count === 1 ? "registro" : "registros"} · {date(measure.firstOn)}{measure.firstOn !== measure.lastOn ? ` a ${date(measure.lastOn)}` : ""}</p>
+                <small>Série separada em {measure.unit}</small>
+              </article>
+            ))}
+          </div>
+          <div className="measurement-charts" aria-label="Gráficos de medidas registradas">
+            {measures.map((measure) => {
+              const values = measure.entries.map((entry) => entry.value);
+              const min = Math.min(...values), max = Math.max(...values), range = max - min || 1;
+              const path = measure.entries.map((entry, index) => `${16 + (index * 268) / Math.max(measure.entries.length - 1, 1)},${96 - ((entry.value - min) / range) * 72}`).join(" ");
+              return <figure className="measurement-chart" key={measure.key}><figcaption>{measure.label} · {measure.unit}</figcaption><svg viewBox="0 0 300 112" role="img" aria-label={`${measure.label} em ${measure.unit}`}><line x1="16" y1="96" x2="284" y2="96" /><polyline points={path} /><text x="16" y="109">{date(measure.firstOn)}</text><text x="220" y="109">{date(measure.lastOn)}</text>{measure.entries.map((entry, index) => <circle key={entry.id} cx={16 + (index * 268) / Math.max(measure.entries.length - 1, 1)} cy={96 - ((entry.value - min) / range) * 72} r="4"><title>{`${entry.value} ${measure.unit} · ${date(entry.reportedOn)} · ${entry.sourceLabel}`}</title></circle>)}</svg></figure>;
+            })}
+          </div>
+          <div className="measurement-table-wrap"><table className="measurement-table"><caption>Registros no período selecionado</caption><thead><tr><th>Data</th><th>Medida</th><th>Valor</th><th>Fonte</th></tr></thead><tbody>{points.map((point) => { const series = measures.find((item) => item.entries.some((entry) => entry.id === point.id)); return <tr key={point.id}><td>{date(point.reportedOn)}</td><td>{series?.label}</td><td>{point.value} {series?.unit}</td><td><Link href={measureHref(base, point, patient, onboardingHref)}>{point.sourceLabel}</Link></td></tr>; })}</tbody></table></div>
+          {nextHref && <nav className="agenda-actions" aria-label="Mais medidas"><Link href={nextHref}>Ver mais registros</Link></nav>}
+          {truncated && <p className="notice">Foram carregadas até 500 medidas para este período. Refine o período para consultar registros anteriores.</p>}
+        </>
       ) : (
         <div className="empty longitudinal-empty">
           <h3>Nenhuma medida registrada</h3>
@@ -126,7 +164,7 @@ export function StaffLongitudinalWorkspace({
           <button className="secondary">Abrir evolução</button>
         </form>
       )}
-      {showMeasures && <Measures measures={initial.measures} />}
+      {showMeasures && <Measures measures={initial.measures} points={initial.measurementPoints} nextCursor={initial.measurementNextCursor} period={initial.period} base={base} patient={false} selectedPatient={initial.selectedPatient.id} truncated={initial.measurementsTruncated} onboardingHref={onboardingSourceHref(base, false, initial.selectedPatient.id)} />}
       {showTimeline && (
         <section
           className="longitudinal-section"
@@ -211,7 +249,7 @@ export function PatientLongitudinalWorkspace({
   ].sort((a, b) => b.at.localeCompare(a.at));
   return (
     <div className="longitudinal-workspace patient-longitudinal">
-      <Measures measures={initial.measures} />
+      <Measures measures={initial.measures} points={initial.measurementPoints} nextCursor={initial.measurementNextCursor} period={initial.period} base={base} patient truncated={initial.measurementsTruncated} onboardingHref={onboardingSourceHref(base, true)} />
       <section
         className="longitudinal-section"
         aria-labelledby="patient-timeline-title"
