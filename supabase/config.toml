@@ -1,0 +1,5 @@
+[functions.claim-patient-invitation]
+verify_jwt = false
+
+[functions.invite-patient]
+verify_jwt = true
