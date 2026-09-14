@@ -6,6 +6,10 @@ const workspace = readFileSync(
   new URL("../components/messages-workspace.tsx", import.meta.url),
   "utf8",
 );
+const service = readFileSync(
+  new URL("../modules/messages/service.ts", import.meta.url),
+  "utf8",
+);
 
 test("conversation keeps a draft through a send failure and guards navigation", () => {
   assert.match(workspace, /const \[draft, setDraft\] = useState\(""\)/);
@@ -25,6 +29,9 @@ test("conversation keeps a draft through a send failure and guards navigation", 
   assert.match(workspace, /"Idempotency-Key": requestKey\.current/);
   assert.match(workspace, /messages\/read/);
   assert.match(workspace, /conversation-unread/);
+  assert.match(workspace, /setSelectedReference\(""\)/);
+  assert.match(workspace, /reference_type: reference\?\.type \?\? null/);
+  assert.match(workspace, /Remover referência/);
 });
 
 test("conversation makes the recipient, sender and return path explicit", () => {
@@ -32,4 +39,7 @@ test("conversation makes the recipient, sender and return path explicit", () => 
   assert.match(workspace, /Voltar ao meu cuidado/);
   assert.match(workspace, /Destinatário:/);
   assert.match(workspace, /Remetente:/);
+  assert.match(service, /Conteúdo compartilhado indisponível/);
+  assert.match(workspace, /Abrir com acesso atual/);
+  assert.match(workspace, /Nenhum arquivo é enviado pela conversa/);
 });

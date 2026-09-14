@@ -18,6 +18,7 @@ type ConversationInitial = {
   recipients: MessageRecipient[];
   selected: SelectedConversation | null;
   messages: StaffMessages["messages"];
+  references: StaffMessages["references"];
   page: number;
   hasNext: boolean;
   lastReadAt: string | null;
@@ -52,6 +53,7 @@ function ConversationWorkspace({
   const composer = useRef<HTMLTextAreaElement>(null);
   const [pending, setPending] = useState(false);
   const [draft, setDraft] = useState("");
+  const [selectedReference, setSelectedReference] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [sendUncertain, setSendUncertain] = useState(false);
@@ -63,7 +65,10 @@ function ConversationWorkspace({
   const messagesBeforeAttempt = useRef<Set<string>>(new Set());
   const requestKey = useRef<string | null>(null);
   const readAttempted = useRef<string | null>(null);
-  const hasDraft = draft.trim().length > 0;
+  const activeReference = initial.references.find(
+    (reference) => `${reference.type}:${reference.id}` === selectedReference,
+  );
+  const hasDraft = draft.trim().length > 0 || Boolean(activeReference);
   const isStaffConversation = recipientParam === "paciente";
 
   useEffect(() => {
@@ -96,6 +101,7 @@ function ConversationWorkspace({
         return;
       }
       setDraft("");
+      setSelectedReference("");
       setError("");
       setNotice("");
       setSendUncertain(false);
@@ -113,6 +119,7 @@ function ConversationWorkspace({
     if (previousSelectedKey.current === selectedKey) return;
     previousSelectedKey.current = selectedKey;
     setDraft("");
+    setSelectedReference("");
     setError("");
     setNotice("");
     setSendUncertain(false);
@@ -129,6 +136,7 @@ function ConversationWorkspace({
     );
     if (!confirmed) return;
     setDraft("");
+    setSelectedReference("");
     setError("");
     setSendUncertain(false);
     setNotice("Mensagem confirmada no histórico.");
@@ -175,6 +183,12 @@ function ConversationWorkspace({
       setError("Escreva uma mensagem antes de enviar.");
       return;
     }
+    if (selectedReference && !activeReference) {
+      setSelectedReference("");
+      requestKey.current = null;
+      setError("A referência selecionada não está mais disponível.");
+      return;
+    }
     busy.current = true;
     setPending(true);
     setError("");
@@ -184,6 +198,7 @@ function ConversationWorkspace({
       initial.messages.map((message) => message.id),
     );
     requestKey.current ??= crypto.randomUUID();
+    const reference = activeReference;
     try {
       const response = await fetch(
         `/api/v1/clinics/${initial.clinic.id}/messages`,
@@ -198,6 +213,8 @@ function ConversationWorkspace({
             patient_id: selected.patientId,
             doctor_id: selected.doctorId,
             content,
+            reference_type: reference?.type ?? null,
+            reference_id: reference?.id ?? null,
           }),
         },
       );
@@ -208,6 +225,7 @@ function ConversationWorkspace({
       if (!response.ok)
         throw new Error(result.error ?? "Não foi possível enviar a mensagem.");
       setDraft("");
+      setSelectedReference("");
       requestKey.current = null;
       setNotice("Mensagem enviada.");
       router.refresh();
@@ -306,6 +324,25 @@ function ConversationWorkspace({
                         Remetente: {ownMessage ? "Você" : selected.displayName} · {clinicalTime(message.sent_at)}
                       </small>
                       <p>{message.content}</p>
+                      {message.reference &&
+                        (message.reference.available ? (
+                          <a
+                            className="conversation-reference"
+                            href={message.reference.href}
+                          >
+                            <span>
+                              {message.reference.type === "document"
+                                ? "Documento compartilhado"
+                                : "Plano de cuidado publicado"}
+                            </span>
+                            <strong>{message.reference.label}</strong>
+                            <small>Abrir com acesso atual</small>
+                          </a>
+                        ) : (
+                          <span className="conversation-reference unavailable">
+                            {message.reference.label}
+                          </span>
+                        ))}
                     </article>
                   );
                 })}
@@ -378,6 +415,59 @@ function ConversationWorkspace({
                 Este canal é assíncrono e não deve ser usado para urgências. Não
                 aceita anexos nesta etapa; use Documentos para arquivos.
               </p>
+              {initial.references.length > 0 && (
+                <div className="conversation-reference-picker">
+                  <label htmlFor="direct-message-reference">
+                    Referência compartilhada (opcional)
+                  </label>
+                  <select
+                    id="direct-message-reference"
+                    value={activeReference ? selectedReference : ""}
+                    disabled={pending}
+                    onChange={(event) => {
+                      setSelectedReference(event.target.value);
+                      requestKey.current = null;
+                    }}
+                  >
+                    <option value="">Sem referência</option>
+                    {["Plano de cuidado publicado", "Documentos compartilhados"].map(
+                      (group) => {
+                        const options = initial.references.filter(
+                          (reference) => reference.group === group,
+                        );
+                        return options.length ? (
+                          <optgroup key={group} label={group}>
+                            {options.map((reference) => (
+                              <option
+                                key={`${reference.type}:${reference.id}`}
+                                value={`${reference.type}:${reference.id}`}
+                              >
+                                {reference.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ) : null;
+                      },
+                    )}
+                  </select>
+                  {activeReference && (
+                    <button
+                      type="button"
+                      className="secondary conversation-reference-remove"
+                      onClick={() => {
+                        setSelectedReference("");
+                        requestKey.current = null;
+                      }}
+                    >
+                      Remover referência
+                    </button>
+                  )}
+                  <small>
+                    Somente documentos compartilhados e o plano atualmente
+                    publicado aparecem aqui. Nenhum arquivo é enviado pela conversa.
+                  </small>
+                </div>
+              )}
               <div>
                 <span>{draft.length}/4.000 caracteres</span>
                 <button disabled={pending || sendUncertain}>

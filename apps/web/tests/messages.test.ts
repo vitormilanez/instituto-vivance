@@ -18,7 +18,13 @@ test("direct message input accepts only a bounded patient-doctor pair", () => {
       doctor_id: doctorId,
       content: "  Olá,   doutor.  ",
     }),
-    { patientId, doctorId, content: "Olá, doutor." },
+    {
+      patientId,
+      doctorId,
+      content: "Olá, doutor.",
+      referenceType: null,
+      referenceId: null,
+    },
   );
   assert.throws(() =>
     messageInput({
@@ -36,6 +42,42 @@ test("direct message input accepts only a bounded patient-doctor pair", () => {
       patient_id: patientId,
       doctor_id: doctorId,
       content: "x".repeat(4001),
+    }),
+  );
+});
+
+test("direct message accepts only a paired shared-context reference", () => {
+  assert.deepEqual(
+    messageInput({
+      patient_id: patientId,
+      doctor_id: doctorId,
+      content: "Veja este documento.",
+      reference_type: "document",
+      reference_id: patientId,
+    }),
+    {
+      patientId,
+      doctorId,
+      content: "Veja este documento.",
+      referenceType: "document",
+      referenceId: patientId,
+    },
+  );
+  assert.throws(() =>
+    messageInput({
+      patient_id: patientId,
+      doctor_id: doctorId,
+      content: "Inválida",
+      reference_type: "report",
+      reference_id: patientId,
+    }),
+  );
+  assert.throws(() =>
+    messageInput({
+      patient_id: patientId,
+      doctor_id: doctorId,
+      content: "Inválida",
+      reference_type: "care_plan",
     }),
   );
 });

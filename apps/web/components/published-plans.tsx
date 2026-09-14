@@ -43,7 +43,11 @@ function PublishedPlan({ publication: p }: { publication: Publication }) {
     }
   }
   return (
-    <article className="panel published-plan" aria-label={p.title}>
+    <article
+      id={`plano-${p.id}`}
+      className="panel published-plan"
+      aria-label={p.title}
+    >
       <div className="section-heading">
         <div>
           <h2>{p.title}</h2>
