@@ -45,10 +45,19 @@ export function PatientInvitationClaim({ token }: { token: string }) {
         à clínica.
       </p>
       {sent ? (
-        <p className="notice" role="status">
-          Se este convite puder ser confirmado, as próximas instruções serão
-          enviadas para o e-mail informado.
-        </p>
+        <div>
+          <p className="notice" role="status">
+            Se este convite puder ser confirmado, as próximas instruções serão
+            enviadas para o e-mail informado.
+          </p>
+          <button
+            className="secondary"
+            type="button"
+            onClick={() => setSent(false)}
+          >
+            Não recebeu? Tentar novamente
+          </button>
+        </div>
       ) : (
         <form onSubmit={submit}>
           <div className="field">
