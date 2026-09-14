@@ -3058,6 +3058,22 @@ button.calendar-day[aria-pressed="true"] {
 .measurement-card strong { margin-top:12px; color:#123d35; font-size:27px; }
 .measurement-card p { margin:8px 0; font-size:13px; }
 .measurement-card small { margin-top:auto; color:#526782; }
+.longitudinal-period { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin:0 0 20px; }
+.longitudinal-period label { display:grid; gap:6px; color:#405c7e; font-size:13px; font-weight:700; }
+.longitudinal-period input { min-height:48px; padding:7px 9px; border:1px solid var(--border); border-radius:8px; color:var(--navy); font:inherit; }
+.measurement-charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; margin-top:16px; }
+.measurement-chart { margin:0; padding:16px; border:1px solid var(--border); border-radius:14px; background:#fbfdff; }
+.measurement-chart figcaption { margin-bottom:8px; color:#123d35; font-size:14px; font-weight:750; }
+.measurement-chart svg { width:100%; height:auto; overflow:visible; }
+.measurement-chart line { stroke:#c9d8e7; stroke-width:1; }
+.measurement-chart polyline { fill:none; stroke:#147f6d; stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
+.measurement-chart circle { fill:#fff; stroke:#147f6d; stroke-width:2; }
+.measurement-chart text { fill:#526782; font-size:11px; }
+.measurement-table-wrap { overflow-x:auto; margin-top:16px; }
+.measurement-table { width:100%; border-collapse:collapse; text-align:left; }
+.measurement-table caption { padding:0 0 10px; color:#405c7e; text-align:left; font-size:14px; font-weight:700; }
+.measurement-table th,.measurement-table td { padding:12px; border-top:1px solid var(--border); font-size:14px; vertical-align:top; }
+.measurement-table th { color:#405c7e; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
 .longitudinal-empty { padding:30px 12px; text-align:left; }
 .longitudinal-timeline { list-style:none; margin:0; padding:0; }
 .longitudinal-timeline li { display:grid; grid-template-columns:145px minmax(0,1fr); gap:20px; padding:22px 0; border-top:1px solid var(--border); }
@@ -3073,6 +3089,8 @@ button.calendar-day[aria-pressed="true"] {
   .longitudinal-patient-picker button { width:100%; }
   .longitudinal-section { padding:20px; }
   .measurement-grid { grid-template-columns:1fr; }
+  .longitudinal-period { display:grid; align-items:stretch; }
+  .longitudinal-period button { width:100%; }
   .longitudinal-timeline li { grid-template-columns:1fr; gap:7px; }
 }
 

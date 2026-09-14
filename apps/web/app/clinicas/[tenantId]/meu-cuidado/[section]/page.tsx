@@ -35,7 +35,7 @@ export default async function PatientAreaPage({
   searchParams,
 }: {
   params: Promise<{ tenantId: string; section: string }>;
-  searchParams: Promise<{ pagina?: string; medico?: string | string[] }>;
+  searchParams: Promise<{ pagina?: string; medico?: string | string[]; inicio?: string; fim?: string; cursor?: string }>;
 }) {
   const { tenantId, section: slug } = await params;
   const section = findPatientSection(slug);
@@ -72,7 +72,17 @@ export default async function PatientAreaPage({
       ? await patientCheckIns(tenantId, query.pagina)
       : null;
   const longitudinal =
-    patient && slug === "evolucao" ? await patientLongitudinal(tenantId) : null;
+    patient && slug === "evolucao"
+      ? await patientLongitudinal(tenantId, {
+          from: query.inicio,
+          to: query.fim,
+          cursor: query.cursor,
+        }).catch((error) => {
+          if (error instanceof InputError)
+            redirect(`/clinicas/${tenantId}/meu-cuidado/evolucao`);
+          throw error;
+        })
+      : null;
   const documents =
     patient && slug === "documentos"
       ? await patientDocuments(tenantId, query.pagina)

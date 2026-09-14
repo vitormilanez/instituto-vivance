@@ -12,7 +12,7 @@ const documents = readFileSync(
 );
 
 test("patient record connects individual documents and longitudinal views", () => {
-  assert.match(page, /staffLongitudinal\(tenantId, patientId\)/);
+  assert.match(page, /staffLongitudinal\(tenantId, patientId,/);
   assert.match(page, /staffDocuments\(tenantId, query\.pagina, patientId\)/);
   assert.match(page, /showPatientPicker=\{false\}/);
   assert.match(page, /showMeasures=\{false\}/);
