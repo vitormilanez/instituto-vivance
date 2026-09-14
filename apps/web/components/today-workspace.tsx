@@ -103,7 +103,7 @@ export function TodayWorkspace({
 }) {
   const { next } = data;
   const active = next && data.drafts.find((p) => p.appointment_id === next.id);
-  const attentionCount = data.checkIns.length + data.drafts.length;
+  const attentionCount = data.checkIns.length + data.drafts.length + data.preparations.length;
   return (
     <>
       <div className="page-heading">
@@ -221,6 +221,13 @@ export function TodayWorkspace({
           </p>
           {attentionCount ? (
             <ul>
+              {data.preparations.map((item) => (
+                <li key={item.id}>
+                  <strong>{item.patients?.display_name ?? "Paciente"}</strong>
+                  <p>Preparo do retorno enviado e aguardando revisão.</p>
+                  <Link href={`${base}/preparo#preparo-${item.id}`}>Revisar preparo</Link>
+                </li>
+              ))}
               {data.checkIns.map((item) => (
                 <li key={item.id}>
                   <strong>{item.patients?.display_name ?? "Paciente"}</strong>
@@ -231,7 +238,7 @@ export function TodayWorkspace({
                 </li>
               ))}
               {data.drafts
-                .slice(0, Math.max(0, 5 - data.checkIns.length))
+                .slice(0, Math.max(0, 5 - data.checkIns.length - data.preparations.length))
                 .map((p) => (
                   <li key={p.id}>
                     <strong>{p.patients?.display_name ?? "Paciente"}</strong>

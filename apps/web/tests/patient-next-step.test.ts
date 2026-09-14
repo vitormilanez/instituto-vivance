@@ -61,3 +61,21 @@ test("patient onboarding draft is presented as the next step instead of a duplic
   assert.match(page, /item\.status === "pending"/);
   assert.doesNotMatch(page, /Vamos preparar sua primeira conversa/);
 });
+
+test("requested return preparation becomes a resumable patient next step", () => {
+  const base = "/clinicas/tenant/meu-cuidado";
+  assert.deepEqual(
+    patientNextStep({
+      base,
+      hasConsultationInProgress: false,
+      hasUpcomingConsultation: true,
+      pendingReturnPreparationId: "request-id",
+    }),
+    {
+      title: "Prepare seu próximo retorno",
+      detail: "Seu médico enviou um roteiro curto. Você pode responder, salvar e continuar depois.",
+      action: "Começar preparo",
+      href: `${base}/hoje#preparo-request-id`,
+    },
+  );
+});

@@ -84,6 +84,7 @@ export function PatientArea({
   latestPublication = null,
   onboardingHref,
   pendingCheckInId,
+  pendingReturnPreparationId,
 }: {
   section: PatientSection;
   base: string;
@@ -92,6 +93,7 @@ export function PatientArea({
   latestPublication?: { title: string; revision: number } | null;
   onboardingHref?: string | null;
   pendingCheckInId?: string | null;
+  pendingReturnPreparationId?: string | null;
 }) {
   const nextAppointment = appointments.find(
     (appointment) =>
@@ -111,6 +113,7 @@ export function PatientArea({
     ),
     hasUpcomingConsultation: Boolean(nextAppointment),
     pendingCheckInId,
+    pendingReturnPreparationId,
   });
   if (section.slug === "hoje")
     return (

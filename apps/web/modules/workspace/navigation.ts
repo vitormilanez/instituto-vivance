@@ -22,6 +22,16 @@ export const staffModules = [
     detail: "O médico inicia pela agenda. Os registros exigem vínculo de cuidado ativo.",
   },
   {
+    slug: "preparo",
+    title: "Preparo",
+    description: "Atualizações enviadas para cada retorno agendado.",
+    action: "Solicitar pela Agenda",
+    tabs: ["Todos"],
+    columns: ["Paciente", "Retorno", "Envio", "Revisão"],
+    empty: "Nenhum preparo solicitado",
+    detail: "Solicite um roteiro curto em um retorno futuro pela Agenda.",
+  },
+  {
     slug: "planos",
     title: "Planos de cuidado",
     description: "Orientações com revisão médica e histórico de versões.",

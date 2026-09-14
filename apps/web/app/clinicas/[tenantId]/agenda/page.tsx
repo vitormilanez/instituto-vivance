@@ -6,6 +6,7 @@ import { InputError } from "@/lib/validation";
 import { ClinicShell } from "@/components/clinic-shell";
 import { Agenda } from "@/components/agenda";
 import { requestInstant } from "@/lib/request-time";
+import { appointmentPreparationStates } from "@/modules/return-preparation/service";
 export const dynamic = "force-dynamic";
 export default async function AgendaPage({
   params,
@@ -27,7 +28,10 @@ export default async function AgendaPage({
       `${date.slice(0, 7)}-01`,
       until,
     );
-    return { date, options, ...result };
+    const preparationStates = result.clinic.role === "doctor"
+      ? await appointmentPreparationStates(tenantId, result.appointments.map((item) => item.id))
+      : {};
+    return { date, options, preparationStates, ...result };
   };
   const context = await load().catch((e) => {
     if (e instanceof AccessError && e.status === 401) redirect("/");

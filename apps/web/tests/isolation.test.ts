@@ -3606,3 +3606,124 @@ test("patient invitation revocation is creator-or-admin controlled and consumes 
     assert.equal((await db.query<{ revoked: boolean }>("select public.revoke_patient_invitation($1,$2) revoked", [a, adminTarget.rows[0].id])).rows[0].revoked, true);
   });
 });
+
+test("return preparation keeps a private draft, one immutable submission and an internal doctor review", async () => {
+  await asUser("doctor", async () => {
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,user_id,patient_id) values($1,$2,$3)",
+      [a, users.patient.id, pa],
+    );
+    await db.query(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'active')",
+      [a, pa, users.doctor.id],
+    );
+    await denied("update public.return_preparation_questionnaires set title='Changed' where version=1");
+    await switchActor("doctor");
+    const appointment = await db.query<{ id: string; version: number }>(
+      "insert into public.appointments(tenant_id,patient_id,doctor_id,starts_at,ends_at,kind) values($1,$2,$3,'2099-12-18T15:00:00Z','2099-12-18T15:30:00Z','return') returning id,version",
+      [a, pa, users.doctor.id],
+    );
+    const requestKey = randomUUID();
+    const first = await db.query<{ id: string }>(
+      "select public.request_return_preparation($1,$2,$3) id",
+      [a, appointment.rows[0].id, requestKey],
+    );
+    const replay = await db.query<{ id: string }>(
+      "select public.request_return_preparation($1,$2,$3) id",
+      [a, appointment.rows[0].id, requestKey],
+    );
+    assert.equal(replay.rows[0].id, first.rows[0].id);
+    const secondAppointment = await db.query<{ id: string }>(
+      "insert into public.appointments(tenant_id,patient_id,doctor_id,starts_at,ends_at,kind) values($1,$2,$3,'2099-12-19T15:00:00Z','2099-12-19T15:30:00Z','return') returning id",
+      [a, pa, users.doctor.id],
+    );
+    const secondRequest = await db.query<{ id: string }>(
+      "select public.request_return_preparation($1,$2,$3) id",
+      [a, secondAppointment.rows[0].id, randomUUID()],
+    );
+    assert.notEqual(secondRequest.rows[0].id, first.rows[0].id);
+    await db.exec("reset role");
+    const replacementPatient = randomUUID();
+    await db.query(
+      "insert into public.patients(id,tenant_id,display_name,created_by) values($1,$2,'Synthetic replacement',$3)",
+      [replacementPatient, a, users.admin.id],
+    );
+    await switchActor("doctor");
+    await db.query(
+      "update public.appointments set patient_id=$1,expected_version=1 where id=$2",
+      [replacementPatient, secondAppointment.rows[0].id],
+    );
+    assert.equal(
+      (await db.query<{ status: string }>("select status from public.return_preparation_requests where id=$1", [secondRequest.rows[0].id])).rows[0].status,
+      "cancelled",
+    );
+    for (const role of ["admin", "nurse", "other", "outsider", "suspended"]) {
+      await switchActor(role);
+      await denied("select public.request_return_preparation($1,$2,$3)", [a, appointment.rows[0].id, randomUUID()]);
+      assert.equal((await db.query("select id from public.return_preparation_drafts where request_id=$1", [first.rows[0].id])).rows.length, 0);
+    }
+    await switchActor("patient");
+    const saved = await db.query<{ version: number }>(
+      "select public.save_return_preparation_draft($1,$2,0,$3::jsonb) version",
+      [a, first.rows[0].id, JSON.stringify({ changes: "Original\npatient answer" })],
+    );
+    assert.equal(saved.rows[0].version, 1);
+    await denied(
+      "select public.save_return_preparation_draft($1,$2,0,$3::jsonb)",
+      [a, first.rows[0].id, JSON.stringify({ changes: "Stale overwrite" })],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.return_preparation_drafts where request_id=$1", [first.rows[0].id])).rows.length,
+      0,
+    );
+    await switchActor("patient");
+    const submission = await db.query<{ id: string }>(
+      "select public.submit_return_preparation($1,$2,1,$3::jsonb,true) id",
+      [a, first.rows[0].id, JSON.stringify({ changes: "Original\npatient answer" })],
+    );
+    const repeatedSubmission = await db.query<{ id: string }>(
+      "select public.submit_return_preparation($1,$2,1,$3::jsonb,true) id",
+      [a, first.rows[0].id, JSON.stringify({ changes: "Changed replay" })],
+    );
+    assert.equal(repeatedSubmission.rows[0].id, submission.rows[0].id);
+    await denied("update public.return_preparation_submissions set answers='{}'::jsonb where id=$1", [submission.rows[0].id]);
+    await switchActor("doctor");
+    const notice = await db.query<{ kind: string; event_key: string; target_path: string }>(
+      "select kind,event_key,target_path from public.in_app_notifications where recipient_user_id=$1 and kind='return_preparation_submitted'",
+      [users.doctor.id],
+    );
+    assert.equal(notice.rows.length, 1);
+    assert.equal(notice.rows[0].target_path, `/clinicas/${a}/preparo`);
+    assert.ok(!JSON.stringify(notice.rows[0]).includes("Original"));
+    const request = await db.query<{ version: number }>(
+      "select version from public.return_preparation_requests where id=$1",
+      [first.rows[0].id],
+    );
+    const review = await db.query<{ id: string }>(
+      "select public.review_return_preparation($1,$2,$3,'Reviewed in return context',true) id",
+      [a, first.rows[0].id, request.rows[0].version],
+    );
+    assert.equal(
+      (await db.query<{ answers: { changes: string } }>("select answers from public.return_preparation_submissions where id=$1", [submission.rows[0].id])).rows[0].answers.changes,
+      "Original\npatient answer",
+    );
+    await switchActor("patient");
+    assert.equal((await db.query("select id from public.return_preparation_reviews where id=$1", [review.rows[0].id])).rows.length, 0);
+    await switchActor("doctor");
+    await db.query(
+      "update public.appointments set starts_at='2099-12-18T16:00:00Z',ends_at='2099-12-18T16:30:00Z',expected_version=1 where id=$1",
+      [appointment.rows[0].id],
+    );
+    assert.equal(
+      (await db.query<{ status: string }>("select status from public.return_preparation_requests where id=$1", [first.rows[0].id])).rows[0].status,
+      "reviewed",
+    );
+    await db.query("select public.transition_appointment($1,$2,2,'cancelled')", [a, appointment.rows[0].id]);
+    assert.equal(
+      (await db.query<{ status: string }>("select status from public.return_preparation_requests where id=$1", [first.rows[0].id])).rows[0].status,
+      "cancelled",
+    );
+  });
+});

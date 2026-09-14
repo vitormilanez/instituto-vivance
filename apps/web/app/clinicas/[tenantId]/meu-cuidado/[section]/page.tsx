@@ -26,6 +26,8 @@ import { patientMessages } from "@/modules/messages/service";
 import { PatientMessagesWorkspace } from "@/components/messages-workspace";
 import { patientReportPublications } from "@/modules/reports/publication-service";
 import { PublishedReports } from "@/components/published-reports";
+import { patientReturnPreparations } from "@/modules/return-preparation/service";
+import { PatientReturnPreparationWorkspace } from "@/components/return-preparation-workspace";
 export const dynamic = "force-dynamic";
 
 export default async function PatientAreaPage({
@@ -88,6 +90,10 @@ export default async function PatientAreaPage({
   const reports =
     patient && slug === "relatorios"
       ? await patientReportPublications(tenantId, query.pagina)
+      : null;
+  const preparations =
+    patient && slug === "hoje"
+      ? await patientReturnPreparations(tenantId, query.pagina)
       : null;
   const appointments =
     slug === "consultas" || slug === "hoje"
@@ -178,22 +184,32 @@ export default async function PatientAreaPage({
             </p>
           </section>
         ) : (
-          <PatientArea
-            section={section}
-            base={`/clinicas/${tenantId}/meu-cuidado`}
-            appointments={appointments.appointments}
-            currentTime={currentTime}
-            latestPublication={published?.publications[0] ?? null}
-            onboardingHref={
-              onboarding?.status === "draft"
-                ? `/clinicas/${tenantId}/primeiros-passos`
-                : null
-            }
-            pendingCheckInId={
-              checkIns?.checkIns.find((item) => item.status === "pending")?.id ??
-              null
-            }
-          />
+          <>
+            <PatientArea
+              section={section}
+              base={`/clinicas/${tenantId}/meu-cuidado`}
+              appointments={appointments.appointments}
+              currentTime={currentTime}
+              latestPublication={published?.publications[0] ?? null}
+              onboardingHref={
+                onboarding?.status === "draft"
+                  ? `/clinicas/${tenantId}/primeiros-passos`
+                  : null
+              }
+              pendingCheckInId={
+                checkIns?.checkIns.find((item) => item.status === "pending")?.id ??
+                null
+              }
+              pendingReturnPreparationId={
+                preparations?.preparations.find((item) =>
+                  item.status === "requested" || item.status === "draft"
+                )?.id ?? null
+              }
+            />
+            {preparations && preparations.preparations.length > 0 && (
+              <PatientReturnPreparationWorkspace initial={preparations} />
+            )}
+          </>
         )
       ) : (
         <>

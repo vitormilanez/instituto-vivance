@@ -16,7 +16,7 @@ export async function todayWorkspace(id: string) {
     listAppointments(id, today, tomorrow.toISOString().slice(0, 10)),
   ]);
   const next = focusedAppointment(agenda.appointments, now, today);
-  const [drafts, checkIns] = await Promise.all([
+  const [drafts, checkIns, preparations] = await Promise.all([
     client
       .from("encounters")
       .select(
@@ -38,8 +38,17 @@ export async function todayWorkspace(id: string) {
       .order("submitted_at")
       .order("id")
       .limit(5),
+    client
+      .from("return_preparation_requests")
+      .select("id,patient_id,submitted_at,patients!return_preparation_requests_tenant_id_patient_id_fkey(display_name)")
+      .eq("tenant_id", id)
+      .eq("doctor_id", user.id)
+      .eq("status", "submitted")
+      .order("submitted_at")
+      .order("id")
+      .limit(5),
   ]);
-  if (drafts.error || checkIns.error)
+  if (drafts.error || checkIns.error || preparations.error)
     throw new Error("Unable to load care pending items");
   const context = next ? await patientCareContext(id, next.patient_id) : null;
   return {
@@ -48,6 +57,7 @@ export async function todayWorkspace(id: string) {
     context,
     drafts: drafts.data ?? [],
     checkIns: checkIns.data ?? [],
+    preparations: preparations.data ?? [],
     now,
     today,
   };

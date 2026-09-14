@@ -939,6 +939,103 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      return_preparation_questionnaires: {
+        Row: {
+          version: number;
+          title: string;
+          questions: Json;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      return_preparation_requests: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          appointment_id: string;
+          patient_id: string;
+          doctor_id: string;
+          questionnaire_version: number;
+          request_number: number;
+          status: string;
+          version: number;
+          requested_by: string;
+          client_request_id: string;
+          requested_at: string;
+          draft_updated_at: string | null;
+          submitted_at: string | null;
+          reviewed_at: string | null;
+          cancelled_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "return_preparation_requests_tenant_id_appointment_id_fkey";
+            columns: ["tenant_id", "appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "return_preparation_requests_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      return_preparation_drafts: {
+        Row: {
+          id: string;
+          request_id: string;
+          tenant_id: string;
+          patient_id: string;
+          actor_user_id: string;
+          answers: Json;
+          version: number;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      return_preparation_submissions: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          request_id: string;
+          patient_id: string;
+          doctor_id: string;
+          actor_user_id: string;
+          questionnaire_version: number;
+          answers: Json;
+          submitted_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      return_preparation_reviews: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          request_id: string;
+          patient_id: string;
+          doctor_id: string;
+          reviewer_id: string;
+          note: string;
+          reviewed_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       patients: {
         Row: {
           birth_date: string | null;
@@ -1003,6 +1100,43 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      request_return_preparation: {
+        Args: {
+          target_tenant: string;
+          target_appointment: string;
+          request_key: string;
+        };
+        Returns: string;
+      };
+      save_return_preparation_draft: {
+        Args: {
+          target_tenant: string;
+          target_request: string;
+          read_version: number;
+          supplied_answers: Json;
+        };
+        Returns: number;
+      };
+      submit_return_preparation: {
+        Args: {
+          target_tenant: string;
+          target_request: string;
+          read_version: number;
+          supplied_answers: Json;
+          confirmed: boolean;
+        };
+        Returns: string;
+      };
+      review_return_preparation: {
+        Args: {
+          target_tenant: string;
+          target_request: string;
+          read_version: number;
+          note_text: string;
+          confirmed: boolean;
+        };
+        Returns: string;
+      };
       create_care_report: {
         Args: {
           target_tenant: string;

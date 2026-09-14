@@ -15,6 +15,7 @@ test("workspace registers all visual modules with no duplicate paths", () => {
     [
       "agenda",
       "atendimentos",
+      "preparo",
       "planos",
       "acompanhamento",
       "documentos",
