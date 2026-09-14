@@ -2984,6 +2984,264 @@ button.calendar-day[aria-pressed="true"] {
   .conversation-directory, .conversation-detail { padding:20px; }
 }
 
+/* Task-first refinement for the physician workspace. */
+.quick-actions-compact {
+  gap: 10px;
+}
+.quick-actions-compact .quick-action {
+  min-height: 112px;
+  padding: 16px;
+  background: transparent;
+  transition:
+    transform 160ms ease-out,
+    border-color 160ms ease-out,
+    background-color 160ms ease-out;
+}
+.quick-actions-compact .quick-action:hover {
+  transform: translateY(-2px);
+  border-color: #9bb0c8;
+  background: white;
+}
+.quick-actions-compact .quick-action > span:not(.action-state) {
+  max-width: 28ch;
+}
+.quick-actions-compact .quick-action .action-state {
+  padding-top: 2px;
+}
+.today-primary-action {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--blue-soft);
+}
+.today-primary-action .button {
+  box-shadow: 0 8px 20px rgba(3, 19, 45, 0.14);
+}
+.care-context-links-compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.care-context-links-compact > a,
+.care-context-links-compact > div {
+  min-height: 88px;
+  padding: 13px 14px;
+}
+.patient-directory-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 370px);
+  gap: 28px;
+}
+.patient-directory-panel {
+  min-width: 0;
+}
+.patient-directory-aside {
+  display: grid;
+  gap: 20px;
+}
+.patient-directory-aside .panel {
+  margin: 0;
+}
+.patient-record-header {
+  align-items: start;
+}
+.clinical-patient-title {
+  min-width: 0;
+}
+.clinical-patient-title h1 {
+  overflow-wrap: anywhere;
+}
+.patient-record-actions {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.patient-record-actions a,
+.patient-record-next-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.patient-record-section-heading {
+  align-items: flex-start;
+}
+.patient-record-section-heading p {
+  margin: 6px 0 0;
+}
+.patient-record-secondary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.patient-record-secondary .future-care {
+  margin-top: 0;
+}
+.patient-record-next-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+/* A calm, task-first path through the patient portal. */
+.patient-portal-header {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+.patient-next-step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  padding: 26px 28px;
+  border-color: #c7d9ef;
+  background: var(--blue-soft);
+}
+.patient-next-step h2 {
+  max-width: 34ch;
+  margin: 0;
+}
+.patient-next-step p {
+  margin: 7px 0 0;
+}
+.patient-next-step .button {
+  min-width: 168px;
+  box-shadow: 0 9px 22px rgba(3, 19, 45, 0.14);
+  text-align: center;
+}
+.patient-overview {
+  grid-template-columns: minmax(0, 1.16fr) minmax(280px, 0.84fr);
+  gap: 24px;
+}
+.patient-next-appointment,
+.patient-followup-card {
+  min-height: 310px;
+}
+.patient-next-appointment.is-empty,
+.patient-followup-card.is-empty {
+  min-height: 250px;
+}
+.patient-shortcuts-heading {
+  align-items: end;
+  margin-bottom: 16px;
+}
+.patient-shortcuts-heading h2,
+.patient-shortcuts-heading p {
+  margin: 0;
+}
+.patient-shortcuts-heading p {
+  max-width: 62ch;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.patient-shortcuts .quick-actions {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.patient-shortcuts .quick-action {
+  min-height: 134px;
+  padding: 16px;
+  transition:
+    transform 160ms ease-out,
+    border-color 160ms ease-out,
+    background-color 160ms ease-out;
+}
+.patient-shortcuts a.quick-action:hover {
+  transform: translateY(-2px);
+}
+.patient-shortcuts .quick-action.unavailable {
+  border-style: dashed;
+  box-shadow: none;
+}
+.patient-care-tabs-hint {
+  display: none;
+  margin: -12px 0 20px;
+  color: var(--muted);
+  font-size: 12px;
+}
+@media (max-width: 1150px) {
+  .patient-directory-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .patient-shortcuts .quick-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1100px) {
+  .today-schedule,
+  .today-attention {
+    order: initial;
+  }
+}
+@media (max-width: 760px) {
+  .patient-record-actions {
+    grid-column: 1 / -1;
+  }
+  .patient-record-secondary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .patient-next-step {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    padding: 22px;
+  }
+  .patient-next-step .button {
+    width: 100%;
+  }
+  .patient-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .patient-care-tabs-hint {
+    display: block;
+  }
+  .patient-navigation-mobile a {
+    min-height: 52px;
+    font-size: 12px;
+    line-height: 1.15;
+    text-align: center;
+  }
+}
+@media (max-width: 650px) {
+  .agenda-view-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .agenda-view-controls button {
+    width: 100%;
+    white-space: normal;
+  }
+  .agenda-view-controls button:last-child {
+    grid-column: 1 / -1;
+  }
+  .workspace-main {
+    padding-bottom: calc(110px + env(safe-area-inset-bottom));
+  }
+  .staff-mobile-dock {
+    bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  .staff-mobile-dock details > div {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+  .care-context-links-compact {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .calendar-schedule {
+    order: initial;
+  }
+  .quick-actions-compact .quick-action {
+    min-height: 104px;
+  }
+  .patient-shortcuts .quick-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .patient-shortcuts .quick-action {
+    min-height: 112px;
+  }
+}
+
 /* Patient invitations and first-care onboarding */
 .patient-invitation-form form,
 .patient-invitation-claim form,
@@ -3242,6 +3500,132 @@ button.calendar-day[aria-pressed="true"] {
 .onboarding-review dd {
   margin: 0;
   font-weight: 600;
+}
+
+/* Care-continuity refinement: make the next verified decision readable. */
+.check-in-board > .section-heading p {
+  max-width: 62ch;
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.check-in-summary,
+.plan-workflow,
+.report-workflow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0 0 20px;
+  border-block: 1px solid var(--border);
+}
+.check-in-summary > div,
+.plan-workflow > div,
+.report-workflow > div {
+  min-width: 0;
+  padding: 14px 16px;
+}
+.check-in-summary > div + div,
+.plan-workflow > div + div,
+.report-workflow > div + div {
+  border-left: 1px solid var(--border);
+}
+.check-in-summary dt,
+.plan-workflow strong,
+.report-workflow strong {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.check-in-summary dd {
+  margin: 4px 0 0;
+  color: var(--navy);
+  font-size: 22px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+.plan-workflow,
+.report-workflow {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.plan-workflow span,
+.report-workflow span {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.plan-workflow + .encounter-record {
+  margin-top: 0;
+}
+.document-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "summary actions"
+    "review review";
+  align-items: start;
+}
+.document-summary { grid-area: summary; }
+.document-actions { grid-area: actions; align-items: flex-end; }
+.document-review-panel {
+  grid-area: review;
+  width: 100%;
+  margin-top: 6px;
+}
+.timeline-internal-note {
+  border-left: 0;
+  border-top: 1px solid #e6d49a;
+  border-radius: 0;
+}
+.report-workflow {
+  margin-top: 18px;
+}
+.report-publication > .section-heading {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.conversation-recovery {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid #d9b76b;
+  border-radius: 12px;
+  background: #fff9e9;
+}
+.conversation-recovery p { grid-column: 1 / -1; margin: 0; color: #60480d; font-size: 14px; }
+
+@media (max-width: 760px) {
+  .encounter-journey { overflow: visible; border-bottom: 0; }
+  .encounter-journey ol {
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .encounter-journey button {
+    min-height: 76px;
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .encounter-journey li.current button { border-color: var(--blue); }
+  .encounter-journey strong,
+  .encounter-journey small { overflow: visible; text-overflow: clip; white-space: normal; }
+  .check-in-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .check-in-summary > div { padding-inline: 10px; }
+  .document-row { grid-template-columns: 1fr; grid-template-areas: "summary" "actions" "review"; }
+  .document-actions { width: 100%; align-items: stretch; }
+  .document-review-panel { margin-top: 0; }
+  .plan-workflow,
+  .report-workflow { grid-template-columns: 1fr; }
+  .plan-workflow > div + div,
+  .report-workflow > div + div { border-top: 1px solid var(--border); border-left: 0; }
+  .conversation-directory { padding-bottom: 14px; }
+  .conversation-recipient-list { max-height: 238px; margin-top: 14px; overflow: auto; padding-right: 4px; }
+  .conversation-recovery { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
   .onboarding-header {

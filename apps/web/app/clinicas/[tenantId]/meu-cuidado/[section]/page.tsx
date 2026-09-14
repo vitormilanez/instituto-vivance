@@ -125,10 +125,6 @@ export default async function PatientAreaPage({
                 : section.description}
             </p>
           </div>
-          <div className="patient-portal-clinic">
-            <span>Seu cuidado com</span>
-            <strong>{clinic.name}</strong>
-          </div>
         </header>
       ) : (
         <div className="page-heading">

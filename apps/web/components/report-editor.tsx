@@ -158,6 +158,17 @@ export function ReportEditor({ initial }: { initial: ReportDetail }) {
       {error && <p className="feedback" role="alert">{error}</p>}
       {notice && <p className="notice" role="status">{notice}</p>}
 
+      <section className="report-workflow" aria-label="Estado do relatório">
+        <div>
+          <strong>Registro interno</strong>
+          <span>{statusLabels[initial.report.status]}</span>
+        </div>
+        <div>
+          <strong>Portal do paciente</strong>
+          <span>A publicação, se necessária, é confirmada separadamente.</span>
+        </div>
+      </section>
+
       <form className="panel report-editor" onSubmit={(event: FormEvent<HTMLFormElement>) => { event.preventDefault(); void save(event.currentTarget, "draft"); }}>
         <label className="field">
           Título

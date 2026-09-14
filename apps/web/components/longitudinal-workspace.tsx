@@ -132,12 +132,12 @@ export function StaffLongitudinalWorkspace({
           className="longitudinal-section"
           aria-labelledby="staff-timeline-title"
         >
-        <div className="section-heading">
+          <div className="section-heading">
           <div>
             <h2 id="staff-timeline-title">Linha do tempo</h2>
-            <p>Relatos e publicações reais, com data e origem.</p>
+            <p>Registros de {initial.selectedPatient.display_name}, com data e origem.</p>
           </div>
-          <span className="quiet-label">Últimos 50 check-ins</span>
+          <span className="quiet-label">Até 50 registros recentes</span>
         </div>
         {events.length ? (
           <ol className="longitudinal-timeline">

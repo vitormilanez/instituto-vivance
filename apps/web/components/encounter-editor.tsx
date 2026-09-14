@@ -424,12 +424,8 @@ export function EncounterEditor({
                 </div>
               </fieldset>
               <div className="agenda-actions">
-                <button disabled={pending || confirming}>
-                  Salvar rascunho
-                </button>
                 <button
                   type="button"
-                  className="secondary"
                   disabled={
                     pending || confirming || !reason.trim() || !evolution.trim()
                   }
@@ -438,6 +434,9 @@ export function EncounterEditor({
                   }}
                 >
                   Revisar no fechamento
+                </button>
+                <button className="secondary" disabled={pending || confirming}>
+                  Salvar rascunho
                 </button>
               </div>
             </form>

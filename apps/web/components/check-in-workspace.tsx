@@ -68,6 +68,10 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
       "Revisão registrada.",
     );
   }
+  const submitted = initial.checkIns.filter((item) => item.status === "submitted").length;
+  const pendingRequests = initial.checkIns.filter((item) => item.status === "pending").length;
+  const reviewed = initial.checkIns.filter((item) => item.status === "reviewed").length;
+
   return (
     <>
       {error && (
@@ -80,53 +84,19 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
           {notice}
         </p>
       )}
-      <details className="panel check-in-request">
-        <summary>Solicitar check-in</summary>
-        <p>
-          Envie uma pergunta manual para um paciente sob sua responsabilidade.
-        </p>
-        {initial.patients.length ? (
-          <form onSubmit={request}>
-            <label className="field">
-              Paciente
-              <select name="patient_id" required disabled={pending}>
-                {initial.patients.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.display_name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field">
-              Pergunta
-              <textarea
-                name="prompt"
-                required
-                minLength={2}
-                maxLength={1000}
-                rows={3}
-                disabled={pending}
-              />
-            </label>
-            <label className="field">
-              Responder até · opcional
-              <input type="date" name="due_on" disabled={pending} />
-            </label>
-            <button disabled={pending}>
-              {pending ? "Enviando…" : "Enviar solicitação"}
-            </button>
-          </form>
-        ) : (
-          <p>Nenhum paciente com vínculo ativo disponível.</p>
-        )}
-      </details>
       <section className="check-in-board" aria-label="Fila de check-ins">
         <div className="section-heading">
-          <h2>Fila de revisão</h2>
-          <span className="quiet-label">
-            {initial.checkIns.length} nesta página
-          </span>
+          <div>
+            <h2>Fila de revisão</h2>
+            <p>Revise os relatos enviados antes de iniciar uma nova solicitação.</p>
+          </div>
+          <span className="quiet-label">{initial.checkIns.length} nesta página</span>
         </div>
+        <dl className="check-in-summary" aria-label="Resumo da fila">
+          <div><dt>Para revisar</dt><dd>{submitted}</dd></div>
+          <div><dt>Aguardando resposta</dt><dd>{pendingRequests}</dd></div>
+          <div><dt>Revisados</dt><dd>{reviewed}</dd></div>
+        </dl>
         {initial.checkIns.length ? (
           initial.checkIns.map((item) => (
             <article
@@ -218,6 +188,29 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
           </section>
         )}
       </section>
+      <details className="panel check-in-request">
+        <summary>Solicitar check-in</summary>
+        <p>Envie uma pergunta manual para um paciente sob sua responsabilidade.</p>
+        {initial.patients.length ? (
+          <form onSubmit={request}>
+            <label className="field">
+              Paciente
+              <select name="patient_id" required disabled={pending}>
+                {initial.patients.map((p) => <option key={p.id} value={p.id}>{p.display_name}</option>)}
+              </select>
+            </label>
+            <label className="field">
+              Pergunta
+              <textarea name="prompt" required minLength={2} maxLength={1000} rows={3} disabled={pending} />
+            </label>
+            <label className="field">
+              Responder até · opcional
+              <input type="date" name="due_on" disabled={pending} />
+            </label>
+            <button disabled={pending}>{pending ? "Enviando…" : "Enviar solicitação"}</button>
+          </form>
+        ) : <p>Nenhum paciente com vínculo ativo disponível.</p>}
+      </details>
       <nav className="agenda-actions" aria-label="Páginas de check-ins">
         {initial.page > 1 && (
           <Link href={`?pagina=${initial.page - 1}`}>Anterior</Link>

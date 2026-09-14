@@ -88,6 +88,16 @@ export default async function Patient({
           </p>
         </div>
         <span className="appointment-status scheduled">Cadastro ativo</span>
+        {clinicalArea && (
+          <nav
+            className="patient-record-actions"
+            aria-label="Ações deste paciente"
+          >
+            <Link href={`/clinicas/${tenantId}/agenda`}>Ver agenda</Link>
+            <Link href={`/clinicas/${tenantId}/atendimentos`}>Atendimentos</Link>
+            <Link href={`/clinicas/${tenantId}/planos`}>Planos de cuidado</Link>
+          </nav>
+        )}
       </header>
       <ModuleTabs tabs={tabs} active={active} base={recordBase} />
       {active === "Visão geral" ? (
@@ -99,9 +109,13 @@ export default async function Patient({
             />
           )}
           {care && (
-            <section className="panel">
-              <h2>Contexto do acompanhamento</h2>
-              <p>Registros disponíveis conforme seu vínculo de cuidado.</p>
+            <section className="panel patient-record-care">
+              <div className="section-heading patient-record-section-heading">
+                <div>
+                  <h2>Visão do cuidado</h2>
+                  <p>Registros disponíveis para orientar a próxima conversa.</p>
+                </div>
+              </div>
               <PatientCareLinks
                 base={`/clinicas/${tenantId}`}
                 patientId={patientId}
@@ -176,41 +190,46 @@ export default async function Patient({
           backLabel="Abrir linha do tempo do paciente"
         />
       ) : null}
-      <section className="panel future-care">
-        <h2>Equipe de cuidado</h2>
-        {context.clinic.role === "admin" ? (
-          <>
+      {active === "Visão geral" && (
+        <div className="patient-record-secondary">
+          <section className="panel future-care">
+            <h2>Equipe de cuidado</h2>
+            {context.clinic.role === "admin" ? (
+              <>
+                <p>
+                  Atribua ou revise os profissionais responsáveis por este
+                  paciente. O acesso clínico começa após o aceite do
+                  profissional.
+                </p>
+                <Link
+                  className="button secondary"
+                  href={`/clinicas/${tenantId}/equipe?paciente=${patientId}`}
+                >
+                  Gerenciar equipe deste paciente
+                </Link>
+              </>
+            ) : (
+              <p>
+                Consulte os profissionais com responsabilidade ativa por este
+                paciente.
+              </p>
+            )}
+          </section>
+          <section className="panel future-care">
+            <h2>Onde continuar</h2>
             <p>
-              Atribua ou revise os profissionais responsáveis por este paciente.
-              A atribuição só libera acesso clínico após o aceite do
-              profissional.
+              Use a Agenda para os próximos encontros e Atendimentos para os
+              registros de consulta disponíveis ao seu vínculo.
             </p>
-            <Link
-              className="button secondary"
-              href={`/clinicas/${tenantId}/equipe?paciente=${patientId}`}
-            >
-              Gerenciar equipe deste paciente
-            </Link>
-          </>
-        ) : (
-          <p>
-            Consulte em Equipe de cuidado se este paciente está entre suas
-            responsabilidades ativas.
-          </p>
-        )}
-      </section>
-      <section className="panel future-care">
-        <h2>Próximas etapas do cuidado</h2>
-        <p>
-          Agenda, Atendimentos, Planos, Check-ins e Documentos já estão
-          disponíveis conforme as permissões de cada pessoa.
-        </p>
-        <p>
-          Esta ficha reúne os dados cadastrais. Os registros de consulta ficam
-          em Atendimentos, com acesso restrito à equipe com vínculo de cuidado
-          ativo.
-        </p>
-      </section>
+            <div className="patient-record-next-links">
+              <Link href={`/clinicas/${tenantId}/agenda`}>Abrir agenda</Link>
+              <Link href={`/clinicas/${tenantId}/atendimentos`}>
+                Ver atendimentos
+              </Link>
+            </div>
+          </section>
+        </div>
+      )}
     </ClinicShell>
   );
 }

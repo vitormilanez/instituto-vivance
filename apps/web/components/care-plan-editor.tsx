@@ -188,6 +188,16 @@ export function CarePlanEditor({ initial }: { initial: PlanDetail }) {
           </dd>
         </div>
       </dl>
+      <section className="plan-workflow" aria-label="Etapas do plano de cuidado">
+        <div>
+          <strong>Trabalho interno</strong>
+          <span>{p.status === "draft" ? "Rascunho em edição" : p.status === "in_review" ? "Revisão médica em andamento" : "Revisão aprovada"}</span>
+        </div>
+        <div>
+          <strong>Portal do paciente</strong>
+          <span>{detail.currentPublication ? `Revisão ${detail.currentPublication.revision} disponível` : "Nenhuma revisão publicada"}</span>
+        </div>
+      </section>
       <section className="panel encounter-record" aria-label="Plano de cuidado">
         <div className="section-heading encounter-record-heading">
           <div>

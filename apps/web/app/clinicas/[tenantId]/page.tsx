@@ -101,7 +101,7 @@ export default async function Dashboard({
       )}
       <section aria-labelledby="quick-actions">
         <h2 id="quick-actions">Ações rápidas</h2>
-        <div className="quick-actions">
+        <div className={`quick-actions${today ? " quick-actions-compact" : ""}`}>
           {actions.map((action) =>
             action.href ? (
               <Link
