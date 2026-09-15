@@ -256,6 +256,16 @@ body {
   background: #082553;
 }
 
+.vivance-panel-quiet {
+  border: 1px solid #e6edf6;
+  background: #ffffff;
+  box-shadow: 0 8px 24px color-mix(in srgb, #03132d 4%, transparent);
+}
+
+.vivance-rail-line {
+  background: linear-gradient(to bottom, #c9dbf6, #dbe4f0);
+}
+
 #doctor-workspace-content :where(a, button, summary, select, input, textarea):focus-visible {
   outline: 2px solid #124da0;
   outline-offset: 2px;
