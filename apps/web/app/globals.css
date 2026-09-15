@@ -2335,6 +2335,18 @@ button.calendar-day[aria-pressed="true"] {
   margin-bottom: 22px;
   border-radius: 16px;
 }
+.patient-record-facts {
+  margin: 0 0 22px;
+  border-top: 1px solid var(--border);
+  border-radius: 16px;
+}
+.patient-record-facts dd a {
+  color: var(--navy);
+  text-decoration: none;
+}
+.patient-record-facts dd a:hover {
+  text-decoration: underline;
+}
 .patient-shell-grid {
   display: grid;
   grid-template-columns: 224px minmax(0, 1fr);

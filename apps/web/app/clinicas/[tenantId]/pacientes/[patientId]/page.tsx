@@ -47,10 +47,9 @@ export default async function Patient({
     clinicalArea && active === "Visão geral"
       ? await getSubmittedPatientOnboarding(tenantId, patientId)
       : null;
-  const care =
-    clinicalArea && active === "Visão geral"
-      ? await patientCareContext(tenantId, patientId)
-      : null;
+  const care = clinicalArea
+    ? await patientCareContext(tenantId, patientId)
+    : null;
   const longitudinal =
     clinicalArea && ["Linha do tempo", "Evolução"].includes(active)
       ? await staffLongitudinal(tenantId, patientId, {
@@ -97,7 +96,9 @@ export default async function Patient({
               : "Nascimento não informado"}
           </p>
         </div>
-        <span className="appointment-status scheduled">Cadastro ativo</span>
+        {care ? null : (
+          <span className="appointment-status scheduled">Cadastro ativo</span>
+        )}
         {clinicalArea && (
           <nav
             className="patient-record-actions"
@@ -109,6 +110,50 @@ export default async function Patient({
           </nav>
         )}
       </header>
+      {care && (
+        <dl
+          className="encounter-context-strip patient-record-facts"
+          aria-label="Contexto de cuidado do paciente"
+        >
+          <div>
+            <dt>Vínculo</dt>
+            <dd>Vínculo ativo</dd>
+          </div>
+          <div>
+            <dt>Última consulta</dt>
+            <dd>
+              {care.encounter ? (
+                <Link
+                  href={`/clinicas/${tenantId}/atendimentos/${care.encounter.id}`}
+                >
+                  Finalizada em{" "}
+                  {new Date(care.encounter.finalized_at!).toLocaleDateString(
+                    "pt-BR",
+                    { timeZone: "America/Sao_Paulo" },
+                  )}
+                </Link>
+              ) : (
+                "Nenhum registro finalizado"
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt>Plano de cuidado</dt>
+            <dd>
+              {care.publications[0] ? (
+                <Link
+                  href={`/clinicas/${tenantId}/planos/${care.publications[0].plan_id}`}
+                >
+                  {care.publications[0].title} · revisão{" "}
+                  {care.publications[0].revision}
+                </Link>
+              ) : (
+                "Nenhum plano publicado"
+              )}
+            </dd>
+          </div>
+        </dl>
+      )}
       <ModuleTabs tabs={tabs} active={active} base={recordBase} />
       {active === "Visão geral" ? (
         <>
