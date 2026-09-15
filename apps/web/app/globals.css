@@ -2340,6 +2340,12 @@ button.calendar-day[aria-pressed="true"] {
   border-top: 1px solid var(--border);
   border-radius: 16px;
 }
+.patient-record-facts dd {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: unset;
+  line-height: 1.35;
+}
 .patient-record-facts dd a {
   color: var(--navy);
   text-decoration: none;
