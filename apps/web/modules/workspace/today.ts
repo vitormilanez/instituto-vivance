@@ -5,6 +5,9 @@ import { clinicDate } from "@/modules/agenda/validation";
 import { focusedAppointment } from "@/modules/agenda/focus";
 import { requestInstant } from "@/lib/request-time";
 
+const appointmentFields =
+  "id, patient_id, doctor_id, doctor_display_name, starts_at, ends_at, kind, status, version, started_at, completed_at, cancelled_at, no_show_at, patients!appointments_tenant_id_patient_id_fkey(display_name)" as const;
+
 // Read-only composition. Existing RLS remains the authority for every record.
 export async function todayWorkspace(id: string) {
   const now = requestInstant().toISOString(),
@@ -15,7 +18,20 @@ export async function todayWorkspace(id: string) {
     requireClinic(id, ["doctor", "nurse"]),
     listAppointments(id, today, tomorrow.toISOString().slice(0, 10)),
   ]);
-  const next = focusedAppointment(agenda.appointments, now, today);
+  let next = focusedAppointment(agenda.appointments, now, today);
+  if (!next) {
+    const future = await client
+      .from("appointments")
+      .select(appointmentFields)
+      .eq("tenant_id", id)
+      .eq("status", "scheduled")
+      .gt("starts_at", now)
+      .order("starts_at")
+      .order("id")
+      .limit(1);
+    if (future.error) throw new Error("Unable to load next appointment");
+    next = future.data?.[0] ?? null;
+  }
   const [drafts, checkIns, preparations] = await Promise.all([
     client
       .from("encounters")
@@ -54,6 +70,7 @@ export async function todayWorkspace(id: string) {
   return {
     ...agenda,
     next,
+    nextDate: next ? clinicDate(new Date(next.starts_at)) : null,
     context,
     drafts: drafts.data ?? [],
     checkIns: checkIns.data ?? [],
