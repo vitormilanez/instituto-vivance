@@ -145,6 +145,18 @@ export default async function Patient({
               )}
             </dd>
           </div>
+          <div>
+            <dt>Próxima consulta</dt>
+            <dd>
+              {headerFacts.nextAppointmentHref ? (
+                <Link href={headerFacts.nextAppointmentHref}>
+                  {headerFacts.nextAppointmentLabel}
+                </Link>
+              ) : (
+                "Nenhuma consulta agendada"
+              )}
+            </dd>
+          </div>
         </dl>
       )}
       <ModuleTabs tabs={tabs} active={active} base={recordBase} />

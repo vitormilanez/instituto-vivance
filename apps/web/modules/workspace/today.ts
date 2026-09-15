@@ -83,6 +83,7 @@ export async function todayWorkspace(id: string) {
 export type PatientCareContext = {
   relationshipId: string;
   encounter: { id: string; finalized_at: string | null } | null;
+  nextAppointment: { id: string; starts_at: string; status: string } | null;
   publications: {
     id: string;
     plan_id: string;
@@ -110,7 +111,8 @@ export async function patientCareContext(
   // A scheduled or assigned appointment is not yet clinical authorization.
   // Keep the focus appointment, but do not provide a fallback patient link.
   if (!relationship.data) return null;
-  const [encounter, publications] = await Promise.all([
+  const now = requestInstant().toISOString();
+  const [encounter, nextAppointment, publications] = await Promise.all([
     client
       .from("encounters")
       .select("id,finalized_at")
@@ -118,6 +120,16 @@ export async function patientCareContext(
       .eq("patient_id", patientId)
       .eq("status", "finalized")
       .order("finalized_at", { ascending: false })
+      .order("id")
+      .limit(1),
+    client
+      .from("appointments")
+      .select("id,starts_at,status")
+      .eq("tenant_id", id)
+      .eq("patient_id", patientId)
+      .eq("status", "scheduled")
+      .gt("starts_at", now)
+      .order("starts_at")
       .order("id")
       .limit(1),
     client
@@ -130,11 +142,12 @@ export async function patientCareContext(
       .order("id")
       .limit(6),
   ]);
-  if (encounter.error || publications.error)
+  if (encounter.error || nextAppointment.error || publications.error)
     throw new Error("Unable to load patient care context");
   return {
     relationshipId: relationship.data.id,
     encounter: encounter.data?.[0] ?? null,
+    nextAppointment: nextAppointment.data?.[0] ?? null,
     publications: publications.data ?? [],
   };
 }
