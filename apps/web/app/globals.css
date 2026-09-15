@@ -859,6 +859,18 @@ input {
   gap: 10px;
   margin: 16px 0;
 }
+.badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
 .appointment-status {
   display: inline-flex;
   width: fit-content;
