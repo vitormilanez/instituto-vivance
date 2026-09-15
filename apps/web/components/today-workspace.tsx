@@ -320,7 +320,11 @@ export function TodayWorkspace({
                     </p>
                   </div>
                   {a.id === next?.id && (
-                    <span className="badge">
+                    <span
+                      className={`badge appointment-status ${
+                        a.status === "in_progress" ? "in-progress" : "scheduled"
+                      }`}
+                    >
                       {a.status === "in_progress" ? "Em andamento" : "Próxima"}
                     </span>
                   )}
