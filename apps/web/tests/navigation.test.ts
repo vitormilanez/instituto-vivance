@@ -77,6 +77,24 @@ test("today preserves the focused patient when opening the record and documents"
   assert.match(workspace, /density="compact"/);
 });
 
+test("today falls forward to the next scheduled day without changing today's list", () => {
+  const service = readFileSync(
+    new URL("../modules/workspace/today.ts", import.meta.url),
+    "utf8",
+  );
+  const workspace = readFileSync(
+    new URL("../components/today-workspace.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(service, /if \(!next\)/);
+  assert.match(service, /\.eq\("status", "scheduled"\)/);
+  assert.match(service, /\.gt\("starts_at", now\)/);
+  assert.match(service, /nextDate: next \? clinicDate/);
+  assert.match(workspace, /Amanhã, \$\{formatted\}/);
+  assert.match(workspace, /agenda\?data=\$\{nextDate\}/);
+  assert.match(workspace, /Consultas de hoje/);
+});
+
 test("header displays only the RLS-backed unread notice counter", () => {
   const shell = readFileSync(
     new URL("../components/clinic-shell.tsx", import.meta.url),
