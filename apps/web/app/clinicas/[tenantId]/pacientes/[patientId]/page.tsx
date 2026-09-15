@@ -117,7 +117,7 @@ export default async function Patient({
         >
           <div>
             <dt>Vínculo</dt>
-            <dd>Vínculo ativo</dd>
+            <dd>{care.relationshipId ? "Vínculo ativo" : "Vínculo não confirmado"}</dd>
           </div>
           <div>
             <dt>Última consulta</dt>
