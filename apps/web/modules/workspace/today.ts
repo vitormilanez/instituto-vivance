@@ -80,7 +80,22 @@ export async function todayWorkspace(id: string) {
   };
 }
 
-export async function patientCareContext(id: string, patientId: string) {
+export type PatientCareContext = {
+  relationshipId: string;
+  encounter: { id: string; finalized_at: string | null } | null;
+  publications: {
+    id: string;
+    plan_id: string;
+    title: string;
+    revision: number;
+    published_at: string | null;
+  }[];
+};
+
+export async function patientCareContext(
+  id: string,
+  patientId: string,
+): Promise<PatientCareContext | null> {
   const { client, user } = await requireClinic(id, ["doctor", "nurse"]);
   const relationship = await client
     .from("care_relationships")

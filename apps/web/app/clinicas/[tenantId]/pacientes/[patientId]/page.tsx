@@ -9,6 +9,7 @@ import { ClinicShell } from "@/components/clinic-shell";
 import { ModuleTabs } from "@/components/module-ui";
 import { selectedTab } from "@/modules/workspace/navigation";
 import { patientCareContext } from "@/modules/workspace/today";
+import { patientHeaderFacts } from "@/modules/workspace/patient-header-facts";
 import { PatientCareLinks } from "@/components/today-workspace";
 import { StaffLongitudinalWorkspace } from "@/components/longitudinal-workspace";
 import { CheckInError } from "@/modules/check-ins/service";
@@ -50,6 +51,7 @@ export default async function Patient({
   const care = clinicalArea
     ? await patientCareContext(tenantId, patientId)
     : null;
+  const headerFacts = patientHeaderFacts(care, tenantId);
   const longitudinal =
     clinicalArea && ["Linha do tempo", "Evolução"].includes(active)
       ? await staffLongitudinal(tenantId, patientId, {
@@ -96,8 +98,10 @@ export default async function Patient({
               : "Nascimento não informado"}
           </p>
         </div>
-        {care ? null : (
-          <span className="appointment-status scheduled">Cadastro ativo</span>
+        {headerFacts ? null : (
+          <span className="appointment-status scheduled">
+            Cadastro disponível
+          </span>
         )}
         {clinicalArea && (
           <nav
@@ -110,27 +114,21 @@ export default async function Patient({
           </nav>
         )}
       </header>
-      {care && (
+      {headerFacts && (
         <dl
           className="encounter-context-strip patient-record-facts"
           aria-label="Contexto de cuidado do paciente"
         >
           <div>
             <dt>Vínculo</dt>
-            <dd>{care.relationshipId ? "Vínculo ativo" : "Vínculo não confirmado"}</dd>
+            <dd>{headerFacts.relationshipLabel}</dd>
           </div>
           <div>
             <dt>Última consulta</dt>
             <dd>
-              {care.encounter ? (
-                <Link
-                  href={`/clinicas/${tenantId}/atendimentos/${care.encounter.id}`}
-                >
-                  Finalizada em{" "}
-                  {new Date(care.encounter.finalized_at!).toLocaleDateString(
-                    "pt-BR",
-                    { timeZone: "America/Sao_Paulo" },
-                  )}
+              {headerFacts.encounterHref ? (
+                <Link href={headerFacts.encounterHref}>
+                  {headerFacts.encounterLabel}
                 </Link>
               ) : (
                 "Nenhum registro finalizado"
@@ -140,13 +138,8 @@ export default async function Patient({
           <div>
             <dt>Plano de cuidado</dt>
             <dd>
-              {care.publications[0] ? (
-                <Link
-                  href={`/clinicas/${tenantId}/planos/${care.publications[0].plan_id}`}
-                >
-                  {care.publications[0].title} · revisão{" "}
-                  {care.publications[0].revision}
-                </Link>
+              {headerFacts.planHref ? (
+                <Link href={headerFacts.planHref}>{headerFacts.planLabel}</Link>
               ) : (
                 "Nenhum plano publicado"
               )}
