@@ -101,6 +101,7 @@ export async function patientCareContext(id: string, patientId: string) {
   if (encounter.error || publications.error)
     throw new Error("Unable to load patient care context");
   return {
+    relationshipId: relationship.data.id,
     encounter: encounter.data?.[0] ?? null,
     publications: publications.data ?? [],
   };
