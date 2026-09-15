@@ -2814,7 +2814,10 @@ button.calendar-day[aria-pressed="true"] {
 .today-next-summary .patient-avatar-xl { border:1px solid rgba(255,255,255,.2); background:#e5eef9; color:var(--navy); }
 .today-consultation-meta { display:flex; gap:10px 20px; flex-wrap:wrap; padding:14px 0; border-top:1px solid rgba(255,255,255,.13); border-bottom:1px solid rgba(255,255,255,.13); color:#bed0e7; font-size:13px; }
 .today-consultation-meta strong { color:#fff; font-variant-numeric:tabular-nums; }
-.today-consultation-meta span:last-child { color:#a9bfda; }
+.today-consultation-when { display:grid; gap:3px; min-width:min(100%,230px); }
+.today-consultation-when > span { color:#d7e6f8; font-weight:700; }
+.today-consultation-doctor { align-self:end; color:#bed0e7; }
+.today-consultation-mode { align-self:end; color:#a9bfda; }
 .today-context { margin:0; padding:24px 28px 28px; }
 .today-context > h3 { margin:0; font-size:18px; letter-spacing:-.02em; }
 .today-context > p { max-width:62ch; margin:6px 0 16px; color:#60708a; font-size:13px; }

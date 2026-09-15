@@ -10,6 +10,19 @@ const time = (date: string) =>
     hour: "2-digit",
     minute: "2-digit",
   });
+const nextDayLabel = (date: string, today: string) => {
+  const tomorrow = new Date(`${today}T12:00:00Z`);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  const formatted = new Date(`${date}T12:00:00Z`).toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+  });
+  return date === tomorrow.toISOString().slice(0, 10)
+    ? `Amanhã, ${formatted}`
+    : formatted;
+};
 const states: Record<string, string> = {
   scheduled: "Agendado",
   in_progress: "Em atendimento",
@@ -102,6 +115,8 @@ export function TodayWorkspace({
   data: Awaited<ReturnType<typeof todayWorkspace>>;
 }) {
   const { next } = data;
+  const nextDate = data.nextDate ?? data.today;
+  const isFutureDay = Boolean(next && nextDate !== data.today);
   const active = next && data.drafts.find((p) => p.appointment_id === next.id);
   const attentionCount = data.checkIns.length + data.drafts.length + data.preparations.length;
   return (
@@ -154,22 +169,33 @@ export function TodayWorkspace({
                   </div>
                 </div>
                 <div className="today-consultation-meta">
-                  <strong>
-                    {time(next.starts_at)}–{time(next.ends_at)}
-                  </strong>
-                  <span>{next.doctor_display_name}</span>
-                  <span>Atendimento manual disponível</span>
+                  <div className="today-consultation-when">
+                    {isFutureDay && (
+                      <span>{nextDayLabel(nextDate, data.today)}</span>
+                    )}
+                    <strong>
+                      {time(next.starts_at)}–{time(next.ends_at)}
+                    </strong>
+                  </div>
+                  <span className="today-consultation-doctor">
+                    {next.doctor_display_name}
+                  </span>
+                  <span className="today-consultation-mode">
+                    Atendimento manual disponível
+                  </span>
                 </div>
                 <div className="today-primary-action">
                   <span>
-                    Revise o contexto disponível e siga para o atendimento.
+                    {isFutureDay
+                      ? "Sua próxima consulta já está agendada. Confira o dia e o horário."
+                      : "Revise o contexto disponível e siga para o atendimento."}
                   </span>
                   <Link
                     className="button"
                     href={
                       active
                         ? `${base}/atendimentos/${active.id}`
-                        : `${base}/agenda?data=${data.today}#consulta-${next.id}`
+                        : `${base}/agenda?data=${nextDate}#consulta-${next.id}`
                     }
                   >
                     {active ? "Retomar atendimento" : "Preparar atendimento"}
@@ -198,10 +224,9 @@ export function TodayWorkspace({
             <>
               <h2 id="next-title">Próxima consulta</h2>
               <div className="empty">
-                <h3>Nenhuma próxima consulta neste dia</h3>
+                <h3>Nenhuma consulta futura agendada</h3>
                 <p>
-                  Confira os horários abaixo ou organize a próxima consulta na
-                  Agenda.
+                  Organize o próximo atendimento na Agenda.
                 </p>
                 <Link className="button secondary" href={`${base}/agenda`}>
                   Organizar agenda
