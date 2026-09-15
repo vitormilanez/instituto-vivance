@@ -94,6 +94,13 @@
 }
 
 .preparation-card textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 12px;
+  border: 1px solid #98a9bf;
+  border-radius: 10px;
+  color: var(--ink);
+  font: inherit;
   resize: vertical;
 }
 
@@ -2903,6 +2910,7 @@ button.calendar-day[aria-pressed="true"] {
 .plan-approval textarea { width:100%; font:inherit; padding:12px; border:1px solid var(--border); border-radius:12px; color:var(--ink); resize:vertical; }
 .check-in-request summary { cursor:pointer; color:var(--navy); font-size:17px; font-weight:700; }
 .check-in-request form,.check-in-review { display:grid; gap:14px; margin-top:20px; }
+.check-in-request textarea { width:100%; min-height:96px; padding:12px; border:1px solid #98a9bf; border-radius:10px; color:var(--ink); font:inherit; resize:vertical; }
 .check-in-board { margin-top:28px; }
 .check-in-card { scroll-margin-top:110px; }
 .check-in-card:target { outline:2px solid #a7cec5; outline-offset:4px; }
