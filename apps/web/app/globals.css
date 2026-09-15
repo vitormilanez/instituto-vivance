@@ -3755,6 +3755,16 @@ button.calendar-day[aria-pressed="true"] {
   font-size: 14px;
   line-height: 1.45;
 }
+/* The second column is what the patient actually sees; keep it visually
+   distinct so approval (internal) is never mistaken for publication. */
+.plan-workflow > div:last-child,
+.report-workflow > div:last-child {
+  background: var(--blue-soft);
+}
+.plan-workflow > div:last-child strong,
+.report-workflow > div:last-child strong {
+  color: var(--blue);
+}
 .plan-workflow + .encounter-record {
   margin-top: 0;
 }

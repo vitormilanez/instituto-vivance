@@ -213,7 +213,11 @@ export function CarePlanEditor({ initial }: { initial: PlanDetail }) {
               a publicação ao paciente exige confirmação separada abaixo.
             </p>
           </div>
-          <span role="status" className="record-save-state">
+          <span
+            role="status"
+            aria-live="polite"
+            className={`record-save-state ${dirty ? "unsaved" : ""}`}
+          >
             {pending
               ? "Salvando…"
               : dirty
