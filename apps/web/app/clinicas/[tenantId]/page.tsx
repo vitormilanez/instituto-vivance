@@ -99,8 +99,11 @@ export default async function Dashboard({
           </section>
         </>
       )}
-      <section aria-labelledby="quick-actions">
-        <h2 id="quick-actions">Ações rápidas</h2>
+      <section className="quick-actions-section" aria-labelledby="quick-actions">
+        <div className="quick-actions-heading">
+          <h2 id="quick-actions">Ações rápidas</h2>
+          <p>Continue o cuidado pelo ponto certo, sem perder o contexto.</p>
+        </div>
         <div className={`quick-actions${today ? " quick-actions-compact" : ""}`}>
           {actions.map((action) =>
             action.href ? (
@@ -111,9 +114,7 @@ export default async function Dashboard({
               >
                 <strong>{action.title}</strong>
                 <span>{action.text}</span>
-                <span className="action-state">
-                  Abrir
-                </span>
+                <span className="action-state">Abrir</span>
               </Link>
             ) : (
               <div className="quick-action unavailable" key={action.title}>

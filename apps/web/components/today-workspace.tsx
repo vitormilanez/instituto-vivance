@@ -92,8 +92,8 @@ export function PatientCareLinks({
   );
 }
 
-// Prototype-led: consultation first, patient context next, human action, then the day.
-// Navy/white incumbent palette; green indicates the next consultation, never clinical risk.
+// Consultation first, patient context next, human action, then the day.
+// Navy is structural; clinical state is always stated in text.
 export function TodayWorkspace({
   base,
   data,
@@ -126,53 +126,55 @@ export function TodayWorkspace({
       </div>
       <div className="today-workspace">
         <section className="panel today-next" aria-labelledby="next-title">
-          <h2 id="next-title">
-            {next?.status === "in_progress"
-              ? "Atendimento em andamento"
-              : "Próxima consulta"}
-          </h2>
           {next ? (
             <>
-              <div className="today-patient">
-                <span
-                  className="patient-avatar patient-avatar-xl"
-                  aria-hidden="true"
-                >
-                  {(next.patients?.display_name ?? "Paciente")
-                    .split(/\s+/)
-                    .slice(0, 2)
-                    .map((s) => s[0])
-                    .join("")}
-                </span>
-                <div>
-                  <h3>{next.patients?.display_name ?? "Paciente"}</h3>
-                  <p>
-                    {states[next.status]} ·{" "}
-                    {next.kind === "return" ? "Retorno" : "Consulta"}
-                  </p>
+              <div className="today-next-summary">
+                <div className="today-next-heading">
+                  <h2 id="next-title">
+                    {next.status === "in_progress"
+                      ? "Atendimento em andamento"
+                      : "Próxima consulta"}
+                  </h2>
+                  <span>{states[next.status]}</span>
                 </div>
-              </div>
-              <div className="today-consultation-meta">
-                <strong>
-                  {time(next.starts_at)}–{time(next.ends_at)}
-                </strong>
-                <span>{next.doctor_display_name}</span>
-                <span>Atendimento manual disponível</span>
-              </div>
-              <div className="today-primary-action">
-                <span>
-                  Revise o contexto disponível e siga para o atendimento.
-                </span>
-                <Link
-                  className="button"
-                  href={
-                    active
-                      ? `${base}/atendimentos/${active.id}`
-                      : `${base}/agenda?data=${data.today}#consulta-${next.id}`
-                  }
-                >
-                  {active ? "Retomar atendimento" : "Preparar atendimento"}
-                </Link>
+                <div className="today-patient">
+                  <span
+                    className="patient-avatar patient-avatar-xl"
+                    aria-hidden="true"
+                  >
+                    {(next.patients?.display_name ?? "Paciente")
+                      .split(/\s+/)
+                      .slice(0, 2)
+                      .map((s) => s[0])
+                      .join("")}
+                  </span>
+                  <div>
+                    <h3>{next.patients?.display_name ?? "Paciente"}</h3>
+                    <p>{next.kind === "return" ? "Retorno" : "Consulta"}</p>
+                  </div>
+                </div>
+                <div className="today-consultation-meta">
+                  <strong>
+                    {time(next.starts_at)}–{time(next.ends_at)}
+                  </strong>
+                  <span>{next.doctor_display_name}</span>
+                  <span>Atendimento manual disponível</span>
+                </div>
+                <div className="today-primary-action">
+                  <span>
+                    Revise o contexto disponível e siga para o atendimento.
+                  </span>
+                  <Link
+                    className="button"
+                    href={
+                      active
+                        ? `${base}/atendimentos/${active.id}`
+                        : `${base}/agenda?data=${data.today}#consulta-${next.id}`
+                    }
+                  >
+                    {active ? "Retomar atendimento" : "Preparar atendimento"}
+                  </Link>
+                </div>
               </div>
               <div className="today-context">
                 <h3>Contexto para esta consulta</h3>
@@ -193,16 +195,19 @@ export function TodayWorkspace({
               </div>
             </>
           ) : (
-            <div className="empty">
-              <h3>Nenhuma próxima consulta neste dia</h3>
-              <p>
-                Confira os horários abaixo ou organize a próxima consulta na
-                Agenda.
-              </p>
-              <Link className="button secondary" href={`${base}/agenda`}>
-                Organizar agenda
-              </Link>
-            </div>
+            <>
+              <h2 id="next-title">Próxima consulta</h2>
+              <div className="empty">
+                <h3>Nenhuma próxima consulta neste dia</h3>
+                <p>
+                  Confira os horários abaixo ou organize a próxima consulta na
+                  Agenda.
+                </p>
+                <Link className="button secondary" href={`${base}/agenda`}>
+                  Organizar agenda
+                </Link>
+              </div>
+            </>
           )}
         </section>
         <aside
