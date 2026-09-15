@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { patientHeaderFacts } from "../modules/workspace/patient-header-facts.ts";
 
 const page = readFileSync(
   new URL("../app/clinicas/[tenantId]/pacientes/[patientId]/page.tsx", import.meta.url),
@@ -26,6 +27,85 @@ test("individual document reads verify the active care relationship", () => {
   assert.match(
     documents,
     /if \(patient && !patients\.some\(\(item\) => item\.id === patient\)\)/,
+  );
+});
+
+test("patient header shows no facts strip without an active care relationship", () => {
+  assert.equal(patientHeaderFacts(null, "tenant-1"), null);
+});
+
+test("patient header states an active link honestly even with no consultation or plan yet", () => {
+  assert.deepEqual(
+    patientHeaderFacts(
+      {
+        relationshipId: "rel-1",
+        encounter: null,
+        nextAppointment: null,
+        publications: [],
+      },
+      "tenant-1",
+    ),
+    {
+      relationshipLabel: "Vínculo ativo",
+      encounterHref: null,
+      encounterLabel: null,
+      nextAppointmentHref: null,
+      nextAppointmentLabel: null,
+      planHref: null,
+      planLabel: null,
+    },
+  );
+});
+
+test("patient header links to the real finalized encounter and published plan", () => {
+  assert.deepEqual(
+    patientHeaderFacts(
+      {
+        relationshipId: "rel-1",
+        encounter: { id: "enc-1", finalized_at: "2026-09-10T12:00:00.000Z" },
+        nextAppointment: null,
+        publications: [
+          {
+            id: "pub-1",
+            plan_id: "plan-1",
+            title: "Plano alimentar",
+            revision: 2,
+            published_at: "2026-09-01T00:00:00.000Z",
+          },
+        ],
+      },
+      "tenant-1",
+    ),
+    {
+      relationshipLabel: "Vínculo ativo",
+      encounterHref: "/clinicas/tenant-1/atendimentos/enc-1",
+      encounterLabel: "Finalizada em 10/09/2026",
+      nextAppointmentHref: null,
+      nextAppointmentLabel: null,
+      planHref: "/clinicas/tenant-1/planos/plan-1",
+      planLabel: "Plano alimentar · revisão 2",
+    },
+  );
+});
+
+test("patient header links to the next scheduled appointment", () => {
+  const facts = patientHeaderFacts(
+    {
+      relationshipId: "rel-1",
+      encounter: null,
+      nextAppointment: {
+        id: "appointment-1",
+        starts_at: "2026-09-20T13:30:00.000Z",
+        status: "scheduled",
+      },
+      publications: [],
+    },
+    "tenant-1",
+  );
+  assert.equal(facts?.nextAppointmentLabel, "20/09/2026 às 10:30");
+  assert.equal(
+    facts?.nextAppointmentHref,
+    "/clinicas/tenant-1/agenda?data=2026-09-20#consulta-appointment-1",
   );
 });
 

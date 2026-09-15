@@ -5,6 +5,9 @@ import { clinicDate } from "@/modules/agenda/validation";
 import { focusedAppointment } from "@/modules/agenda/focus";
 import { requestInstant } from "@/lib/request-time";
 
+const appointmentFields =
+  "id, patient_id, doctor_id, doctor_display_name, starts_at, ends_at, kind, status, version, started_at, completed_at, cancelled_at, no_show_at, patients!appointments_tenant_id_patient_id_fkey(display_name)" as const;
+
 // Read-only composition. Existing RLS remains the authority for every record.
 export async function todayWorkspace(id: string) {
   const now = requestInstant().toISOString(),
@@ -15,7 +18,20 @@ export async function todayWorkspace(id: string) {
     requireClinic(id, ["doctor", "nurse"]),
     listAppointments(id, today, tomorrow.toISOString().slice(0, 10)),
   ]);
-  const next = focusedAppointment(agenda.appointments, now, today);
+  let next = focusedAppointment(agenda.appointments, now, today);
+  if (!next) {
+    const future = await client
+      .from("appointments")
+      .select(appointmentFields)
+      .eq("tenant_id", id)
+      .eq("status", "scheduled")
+      .gt("starts_at", now)
+      .order("starts_at")
+      .order("id")
+      .limit(1);
+    if (future.error) throw new Error("Unable to load next appointment");
+    next = future.data?.[0] ?? null;
+  }
   const [drafts, checkIns, preparations] = await Promise.all([
     client
       .from("encounters")
@@ -54,6 +70,7 @@ export async function todayWorkspace(id: string) {
   return {
     ...agenda,
     next,
+    nextDate: next ? clinicDate(new Date(next.starts_at)) : null,
     context,
     drafts: drafts.data ?? [],
     checkIns: checkIns.data ?? [],
@@ -63,7 +80,23 @@ export async function todayWorkspace(id: string) {
   };
 }
 
-export async function patientCareContext(id: string, patientId: string) {
+export type PatientCareContext = {
+  relationshipId: string;
+  encounter: { id: string; finalized_at: string | null } | null;
+  nextAppointment: { id: string; starts_at: string; status: string } | null;
+  publications: {
+    id: string;
+    plan_id: string;
+    title: string;
+    revision: number;
+    published_at: string | null;
+  }[];
+};
+
+export async function patientCareContext(
+  id: string,
+  patientId: string,
+): Promise<PatientCareContext | null> {
   const { client, user } = await requireClinic(id, ["doctor", "nurse"]);
   const relationship = await client
     .from("care_relationships")
@@ -78,7 +111,8 @@ export async function patientCareContext(id: string, patientId: string) {
   // A scheduled or assigned appointment is not yet clinical authorization.
   // Keep the focus appointment, but do not provide a fallback patient link.
   if (!relationship.data) return null;
-  const [encounter, publications] = await Promise.all([
+  const now = requestInstant().toISOString();
+  const [encounter, nextAppointment, publications] = await Promise.all([
     client
       .from("encounters")
       .select("id,finalized_at")
@@ -86,6 +120,16 @@ export async function patientCareContext(id: string, patientId: string) {
       .eq("patient_id", patientId)
       .eq("status", "finalized")
       .order("finalized_at", { ascending: false })
+      .order("id")
+      .limit(1),
+    client
+      .from("appointments")
+      .select("id,starts_at,status")
+      .eq("tenant_id", id)
+      .eq("patient_id", patientId)
+      .eq("status", "scheduled")
+      .gt("starts_at", now)
+      .order("starts_at")
       .order("id")
       .limit(1),
     client
@@ -98,10 +142,12 @@ export async function patientCareContext(id: string, patientId: string) {
       .order("id")
       .limit(6),
   ]);
-  if (encounter.error || publications.error)
+  if (encounter.error || nextAppointment.error || publications.error)
     throw new Error("Unable to load patient care context");
   return {
+    relationshipId: relationship.data.id,
     encounter: encounter.data?.[0] ?? null,
+    nextAppointment: nextAppointment.data?.[0] ?? null,
     publications: publications.data ?? [],
   };
 }

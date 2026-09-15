@@ -9,6 +9,7 @@ import { ClinicShell } from "@/components/clinic-shell";
 import { ModuleTabs } from "@/components/module-ui";
 import { selectedTab } from "@/modules/workspace/navigation";
 import { patientCareContext } from "@/modules/workspace/today";
+import { patientHeaderFacts } from "@/modules/workspace/patient-header-facts";
 import { PatientCareLinks } from "@/components/today-workspace";
 import { StaffLongitudinalWorkspace } from "@/components/longitudinal-workspace";
 import { CheckInError } from "@/modules/check-ins/service";
@@ -47,10 +48,10 @@ export default async function Patient({
     clinicalArea && active === "Visão geral"
       ? await getSubmittedPatientOnboarding(tenantId, patientId)
       : null;
-  const care =
-    clinicalArea && active === "Visão geral"
-      ? await patientCareContext(tenantId, patientId)
-      : null;
+  const care = clinicalArea
+    ? await patientCareContext(tenantId, patientId)
+    : null;
+  const headerFacts = patientHeaderFacts(care, tenantId);
   const longitudinal =
     clinicalArea && ["Linha do tempo", "Evolução"].includes(active)
       ? await staffLongitudinal(tenantId, patientId, {
@@ -97,7 +98,11 @@ export default async function Patient({
               : "Nascimento não informado"}
           </p>
         </div>
-        <span className="appointment-status scheduled">Cadastro ativo</span>
+        {headerFacts ? null : (
+          <span className="appointment-status scheduled">
+            Cadastro disponível
+          </span>
+        )}
         {clinicalArea && (
           <nav
             className="patient-record-actions"
@@ -109,6 +114,51 @@ export default async function Patient({
           </nav>
         )}
       </header>
+      {headerFacts && (
+        <dl
+          className="encounter-context-strip patient-record-facts"
+          aria-label="Contexto de cuidado do paciente"
+        >
+          <div>
+            <dt>Vínculo</dt>
+            <dd>{headerFacts.relationshipLabel}</dd>
+          </div>
+          <div>
+            <dt>Última consulta</dt>
+            <dd>
+              {headerFacts.encounterHref ? (
+                <Link href={headerFacts.encounterHref}>
+                  {headerFacts.encounterLabel}
+                </Link>
+              ) : (
+                "Nenhum registro finalizado"
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt>Plano de cuidado</dt>
+            <dd>
+              {headerFacts.planHref ? (
+                <Link href={headerFacts.planHref}>{headerFacts.planLabel}</Link>
+              ) : (
+                "Nenhum plano publicado"
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt>Próxima consulta</dt>
+            <dd>
+              {headerFacts.nextAppointmentHref ? (
+                <Link href={headerFacts.nextAppointmentHref}>
+                  {headerFacts.nextAppointmentLabel}
+                </Link>
+              ) : (
+                "Nenhuma consulta agendada"
+              )}
+            </dd>
+          </div>
+        </dl>
+      )}
       <ModuleTabs tabs={tabs} active={active} base={recordBase} />
       {active === "Visão geral" ? (
         <>

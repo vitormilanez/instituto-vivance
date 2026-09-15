@@ -100,7 +100,7 @@ export async function ClinicShell({
         title={activeLabel}
         context={`${clinic.name} · ${roleLabels[clinic.role]}`}
       />
-      <div className="workspace">
+      <div className={`workspace workspace-${clinic.role}`}>
         <aside className="workspace-nav">
           <div className="workspace-identity">
             <span className="workspace-avatar" aria-hidden="true">
