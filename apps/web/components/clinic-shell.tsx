@@ -106,10 +106,14 @@ export async function ClinicShell({
   const secondaryActive = active !== "home" && secondaryLinkKeys.has(active);
   const activeLabel =
     links.find((link) => link.key === active)?.label ?? "Clínica";
-  // The member's own name when it exists; an honest fallback to the
-  // clinic's name (never a blank avatar) when it does not — this card
-  // identifies the signed-in person, not the clinic they are working in.
-  const identityName = clinic.displayName?.trim() || clinic.name;
+  // This card identifies the signed-in person, never the clinic. If an older
+  // membership has no display name, say so explicitly instead of borrowing
+  // the clinic name and presenting it as a person's identity.
+  const identityName =
+    clinic.displayName?.trim() ||
+    (clinic.role === "admin"
+      ? "Administrador não identificado"
+      : "Profissional não identificado");
   const identityInitials = identityName
     .split(/\s+/)
     .filter(Boolean)

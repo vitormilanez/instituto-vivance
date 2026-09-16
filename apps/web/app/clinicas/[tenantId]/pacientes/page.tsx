@@ -125,7 +125,7 @@ export default async function Patients({
                       </small>
                       {p.onboardingSubmittedAt && (
                         <span className="badge appointment-status completed patient-row-badge">
-                          Pré-consulta enviada
+                          Cadastro inicial enviado
                         </span>
                       )}
                     </span>

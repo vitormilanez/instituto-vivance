@@ -67,13 +67,6 @@ export default async function Dashboard({
       href: `${base}/equipe`,
     },
   ];
-  // The sidebar/dock already carries these; the shortcuts list only adds
-  // what is one level deeper, so the page never repeats its own navigation.
-  const primaryHrefs = new Set([
-    `${base}/pacientes`,
-    `${base}/agenda`,
-    `${base}/acompanhamento`,
-  ]);
   return (
     <ClinicShell clinic={context.clinic} active="home">
       {today ? (
@@ -120,31 +113,29 @@ export default async function Dashboard({
         </div>
         {today ? (
           <ul className="more-tools-list">
-            {actions
-              .filter((action) => !primaryHrefs.has(action.href))
-              .map((action) => (
-                <li key={action.title}>
-                  <Link className="more-tools-link" href={action.href}>
-                    <strong>{action.title}</strong>
-                    <span>{action.text}</span>
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 16 16"
-                      width="16"
-                      height="16"
-                    >
-                      <path
-                        d="M6 3.5 10.5 8 6 12.5"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </Link>
-                </li>
-              ))}
+            {actions.map((action) => (
+              <li key={action.title}>
+                <Link className="more-tools-link" href={action.href}>
+                  <strong>{action.title}</strong>
+                  <span>{action.text}</span>
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 16 16"
+                    width="16"
+                    height="16"
+                  >
+                    <path
+                      d="M6 3.5 10.5 8 6 12.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </Link>
+              </li>
+            ))}
           </ul>
         ) : (
           <div className="quick-actions">

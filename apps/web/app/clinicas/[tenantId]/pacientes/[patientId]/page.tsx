@@ -104,7 +104,7 @@ export default async function Patient({
               )}
               {onboarding && (
                 <span className="badge appointment-status completed">
-                  Pré-consulta enviada
+                  Cadastro inicial enviado
                 </span>
               )}
             </div>

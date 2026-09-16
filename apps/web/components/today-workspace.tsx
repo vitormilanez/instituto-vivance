@@ -139,8 +139,7 @@ export function TodayWorkspace({
   const attentionCount =
     data.checkIns.length +
     data.drafts.length +
-    data.preparations.length +
-    data.onboardingSubmissions.length;
+    data.preparations.length;
   return (
     <>
       <div className="page-heading today-page-heading">
@@ -265,16 +264,6 @@ export function TodayWorkspace({
           </p>
           {attentionCount ? (
             <ul>
-              {data.onboardingSubmissions.map((item) => (
-                <li key={item.id}>
-                  <span className="today-pending-label" data-kind="cadastro">Novo cadastro</span>
-                  <strong>{item.patients?.display_name ?? "Paciente"}</strong>
-                  <p>Primeiros passos enviados. Reveja o cadastro inicial antes da consulta.</p>
-                  <Link href={`${base}/pacientes/${item.patient_id}?aba=Vis%C3%A3o%20geral`}>
-                    Ver cadastro inicial
-                  </Link>
-                </li>
-              ))}
               {data.preparations.map((item) => (
                 <li key={item.id}>
                   <span className="today-pending-label" data-kind="preparo">Ação pendente</span>
@@ -293,18 +282,7 @@ export function TodayWorkspace({
                   </Link>
                 </li>
               ))}
-              {data.drafts
-                .slice(
-                  0,
-                  Math.max(
-                    0,
-                    5 -
-                      data.checkIns.length -
-                      data.preparations.length -
-                      data.onboardingSubmissions.length,
-                  ),
-                )
-                .map((p) => (
+              {data.drafts.map((p) => (
                   <li key={p.id}>
                     <span className="today-pending-label" data-kind="rascunho">Rascunho</span>
                     <strong>{p.patients?.display_name ?? "Paciente"}</strong>
@@ -319,7 +297,7 @@ export function TodayWorkspace({
             <div className="empty">
               <h3>Nenhuma pendência</h3>
               <p>
-                Novos cadastros, check-ins enviados e atendimentos em rascunho
+                Pré-consultas, check-ins enviados e atendimentos em rascunho
                 aparecerão aqui.
               </p>
             </div>

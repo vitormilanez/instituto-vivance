@@ -2062,7 +2062,7 @@ button {
   text-transform: uppercase;
 }
 .workspace-nav nav a {
-  min-height: 43px;
+  min-height: 44px;
   padding: 10px 12px;
   border-radius: 11px;
   color: #cad9eb;
@@ -2084,7 +2084,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 43px;
+  min-height: 44px;
   padding: 10px 12px;
   border-radius: 11px;
   color: #9fb8d8;
@@ -2310,8 +2310,9 @@ button.calendar-day[aria-pressed="true"] {
 .appointment-patient-link {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
   margin-top: 4px;
-  padding: 4px 0;
+  padding: 8px 0;
   color: var(--blue);
   font-size: 12px;
   font-weight: 700;
@@ -2332,7 +2333,7 @@ button.calendar-day[aria-pressed="true"] {
   gap: 7px;
 }
 .appointment-actions button {
-  min-height: 38px;
+  min-height: 44px;
   padding: 7px 11px;
   font-size: 12px;
 }
@@ -2558,6 +2559,7 @@ button.calendar-day[aria-pressed="true"] {
 }
 .patient-sidebar nav a:hover,
 .patient-sidebar nav a[aria-current="page"],
+.patient-sidebar nav a[data-group-current="true"],
 .patient-profile-link:hover,
 .patient-profile-link[aria-current="page"] {
   background: rgba(255, 255, 255, 0.14);
@@ -2579,7 +2581,7 @@ button.calendar-day[aria-pressed="true"] {
   border-left: 1px solid rgba(255, 255, 255, 0.16);
 }
 .patient-sidebar-subnav a {
-  min-height: 36px;
+  min-height: 44px;
   padding: 7px 12px;
   font-size: 13px;
   font-weight: 550;
@@ -4642,9 +4644,12 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
     line-height: 1.15;
     overflow-wrap: normal;
     white-space: nowrap;
+    min-width: 44px;
+    min-height: 44px;
+    box-sizing: border-box;
   }
   .staff-mobile-dock > a,
-  .staff-mobile-dock > details { flex: 1 1 auto; min-width: auto; }
+  .staff-mobile-dock > details { flex: 1 1 0; min-width: 44px; }
   .staff-mobile-dock > a,
   .staff-mobile-dock summary { padding-inline: 6px; }
   .staff-mobile-dock summary { list-style: none; }

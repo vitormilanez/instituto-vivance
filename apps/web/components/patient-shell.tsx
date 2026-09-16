@@ -20,6 +20,8 @@ export function PatientShell({
   const careSections = patientSections.filter(
     (section) => section.group === "cuidado" && section.slug !== "cuidado",
   );
+  const careSectionActive =
+    active === "cuidado" || careSections.some((section) => section.slug === active);
   return (
     <>
       <Header
@@ -38,13 +40,22 @@ export function PatientShell({
                 <Link
                   href={`${base}/${section.slug}`}
                   aria-current={active === section.slug ? "page" : undefined}
+                  data-group-current={
+                    section.slug === "cuidado" && careSectionActive
+                      ? "true"
+                      : undefined
+                  }
                 >
                   {section.title}
                 </Link>
                 {section.slug === "cuidado" && (
                   <span className="patient-sidebar-subnav">
                     {careSections.map((sub) => (
-                      <Link key={sub.slug} href={`${base}/${sub.slug}`}>
+                      <Link
+                        key={sub.slug}
+                        href={`${base}/${sub.slug}`}
+                        aria-current={active === sub.slug ? "page" : undefined}
+                      >
                         {sub.title}
                       </Link>
                     ))}
@@ -73,7 +84,12 @@ export function PatientShell({
           <Link
             key={section.slug}
             href={`${base}/${section.slug}`}
-            aria-current={active === section.slug ? "page" : undefined}
+            aria-current={
+              active === section.slug ||
+              (section.slug === "cuidado" && careSectionActive)
+                ? "page"
+                : undefined
+            }
           >
             {section.title}
           </Link>
