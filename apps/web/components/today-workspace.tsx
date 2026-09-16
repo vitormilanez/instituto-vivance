@@ -30,6 +30,24 @@ const states: Record<string, string> = {
   cancelled: "Cancelado",
   no_show: "Falta",
 };
+// Same status vocabulary the agenda already uses (appointment-status.*) —
+// never a risk/urgency color, just which of the five real states this is.
+const statusTone = (status: string) =>
+  status === "in_progress"
+    ? "in-progress"
+    : status === "completed"
+      ? "completed"
+      : status === "cancelled" || status === "no_show"
+        ? "cancelled"
+        : "scheduled";
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s) => s[0])
+    .join("")
+    .toUpperCase();
 
 export function PatientCareLinks({
   base,
@@ -154,18 +172,18 @@ export function TodayWorkspace({
                       ? "Atendimento em andamento"
                       : "Próxima consulta"}
                   </h2>
-                  <span>{states[next.status]}</span>
+                  <span
+                    className={`badge appointment-status ${statusTone(next.status)}`}
+                  >
+                    {states[next.status]}
+                  </span>
                 </div>
                 <div className="today-patient">
                   <span
                     className="patient-avatar patient-avatar-xl"
                     aria-hidden="true"
                   >
-                    {(next.patients?.display_name ?? "Paciente")
-                      .split(/\s+/)
-                      .slice(0, 2)
-                      .map((s) => s[0])
-                      .join("")}
+                    {initials(next.patients?.display_name ?? "Paciente")}
                   </span>
                   <div>
                     <h3>{next.patients?.display_name ?? "Paciente"}</h3>
@@ -257,7 +275,7 @@ export function TodayWorkspace({
             <ul>
               {data.onboardingSubmissions.map((item) => (
                 <li key={item.id}>
-                  <span className="today-pending-label">Novo cadastro</span>
+                  <span className="today-pending-label" data-kind="cadastro">Novo cadastro</span>
                   <strong>{item.patients?.display_name ?? "Paciente"}</strong>
                   <p>Primeiros passos enviados. Reveja o cadastro inicial antes da consulta.</p>
                   <Link href={`${base}/pacientes/${item.patient_id}?aba=Vis%C3%A3o%20geral`}>
@@ -267,7 +285,7 @@ export function TodayWorkspace({
               ))}
               {data.preparations.map((item) => (
                 <li key={item.id}>
-                  <span className="today-pending-label">Ação pendente</span>
+                  <span className="today-pending-label" data-kind="preparo">Ação pendente</span>
                   <strong>{item.patients?.display_name ?? "Paciente"}</strong>
                   <p>Pré-consulta enviada. Confira as respostas e as prioridades declaradas pela pessoa.</p>
                   <Link href={`${base}/preparo?solicitacao=${item.id}#preparo-${item.id}`}>Checar pré-consulta</Link>
@@ -275,7 +293,7 @@ export function TodayWorkspace({
               ))}
               {data.checkIns.map((item) => (
                 <li key={item.id}>
-                  <span className="today-pending-label">Check-in</span>
+                  <span className="today-pending-label" data-kind="checkin">Check-in</span>
                   <strong>{item.patients?.display_name ?? "Paciente"}</strong>
                   <p>Check-in enviado e aguardando revisão humana.</p>
                   <Link href={`${base}/acompanhamento#check-in-${item.id}`}>
@@ -296,7 +314,7 @@ export function TodayWorkspace({
                 )
                 .map((p) => (
                   <li key={p.id}>
-                    <span className="today-pending-label">Rascunho</span>
+                    <span className="today-pending-label" data-kind="rascunho">Rascunho</span>
                     <strong>{p.patients?.display_name ?? "Paciente"}</strong>
                     <p>Atendimento iniciado, ainda não finalizado.</p>
                     <Link href={`${base}/atendimentos/${p.id}`}>
@@ -334,6 +352,9 @@ export function TodayWorkspace({
                   className={a.id === next?.id ? "is-next" : undefined}
                 >
                   <time dateTime={a.starts_at}>{time(a.starts_at)}</time>
+                  <span className="patient-avatar" aria-hidden="true">
+                    {initials(a.patients?.display_name ?? "Paciente")}
+                  </span>
                   <div>
                     <Link
                       href={`${base}/agenda?data=${data.today}#consulta-${a.id}`}
@@ -346,11 +367,7 @@ export function TodayWorkspace({
                     </p>
                   </div>
                   {a.id === next?.id && (
-                    <span
-                      className={`badge appointment-status ${
-                        a.status === "in_progress" ? "in-progress" : "scheduled"
-                      }`}
-                    >
+                    <span className={`badge appointment-status ${statusTone(a.status)}`}>
                       {a.status === "in_progress" ? "Em andamento" : "Próxima"}
                     </span>
                   )}

@@ -75,7 +75,11 @@ export async function ClinicShell({
   const secondaryActive = active !== "home" && secondaryLinkKeys.has(active);
   const activeLabel =
     links.find((link) => link.key === active)?.label ?? "Clínica";
-  const clinicInitials = clinic.name
+  // The member's own name when it exists; an honest fallback to the
+  // clinic's name (never a blank avatar) when it does not — this card
+  // identifies the signed-in person, not the clinic they are working in.
+  const identityName = clinic.displayName?.trim() || clinic.name;
+  const identityInitials = identityName
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
@@ -96,10 +100,10 @@ export async function ClinicShell({
         <aside className="workspace-nav">
           <div className="workspace-identity">
             <span className="workspace-avatar" aria-hidden="true">
-              {clinicInitials}
+              {identityInitials}
             </span>
             <span>
-              <strong>{clinic.name}</strong>
+              <strong>{identityName}</strong>
               <small>{roleLabels[clinic.role]}</small>
             </span>
           </div>

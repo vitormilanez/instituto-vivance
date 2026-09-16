@@ -461,20 +461,6 @@ input {
   color: white;
   padding: 28px 16px;
 }
-.workspace-identity {
-  padding: 4px 12px 28px;
-  overflow-wrap: anywhere;
-}
-.workspace-identity strong {
-  display: block;
-  line-height: 1.4;
-}
-.workspace-identity span {
-  display: block;
-  color: #ced8e8;
-  font-size: 13px;
-  margin-top: 8px;
-}
 .workspace-nav nav {
   display: flex;
   flex-direction: column;
@@ -2002,6 +1988,16 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.045);
+  overflow-wrap: anywhere;
+}
+/* A previous, since-removed rule (.workspace-identity span) once matched
+   BOTH spans here — the avatar and the name/role wrapper — and forced the
+   avatar's initials to display:block in a near-invisible light gray. Pin
+   the avatar's own look so no future generic ".workspace-identity span"
+   rule can silently blank it out again. */
+.workspace-identity .workspace-avatar {
+  display: inline-grid;
+  color: var(--navy);
 }
 .workspace-avatar,
 .patient-avatar {
@@ -2015,6 +2011,8 @@ button {
   color: #173a67;
   font-size: 11px;
   font-weight: 800;
+  line-height: 1;
+  text-align: center;
   letter-spacing: 0.02em;
 }
 .workspace-avatar {
@@ -3040,23 +3038,25 @@ button.calendar-day[aria-pressed="true"] {
 .today-schedule { grid-area: schedule; }
 .today-next > h2, .today-attention h2, .today-schedule h2 { margin:0; color:#405c7e; font-size:12px; font-weight:750; letter-spacing:.1em; text-transform:uppercase; }
 .today-next > h2 { padding:24px 24px 0; }
-.today-next-summary { padding:24px; background:var(--navy); color:#fff; }
+/* Light, human card — a patient you are about to see, not an alert. A thin
+   navy top border keeps just enough priority to read as "the one that
+   matters right now" beside the queue, without a heavy dark fill. */
+.today-next-summary { padding:24px; background:#fff; border-top:3px solid var(--navy); }
 .today-next-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
-.today-next-heading h2 { margin:0; color:#b9d3f3; font-size:12px; font-weight:750; letter-spacing:.1em; text-transform:uppercase; }
-.today-next-heading > span { flex:none; padding:6px 9px; border:1px solid rgba(255,255,255,.18); border-radius:999px; color:#eaf2ff; font-size:11px; font-weight:700; }
+.today-next-heading h2 { margin:0; color:var(--blue); font-size:12px; font-weight:750; letter-spacing:.1em; text-transform:uppercase; }
 .today-patient { display:flex; align-items:center; gap:14px; margin:18px 0 16px; }
-.today-patient h3 { margin:0; color:#fff; font-size:clamp(21px,2.4vw,26px); font-weight:650; letter-spacing:-.03em; }
-.today-patient p { margin:4px 0 0; color:#bed0e7; }
-.today-next-summary .patient-avatar-xl { border:1px solid rgba(255,255,255,.2); background:#e5eef9; color:var(--navy); }
-.today-consultation-meta { display:flex; gap:10px 20px; flex-wrap:wrap; padding:12px 0; border-top:1px solid rgba(255,255,255,.13); border-bottom:1px solid rgba(255,255,255,.13); color:#bed0e7; font-size:13px; }
-.today-consultation-meta strong { color:#fff; font-variant-numeric:tabular-nums; }
+.today-patient h3 { margin:0; color:var(--ink); font-size:clamp(21px,2.4vw,26px); font-weight:650; letter-spacing:-.03em; }
+.today-patient p { margin:4px 0 0; color:var(--muted); }
+.today-next-summary .patient-avatar-xl { border:1px solid var(--border); }
+.today-consultation-meta { display:flex; gap:10px 20px; flex-wrap:wrap; padding:12px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); color:var(--muted); font-size:13px; }
+.today-consultation-meta strong { color:var(--ink); font-variant-numeric:tabular-nums; }
 .today-consultation-when { display:grid; gap:3px; min-width:min(100%,230px); }
-.today-consultation-when > span { color:#d7e6f8; font-weight:700; }
-.today-consultation-doctor { align-self:end; color:#bed0e7; }
-.today-consultation-mode { align-self:end; color:#a9bfda; }
+.today-consultation-when > span { color:var(--blue); font-weight:700; }
+.today-consultation-doctor { align-self:end; color:var(--muted); }
+.today-consultation-mode { align-self:end; color:var(--muted); }
 /* "Contexto para esta consulta" is a quiet list of links now, not a grid
    of bordered cards — same links, less visual weight next to the queue. */
-.today-context { margin:0; padding:18px 24px 22px; }
+.today-context { margin:0; padding:18px 24px 22px; border-top:1px solid var(--border); }
 .today-context > h3 { margin:0; font-size:15px; letter-spacing:-.01em; color:#405c7e; }
 .today-context > p { max-width:62ch; margin:4px 0 14px; color:#60708a; font-size:13px; }
 .care-context-links { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:10px; }
@@ -3068,9 +3068,7 @@ button.calendar-day[aria-pressed="true"] {
 .care-context-links > .care-context-plan { background:#f4faf8; border-color:#d6e9e3; }
 .care-context-links > .care-context-future { background:#fafbfd; }
 .today-primary-action { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; margin-top:18px; padding:0; border:0; background:transparent; }
-.today-primary-action > span { max-width:34ch; color:#bed0e7; font-size:12px; line-height:1.5; }
-.today-primary-action .button { border-color:#fff; background:#fff; color:var(--navy); box-shadow:0 10px 24px rgba(0,0,0,.2); }
-.today-primary-action .button:hover { background:#eaf2ff; }
+.today-primary-action > span { max-width:34ch; color:var(--muted); font-size:12px; line-height:1.5; }
 /* Para revisar: one consistent row style for every kind of pending item —
    a small kicker label, name, one-line detail, one action — so the queue
    scans as a single list instead of a mix of cards and plain rows. */
@@ -3082,17 +3080,24 @@ button.calendar-day[aria-pressed="true"] {
 .today-attention li p { font-size:13px; line-height:1.45; margin:4px 0 8px; color:#60708a; }
 .today-attention li a { color:var(--blue); font-size:13px; font-weight:700; text-underline-offset:3px; }
 .today-pending-label { display:block; margin:0 0 5px; color:#205ca8; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+/* Discrete color-by-kind, never by risk/urgency — same four calm hues,
+   whatever the item's actual content says. */
+.today-pending-label::before { content:""; display:inline-block; width:6px; height:6px; margin-right:6px; border-radius:50%; background:currentColor; vertical-align:middle; }
+.today-pending-label[data-kind="cadastro"] { color:var(--blue); }
+.today-pending-label[data-kind="preparo"] { color:#6b4fa8; }
+.today-pending-label[data-kind="checkin"] { color:#0a7ea4; }
+.today-pending-label[data-kind="rascunho"] { color:#52607a; }
 .today-attention .empty { padding:20px 0 4px; text-align:left; }
+/* A row per appointment — time, who, what and its state — the same shape
+   as the reference agenda, with the patient's own initials standing in for
+   the old decorative timeline dot. */
 .today-timeline { list-style:none; padding:0; margin:14px 0 0; }
-.today-timeline li { position:relative; display:grid; grid-template-columns:56px minmax(0,1fr) auto; gap:12px; align-items:center; min-height:60px; padding:11px 10px 11px 26px; }
-.today-timeline li::before { content:""; position:absolute; left:8px; top:50%; z-index:1; width:9px; height:9px; border:2px solid #7f9fca; border-radius:50%; background:#fff; transform:translateY(-50%); }
-.today-timeline li::after { content:""; position:absolute; left:12px; top:0; bottom:0; width:1px; background:#d8e3f0; }
-.today-timeline li:first-child::after { top:50%; }
-.today-timeline li:last-child::after { bottom:50%; }
+.today-timeline li { display:grid; grid-template-columns:52px auto minmax(0,1fr) auto; gap:12px; align-items:center; min-height:60px; padding:10px; border-top:1px solid #eef1f6; }
+.today-timeline li:first-child { border-top:0; }
 .today-timeline time { color:#243d5b; font-size:14px; font-weight:750; font-variant-numeric:tabular-nums; }
 .today-timeline p { margin:2px 0 0; font-size:13px; color:#60708a; }
-.today-timeline .is-next { background:var(--blue-soft); border-radius:12px; }
-.today-timeline .is-next::before { border-color:var(--blue); background:var(--blue); box-shadow:0 0 0 4px #dce9f8; }
+.today-timeline .is-next { background:var(--blue-soft); border-radius:12px; border-top-color:transparent; }
+.today-timeline .is-next + li { border-top-color:transparent; }
 .today-timeline a { color:var(--navy); }
 .appointment-row { scroll-margin-top:110px; }
 .calendar-schedule .appointment-row.is-next { background:var(--blue-soft); border-radius:12px; }
@@ -3112,7 +3117,7 @@ button.calendar-day[aria-pressed="true"] {
   .workspace-main { padding-bottom:110px; }
   .staff-mobile-dock { display:flex; position:fixed; z-index:30; bottom:12px; left:12px; right:12px; padding:8px; gap:3px; border:1px solid #bcd0ea; border-radius:22px; background:#f8fbff; box-shadow:0 10px 28px #03132d20; }
   .staff-mobile-dock > a,.staff-mobile-dock > details { flex:1; min-width:0; text-align:center; font-size:12px; }
-  .staff-mobile-dock > a,.staff-mobile-dock summary { display:block; padding:16px 3px; border-radius:14px; color:var(--navy); text-decoration:none; font-weight:650; cursor:pointer; }
+  .staff-mobile-dock > a,.staff-mobile-dock summary { display:block; padding:16px 3px; border-radius:14px; color:var(--navy); text-decoration:none; font-weight:650; cursor:pointer; overflow-wrap:anywhere; }
   .staff-mobile-dock > a[aria-current="page"] { background:var(--navy); color:white; }
   .staff-mobile-dock details > div { position:absolute; bottom:76px; left:0; right:0; padding:14px; background:white; border:1px solid var(--border); border-radius:16px; box-shadow:0 10px 28px #03132d20; max-height:65dvh; overflow:auto; text-align:left; }
   .staff-mobile-dock details a { display:block; padding:12px; color:var(--navy); }
@@ -3491,7 +3496,9 @@ button.calendar-day[aria-pressed="true"] {
 
 /* Task-first refinement for the physician workspace: "Mais ferramentas"
    sits below the day's priorities, visually quieter so it never competes
-   with próxima consulta / Para revisar / a agenda. */
+   with próxima consulta / Para revisar / a agenda. Its own dedicated
+   .more-tools-* classes (rather than reusing .quick-action) keep this
+   free to evolve without touching the admin "Ações rápidas" grid. */
 .quick-actions-section-secondary {
   margin-top: 8px;
   padding-top: 28px;
@@ -3505,37 +3512,78 @@ button.calendar-day[aria-pressed="true"] {
 .quick-actions-section-secondary .quick-actions-heading p {
   font-size: 12.5px;
 }
-.quick-actions-compact {
-  grid-template-columns:repeat(2,minmax(0,1fr));
+.more-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
+  margin-bottom: 36px;
 }
-.quick-actions-compact .quick-action {
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
-  grid-template-rows:auto auto;
-  gap:5px 18px;
-  min-height:88px;
-  padding:16px 18px;
-  background:#fff;
+.more-tools-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
   transition:
     transform 160ms ease-out,
     border-color 160ms ease-out,
     background-color 160ms ease-out;
 }
-.quick-actions-compact .quick-action:hover {
+a.more-tools-card:hover {
   transform: translateY(-2px);
   border-color: #9bb0c8;
-  background:var(--blue-soft);
+  background: var(--blue-soft);
 }
-.quick-actions-compact .quick-action > span:not(.action-state) {
-  max-width:38ch;
+.more-tools-card.unavailable {
+  background: #f0f4fa;
 }
-.quick-actions-compact .quick-action .action-state {
-  grid-column:2;
-  grid-row:1 / -1;
-  align-self:center;
-  margin:0;
-  padding:0;
+.more-tools-icon {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+}
+.more-tools-card.unavailable .more-tools-icon {
+  background: #e3e9f1;
+  color: var(--muted);
+}
+.more-tools-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+.more-tools-body strong {
+  font-size: 13px;
+}
+.more-tools-body span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.more-tools-state {
+  flex: 0 0 auto;
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 700;
+}
+.more-tools-card.unavailable .more-tools-state {
+  color: var(--muted);
+  font-weight: 400;
 }
 .quick-actions-heading {
   display:flex;
@@ -3807,6 +3855,9 @@ button.calendar-day[aria-pressed="true"] {
   .today-attention {
     order: initial;
   }
+  .more-tools-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 @media (max-width: 760px) {
   .patient-record-actions {
@@ -3864,10 +3915,7 @@ button.calendar-day[aria-pressed="true"] {
   .calendar-schedule {
     order: initial;
   }
-  .quick-actions-compact .quick-action {
-    min-height:86px;
-  }
-  .quick-actions-compact {
+  .more-tools-grid {
     grid-template-columns:minmax(0,1fr);
   }
   .quick-actions-heading {

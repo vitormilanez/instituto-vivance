@@ -113,27 +113,61 @@ export default async function Dashboard({
               : "Continue o cuidado pelo ponto certo, sem perder o contexto."}
           </p>
         </div>
-        <div className={`quick-actions${today ? " quick-actions-compact" : ""}`}>
-          {actions.map((action) =>
-            action.href ? (
-              <Link
-                className="quick-action"
-                href={action.href}
-                key={action.title}
-              >
-                <strong>{action.title}</strong>
-                <span>{action.text}</span>
-                <span className="action-state">Abrir</span>
-              </Link>
-            ) : (
-              <div className="quick-action unavailable" key={action.title}>
-                <strong>{action.title}</strong>
-                <span>{action.text}</span>
-                <span className="action-state">Em breve</span>
-              </div>
-            ),
-          )}
-        </div>
+        {today ? (
+          <div className="more-tools-grid">
+            {actions.map((action) =>
+              action.href ? (
+                <Link
+                  className="more-tools-card"
+                  href={action.href}
+                  key={action.title}
+                >
+                  <span className="more-tools-icon" aria-hidden="true">
+                    {action.title[0]}
+                  </span>
+                  <span className="more-tools-body">
+                    <strong>{action.title}</strong>
+                    <span>{action.text}</span>
+                  </span>
+                  <span className="more-tools-state">Abrir</span>
+                </Link>
+              ) : (
+                <div className="more-tools-card unavailable" key={action.title}>
+                  <span className="more-tools-icon" aria-hidden="true">
+                    {action.title[0]}
+                  </span>
+                  <span className="more-tools-body">
+                    <strong>{action.title}</strong>
+                    <span>{action.text}</span>
+                  </span>
+                  <span className="more-tools-state">Em breve</span>
+                </div>
+              ),
+            )}
+          </div>
+        ) : (
+          <div className="quick-actions">
+            {actions.map((action) =>
+              action.href ? (
+                <Link
+                  className="quick-action"
+                  href={action.href}
+                  key={action.title}
+                >
+                  <strong>{action.title}</strong>
+                  <span>{action.text}</span>
+                  <span className="action-state">Abrir</span>
+                </Link>
+              ) : (
+                <div className="quick-action unavailable" key={action.title}>
+                  <strong>{action.title}</strong>
+                  <span>{action.text}</span>
+                  <span className="action-state">Em breve</span>
+                </div>
+              ),
+            )}
+          </div>
+        )}
       </section>
       {!today && (
         <section className="panel" aria-labelledby="directory-title">
