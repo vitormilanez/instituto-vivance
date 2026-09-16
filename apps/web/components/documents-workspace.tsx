@@ -442,10 +442,11 @@ export function PatientDocumentsWorkspace({ initial }: { initial: PatientDocumen
     <>
       {initial.patientId ? (
         <details className="panel document-upload-panel">
-          <summary>Enviar documento para a equipe</summary>
+          <summary>Enviar exame, foto ou documento para a equipe</summary>
           <p>
-            Aceita PDF, JPG e PNG de até {byteLimit()}. O arquivo é privado e
-            será compartilhado somente com sua equipe de cuidado autorizada.
+            Aceita PDF, JPG e PNG de até {byteLimit()}. O arquivo fica privado,
+            disponível para o médico responsável revisar e não altera suas
+            orientações automaticamente.
           </p>
           <DocumentUploadForm tenant={initial.clinic.id} ownPatientId={initial.patientId} />
         </details>
