@@ -6,6 +6,7 @@
   --blue: #124da0;
   --border: #dbe4f0;
   --canvas: #f6f9fe;
+  --surface: #ffffff;
   --navy-soft: #082553;
   --blue-soft: #edf3fb;
   --gold: #d8b06b;
@@ -3507,6 +3508,57 @@ button.calendar-day[aria-pressed="true"] {
   box-shadow: 0 9px 22px rgba(3, 19, 45, 0.14);
   text-align: center;
 }
+.patient-pending-tasks {
+  margin-bottom: 24px;
+  border-color: var(--attention-border);
+  background: var(--attention-surface);
+}
+.patient-pending-tasks .section-heading {
+  align-items: flex-start;
+}
+.patient-pending-tasks .section-heading h2,
+.patient-pending-tasks .section-heading p {
+  margin: 0;
+}
+.patient-pending-tasks .section-heading p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.patient-pending-task-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.patient-pending-task-list a {
+  display: flex;
+  flex-direction: column;
+  min-height: 124px;
+  padding: 16px;
+  border: 1px solid var(--attention-border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+}
+.patient-pending-task-list a:hover {
+  border-color: var(--attention);
+}
+.patient-pending-task-list a > span:not(.action-state) {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.patient-pending-task-list .action-state {
+  margin-top: auto;
+  padding-top: 10px;
+  color: var(--attention);
+  font-size: 13px;
+  font-weight: 700;
+}
 .patient-overview {
   grid-template-columns: minmax(0, 1.16fr) minmax(280px, 0.84fr);
   gap: 24px;
@@ -3586,6 +3638,9 @@ button.calendar-day[aria-pressed="true"] {
   }
   .patient-next-step .button {
     width: 100%;
+  }
+  .patient-pending-task-list {
+    grid-template-columns: minmax(0, 1fr);
   }
   .patient-overview {
     grid-template-columns: minmax(0, 1fr);

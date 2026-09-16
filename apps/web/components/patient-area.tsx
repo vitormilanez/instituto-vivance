@@ -3,6 +3,7 @@ import type { PatientSection } from "@/modules/workspace/navigation";
 import { patientSections } from "@/modules/workspace/navigation";
 import type { Appointment } from "@/modules/agenda/service";
 import { patientNextStep } from "@/modules/workspace/patient-next-step";
+import { patientTodayTasks } from "@/modules/workspace/patient-today-tasks";
 import { EmptyModule, FutureButton } from "./module-ui";
 
 const actions = [
@@ -124,6 +125,13 @@ export function PatientArea({
     pendingCheckInId,
     pendingReturnPreparationId,
   });
+  const todayTasks = patientTodayTasks({
+    base,
+    onboardingHref,
+    pendingCheckInId,
+    preparationPending,
+    hasMeasurement: Boolean(latestMeasurement),
+  });
   if (section.slug === "hoje")
     return (
       <>
@@ -142,6 +150,28 @@ export function PatientArea({
             {nextStep.action}
           </Link>
         </section>
+        {todayTasks.length > 0 && (
+          <section className="panel patient-pending-tasks" aria-labelledby="patient-pending-tasks-title">
+            <div className="section-heading">
+              <div>
+                <h2 id="patient-pending-tasks-title">O que precisa de você</h2>
+                <p>Ações disponíveis para você concluir no seu tempo.</p>
+              </div>
+              <span className="quiet-label">{todayTasks.length} {todayTasks.length === 1 ? "pendência" : "pendências"}</span>
+            </div>
+            <ol className="patient-pending-task-list">
+              {todayTasks.map((task) => (
+                <li key={task.id}>
+                  <Link href={task.href}>
+                    <strong>{task.title}</strong>
+                    <span>{task.detail}</span>
+                    <span className="action-state">{task.action}</span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
         <div className="patient-overview">
           <section
             className={`patient-next-appointment${nextAppointment ? "" : " is-empty"}`}
