@@ -1,4 +1,5 @@
 import { InputError, tenantId } from "../../lib/validation.ts";
+import { preparationQuestions, preparationTopics } from "./questionnaire.ts";
 
 function object(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -40,30 +41,58 @@ function answers(value: unknown) {
 
 export function requestPreparationInput(value: unknown) {
   const body = object(value);
-  exactKeys(body, ["appointment_id", "request_key"]);
+  exactKeys(body, ["appointment_id", "request_key", "questions"]);
   return {
     appointmentId: tenantId(String(body.appointment_id)),
     requestKey: tenantId(String(body.request_key)),
+    ...(body.questions === undefined ? {} : { questions: questionInput(body.questions) }),
   };
+}
+
+export function questionInput(value: unknown) {
+  if (!Array.isArray(value) || value.length !== 5)
+    throw new InputError("O roteiro deve conter cinco perguntas.");
+  const seen = new Set<string>();
+  return value.map((item) => {
+    const question = object(item);
+    exactKeys(question, ["id", "label"]);
+    if (typeof question.id !== "string" || seen.has(question.id) ||
+      !preparationQuestions.some((known) => known.id === question.id) ||
+      typeof question.label !== "string") throw new InputError("Pergunta inválida.");
+    seen.add(question.id);
+    const label = question.label.trim();
+    if (!label || label.length > 600 || /[\x00-\x1f\x7f]/u.test(label))
+      throw new InputError("Use de 1 a 600 caracteres, em uma linha, por pergunta.");
+    return { id: question.id, label };
+  });
+}
+
+export function priorityInput(value: unknown): string[] {
+  if (!Array.isArray(value) || value.length > 3 || new Set(value).size !== value.length ||
+    value.some((id) => !preparationTopics.some((topic) => topic.id === id)))
+    throw new InputError("Escolha até três assuntos diferentes, em ordem de prioridade.");
+  return value as string[];
 }
 
 export function savePreparationInput(value: unknown) {
   const body = object(value);
-  exactKeys(body, ["version", "answers"]);
+  exactKeys(body, ["version", "answers", "priorities"]);
   return {
     version: integer(body.version, "Versão do rascunho", 0),
     answers: answers(body.answers),
+    ...(body.priorities === undefined ? {} : { priorities: priorityInput(body.priorities) }),
   };
 }
 
 export function submitPreparationInput(value: unknown) {
   const body = object(value);
-  exactKeys(body, ["version", "answers", "confirmed"]);
+  exactKeys(body, ["version", "answers", "confirmed", "priorities"]);
   if (body.confirmed !== true)
     throw new InputError("Confirme o envio das respostas.");
   return {
     version: integer(body.version, "Versão do rascunho", 0),
     answers: answers(body.answers),
+    ...(body.priorities === undefined ? {} : { priorities: priorityInput(body.priorities) }),
   };
 }
 

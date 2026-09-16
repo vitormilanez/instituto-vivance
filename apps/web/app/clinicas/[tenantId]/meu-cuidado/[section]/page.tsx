@@ -26,7 +26,7 @@ import { patientMessages } from "@/modules/messages/service";
 import { PatientMessagesWorkspace } from "@/components/messages-workspace";
 import { patientReportPublications } from "@/modules/reports/publication-service";
 import { PublishedReports } from "@/components/published-reports";
-import { patientReturnPreparations } from "@/modules/return-preparation/service";
+import { patientPreparationPending, patientReturnPreparations } from "@/modules/return-preparation/service";
 import { PatientReturnPreparationWorkspace } from "@/components/return-preparation-workspace";
 export const dynamic = "force-dynamic";
 
@@ -35,7 +35,7 @@ export default async function PatientAreaPage({
   searchParams,
 }: {
   params: Promise<{ tenantId: string; section: string }>;
-  searchParams: Promise<{ pagina?: string; medico?: string | string[]; inicio?: string; fim?: string; cursor?: string }>;
+  searchParams: Promise<{ pagina?: string; preparo?: string; medico?: string | string[]; inicio?: string; fim?: string; cursor?: string }>;
 }) {
   const { tenantId, section: slug } = await params;
   const section = findPatientSection(slug);
@@ -103,8 +103,12 @@ export default async function PatientAreaPage({
       : null;
   const preparations =
     patient && slug === "hoje"
-      ? await patientReturnPreparations(tenantId, query.pagina)
+      ? await patientReturnPreparations(tenantId, query.preparo ? undefined : query.pagina, query.preparo).catch((error) => {
+          if (error instanceof InputError) redirect(`/clinicas/${tenantId}/meu-cuidado/hoje`);
+          throw error;
+        })
       : null;
+  const preparationPending = patient && slug === "hoje" ? await patientPreparationPending(tenantId) : undefined;
   const appointments =
     slug === "consultas" || slug === "hoje"
       ? await listAppointments(
@@ -211,12 +215,11 @@ export default async function PatientAreaPage({
                 null
               }
               pendingReturnPreparationId={
-                preparations?.preparations.find((item) =>
-                  item.status === "requested" || item.status === "draft"
-                )?.id ?? null
+                preparationPending?.first?.id ?? null
               }
+              preparationPending={preparationPending}
             />
-            {preparations && preparations.preparations.length > 0 && (
+            {preparations && (
               <PatientReturnPreparationWorkspace initial={preparations} />
             )}
           </>

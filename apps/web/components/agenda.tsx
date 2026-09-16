@@ -5,6 +5,7 @@ import type { FormEvent } from "react";
 import type { Appointment, AgendaOptions } from "@/modules/agenda/service";
 import { clinicDate, localToInstant } from "@/modules/agenda/validation";
 import { focusedAppointment } from "@/modules/agenda/focus";
+import { PreparationRequestEditor } from "./preparation-request-editor";
 
 const statusPresentation: Record<string, { label: string; className: string }> =
   {
@@ -104,13 +105,13 @@ export function AppointmentList({
           {a.status === "scheduled" &&
             (onStart || onEdit || onCancel || onNoShow || onPrepare) && (
               <div className="appointment-actions">
-                {onPrepare && a.kind === "return" && a.starts_at > currentTime && (
+                {onPrepare && a.starts_at > currentTime && (
                   <button
                     className="secondary"
                     disabled={Boolean(preparationStates[a.id])}
                     onClick={() => onPrepare(a)}
                   >
-                    {preparationStates[a.id] ? "Preparo solicitado" : "Solicitar preparo"}
+                    {preparationStates[a.id] ? "Pré-consulta solicitada" : "Preparar pré-consulta"}
                   </button>
                 )}
                 {onStart && (
@@ -175,8 +176,7 @@ export function Agenda({
   const [returns, setReturns] = useState(false);
   const [starting, setStarting] = useState<Appointment | null>(null);
   const [accepted, setAccepted] = useState(false);
-  const [preparing, setPreparing] = useState<string | null>(null);
-  const requestKeys = useRef(new Map<string, string>());
+  const [preparing, setPreparing] = useState<Appointment | null>(null);
   const startPanel = useRef<HTMLElement>(null);
   const activePanel = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -337,33 +337,9 @@ export function Agenda({
       setPending(false);
     }
   }
-  async function requestPreparation(appointment: Appointment) {
-    if (preparing) return;
-    setPreparing(appointment.id);
-    setError("");
-    setNotice("");
-    const requestKey = requestKeys.current.get(appointment.id) ?? crypto.randomUUID();
-    requestKeys.current.set(appointment.id, requestKey);
-    try {
-      const response = await fetch(`/api/v1/clinics/${tenantId}/return-preparations`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(20_000),
-        body: JSON.stringify({ appointment_id: appointment.id, request_key: requestKey }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "Não foi possível solicitar o preparo.");
-      requestKeys.current.delete(appointment.id);
-      setNotice("Preparo solicitado. O paciente verá o roteiro em Hoje.");
-      router.refresh();
-    } catch (reason) {
-      setError(reason instanceof Error && reason.name !== "TimeoutError" ? reason.message : "A conexão demorou. Atualize a Agenda antes de tentar novamente.");
-    } finally {
-      setPreparing(null);
-    }
-  }
   return (
     <>
+      {preparing && <PreparationRequestEditor key={preparing.id} tenantId={tenantId} appointmentId={preparing.id} patientName={preparing.patients?.display_name ?? "paciente"} onClose={() => setPreparing(null)} />}
       <div className="page-heading">
         <div>
           <h1>{date === today ? "Consultas de hoje" : "Agenda"}</h1>
@@ -775,7 +751,7 @@ export function Agenda({
               nextId={nextAppointment?.id}
               currentTime={currentTime}
               preparationStates={preparationStates}
-              onPrepare={canStart ? requestPreparation : undefined}
+              onPrepare={canStart ? setPreparing : undefined}
               onStart={
                 canStart
                   ? (a) => {

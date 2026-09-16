@@ -25,6 +25,54 @@
   gap: 20px;
 }
 
+.preparation-question-edit {
+  padding-block: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.preparation-question-edit textarea {
+  field-sizing: content;
+  min-height: 120px;
+}
+
+.preparation-card .preparation-priority-fields {
+  margin-block: 24px;
+  padding-block: 20px;
+  border-block: 1px solid var(--border);
+}
+
+.preparation-priority-fields legend {
+  font-weight: 700;
+}
+
+.preparation-priority-fields legend span {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.preparation-priorities {
+  padding-block: 12px;
+  overflow-wrap: anywhere;
+}
+
+.preparation-priorities h3,
+.preparation-priorities p {
+  margin: 0 0 8px;
+}
+
+.preparation-priorities ol {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.preparation-priorities li + li {
+  margin-top: 8px;
+}
+
+.quick-action.preparation-action {
+  background: var(--blue-soft);
+}
+
 .preparation-heading {
   display: flex;
   align-items: flex-start;
@@ -88,6 +136,8 @@
 }
 
 .preparation-card .field > span {
+  display: block;
+  margin-block: 4px;
   color: var(--muted);
   font-size: 12px;
   font-weight: 400;

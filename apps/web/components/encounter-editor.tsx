@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import type { EncounterDetail } from "@/modules/encounters/service";
 import type { OnboardingRecord } from "@/modules/onboarding/types";
 import { OnboardingSummary } from "@/components/onboarding-summary";
+import type { EncounterPreparation } from "@/modules/return-preparation/service";
+import { EncounterPreparationSummary } from "./preparation-summary";
 export function clinicalTime(value: string) {
   return new Date(value).toLocaleString("pt-BR", {
     timeZone: "America/Sao_Paulo",
@@ -27,9 +29,11 @@ const stages: Array<{
 export function EncounterEditor({
   initial,
   onboarding,
+  preparation,
 }: {
   initial: EncounterDetail;
   onboarding?: OnboardingRecord | null;
+  preparation?: EncounterPreparation;
 }) {
   const [detail, setDetail] = useState(initial);
   const [stage, setStage] = useState<EncounterStage>("preparation");
@@ -340,6 +344,7 @@ export function EncounterEditor({
               Iniciar consulta
             </button>
           </div>
+          {preparation && <EncounterPreparationSummary preparation={preparation} tenantId={e.tenant_id} />}
           {onboarding ? (
             <OnboardingSummary
               record={onboarding}

@@ -3920,9 +3920,17 @@ test("return preparation keeps a private draft, one immutable submission and an 
     );
     const repeatedSubmission = await db.query<{ id: string }>(
       "select public.submit_return_preparation($1,$2,1,$3::jsonb,true) id",
-      [a, first.rows[0].id, JSON.stringify({ changes: "Changed replay" })],
+      [a, first.rows[0].id, JSON.stringify({ changes: "Original\npatient answer" })],
     );
     assert.equal(repeatedSubmission.rows[0].id, submission.rows[0].id);
+    await denied(
+      "select public.submit_return_preparation($1,$2,1,$3::jsonb,true)",
+      [a, first.rows[0].id, JSON.stringify({ changes: "Changed replay" })],
+    );
+    await denied(
+      "select public.submit_return_preparation($1,$2,0,$3::jsonb,true)",
+      [a, first.rows[0].id, JSON.stringify({ changes: "Original\npatient answer" })],
+    );
     await denied("update public.return_preparation_submissions set answers='{}'::jsonb where id=$1", [submission.rows[0].id]);
     await switchActor("doctor");
     const notice = await db.query<{ kind: string; event_key: string; target_path: string }>(
@@ -3959,6 +3967,294 @@ test("return preparation keeps a private draft, one immutable submission and an 
     assert.equal(
       (await db.query<{ status: string }>("select status from public.return_preparation_requests where id=$1", [first.rows[0].id])).rows[0].status,
       "cancelled",
+    );
+  });
+});
+
+test("pre-consultation snapshots custom questions and ordered priorities without cross-clinic leakage", async () => {
+  await asUser("doctor", async () => {
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,user_id,patient_id) values($1,$2,$3)",
+      [a, users.patient.id, pa],
+    );
+    await db.query(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'active')",
+      [a, pa, users.doctor.id],
+    );
+    await switchActor("doctor");
+    const appointment = await db.query<{ id: string }>(
+      "insert into public.appointments(tenant_id,patient_id,doctor_id,starts_at,ends_at,kind) values($1,$2,$3,'2099-12-27T15:00:00Z','2099-12-27T15:30:00Z','consultation') returning id",
+      [a, pa, users.doctor.id],
+    );
+    const questions = [
+      { id: "goal", label: "  O que você espera desta consulta?  " },
+      { id: "routine", label: "Como está sua rotina?" },
+      { id: "changes", label: "O que mudou recentemente?" },
+      { id: "treatment", label: "Como está o tratamento?" },
+      { id: "questions", label: "O que deseja perguntar?" },
+    ];
+    const normalizedQuestions = questions.map((question) => ({
+      ...question,
+      label: question.label.trim(),
+    }));
+    const requestKey = randomUUID();
+    const request = await db.query<{ id: string }>(
+      "select public.request_return_preparation($1,$2,$3,$4::jsonb) id",
+      [a, appointment.rows[0].id, requestKey, JSON.stringify(questions)],
+    );
+    assert.equal(
+      (
+        await db.query<{ id: string }>(
+          "select public.request_return_preparation($1,$2,$3,$4::jsonb) id",
+          [a, appointment.rows[0].id, requestKey, JSON.stringify(questions)],
+        )
+      ).rows[0].id,
+      request.rows[0].id,
+    );
+    await denied(
+      "select public.request_return_preparation($1,$2,$3,$4::jsonb)",
+      [
+        a,
+        appointment.rows[0].id,
+        requestKey,
+        JSON.stringify(
+          normalizedQuestions.map((question, index) =>
+            index === 0 ? { ...question, label: "Different payload" } : question,
+          ),
+        ),
+      ],
+    );
+    const otherAppointment = await db.query<{ id: string }>(
+      "insert into public.appointments(tenant_id,patient_id,doctor_id,starts_at,ends_at,kind) values($1,$2,$3,'2099-12-28T15:00:00Z','2099-12-28T15:30:00Z','return') returning id",
+      [a, pa, users.doctor.id],
+    );
+    await denied(
+      "select public.request_return_preparation($1,$2,$3,$4::jsonb)",
+      [a, otherAppointment.rows[0].id, requestKey, JSON.stringify(questions)],
+    );
+    await denied(
+      "select public.request_return_preparation($1,$2,$3,$4::jsonb)",
+      [
+        a,
+        otherAppointment.rows[0].id,
+        randomUUID(),
+        JSON.stringify([
+          ...normalizedQuestions.slice(0, 4),
+          { id: "goal", label: "Duplicated identifier" },
+        ]),
+      ],
+    );
+    const legacyRequest = await db.query<{ id: string }>(
+      "select public.request_return_preparation($1,$2,$3) id",
+      [a, otherAppointment.rows[0].id, randomUUID()],
+    );
+
+    const snapshot = (
+      await db.query<{ version: number; questions: unknown }>(
+        "select q.version,q.questions from public.return_preparation_questionnaires q join public.return_preparation_requests r on r.questionnaire_version=q.version where r.id=$1",
+        [request.rows[0].id],
+      )
+    ).rows[0];
+    assert.ok(snapshot.version > 1);
+    assert.deepEqual(snapshot.questions, normalizedQuestions);
+    await db.exec("reset role");
+    assert.equal(
+      (
+        await db.query<{ n: number }>(
+          "select count(*)::int n from public.in_app_notifications where event_key=$1",
+          [`return-preparation-requested:${request.rows[0].id}`],
+        )
+      ).rows[0].n,
+      1,
+    );
+
+    await switchActor("other");
+    assert.equal(
+      (
+        await db.query(
+          "select version from public.return_preparation_questionnaires where version=$1",
+          [snapshot.version],
+        )
+      ).rows.length,
+      0,
+    );
+    await switchActor("patient");
+    assert.deepEqual(
+      (
+        await db.query<{ questions: unknown }>(
+          "select questions from public.return_preparation_questionnaires where version=$1",
+          [snapshot.version],
+        )
+      ).rows[0].questions,
+      normalizedQuestions,
+    );
+    for (const invalidVersion of [null, -1]) {
+      await denied(
+        "select public.save_return_preparation_draft($1,$2,$3::integer,$4::jsonb)",
+        [a, request.rows[0].id, invalidVersion, JSON.stringify({ goal: "Must not save" })],
+      );
+      await denied(
+        "select public.submit_return_preparation($1,$2,$3::integer,$4::jsonb,true)",
+        [a, request.rows[0].id, invalidVersion, JSON.stringify({ goal: "Must not submit" })],
+      );
+    }
+    assert.deepEqual(
+      (
+        await db.query<{ status: string; version: number }>(
+          "select status,version from public.return_preparation_requests where id=$1",
+          [request.rows[0].id],
+        )
+      ).rows[0],
+      { status: "requested", version: 1 },
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.return_preparation_drafts where request_id=$1",
+          [request.rows[0].id],
+        )
+      ).rows.length,
+      0,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.return_preparation_submissions where request_id=$1",
+          [request.rows[0].id],
+        )
+      ).rows.length,
+      0,
+    );
+    await denied(
+      "select public.save_return_preparation_draft($1,$2,0,$3::jsonb,ARRAY[['sleep','energy']]::text[])",
+      [a, request.rows[0].id, JSON.stringify({ goal: "Synthetic goal" })],
+    );
+    await denied(
+      "select public.save_return_preparation_draft($1,$2,0,$3::jsonb,'[0:1]={sleep,energy}'::text[])",
+      [a, request.rows[0].id, JSON.stringify({ goal: "Synthetic goal" })],
+    );
+    await denied(
+      "select public.save_return_preparation_draft($1,$2,0,$3::jsonb,$4::text[])",
+      [a, request.rows[0].id, JSON.stringify({ goal: "Synthetic goal" }), ["sleep", "sleep"]],
+    );
+    const draft = await db.query<{ version: number }>(
+      "select public.save_return_preparation_draft($1,$2,0,$3::jsonb,$4::text[]) version",
+      [
+        a,
+        request.rows[0].id,
+        JSON.stringify({ goal: "Synthetic goal" }),
+        ["energy", "sleep", "nutrition"],
+      ],
+    );
+    assert.equal(draft.rows[0].version, 1);
+    const submission = await db.query<{ id: string }>(
+      "select public.submit_return_preparation($1,$2,1,$3::jsonb,true,$4::text[]) id",
+      [
+        a,
+        request.rows[0].id,
+        JSON.stringify({ goal: "Synthetic goal" }),
+        ["energy", "sleep", "nutrition"],
+      ],
+    );
+    assert.equal(
+      (
+        await db.query<{ id: string }>(
+          "select public.submit_return_preparation($1,$2,1,$3::jsonb,true,$4::text[]) id",
+          [
+            a,
+            request.rows[0].id,
+            JSON.stringify({ goal: "Synthetic goal" }),
+            ["energy", "sleep", "nutrition"],
+          ],
+        )
+      ).rows[0].id,
+      submission.rows[0].id,
+    );
+    await denied(
+      "select public.submit_return_preparation($1,$2,1,$3::jsonb,true,$4::text[])",
+      [
+        a,
+        request.rows[0].id,
+        JSON.stringify({ goal: "Changed replay" }),
+        ["energy", "sleep", "nutrition"],
+      ],
+    );
+    await denied(
+      "select public.submit_return_preparation($1,$2,1,$3::jsonb,true,$4::text[])",
+      [
+        a,
+        request.rows[0].id,
+        JSON.stringify({ goal: "Synthetic goal" }),
+        ["sleep", "energy", "nutrition"],
+      ],
+    );
+    await denied(
+      "select public.submit_return_preparation($1,$2,0,$3::jsonb,true,$4::text[])",
+      [
+        a,
+        request.rows[0].id,
+        JSON.stringify({ goal: "Synthetic goal" }),
+        ["energy", "sleep", "nutrition"],
+      ],
+    );
+    assert.deepEqual(
+      (
+        await db.query<{ priorities: string[] }>(
+          "select priorities from public.return_preparation_submissions where id=$1",
+          [submission.rows[0].id],
+        )
+      ).rows[0].priorities,
+      ["energy", "sleep", "nutrition"],
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.return_preparation_drafts where request_id=$1",
+          [request.rows[0].id],
+        )
+      ).rows.length,
+      0,
+    );
+    await denied(
+      "update public.return_preparation_submissions set priorities='{}'::text[] where id=$1",
+      [submission.rows[0].id],
+    );
+    await denied(
+      "update public.return_preparation_questionnaires set questions='[]'::jsonb where version=$1",
+      [snapshot.version],
+    );
+    await db.exec("reset role");
+    await db.exec("alter table public.appointments disable trigger appointments_validate");
+    await db.query(
+      "update public.appointments set starts_at=now()-interval '2 hours',ends_at=now()-interval '90 minutes' where id=$1",
+      [appointment.rows[0].id],
+    );
+    await db.exec("alter table public.appointments enable trigger appointments_validate");
+    await switchActor("doctor");
+    assert.equal(
+      (
+        await db.query<{ id: string }>(
+          "select public.request_return_preparation($1,$2,$3,$4::jsonb) id",
+          [a, appointment.rows[0].id, requestKey, JSON.stringify(questions)],
+        )
+      ).rows[0].id,
+      request.rows[0].id,
+    );
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked' where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+      [a, pa, users.doctor.id],
+    );
+    await switchActor("doctor");
+    await denied(
+      "select public.request_return_preparation($1,$2,$3,$4::jsonb)",
+      [a, appointment.rows[0].id, requestKey, JSON.stringify(questions)],
+    );
+    await switchActor("patient");
+    await denied(
+      "select public.save_return_preparation_draft($1,$2,0,'{}'::jsonb)",
+      [a, legacyRequest.rows[0].id],
     );
   });
 });

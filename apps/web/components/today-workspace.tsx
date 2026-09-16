@@ -254,8 +254,8 @@ export function TodayWorkspace({
               {data.preparations.map((item) => (
                 <li key={item.id}>
                   <strong>{item.patients?.display_name ?? "Paciente"}</strong>
-                  <p>Preparo do retorno enviado e aguardando revisão.</p>
-                  <Link href={`${base}/preparo#preparo-${item.id}`}>Revisar preparo</Link>
+                  <p>Pré-consulta enviada e aguardando revisão.</p>
+                  <Link href={`${base}/preparo?solicitacao=${item.id}#preparo-${item.id}`}>Revisar preparo</Link>
                 </li>
               ))}
               {data.checkIns.map((item) => (

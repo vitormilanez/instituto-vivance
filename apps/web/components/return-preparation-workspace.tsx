@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import type {
@@ -9,6 +9,8 @@ import type {
   StaffReturnPreparations,
 } from "@/modules/return-preparation/service";
 import { clinicalTime } from "./encounter-editor";
+import { preparationActionPending, preparationTopics } from "@/modules/return-preparation/questionnaire";
+import { PreparationPriorities } from "./preparation-summary";
 
 const statusLabels: Record<string, string> = {
   requested: "Solicitado",
@@ -59,14 +61,32 @@ function PatientPreparation({
   const busy = useRef(false);
   const original = answerRecord(item.draft?.answers ?? item.submission?.answers);
   const [answers, setAnswers] = useState<Record<string, string>>(original);
+  const originalPriorities = item.draft?.priorities ?? item.submission?.priorities ?? [];
+  const [priorities, setPriorities] = useState<string[]>(originalPriorities);
+  const [saved, setSaved] = useState(JSON.stringify({ answers: original, priorities: originalPriorities }));
   const [draftVersion, setDraftVersion] = useState(item.draft?.version ?? 0);
   const [confirmed, setConfirmed] = useState(false);
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const editable = item.status === "requested" || item.status === "draft";
+  const editable = preparationActionPending(item.status);
+  const dirty = editable && JSON.stringify({ answers, priorities }) !== saved;
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); };
+    const warnLink = (event: MouseEvent) => {
+      const target = event.target instanceof Element ? event.target.closest("a[href]") : null;
+      if (target && !window.confirm("Você tem alterações não salvas. Sair sem salvar o rascunho?")) {
+        event.preventDefault(); event.stopPropagation();
+      }
+    };
+    window.addEventListener("beforeunload", warn);
+    document.addEventListener("click", warnLink, true);
+    return () => { window.removeEventListener("beforeunload", warn); document.removeEventListener("click", warnLink, true); };
+  }, [dirty]);
   const body = () => ({
     version: draftVersion,
     answers: Object.fromEntries(Object.entries(answers).filter(([, value]) => value.trim())),
+    priorities,
   });
 
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -82,6 +102,7 @@ function PatientPreparation({
         body(),
       );
       setDraftVersion(result.version!);
+      setSaved(JSON.stringify({ answers, priorities }));
       setFeedback("Rascunho salvo. Você pode continuar depois.");
       router.refresh();
     } catch (error) {
@@ -119,10 +140,10 @@ function PatientPreparation({
         <div>
           <h2>{item.questionnaire.title}</h2>
           <p>
-            Retorno em {appointmentDate(item.appointments.starts_at)} · {item.appointments.doctor_display_name}
+            Consulta em {appointmentDate(item.appointments.starts_at)} · {item.appointments.doctor_display_name}
           </p>
         </div>
-        <span className={`preparation-status ${item.status}`}>{statusLabels[item.status]}</span>
+        <span className={`preparation-status ${item.status}`}>{editable ? "1 ação pendente" : statusLabels[item.status]}</span>
       </div>
       {item.status === "cancelled" && !item.submission ? (
         <div className="preparation-closed">
@@ -132,7 +153,7 @@ function PatientPreparation({
       ) : editable ? (
         <form onSubmit={save}>
           <p className="preparation-guidance">
-            Responda com suas palavras. Todas as perguntas são opcionais; campos vazios serão pulados.
+            Seu rascunho é privado até você enviar. Todas as perguntas são opcionais; você também pode preferir conversar na consulta.
           </p>
           <fieldset disabled={pending}>
             {item.questionnaire.questions.map((question) => (
@@ -142,11 +163,28 @@ function PatientPreparation({
                   rows={3}
                   maxLength={4000}
                   value={answers[question.id] ?? ""}
-                  onChange={(event) => setAnswers((current) => ({ ...current, [question.id]: event.target.value }))}
+                  onChange={(event) => { setConfirmed(false); setAnswers((current) => ({ ...current, [question.id]: event.target.value })); }}
                 />
               </label>
             ))}
           </fieldset>
+          <fieldset className="preparation-priority-fields" disabled={pending}>
+            <legend>O que você quer priorizar? <span>Opcional</span></legend>
+            <p>Escolha até três assuntos. O primeiro será sua prioridade principal para a conversa.</p>
+            {[0, 1, 2].map((index) => <label className="field" key={index}>
+              {index === 0 ? "Assunto principal" : `Outro assunto ${index}`}
+              <select value={priorities[index] ?? ""} disabled={index > priorities.length} onChange={(event) => {
+                setConfirmed(false);
+                setPriorities((current) => {
+                  const next = [...current]; next[index] = event.target.value; return next.filter(Boolean);
+                });
+              }}>
+                <option value="">{index === 0 ? "Prefiro conversar na consulta" : "Não selecionar"}</option>
+                {preparationTopics.map((topic) => <option key={topic.id} value={topic.id} disabled={priorities.includes(topic.id) && priorities[index] !== topic.id}>{topic.label}</option>)}
+              </select>
+            </label>)}
+          </fieldset>
+          <p className="module-footnote" role="status">{dirty ? "Você tem alterações não salvas." : "Salve para continuar depois, ou revise e envie para a equipe."}</p>
           {feedback && <p className={feedback.startsWith("Rascunho") ? "notice" : "feedback"} role="status">{feedback}</p>}
           <label className="publication-confirm">
             <input
@@ -167,6 +205,7 @@ function PatientPreparation({
         </form>
       ) : (
         <div className="preparation-readonly">
+          <PreparationPriorities priorities={originalPriorities} />
           {item.questionnaire.questions.map((question) => (
             <div key={question.id}>
               <h3>{question.label}</h3>
@@ -193,16 +232,17 @@ export function PatientReturnPreparationWorkspace({ initial }: { initial: Patien
     <section className="preparation-workspace" aria-labelledby="patient-preparation-title">
       <div className="section-heading">
         <div>
-          <h2 id="patient-preparation-title">Prepare seu retorno</h2>
+          <h2 id="patient-preparation-title">Prepare sua próxima consulta</h2>
           <p>Um roteiro curto para ajudar a aproveitar a próxima conversa.</p>
         </div>
       </div>
       {initial.preparations.length ? initial.preparations.map((item) => (
         <PatientPreparation key={`${item.id}:${item.version}`} item={item} tenantId={initial.clinic.id} />
       )) : (
-        <div className="panel empty"><h3>Nenhum preparo solicitado</h3><p>Quando seu médico pedir uma atualização para um retorno, ela aparecerá aqui.</p></div>
+        <div className="panel empty"><h3>Nenhum preparo disponível nesta lista</h3><p>Quando seu médico solicitar uma pré-consulta, ela aparecerá aqui. Você pode consultar os demais preparos no histórico.</p></div>
       )}
       <nav className="agenda-actions" aria-label="Páginas de preparos">
+        {initial.focused && <Link href={base}>Ver todos os preparos</Link>}
         {initial.page > 1 && <Link href={`${base}?pagina=${initial.page - 1}`}>Anterior</Link>}
         {initial.hasNext && <Link href={`${base}?pagina=${initial.page + 1}`}>Próxima</Link>}
       </nav>
@@ -247,13 +287,14 @@ export function StaffReturnPreparationWorkspace({ initial }: { initial: StaffRet
             <div className="preparation-heading">
               <div>
                 <h2>{item.patients?.display_name ?? "Paciente"}</h2>
-                <p>Retorno em {appointmentDate(item.appointments.starts_at)} · roteiro v{item.questionnaire_version}</p>
+                <p>Consulta em {appointmentDate(item.appointments.starts_at)} · roteiro v{item.questionnaire_version}</p>
               </div>
-              <span className={`preparation-status ${item.status}`}>{statusLabels[item.status]}</span>
+              <span className={`preparation-status ${item.status}`}>{item.status === "submitted" ? "1 revisão pendente" : statusLabels[item.status]}</span>
             </div>
             {item.submission ? (
               <div className="preparation-review-grid">
                 <div className="preparation-readonly">
+                  <PreparationPriorities priorities={item.submission.priorities} />
                   {item.questionnaire.questions.map((question) => (
                     <div key={question.id}><h3>{question.label}</h3><p>{answers[question.id] || "Pergunta pulada"}</p></div>
                   ))}
@@ -277,9 +318,10 @@ export function StaffReturnPreparationWorkspace({ initial }: { initial: StaffRet
           </article>
         );
       }) : (
-        <div className="panel empty"><h2>Nenhum preparo de retorno</h2><p>Solicite o preparo em um retorno futuro na Agenda.</p></div>
+        <div className="panel empty"><h2>Nenhum preparo disponível nesta lista</h2><p>Solicite a pré-consulta em um compromisso futuro na Agenda.</p></div>
       )}
       <nav className="agenda-actions" aria-label="Páginas de preparos">
+        {initial.focused && <Link href={`/clinicas/${initial.clinic.id}/preparo`}>Ver todos os preparos</Link>}
         {initial.page > 1 && <Link href={`/clinicas/${initial.clinic.id}/preparo?pagina=${initial.page - 1}`}>Anterior</Link>}
         {initial.hasNext && <Link href={`/clinicas/${initial.clinic.id}/preparo?pagina=${initial.page + 1}`}>Próxima</Link>}
       </nav>
