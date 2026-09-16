@@ -21,7 +21,7 @@ test("patient today chooses one next step from actual available context", () => 
     patientNextStep({
       base,
       onboardingHref: "/onboarding",
-      publishedPlanTitle: "Plano vigente",
+      unreadPlanTitle: "Plano vigente",
       hasConsultationInProgress: true,
       hasUpcomingConsultation: true,
       pendingCheckInId: "check-in",
@@ -32,7 +32,7 @@ test("patient today chooses one next step from actual available context", () => 
     patientNextStep({
       base,
       onboardingHref: "/onboarding",
-      publishedPlanTitle: "Plano vigente",
+      unreadPlanTitle: "Plano vigente",
       hasConsultationInProgress: false,
       hasUpcomingConsultation: true,
       pendingCheckInId: "check-in",
@@ -43,7 +43,7 @@ test("patient today chooses one next step from actual available context", () => 
     patientNextStep({
       base,
       onboardingHref: "/onboarding",
-      publishedPlanTitle: "Plano vigente",
+      unreadPlanTitle: "Plano vigente",
       hasConsultationInProgress: false,
       hasUpcomingConsultation: true,
     }).href,
@@ -76,6 +76,24 @@ test("requested return preparation becomes a resumable patient next step", () =>
       detail: "Seu médico enviou um roteiro curto. Você pode responder, salvar e continuar depois.",
       action: "Começar preparo",
       href: `${base}/hoje?preparo=request-id#preparo-request-id`,
+    },
+  );
+});
+
+test("an unread published plan becomes a patient action before a routine appointment", () => {
+  const base = "/clinicas/tenant/meu-cuidado";
+  assert.deepEqual(
+    patientNextStep({
+      base,
+      unreadPlanTitle: "Orientações de setembro",
+      hasConsultationInProgress: false,
+      hasUpcomingConsultation: true,
+    }),
+    {
+      title: "Veja suas orientações médicas",
+      detail: "Orientações de setembro está disponível para você consultar.",
+      action: "Abrir orientações",
+      href: `${base}/plano`,
     },
   );
 });

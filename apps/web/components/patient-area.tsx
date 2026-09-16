@@ -83,6 +83,7 @@ export function PatientArea({
   appointments = [],
   currentTime,
   latestPublication = null,
+  unreadPublication = null,
   onboardingHref,
   pendingCheckInId,
   pendingReturnPreparationId,
@@ -94,6 +95,7 @@ export function PatientArea({
   appointments?: Appointment[];
   currentTime: string;
   latestPublication?: { title: string; revision: number } | null;
+  unreadPublication?: { title: string; revision: number } | null;
   onboardingHref?: string | null;
   pendingCheckInId?: string | null;
   pendingReturnPreparationId?: string | null;
@@ -117,7 +119,7 @@ export function PatientArea({
   const nextStep = patientNextStep({
     base,
     onboardingHref,
-    publishedPlanTitle: latestPublication?.title,
+    unreadPlanTitle: unreadPublication?.title,
     hasConsultationInProgress: Boolean(
       appointments.some((appointment) => appointment.status === "in_progress"),
     ),
@@ -130,6 +132,7 @@ export function PatientArea({
     onboardingHref,
     pendingCheckInId,
     preparationPending,
+    unreadPlan: unreadPublication,
     hasMeasurement: Boolean(latestMeasurement),
   });
   if (section.slug === "hoje")
@@ -293,13 +296,13 @@ export function PatientArea({
             </Link>
             {actions.map((action) => (
               <Link
-                className={`quick-action${action.available ? "" : " unavailable"}`}
+                className={`quick-action${action.slug === "plano" && unreadPublication ? " is-pending" : ""}${action.available ? "" : " unavailable"}`}
                 href={`${base}/${action.slug}`}
                 key={action.slug}
               >
                 <strong>{action.label}</strong>
-                <span>{action.text}</span>
-                <span className="action-state">{actionState(action)}</span>
+                <span>{action.slug === "plano" && latestPublication ? `${latestPublication.title} · Revisão ${latestPublication.revision}` : action.text}</span>
+                <span className="action-state">{action.slug === "plano" && unreadPublication ? "1 nova orientação" : actionState(action)}</span>
               </Link>
             ))}
           </div>

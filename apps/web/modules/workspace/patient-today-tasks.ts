@@ -14,6 +14,7 @@ export type PatientTodayTasksInput = {
     count: number;
     first: { id: string; status: string } | null;
   };
+  unreadPlan?: { title: string; revision: number } | null;
   hasMeasurement: boolean;
 };
 
@@ -44,6 +45,15 @@ export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTa
       href: `${input.base}/hoje?preparo=${input.preparationPending.first.id}#preparo-${input.preparationPending.first.id}`,
     });
   }
+
+  if (input.unreadPlan)
+    tasks.push({
+      id: "published-plan",
+      title: "Ler uma nova orientação",
+      detail: `${input.unreadPlan.title} · revisão ${input.unreadPlan.revision} publicada pela equipe.`,
+      action: "Ver orientações",
+      href: `${input.base}/plano`,
+    });
 
   if (input.onboardingHref)
     tasks.push({

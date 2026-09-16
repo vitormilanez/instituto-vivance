@@ -1,7 +1,7 @@
 export type PatientNextStepInput = {
   base: string;
   onboardingHref?: string | null;
-  publishedPlanTitle?: string | null;
+  unreadPlanTitle?: string | null;
   hasConsultationInProgress: boolean;
   hasUpcomingConsultation: boolean;
   pendingCheckInId?: string | null;
@@ -38,10 +38,10 @@ export function patientNextStep(input: PatientNextStepInput) {
       action: "Continuar meu cadastro",
       href: input.onboardingHref,
     };
-  if (input.publishedPlanTitle)
+  if (input.unreadPlanTitle)
     return {
       title: "Veja suas orientações médicas",
-      detail: `${input.publishedPlanTitle} está disponível para você consultar.`,
+      detail: `${input.unreadPlanTitle} está disponível para você consultar.`,
       action: "Abrir orientações",
       href: `${input.base}/plano`,
     };

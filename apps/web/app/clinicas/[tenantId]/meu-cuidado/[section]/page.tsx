@@ -69,6 +69,10 @@ export default async function PatientAreaPage({
           slug === "plano" ? query.pagina : undefined,
         )
       : null;
+  const latestPublication = published?.publications[0] ?? null;
+  const unreadPublication =
+    published?.publications.find((publication) => !publication.care_plan_receipts[0]) ??
+    null;
   const checkIns =
     patient && ["diario", "hoje"].includes(slug)
       ? await patientCheckIns(tenantId, query.pagina)
@@ -212,7 +216,8 @@ export default async function PatientAreaPage({
               base={`/clinicas/${tenantId}/meu-cuidado`}
               appointments={appointments.appointments}
               currentTime={currentTime}
-              latestPublication={published?.publications[0] ?? null}
+              latestPublication={latestPublication}
+              unreadPublication={unreadPublication}
               onboardingHref={
                 onboarding?.status === "draft"
                   ? `/clinicas/${tenantId}/primeiros-passos`

@@ -76,7 +76,7 @@
   background: var(--blue-soft);
 }
 
-.quick-action.measurement-action.is-pending {
+.quick-action.is-pending {
   border-color: var(--attention-border);
   background: var(--attention-surface);
 }
