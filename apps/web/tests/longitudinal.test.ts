@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { checkInSourceHref, longitudinalPeriod, measurementPageHref, measurementSeries, onboardingSourceHref, paginateMeasurementPoints } from "../modules/longitudinal/project.ts";
+import { checkInSourceHref, longitudinalPeriod, measurementPageHref, measurementSeries, onboardingSourceHref, paginateMeasurementPoints, patientMeasurementSourceHref } from "../modules/longitudinal/project.ts";
 
 test("groups persisted measures by label and unit without deriving a trend", () => {
   const series = measurementSeries([
@@ -124,6 +124,10 @@ test("links onboarding points to a submitted onboarding destination, never the t
   assert.equal(
     checkInSourceHref("/clinicas/tenant/pacientes/patient-1", false, "check-in-1"),
     "/clinicas/tenant/pacientes/patient-1?aba=Linha%20do%20tempo#check-in-check-in-1",
+  );
+  assert.equal(
+    patientMeasurementSourceHref("/clinicas/tenant/meu-cuidado", true),
+    "/clinicas/tenant/meu-cuidado/evolucao#atualizar-medidas",
   );
 });
 

@@ -73,6 +73,32 @@
   background: var(--blue-soft);
 }
 
+.quick-action.measurement-action.is-pending {
+  border-color: #e6c77a;
+  background: #fff9eb;
+}
+
+.patient-measurements {
+  margin-bottom: 24px;
+}
+
+.patient-measurements form {
+  display: grid;
+  gap: 16px;
+}
+
+.patient-measurement-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 620px) {
+  .patient-measurement-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
 .preparation-heading {
   display: flex;
   align-items: flex-start;

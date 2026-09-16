@@ -3,7 +3,7 @@ import type {
   PatientLongitudinal,
   StaffLongitudinal,
 } from "@/modules/longitudinal/service";
-import { checkInSourceHref, measurementPageHref, onboardingSourceHref, type MeasurementPoint, type MeasurementSeries } from "@/modules/longitudinal/project";
+import { checkInSourceHref, measurementPageHref, onboardingSourceHref, patientMeasurementSourceHref, type MeasurementPoint, type MeasurementSeries } from "@/modules/longitudinal/project";
 
 const date = (value: string) =>
   new Date(`${value.slice(0, 10)}T12:00:00Z`).toLocaleDateString("pt-BR", {
@@ -19,6 +19,8 @@ const instant = (value: string) =>
 function measureHref(base: string, point: MeasurementPoint, patient: boolean, onboardingHref: string) {
   if (point.source === "check_in")
     return checkInSourceHref(base, patient, point.sourceId);
+  if (point.source === "measurement")
+    return patientMeasurementSourceHref(base, patient);
   return onboardingHref;
 }
 

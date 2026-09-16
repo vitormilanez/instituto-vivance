@@ -2234,6 +2234,68 @@ test("check-in submission rolls back when its audit cannot be recorded", async (
   });
 });
 
+test("patient measurements are append-only, idempotent and visible only to the linked care team", async () => {
+  await asUser("doctor", async () => {
+    await startClinical("2100-01-01T12:00:00Z", "2100-01-01T12:30:00Z");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+      [a, pa, users.patient.id],
+    );
+    const request = randomUUID();
+    await switchActor("patient");
+    await denied(
+      "insert into public.patient_measurements(tenant_id,patient_id,actor_user_id,metric,measure_label,measure_value,measure_unit,reported_on,client_request_id) values($1,$2,$3,'weight','Peso',72.4,'kg',current_date,$4)",
+      [a, pa, users.patient.id, request],
+    );
+    await denied(
+      "select public.submit_patient_measurements($1,72.4,null,null,current_date,$2,false)",
+      [a, request],
+    );
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select public.submit_patient_measurements($1,72.4,null,91.2,current_date,$2,true) count",
+          [a, request],
+        )
+      ).rows[0].count,
+      2,
+    );
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select public.submit_patient_measurements($1,99.9,null,null,current_date,$2,true) count",
+          [a, request],
+        )
+      ).rows[0].count,
+      2,
+    );
+    assert.equal(
+      (await db.query("select id from public.patient_measurements where patient_id=$1", [pa]))
+        .rows.length,
+      2,
+    );
+    await denied("update public.patient_measurements set measure_value=1");
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.patient_measurements where patient_id=$1", [pa]))
+        .rows.length,
+      2,
+    );
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=1 where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+      [a, pa, users.doctor.id],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.patient_measurements where patient_id=$1", [pa]))
+        .rows.length,
+      0,
+    );
+  });
+});
+
 async function privateDocumentFixture(visibility: "internal" | "shared" = "shared") {
   await startClinical("2099-12-01T12:00:00Z", "2099-12-01T12:30:00Z");
   await db.exec("reset role");

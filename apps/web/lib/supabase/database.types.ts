@@ -94,6 +94,24 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      patient_measurements: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          actor_user_id: string;
+          metric: string;
+          measure_label: string;
+          measure_value: number;
+          measure_unit: string;
+          reported_on: string;
+          client_request_id: string;
+          submitted_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       care_plan_publications: {
         Row: CarePlanContent & {
           id: string;
@@ -1349,6 +1367,18 @@ export type Database = {
           confirmed: boolean;
         };
         Returns: string;
+      };
+      submit_patient_measurements: {
+        Args: {
+          target_tenant: string;
+          weight_kg: number | null;
+          height_cm: number | null;
+          waist_cm: number | null;
+          measured_on: string;
+          request_id: string;
+          confirmed: boolean;
+        };
+        Returns: number;
       };
       reserve_patient_document: {
         Args: {
