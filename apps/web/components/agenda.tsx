@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
@@ -6,6 +7,11 @@ import type { Appointment, AgendaOptions } from "@/modules/agenda/service";
 import { clinicDate, localToInstant } from "@/modules/agenda/validation";
 import { focusedAppointment } from "@/modules/agenda/focus";
 import { PreparationRequestEditor } from "./preparation-request-editor";
+
+// pt-BR month/weekday names are lowercase; only the first letter of a
+// heading is capitalized ("Setembro de 2026", never "Setembro De 2026").
+const sentenceCase = (text: string) =>
+  text.charAt(0).toLocaleUpperCase("pt-BR") + text.slice(1);
 
 const statusPresentation: Record<string, { label: string; className: string }> =
   {
@@ -26,6 +32,7 @@ export function AppointmentList({
   onStart,
   onPrepare,
   preparationStates = {},
+  patientRecordBase,
 }: {
   appointments: Appointment[];
   currentTime: string;
@@ -36,6 +43,9 @@ export function AppointmentList({
   onStart?: (appointment: Appointment) => void;
   onPrepare?: (appointment: Appointment) => void;
   preparationStates?: Record<string, string>;
+  // Only the staff Agenda passes this; a patient viewing their own
+  // consultations should never see a link to a "ficha".
+  patientRecordBase?: string;
 }) {
   if (!appointments.length)
     return (
@@ -95,6 +105,14 @@ export function AppointmentList({
                 })}
               </small>
               <small>{a.doctor_display_name}</small>
+              {patientRecordBase && (
+                <Link
+                  className="appointment-patient-link"
+                  href={`${patientRecordBase}/${a.patient_id}`}
+                >
+                  Ver ficha do paciente
+                </Link>
+              )}
             </span>
           </div>
           <span
@@ -105,6 +123,9 @@ export function AppointmentList({
           {a.status === "scheduled" &&
             (onStart || onEdit || onCancel || onNoShow || onPrepare) && (
               <div className="appointment-actions">
+                {onStart && (
+                  <button onClick={() => onStart(a)}>Abrir atendimento</button>
+                )}
                 {onPrepare && a.starts_at > currentTime && (
                   <button
                     className="secondary"
@@ -114,21 +135,18 @@ export function AppointmentList({
                     {preparationStates[a.id] ? "Pré-consulta solicitada" : "Preparar pré-consulta"}
                   </button>
                 )}
-                {onStart && (
-                  <button onClick={() => onStart(a)}>Abrir atendimento</button>
-                )}
                 {onEdit && (
-                  <button className="secondary" onClick={() => onEdit(a)}>
+                  <button className="secondary quiet" onClick={() => onEdit(a)}>
                     Editar
                   </button>
                 )}
                 {onNoShow && a.starts_at <= currentTime && (
-                  <button className="secondary" onClick={() => onNoShow(a)}>
+                  <button className="secondary quiet" onClick={() => onNoShow(a)}>
                     Registrar falta
                   </button>
                 )}
                 {onCancel && (
-                  <button className="secondary" onClick={() => onCancel(a)}>
+                  <button className="secondary quiet" onClick={() => onCancel(a)}>
                     Cancelar
                   </button>
                 )}
@@ -342,8 +360,8 @@ export function Agenda({
       {preparing && <PreparationRequestEditor key={preparing.id} tenantId={tenantId} appointmentId={preparing.id} patientName={preparing.patients?.display_name ?? "paciente"} onClose={() => setPreparing(null)} />}
       <div className="page-heading">
         <div>
-          <h1>{date === today ? "Consultas de hoje" : "Agenda"}</h1>
-          <p>Consultas e retornos · horário de Brasília (UTC−3).</p>
+          <h1>Agenda</h1>
+          <p>Consultas e retornos no horário de Brasília (UTC−3).</p>
         </div>
         {canManage && (
           <button onClick={() => open("new")}>Novo agendamento</button>
@@ -677,11 +695,13 @@ export function Agenda({
               ‹
             </button>
             <h2>
-              {first.toLocaleDateString("pt-BR", {
-                month: "long",
-                year: "numeric",
-                timeZone: "UTC",
-              })}
+              {sentenceCase(
+                first.toLocaleDateString("pt-BR", {
+                  month: "long",
+                  year: "numeric",
+                  timeZone: "UTC",
+                }),
+              )}
             </h2>
             <button
               className="secondary"
@@ -733,14 +753,17 @@ export function Agenda({
           <h2>
             {returns
               ? "Próximos retornos do mês"
-              : new Date(`${date}T12:00:00Z`).toLocaleDateString("pt-BR", {
-                  day: "numeric",
-                  month: "long",
-                  timeZone: "UTC",
-                })}
+              : sentenceCase(
+                  new Date(`${date}T12:00:00Z`).toLocaleDateString("pt-BR", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    timeZone: "UTC",
+                  }),
+                )}
           </h2>
           <p className="schedule-caption">
-            Consulta por consulta · {chosen.length}{" "}
+            {chosen.length}{" "}
             {chosen.length === 1 ? "agendamento" : "agendamentos"}
           </p>
           {navigating ? (
@@ -751,6 +774,7 @@ export function Agenda({
               nextId={nextAppointment?.id}
               currentTime={currentTime}
               preparationStates={preparationStates}
+              patientRecordBase={`/clinicas/${tenantId}/pacientes`}
               onPrepare={canStart ? setPreparing : undefined}
               onStart={
                 canStart

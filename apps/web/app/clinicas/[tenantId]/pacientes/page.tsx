@@ -8,6 +8,16 @@ import { PatientInvitationForm } from "@/components/patient-invitation-form";
 import { PatientInvitationList } from "@/components/patient-invitation-list";
 import { listClinicPatientInvitations } from "@/modules/onboarding/service";
 import { PatientForm } from "@/components/forms";
+
+// Age in whole years on the clinic's (Brasília) calendar date.
+const ageFrom = (birthDate: string) => {
+  const today = new Date().toLocaleDateString("sv-SE", {
+    timeZone: "America/Sao_Paulo",
+  });
+  const [by, bm, bd] = birthDate.split("-").map(Number);
+  const [ty, tm, td] = today.split("-").map(Number);
+  return ty - by - (tm < bm || (tm === bm && td < bd) ? 1 : 0);
+};
 export const dynamic = "force-dynamic";
 
 export default async function Patients({
@@ -46,7 +56,7 @@ export default async function Patients({
           <p>Encontre um cadastro ou adicione uma pessoa à clínica.</p>
         </div>
         <Link
-          className="button"
+          className="button page-heading-jump"
           href={canInvite ? "#convidar-paciente" : "#novo-paciente"}
         >
           {canInvite ? "Convidar paciente" : "Cadastrar paciente"}
@@ -110,9 +120,14 @@ export default async function Patients({
                       <strong>{p.display_name}</strong>
                       <small>
                         {p.birth_date
-                          ? `Nascimento: ${p.birth_date.split("-").reverse().join("/")}`
+                          ? `${ageFrom(p.birth_date)} ${ageFrom(p.birth_date) === 1 ? "ano" : "anos"} · nascimento em ${p.birth_date.split("-").reverse().join("/")}`
                           : "Nascimento não informado"}
                       </small>
+                      {p.onboardingSubmittedAt && (
+                        <span className="badge appointment-status completed patient-row-badge">
+                          Cadastro inicial enviado
+                        </span>
+                      )}
                     </span>
                     <span className="row-action">Ver ficha</span>
                   </Link>

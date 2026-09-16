@@ -127,7 +127,7 @@ export default async function PatientAreaPage({
         )
       : null;
   return (
-    <PatientShell clinic={clinic} active={section.group}>
+    <PatientShell clinic={clinic} active={section.slug}>
       {patient ? (
         <header className="patient-portal-header">
           <span

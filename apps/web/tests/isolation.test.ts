@@ -80,6 +80,32 @@ before(async () => {
     [pa, a, users.admin.id, pb, b, users.other.id],
   );
 });
+// modules/identity/service.ts clinics() runs exactly this shape of query.
+// The regression this guards against: confusing the clinic's own name
+// (tenants.name) with the authenticated member's own name
+// (memberships.display_name) when building the professional's identity
+// card — they must never collapse into the same value.
+test("clinics() query returns the member's own display_name, distinct from the clinic name", async () => {
+  await asUser("doctor", async () => {
+    const rows = await db.query<{
+      role: string;
+      status: string;
+      display_name: string | null;
+      name: string;
+    }>(
+      `select m.role, m.status, m.display_name, t.name
+       from public.memberships m join public.tenants t on t.id = m.tenant_id
+       where m.user_id = $1 and m.status in ('active','invited')`,
+      [users.doctor.id],
+    );
+    assert.equal(rows.rows.length, 1);
+    const [row] = rows.rows;
+    assert.equal(row.role, "doctor");
+    assert.equal(row.display_name, "Synthetic doctor");
+    assert.equal(row.name, "Test clinic A");
+    assert.notEqual(row.display_name, row.name);
+  });
+});
 test("care plans preserve approved revision and reject stale writes and skipped review", async () => {
   await asUser("doctor", async () => {
     const source = await startClinical();

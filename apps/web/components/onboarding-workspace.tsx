@@ -409,6 +409,14 @@ export function OnboardingWorkspace({
               Conte o que importa para você. Seu médico usará essas informações
               para preparar a primeira conversa.
             </p>
+            <ul className="onboarding-welcome-expectations">
+              <li>Leva cerca de 5 minutos, no seu ritmo.</li>
+              <li>
+                Tudo é salvo automaticamente; você pode pausar e continuar
+                quando quiser.
+              </li>
+              <li>Cada etapa é opcional — pule o que preferir conversar pessoalmente.</li>
+            </ul>
             <button type="button" onClick={() => void move("profile")}>
               Começar
             </button>

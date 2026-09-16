@@ -16,7 +16,12 @@ export const roleLabels: Record<string, string> = {
   nurse: "Enfermagem",
   patient: "Paciente",
 };
-export type ClinicAccess = { id: string; name: string; role: string };
+export type ClinicAccess = {
+  id: string;
+  name: string;
+  role: string;
+  displayName: string | null;
+};
 export type ClinicInvitation = ClinicAccess & { version: number };
 
 export async function identity() {
@@ -30,7 +35,9 @@ export async function clinics() {
   const { client, user } = await identity();
   const { data, error } = await client
     .from("memberships")
-    .select("tenant_id, role, status, version, tenants!inner(id, name)")
+    .select(
+      "tenant_id, role, status, version, display_name, tenants!inner(id, name)",
+    )
     .eq("user_id", user.id)
     .in("status", ["active", "invited"]);
   if (error) throw new Error("Unable to load memberships");
@@ -42,12 +49,17 @@ export async function clinics() {
       .map((m) => ({
         ...m.tenants,
         role: m.role,
+        // The member's own display name, distinct from the clinic/tenant
+        // name in m.tenants — this is what identifies the authenticated
+        // person, never the clinic they belong to.
+        displayName: m.display_name,
       })) satisfies ClinicAccess[],
     invitations: (data ?? [])
       .filter((m) => m.status === "invited")
       .map((m) => ({
         ...m.tenants,
         role: m.role,
+        displayName: m.display_name,
         version: m.version,
       })) satisfies ClinicInvitation[],
   };

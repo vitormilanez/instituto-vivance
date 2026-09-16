@@ -99,32 +99,67 @@ export default async function Dashboard({
           </section>
         </>
       )}
-      <section className="quick-actions-section" aria-labelledby="quick-actions">
+      <section
+        className={`quick-actions-section${today ? " quick-actions-section-secondary" : ""}`}
+        aria-labelledby="quick-actions"
+      >
         <div className="quick-actions-heading">
-          <h2 id="quick-actions">Ações rápidas</h2>
-          <p>Continue o cuidado pelo ponto certo, sem perder o contexto.</p>
-        </div>
-        <div className={`quick-actions${today ? " quick-actions-compact" : ""}`}>
-          {actions.map((action) =>
-            action.href ? (
-              <Link
-                className="quick-action"
-                href={action.href}
-                key={action.title}
-              >
-                <strong>{action.title}</strong>
-                <span>{action.text}</span>
-                <span className="action-state">Abrir</span>
-              </Link>
-            ) : (
-              <div className="quick-action unavailable" key={action.title}>
-                <strong>{action.title}</strong>
-                <span>{action.text}</span>
-                <span className="action-state">Em breve</span>
-              </div>
-            ),
+          <h2 id="quick-actions">
+            {today ? "Atalhos" : "Ações rápidas"}
+          </h2>
+          {!today && (
+            <p>Continue o cuidado pelo ponto certo, sem perder o contexto.</p>
           )}
         </div>
+        {today ? (
+          <ul className="more-tools-list">
+            {actions.map((action) => (
+              <li key={action.title}>
+                <Link className="more-tools-link" href={action.href}>
+                  <strong>{action.title}</strong>
+                  <span>{action.text}</span>
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 16 16"
+                    width="16"
+                    height="16"
+                  >
+                    <path
+                      d="M6 3.5 10.5 8 6 12.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="quick-actions">
+            {actions.map((action) =>
+              action.href ? (
+                <Link
+                  className="quick-action"
+                  href={action.href}
+                  key={action.title}
+                >
+                  <strong>{action.title}</strong>
+                  <span>{action.text}</span>
+                  <span className="action-state">Abrir</span>
+                </Link>
+              ) : (
+                <div className="quick-action unavailable" key={action.title}>
+                  <strong>{action.title}</strong>
+                  <span>{action.text}</span>
+                  <span className="action-state">Em breve</span>
+                </div>
+              ),
+            )}
+          </div>
+        )}
       </section>
       {!today && (
         <section className="panel" aria-labelledby="directory-title">
