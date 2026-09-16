@@ -99,10 +99,19 @@ export default async function Dashboard({
           </section>
         </>
       )}
-      <section className="quick-actions-section" aria-labelledby="quick-actions">
+      <section
+        className={`quick-actions-section${today ? " quick-actions-section-secondary" : ""}`}
+        aria-labelledby="quick-actions"
+      >
         <div className="quick-actions-heading">
-          <h2 id="quick-actions">Ações rápidas</h2>
-          <p>Continue o cuidado pelo ponto certo, sem perder o contexto.</p>
+          <h2 id="quick-actions">
+            {today ? "Mais ferramentas" : "Ações rápidas"}
+          </h2>
+          <p>
+            {today
+              ? "Cadastros e áreas que você não usa a cada agendamento."
+              : "Continue o cuidado pelo ponto certo, sem perder o contexto."}
+          </p>
         </div>
         <div className={`quick-actions${today ? " quick-actions-compact" : ""}`}>
           {actions.map((action) =>

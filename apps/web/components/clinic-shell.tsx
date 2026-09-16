@@ -8,6 +8,19 @@ import {
 } from "@/modules/workspace/navigation";
 import { unreadInAppNotificationCount } from "@/modules/notifications/service";
 
+// Only what a doctor/nurse/admin reaches for constantly stays on the surface;
+// everything else keeps its route but moves into "Mais" so the sidebar reads
+// as four choices, not thirteen.
+const primaryKeys = ["home", "patients", "agenda", "acompanhamento"] as const;
+const secondaryGroups = [
+  { label: "Atendimento", keys: ["atendimentos", "preparo", "planos"] },
+  {
+    label: "Registros e comunicação",
+    keys: ["documentos", "mensagens", "relatorios", "processamentos", "notifications"],
+  },
+  { label: "Clínica", keys: ["team", "ia", "audit"] },
+] as const;
+
 export async function ClinicShell({
   clinic,
   active,
@@ -52,35 +65,14 @@ export async function ClinicShell({
         ]
       : []),
   ];
-  const navigationGroups = [
-    {
-      label: "Cuidado",
-      links: links.filter((link) =>
-        ["home", "agenda", "patients", "preparo", "atendimentos"].includes(link.key),
-      ),
-    },
-    {
-      label: "Acompanhamento",
-      links: links.filter((link) =>
-        [
-          "planos",
-          "acompanhamento",
-          "documentos",
-          "mensagens",
-          "processamentos",
-          "notifications",
-        ].includes(
-          link.key,
-        ),
-      ),
-    },
-    {
-      label: "Clínica",
-      links: links.filter((link) =>
-        ["team", "relatorios", "ia", "audit"].includes(link.key),
-      ),
-    },
-  ];
+  const linkByKey = (key: string) => links.find((link) => link.key === key);
+  const primaryLinks = primaryKeys
+    .map((key) => linkByKey(key))
+    .filter((link): link is NonNullable<typeof link> => Boolean(link));
+  const secondaryLinkKeys = new Set<string>(
+    secondaryGroups.flatMap((group) => group.keys),
+  );
+  const secondaryActive = active !== "home" && secondaryLinkKeys.has(active);
   const activeLabel =
     links.find((link) => link.key === active)?.label ?? "Clínica";
   const clinicInitials = clinic.name
@@ -112,20 +104,44 @@ export async function ClinicShell({
             </span>
           </div>
           <nav aria-label="Navegação da clínica">
-            {navigationGroups.map((group) => (
-              <div className="workspace-nav-group" key={group.label}>
-                <span className="workspace-nav-label">{group.label}</span>
-                {group.links.map((link) => (
-                  <Link
-                    key={link.key}
-                    href={link.href}
-                    aria-current={active === link.key ? "page" : undefined}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+            <div className="workspace-nav-group">
+              {primaryLinks.map((link) => (
+                <Link
+                  key={link.key}
+                  href={link.href}
+                  aria-current={active === link.key ? "page" : undefined}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+            <details className="workspace-nav-more" open={secondaryActive}>
+              <summary>Mais</summary>
+              <div>
+                {secondaryGroups.map((group) => {
+                  const groupLinks = group.keys
+                    .map((key) => linkByKey(key))
+                    .filter((link): link is NonNullable<typeof link> =>
+                      Boolean(link),
+                    );
+                  if (!groupLinks.length) return null;
+                  return (
+                    <div className="workspace-nav-group" key={group.label}>
+                      <span className="workspace-nav-label">{group.label}</span>
+                      {groupLinks.map((link) => (
+                        <Link
+                          key={link.key}
+                          href={link.href}
+                          aria-current={active === link.key ? "page" : undefined}
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
+                  );
+                })}
               </div>
-            ))}
+            </details>
           </nav>
           <p className="workspace-note">Seu espaço para organizar o cuidado.</p>
         </aside>
@@ -137,12 +153,7 @@ export async function ClinicShell({
         className="staff-mobile-dock"
         aria-label="Navegação rápida da clínica"
       >
-        {[
-          { key: "home", label: "Hoje", href: base },
-          { key: "agenda", label: "Agenda", href: `${base}/agenda` },
-          { key: "patients", label: "Pacientes", href: `${base}/pacientes` },
-          { key: "planos", label: "Planos", href: `${base}/planos` },
-        ].map((link) => (
+        {primaryLinks.map((link) => (
           <Link
             key={link.key}
             href={link.href}
@@ -151,13 +162,12 @@ export async function ClinicShell({
             {link.label}
           </Link>
         ))}
-        <details>
+        <details open={secondaryActive}>
           <summary>Mais</summary>
           <div>
             {links
               .filter(
-                (link) =>
-                  !["home", "agenda", "patients", "planos"].includes(link.key),
+                (link) => !primaryKeys.includes(link.key as (typeof primaryKeys)[number]),
               )
               .map((link) => (
                 <Link

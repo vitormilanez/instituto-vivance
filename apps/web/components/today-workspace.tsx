@@ -125,7 +125,7 @@ export function TodayWorkspace({
     data.onboardingSubmissions.length;
   return (
     <>
-      <div className="page-heading">
+      <div className="page-heading today-page-heading">
         <div>
           <h1>{data.clinic.role === "doctor" ? "Painel médico" : "Hoje"}</h1>
           <p>
@@ -256,7 +256,7 @@ export function TodayWorkspace({
           {attentionCount ? (
             <ul>
               {data.onboardingSubmissions.map((item) => (
-                <li className="today-preconsultation-card" key={item.id}>
+                <li key={item.id}>
                   <span className="today-pending-label">Novo cadastro</span>
                   <strong>{item.patients?.display_name ?? "Paciente"}</strong>
                   <p>Primeiros passos enviados. Reveja o cadastro inicial antes da consulta.</p>
@@ -266,7 +266,7 @@ export function TodayWorkspace({
                 </li>
               ))}
               {data.preparations.map((item) => (
-                <li className="today-preconsultation-card" key={item.id}>
+                <li key={item.id}>
                   <span className="today-pending-label">Ação pendente</span>
                   <strong>{item.patients?.display_name ?? "Paciente"}</strong>
                   <p>Pré-consulta enviada. Confira as respostas e as prioridades declaradas pela pessoa.</p>
@@ -275,6 +275,7 @@ export function TodayWorkspace({
               ))}
               {data.checkIns.map((item) => (
                 <li key={item.id}>
+                  <span className="today-pending-label">Check-in</span>
                   <strong>{item.patients?.display_name ?? "Paciente"}</strong>
                   <p>Check-in enviado e aguardando revisão humana.</p>
                   <Link href={`${base}/acompanhamento#check-in-${item.id}`}>
@@ -295,6 +296,7 @@ export function TodayWorkspace({
                 )
                 .map((p) => (
                   <li key={p.id}>
+                    <span className="today-pending-label">Rascunho</span>
                     <strong>{p.patients?.display_name ?? "Paciente"}</strong>
                     <p>Atendimento iniciado, ainda não finalizado.</p>
                     <Link href={`${base}/atendimentos/${p.id}`}>
