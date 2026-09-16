@@ -55,7 +55,17 @@ async function persistedMeasurementSources(
     .limit(501);
   if (period.from) submissions = submissions.gte("reported_on", period.from);
   if (period.to) submissions = submissions.lte("reported_on", period.to);
-  const [checkIns, onboarding] = await Promise.all([
+  let directQuery = client
+    .from("patient_measurements")
+    .select("id,measure_label,measure_value,measure_unit,reported_on,submitted_at")
+    .eq("tenant_id", tenant)
+    .eq("patient_id", patient)
+    .order("reported_on", { ascending: false })
+    .order("submitted_at", { ascending: false })
+    .limit(501);
+  if (period.from) directQuery = directQuery.gte("reported_on", period.from);
+  if (period.to) directQuery = directQuery.lte("reported_on", period.to);
+  const [checkIns, onboarding, directMeasurements] = await Promise.all([
     submissions,
     client
       .from("patient_onboarding_submissions")
@@ -63,8 +73,9 @@ async function persistedMeasurementSources(
       .eq("tenant_id", tenant)
       .eq("patient_id", patient)
       .maybeSingle(),
+    directQuery,
   ]);
-  if (checkIns.error || onboarding.error)
+  if (checkIns.error || onboarding.error || directMeasurements.error)
     throw new Error("Unable to load persisted measurements");
   const onboardingRow = onboarding.data;
   const onboardingRows: MeasurementSource[] = onboardingRow
@@ -83,8 +94,7 @@ async function persistedMeasurementSources(
         source_label: "Onboarding enviado",
       }))
     : [];
-  return {
-    rows: [
+  const rows = [
       ...onboardingRows,
       ...(checkIns.data ?? []).map((row) => ({
         ...row,
@@ -92,8 +102,20 @@ async function persistedMeasurementSources(
         source_id: row.check_in_id,
         source_label: "Check-in enviado",
       })),
-    ],
-    truncated: (checkIns.data?.length ?? 0) > 500,
+      ...(directMeasurements.data ?? []).map((row) => ({
+        ...row,
+        source: "measurement" as const,
+        source_id: row.id,
+        source_label: "Medida autorrelatada",
+      })),
+    ].sort(
+      (left, right) =>
+        (right.reported_on ?? "").localeCompare(left.reported_on ?? "") ||
+        right.submitted_at.localeCompare(left.submitted_at),
+    );
+  return {
+    rows: rows.slice(0, 501),
+    truncated: rows.length > 500,
   };
 }
 

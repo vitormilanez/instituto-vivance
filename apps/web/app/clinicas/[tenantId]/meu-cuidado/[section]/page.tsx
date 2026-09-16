@@ -20,6 +20,8 @@ import { patientCheckIns } from "@/modules/check-ins/service";
 import { PatientCheckIns } from "@/components/patient-check-ins";
 import { patientLongitudinal } from "@/modules/longitudinal/service";
 import { PatientLongitudinalWorkspace } from "@/components/longitudinal-workspace";
+import { PatientMeasurements } from "@/components/patient-measurements";
+import { patientMeasurementSummary } from "@/modules/measurements/service";
 import { patientDocuments } from "@/modules/documents/service";
 import { PatientDocumentsWorkspace } from "@/components/documents-workspace";
 import { patientMessages } from "@/modules/messages/service";
@@ -109,6 +111,9 @@ export default async function PatientAreaPage({
         })
       : null;
   const preparationPending = patient && slug === "hoje" ? await patientPreparationPending(tenantId) : undefined;
+  const latestMeasurement = patient && slug === "hoje"
+    ? await patientMeasurementSummary(tenantId)
+    : null;
   const appointments =
     slug === "consultas" || slug === "hoje"
       ? await listAppointments(
@@ -167,10 +172,13 @@ export default async function PatientAreaPage({
       ) : slug === "documentos" && documents ? (
         <PatientDocumentsWorkspace initial={documents} />
       ) : slug === "evolucao" && longitudinal ? (
-        <PatientLongitudinalWorkspace
-          initial={longitudinal}
-          base={`/clinicas/${tenantId}/meu-cuidado`}
-        />
+        <>
+          <PatientMeasurements tenant={tenantId} today={clinicDate()} />
+          <PatientLongitudinalWorkspace
+            initial={longitudinal}
+            base={`/clinicas/${tenantId}/meu-cuidado`}
+          />
+        </>
       ) : slug === "diario" && checkIns ? (
         <PatientCheckIns initial={checkIns} today={clinicDate()} />
       ) : slug === "plano" && published ? (
@@ -218,6 +226,7 @@ export default async function PatientAreaPage({
                 preparationPending?.first?.id ?? null
               }
               preparationPending={preparationPending}
+              latestMeasurement={latestMeasurement}
             />
             {preparations && (
               <PatientReturnPreparationWorkspace initial={preparations} />

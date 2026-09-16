@@ -4,7 +4,7 @@ export type MeasurementSource = {
   measure_unit: string | null;
   reported_on: string | null;
   submitted_at: string;
-  source: "onboarding" | "check_in";
+  source: "onboarding" | "check_in" | "measurement";
   source_id: string;
   source_label: string;
 };
@@ -62,6 +62,11 @@ export function checkInSourceHref(base: string, patient: boolean, sourceId: stri
   return base.includes("/acompanhamento")
     ? `${base}?aba=check-ins#check-in-${sourceId}`
     : `${base}?aba=Linha%20do%20tempo#check-in-${sourceId}`;
+}
+
+export function patientMeasurementSourceHref(base: string, patient: boolean) {
+  if (patient) return `${base}/evolucao#atualizar-medidas`;
+  return "#measures-title";
 }
 
 export function longitudinalPeriod(input: { from?: string; to?: string }): MeasurementPeriod {

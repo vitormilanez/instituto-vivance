@@ -86,6 +86,7 @@ export function PatientArea({
   pendingCheckInId,
   pendingReturnPreparationId,
   preparationPending,
+  latestMeasurement,
 }: {
   section: PatientSection;
   base: string;
@@ -96,6 +97,12 @@ export function PatientArea({
   pendingCheckInId?: string | null;
   pendingReturnPreparationId?: string | null;
   preparationPending?: { count: number; first: { id: string; status: string } | null };
+  latestMeasurement?: {
+    measure_label: string;
+    measure_value: number;
+    measure_unit: string;
+    reported_on: string;
+  } | null;
 }) {
   const nextAppointment = appointments.find(
     (appointment) =>
@@ -248,6 +255,11 @@ export function PatientArea({
                 ? `${preparationPending.count} ${preparationPending.count === 1 ? "ação pendente" : "ações pendentes"}`
                 : "Nenhuma ação pendente"}</span>
               {Boolean(preparationPending?.count) && <span>{preparationPending?.first?.status === "draft" ? "Continuar preenchimento" : "Responder pré-consulta"}</span>}
+            </Link>
+            <Link className={`quick-action measurement-action${latestMeasurement ? "" : " is-pending"}`} href={`${base}/evolucao#atualizar-medidas`}>
+              <strong>Atualizar medidas</strong>
+              <span>{latestMeasurement ? `${latestMeasurement.measure_label}: ${latestMeasurement.measure_value} ${latestMeasurement.measure_unit}` : "Registre peso, altura ou circunferência abdominal"}</span>
+              <span className="action-state">{latestMeasurement ? `Último registro em ${latestMeasurement.reported_on.split("-").reverse().join("/")}` : "Ação pendente"}</span>
             </Link>
             {actions.map((action) => (
               <Link
