@@ -16,6 +16,9 @@ colors:
   disabled: "#e8eef6"
   border: "#dbe4f0"
   input-border: "#98a9bf"
+  attention: "#8a5b09"
+  attention-border: "#e6c77a"
+  attention-surface: "#fff9eb"
 typography:
   headline:
     fontFamily: "Arial, Helvetica, sans-serif"
@@ -89,7 +92,7 @@ Os documentos `PRODUCT.md` e `DESIGN.md` da raiz descrevem o contexto e o protó
 
 O azul-marinho estrutura a navegação e as ações primárias. O azul de ação marca links, foco e orientação. Texto principal usa ink; descrições usam muted. Branco sobre canvas separa as superfícies de trabalho, com border como limite discreto.
 
-Ice identifica orientação e hover secundário. Quiet-surface distingue a lista vazia de conversas e acessos restritos. Disabled identifica operações futuras, sempre acompanhado de texto que explique a indisponibilidade. A seleção de navegação combina nav-selected com texto claro e `aria-current`.
+Ice identifica orientação e hover secundário. Quiet-surface distingue a lista vazia de conversas e acessos restritos. Attention-surface, attention-border e attention identificam uma pendência que pede ação da pessoa, sem atribuir urgência clínica. Disabled identifica operações futuras, sempre acompanhado de texto que explique a indisponibilidade. A seleção de navegação combina nav-selected com texto claro e `aria-current`.
 
 ## Typography
 
@@ -117,6 +120,7 @@ Painéis usam curvas amplas de panel; botões, cartões de ação e navegação 
 
 - **Botões:** altura mínima de 44 px, texto semibold e preenchimento primário navy. Secundários têm superfície branca e borda clara. O foco geral é contorno azul de 3 px com afastamento de 4 px; sobre navegação escura, usa contorno claro interno.
 - **Campos:** altura mínima de 48 px, borda input-border, fundo branco, rótulo visível e foco explícito. O compositor futuro de mensagens usa textarea desabilitado, com descrição de indisponibilidade legível.
+- **Pendências:** cartões que pedem uma ação usam attention-surface, attention-border e texto attention, sempre com uma indicação textual da ação necessária; não representam alerta clínico.
 - **Painéis e estados vazios:** superfície branca e borda clara. O estado vazio traz ícone decorativo, título e descrição curta; usa pelo menos 260 px de altura no desktop e se adapta no celular. Ausência de integração deve ser descrita como indisponibilidade, sem sugerir consulta bem-sucedida a uma coleção vazia.
 - **Aviso de desenvolvimento:** bloco claro antes da área de trabalho explica que os dados e as ações ainda não estão conectados.
 - **Operações futuras:** usam botão realmente `disabled`, fundo disabled, opacidade integral e cursor de indisponibilidade. Não simular sucesso, envio ou persistência.

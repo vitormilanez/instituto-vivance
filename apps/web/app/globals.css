@@ -11,6 +11,8 @@
   --gold: #d8b06b;
   --positive: #0b6b57;
   --attention: #8a5b09;
+  --attention-border: #e6c77a;
+  --attention-surface: #fff9eb;
 }
 
 /* Return preparation extends the incumbent operational surface: one linked
@@ -74,8 +76,8 @@
 }
 
 .quick-action.measurement-action.is-pending {
-  border-color: #e6c77a;
-  background: #fff9eb;
+  border-color: var(--attention-border);
+  background: var(--attention-surface);
 }
 
 .patient-measurements {
@@ -85,6 +87,22 @@
 .patient-measurements form {
   display: grid;
   gap: 16px;
+}
+
+.patient-measurements-guidance,
+.patient-measurements [role="status"] {
+  margin: 0;
+}
+
+.patient-measurements-guidance {
+  color: var(--muted);
+}
+
+.patient-measurements [role="status"] {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--blue-soft);
+  color: var(--ink);
 }
 
 .patient-measurement-fields {
