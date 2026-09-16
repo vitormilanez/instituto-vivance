@@ -3632,10 +3632,31 @@ button.calendar-day[aria-pressed="true"] {
 .patient-record-section-heading p {
   margin: 6px 0 0;
 }
+.patient-record-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+/* "Equipe de cuidado" / "Onde continuar" are useful but secondary — kept
+   visually quieter than the clinical content above, echoing the same
+   de-emphasis used for "Mais ferramentas" on the dashboard. */
 .patient-record-secondary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
+  margin-top: 8px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.patient-record-secondary .panel {
+  padding: 20px;
+  box-shadow: none;
+}
+.patient-record-secondary h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
 }
 .patient-record-secondary .future-care {
   margin-top: 0;
