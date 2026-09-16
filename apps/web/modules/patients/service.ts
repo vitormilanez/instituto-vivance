@@ -20,7 +20,39 @@ export async function listPatients(id: string, page = 1, search = "") {
     .order("id")
     .range((page - 1) * 25, page * 25 - 1);
   if (error) throw new Error("Unable to load patient directory");
-  return { clinic: context.clinic, patients: data ?? [], count: count ?? 0 };
+  const patients = data ?? [];
+  // Doctors/nurses see who already sent their initial intake ("Primeiros passos").
+  // RLS (patient_onboarding_submission_read_care) scopes this to active care relationships;
+  // admins never see it, matching their non-clinical access.
+  let onboardingSubmittedAt: Record<string, string> = {};
+  if (
+    ["doctor", "nurse"].includes(context.clinic.role) &&
+    patients.length
+  ) {
+    const submissions = await context.client
+      .from("patient_onboarding_submissions")
+      .select("patient_id, submitted_at")
+      .eq("tenant_id", id)
+      .in(
+        "patient_id",
+        patients.map((patient) => patient.id),
+      );
+    if (!submissions.error)
+      onboardingSubmittedAt = Object.fromEntries(
+        (submissions.data ?? []).map((row) => [
+          row.patient_id,
+          row.submitted_at,
+        ]),
+      );
+  }
+  return {
+    clinic: context.clinic,
+    patients: patients.map((patient) => ({
+      ...patient,
+      onboardingSubmittedAt: onboardingSubmittedAt[patient.id] ?? null,
+    })),
+    count: count ?? 0,
+  };
 }
 
 export async function getPatient(id: string, patientId: string) {

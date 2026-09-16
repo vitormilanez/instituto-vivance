@@ -118,7 +118,11 @@ export function TodayWorkspace({
   const nextDate = data.nextDate ?? data.today;
   const isFutureDay = Boolean(next && nextDate !== data.today);
   const active = next && data.drafts.find((p) => p.appointment_id === next.id);
-  const attentionCount = data.checkIns.length + data.drafts.length + data.preparations.length;
+  const attentionCount =
+    data.checkIns.length +
+    data.drafts.length +
+    data.preparations.length +
+    data.onboardingSubmissions.length;
   return (
     <>
       <div className="page-heading">
@@ -251,6 +255,16 @@ export function TodayWorkspace({
           </p>
           {attentionCount ? (
             <ul>
+              {data.onboardingSubmissions.map((item) => (
+                <li className="today-preconsultation-card" key={item.id}>
+                  <span className="today-pending-label">Novo cadastro</span>
+                  <strong>{item.patients?.display_name ?? "Paciente"}</strong>
+                  <p>Primeiros passos enviados. Reveja o cadastro inicial antes da consulta.</p>
+                  <Link href={`${base}/pacientes/${item.patient_id}?aba=Vis%C3%A3o%20geral`}>
+                    Ver cadastro inicial
+                  </Link>
+                </li>
+              ))}
               {data.preparations.map((item) => (
                 <li className="today-preconsultation-card" key={item.id}>
                   <span className="today-pending-label">Ação pendente</span>
@@ -269,7 +283,16 @@ export function TodayWorkspace({
                 </li>
               ))}
               {data.drafts
-                .slice(0, Math.max(0, 5 - data.checkIns.length - data.preparations.length))
+                .slice(
+                  0,
+                  Math.max(
+                    0,
+                    5 -
+                      data.checkIns.length -
+                      data.preparations.length -
+                      data.onboardingSubmissions.length,
+                  ),
+                )
                 .map((p) => (
                   <li key={p.id}>
                     <strong>{p.patients?.display_name ?? "Paciente"}</strong>
@@ -284,8 +307,8 @@ export function TodayWorkspace({
             <div className="empty">
               <h3>Nenhuma pendência</h3>
               <p>
-                Novos check-ins enviados e atendimentos em rascunho aparecerão
-                aqui.
+                Novos cadastros, check-ins enviados e atendimentos em rascunho
+                aparecerão aqui.
               </p>
             </div>
           )}

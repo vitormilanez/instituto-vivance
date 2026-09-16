@@ -2263,6 +2263,20 @@ button.calendar-day[aria-pressed="true"] {
   margin-top: 2px;
   font-size: 12px;
 }
+.appointment-patient-link {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 4px;
+  padding: 4px 0;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.appointment-patient-link:hover {
+  text-decoration: underline;
+}
 .appointment-status {
   margin: 0;
   white-space: nowrap;
@@ -2507,6 +2521,30 @@ button.calendar-day[aria-pressed="true"] {
 }
 .patient-profile-link {
   margin-top: auto;
+}
+.patient-sidebar-group {
+  display: flex;
+  flex-direction: column;
+}
+.patient-sidebar-subnav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 6px;
+  padding-left: 14px;
+  border-left: 1px solid rgba(255, 255, 255, 0.16);
+}
+.patient-sidebar-subnav a {
+  min-height: 36px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 550;
+  color: #a9bfda;
+}
+.patient-sidebar-subnav a:hover,
+.patient-sidebar-subnav a[aria-current="page"] {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 .patient-workspace {
   width: 100%;
@@ -3335,6 +3373,15 @@ button.calendar-day[aria-pressed="true"] {
 .patient-list > li > a { margin:0 -8px; padding:17px 8px; border-radius:10px; transition:background .15s ease; }
 .patient-list > li > a:hover { background:#f2f8f7; }
 .patient-list .row-action { color:#126c5d; font-weight:700; }
+.patient-list > li > a > span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.patient-row-badge {
+  margin-top: 2px;
+}
 
 .calendar-workspace { overflow:hidden; }
 .appointment-list .appointment-row { transition:background .15s ease; }
@@ -3885,6 +3932,31 @@ button.calendar-day[aria-pressed="true"] {
 }
 .onboarding-card > p {
   max-width: 64ch;
+}
+.onboarding-welcome-expectations {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 64ch;
+  margin: 20px 0 28px;
+  padding: 0;
+  list-style: none;
+}
+.onboarding-welcome-expectations li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.onboarding-welcome-expectations li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--positive);
 }
 .onboarding-fields {
   display: grid;

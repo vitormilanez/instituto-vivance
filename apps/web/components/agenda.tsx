@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
@@ -26,6 +27,7 @@ export function AppointmentList({
   onStart,
   onPrepare,
   preparationStates = {},
+  patientRecordBase,
 }: {
   appointments: Appointment[];
   currentTime: string;
@@ -36,6 +38,9 @@ export function AppointmentList({
   onStart?: (appointment: Appointment) => void;
   onPrepare?: (appointment: Appointment) => void;
   preparationStates?: Record<string, string>;
+  // Only the staff Agenda passes this; a patient viewing their own
+  // consultations should never see a link to a "ficha".
+  patientRecordBase?: string;
 }) {
   if (!appointments.length)
     return (
@@ -95,6 +100,14 @@ export function AppointmentList({
                 })}
               </small>
               <small>{a.doctor_display_name}</small>
+              {patientRecordBase && (
+                <Link
+                  className="appointment-patient-link"
+                  href={`${patientRecordBase}/${a.patient_id}`}
+                >
+                  Ver ficha do paciente
+                </Link>
+              )}
             </span>
           </div>
           <span
@@ -751,6 +764,7 @@ export function Agenda({
               nextId={nextAppointment?.id}
               currentTime={currentTime}
               preparationStates={preparationStates}
+              patientRecordBase={`/clinicas/${tenantId}/pacientes`}
               onPrepare={canStart ? setPreparing : undefined}
               onStart={
                 canStart

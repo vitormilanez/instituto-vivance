@@ -113,6 +113,11 @@ export default async function Patients({
                           ? `Nascimento: ${p.birth_date.split("-").reverse().join("/")}`
                           : "Nascimento não informado"}
                       </small>
+                      {p.onboardingSubmittedAt && (
+                        <span className="badge appointment-status completed patient-row-badge">
+                          Pré-consulta enviada
+                        </span>
+                      )}
                     </span>
                     <span className="row-action">Ver ficha</span>
                   </Link>

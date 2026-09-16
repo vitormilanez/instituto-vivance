@@ -15,6 +15,11 @@ export function PatientShell({
 }) {
   const base = `/clinicas/${clinic.id}/meu-cuidado`;
   const primarySections = patientSections.slice(0, 4);
+  // Desktop gets the full map of "Meu cuidado" up front, so orientações,
+  // documentos e relatórios não exigem entrar no hub primeiro para descobri-los.
+  const careSections = patientSections.filter(
+    (section) => section.group === "cuidado" && section.slug !== "cuidado",
+  );
   return (
     <>
       <Header
@@ -29,13 +34,23 @@ export function PatientShell({
           </div>
           <nav aria-label="Navegação do paciente">
             {primarySections.map((section) => (
-              <Link
-                key={section.slug}
-                href={`${base}/${section.slug}`}
-                aria-current={active === section.slug ? "page" : undefined}
-              >
-                {section.title}
-              </Link>
+              <span key={section.slug} className="patient-sidebar-group">
+                <Link
+                  href={`${base}/${section.slug}`}
+                  aria-current={active === section.slug ? "page" : undefined}
+                >
+                  {section.title}
+                </Link>
+                {section.slug === "cuidado" && (
+                  <span className="patient-sidebar-subnav">
+                    {careSections.map((sub) => (
+                      <Link key={sub.slug} href={`${base}/${sub.slug}`}>
+                        {sub.title}
+                      </Link>
+                    ))}
+                  </span>
+                )}
+              </span>
             ))}
           </nav>
           <Link

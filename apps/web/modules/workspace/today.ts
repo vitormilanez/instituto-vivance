@@ -32,7 +32,7 @@ export async function todayWorkspace(id: string) {
     if (future.error) throw new Error("Unable to load next appointment");
     next = future.data?.[0] ?? null;
   }
-  const [drafts, checkIns, preparations] = await Promise.all([
+  const [drafts, checkIns, preparations, onboardingSubmissions] = await Promise.all([
     client
       .from("encounters")
       .select(
@@ -63,9 +63,36 @@ export async function todayWorkspace(id: string) {
       .order("submitted_at")
       .order("id")
       .limit(5),
+    // First-time intake ("Primeiros passos"). RLS (patient_onboarding_submission_read_care)
+    // already scopes this to patients with an active care relationship with this professional.
+    // Fetched without the "patients" embed: this table's FK isn't exposed in the
+    // generated Supabase relationship graph, so names are joined below instead.
+    client
+      .from("patient_onboarding_submissions")
+      .select("id,patient_id,submitted_at")
+      .eq("tenant_id", id)
+      .order("submitted_at", { ascending: false })
+      .order("id")
+      .limit(5),
   ]);
-  if (drafts.error || checkIns.error || preparations.error)
+  if (drafts.error || checkIns.error || preparations.error || onboardingSubmissions.error)
     throw new Error("Unable to load care pending items");
+  const onboardingSubmissionRows = onboardingSubmissions.data ?? [];
+  const onboardingPatientNames = onboardingSubmissionRows.length
+    ? await client
+        .from("patients")
+        .select("id,display_name")
+        .eq("tenant_id", id)
+        .in(
+          "id",
+          onboardingSubmissionRows.map((row) => row.patient_id),
+        )
+    : null;
+  if (onboardingPatientNames?.error)
+    throw new Error("Unable to load care pending items");
+  const onboardingNameById = new Map(
+    (onboardingPatientNames?.data ?? []).map((row) => [row.id, row.display_name]),
+  );
   const context = next ? await patientCareContext(id, next.patient_id) : null;
   return {
     ...agenda,
@@ -75,6 +102,10 @@ export async function todayWorkspace(id: string) {
     drafts: drafts.data ?? [],
     checkIns: checkIns.data ?? [],
     preparations: preparations.data ?? [],
+    onboardingSubmissions: onboardingSubmissionRows.map((row) => ({
+      ...row,
+      patients: { display_name: onboardingNameById.get(row.patient_id) ?? null },
+    })),
     now,
     today,
   };
