@@ -38,7 +38,7 @@ const actions = [
   },
   {
     label: "Meus documentos",
-    text: "Arquivos compartilhados com a clínica",
+    text: "Enviar exames, fotos e documentos para a clínica",
     slug: "documentos",
     available: true,
   },
@@ -66,7 +66,7 @@ function actionState(action: (typeof actions)[number]) {
     case "evolucao":
       return "Abrir evolução";
     case "documentos":
-      return "Abrir documentos";
+      return "Enviar ou abrir documentos";
     case "conversas":
       return "Abrir conversas";
     case "consultas":
