@@ -1225,7 +1225,6 @@ button.future-button:disabled {
   font-size: 17px;
   margin: 0;
   text-align: center;
-  text-transform: capitalize;
 }
 .calendar-toolbar button {
   width: 44px;
@@ -2258,7 +2257,6 @@ button.calendar-day[aria-pressed="true"] {
 }
 .calendar-schedule > h2 {
   margin-bottom: 14px;
-  text-transform: capitalize;
 }
 .appointment-list {
   border-top: 1px solid var(--border);
@@ -3113,6 +3111,11 @@ button.calendar-day[aria-pressed="true"] {
    fold below, so there is no in-between width where a squeezed sidebar and
    a single-column layout fight for the same space. */
 @media (max-width:1100px) {
+  /* The sidebar leaves the flow here, so its grid column must go too —
+     otherwise main is placed in the 252px track and the page collapses
+     into a narrow strip beside empty space. */
+  .workspace { display:block; }
+  .staff-topbar { grid-template-columns:auto minmax(0,1fr); }
   .workspace-nav { display:none; }
   .workspace-main { padding-bottom:110px; }
   .staff-mobile-dock { display:flex; position:fixed; z-index:30; bottom:12px; left:12px; right:12px; padding:8px; gap:3px; border:1px solid #bcd0ea; border-radius:22px; background:#f8fbff; box-shadow:0 10px 28px #03132d20; }
@@ -4386,4 +4389,234 @@ a.more-tools-card:hover {
   .share-link .secondary {
     width: 100%;
   }
+}
+
+/* ------------------------------------------------------------------
+   Refinamento da área da equipe (set/2026, Impeccable · polish/layout/adapt)
+   Mantém a identidade azul-marinho; resolve cascata acumulada:
+   - superfícies planas (borda OU sombra, nunca as duas);
+   - títulos de seção como títulos, não rótulos em caixa alta;
+   - uma única cor de link (blue);
+   - menu lateral e dock trocam juntos, sem coluna fantasma.
+   ------------------------------------------------------------------ */
+
+/* Header opaco: nada do conteúdo rolado aparece por trás dos links. */
+.staff-topbar {
+  background: var(--surface);
+  box-shadow: none;
+}
+.topbar-route-context strong { font-size: 17px; }
+
+/* Sidebar sem texto decorativo; espaçamento mais firme. */
+.workspace-nav nav a { font-weight: 600; }
+
+/* Superfícies planas, conforme DESIGN.md. */
+.panel,
+.calendar-workspace,
+.agenda-focus-card,
+.conversation-workspace,
+.grid > .panel:first-child,
+.page-heading .button,
+button.calendar-day[aria-pressed="true"] {
+  box-shadow: none;
+}
+
+/* Cabeçalho da página: título + contexto, sem ação duplicada. */
+.page-heading h1 { letter-spacing: -0.03em; }
+.today-page-heading { margin-bottom: 20px; }
+.today-page-heading h1 { font-size: clamp(26px, 2.6vw, 32px); }
+.today-date::first-letter { text-transform: uppercase; }
+
+/* Títulos de seção do "Hoje": sentence case, peso real de título. */
+.today-next-heading h2,
+.today-attention h2,
+.today-schedule h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  text-transform: none;
+}
+.today-next-summary { border-top: 0; padding: 24px 28px; }
+.today-next { border-top: 3px solid var(--navy) !important; }
+.today-patient { margin: 20px 0 18px; }
+.today-patient h3 { font-size: clamp(22px, 2.2vw, 26px); font-weight: 700; }
+.today-consultation-meta { align-items: baseline; font-size: 14px; }
+.today-consultation-when strong { font-size: 15px; }
+.today-primary-action { justify-content: flex-end; margin-top: 20px; }
+.today-primary-action > span { margin-right: auto; font-size: 13px; }
+.today-context { padding: 20px 28px 24px; background: var(--canvas); }
+.today-context > h3 { color: var(--ink); font-size: 15px; }
+.today-context > p { color: var(--muted); }
+
+/* Pendências: rótulo de tipo discreto, título, detalhe, ação. */
+.today-attention { display: flex; flex-direction: column; }
+.today-attention > p { color: var(--muted); }
+.today-attention li strong { display: block; color: var(--ink); font-size: 15px; }
+.today-attention li p { color: var(--muted); }
+.today-pending-label {
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.today-attention li a,
+.today-attention-more {
+  color: var(--blue);
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.today-attention-more {
+  align-self: flex-start;
+  margin-top: 8px;
+  padding-top: 14px;
+}
+.today-attention .quiet-label {
+  min-width: 26px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Consultas do dia. */
+.today-schedule .section-heading a,
+.section-heading > a {
+  color: var(--blue);
+  font-size: 14px;
+  font-weight: 650;
+  text-underline-offset: 3px;
+}
+.today-timeline li { padding: 12px 14px; }
+.today-timeline a { text-decoration: none; }
+.today-timeline a:hover strong { text-decoration: underline; text-underline-offset: 3px; }
+.today-timeline strong { font-size: 15px; }
+.today-timeline p { color: var(--muted); }
+
+/* Atalhos: lista leve, sem monogramas nem cartões repetidos. */
+.quick-actions-section-secondary {
+  margin-top: 8px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.quick-actions-section-secondary .quick-actions-heading { margin-bottom: 12px; }
+.quick-actions-section-secondary h2 { color: var(--ink); font-size: 17px; }
+.more-tools-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.more-tools-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16px;
+  grid-template-areas: "title icon" "text icon";
+  align-items: center;
+  gap: 2px 12px;
+  min-height: 64px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.more-tools-link strong { grid-area: title; font-size: 14px; }
+.more-tools-link span { grid-area: text; color: var(--muted); font-size: 13px; }
+.more-tools-link svg { grid-area: icon; color: var(--blue); }
+.more-tools-link:hover { border-color: #b7c8de; background: var(--blue-soft); }
+
+/* Uma só cor de link em listas e contextos. */
+.patient-list .row-action,
+.care-context-links a > span:last-child { color: var(--blue); }
+.patient-list > li > a { padding: 14px 8px; }
+.patient-list > li > a:hover,
+.care-context-links > a:hover { background: var(--blue-soft); border-color: #b7c8de; }
+.care-context-links > .care-context-plan { background: var(--surface); border-color: var(--border); }
+
+/* Pacientes: o atalho do topo só existe quando o formulário fica abaixo. */
+@media (min-width: 1151px) {
+  .page-heading-jump { display: none; }
+}
+
+/* Agenda: próximo atendimento como cartão claro, igual ao "Hoje". */
+.workspace-doctor .agenda-focus-card {
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--navy);
+  background: var(--surface);
+  color: var(--ink);
+}
+.workspace-doctor .agenda-focus-card .agenda-focus-time span,
+.workspace-doctor .agenda-focus-card .agenda-focus-patient p { color: var(--muted); }
+.workspace-doctor .agenda-focus-card .agenda-focus-time strong { color: var(--blue); }
+.workspace-doctor .agenda-focus-card .agenda-focus-patient h2 { color: var(--ink); }
+.workspace-doctor .agenda-focus-card .appointment-status {
+  border-color: transparent;
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+.schedule-caption { color: var(--muted); }
+
+/* Calendário: número e marcador empilhados, célula estável. */
+button.calendar-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 48px;
+  min-height: 48px;
+  line-height: 1;
+}
+button.calendar-day .agenda-dot { margin: 0; color: var(--blue); }
+button.calendar-day[aria-pressed="true"] .agenda-dot { color: var(--surface); }
+button.calendar-day:not(:has(.agenda-dot))::after {
+  content: "";
+  display: block;
+  width: 5px;
+  height: 5px;
+}
+button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
+  box-shadow: inset 0 0 0 1px var(--navy);
+  text-decoration: none;
+}
+
+/* Ações da consulta: uma primária, uma secundária, o resto discreto. */
+.appointment-actions button.quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+.appointment-actions button.quiet:hover {
+  background: var(--blue-soft);
+  color: var(--ink);
+}
+
+/* Acompanhamento: a pergunta enviada é conteúdo, não um alerta colorido. */
+.check-in-card blockquote,
+.patient-check-ins blockquote {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--canvas);
+}
+
+@media (max-width: 1100px) {
+  .today-next-summary { padding: 22px 20px; }
+  .today-context { padding: 20px; }
+  .today-primary-action > span { margin-right: 0; }
+}
+@media (max-width: 650px) {
+  .more-tools-list { grid-template-columns: minmax(0, 1fr); }
+  .topbar-route-context strong { font-size: 15px; }
 }

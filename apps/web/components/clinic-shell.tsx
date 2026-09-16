@@ -93,8 +93,8 @@ export async function ClinicShell({
         homeHref={base}
         notificationsHref={`${base}/avisos`}
         notificationCount={notificationCount}
-        title={activeLabel}
-        context={`${clinic.name} · ${roleLabels[clinic.role]}`}
+        title={clinic.name}
+        context={`${roleLabels[clinic.role]} · ${activeLabel}`}
       />
       <div className={`workspace workspace-${clinic.role}`}>
         <aside className="workspace-nav">
@@ -147,7 +147,6 @@ export async function ClinicShell({
               </div>
             </details>
           </nav>
-          <p className="workspace-note">Seu espaço para organizar o cuidado.</p>
         </aside>
         <main id="conteudo" className="workspace-main">
           {children}

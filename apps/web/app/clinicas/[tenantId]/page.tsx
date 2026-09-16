@@ -67,6 +67,13 @@ export default async function Dashboard({
       href: `${base}/equipe`,
     },
   ];
+  // The sidebar/dock already carries these; the shortcuts list only adds
+  // what is one level deeper, so the page never repeats its own navigation.
+  const primaryHrefs = new Set([
+    `${base}/pacientes`,
+    `${base}/agenda`,
+    `${base}/acompanhamento`,
+  ]);
   return (
     <ClinicShell clinic={context.clinic} active="home">
       {today ? (
@@ -105,46 +112,40 @@ export default async function Dashboard({
       >
         <div className="quick-actions-heading">
           <h2 id="quick-actions">
-            {today ? "Mais ferramentas" : "Ações rápidas"}
+            {today ? "Atalhos" : "Ações rápidas"}
           </h2>
-          <p>
-            {today
-              ? "Cadastros e áreas que você não usa a cada agendamento."
-              : "Continue o cuidado pelo ponto certo, sem perder o contexto."}
-          </p>
+          {!today && (
+            <p>Continue o cuidado pelo ponto certo, sem perder o contexto.</p>
+          )}
         </div>
         {today ? (
-          <div className="more-tools-grid">
-            {actions.map((action) =>
-              action.href ? (
-                <Link
-                  className="more-tools-card"
-                  href={action.href}
-                  key={action.title}
-                >
-                  <span className="more-tools-icon" aria-hidden="true">
-                    {action.title[0]}
-                  </span>
-                  <span className="more-tools-body">
+          <ul className="more-tools-list">
+            {actions
+              .filter((action) => !primaryHrefs.has(action.href))
+              .map((action) => (
+                <li key={action.title}>
+                  <Link className="more-tools-link" href={action.href}>
                     <strong>{action.title}</strong>
                     <span>{action.text}</span>
-                  </span>
-                  <span className="more-tools-state">Abrir</span>
-                </Link>
-              ) : (
-                <div className="more-tools-card unavailable" key={action.title}>
-                  <span className="more-tools-icon" aria-hidden="true">
-                    {action.title[0]}
-                  </span>
-                  <span className="more-tools-body">
-                    <strong>{action.title}</strong>
-                    <span>{action.text}</span>
-                  </span>
-                  <span className="more-tools-state">Em breve</span>
-                </div>
-              ),
-            )}
-          </div>
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 16 16"
+                      width="16"
+                      height="16"
+                    >
+                      <path
+                        d="M6 3.5 10.5 8 6 12.5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </Link>
+                </li>
+              ))}
+          </ul>
         ) : (
           <div className="quick-actions">
             {actions.map((action) =>

@@ -88,9 +88,8 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
         <div className="section-heading">
           <div>
             <h2>Fila de revisão</h2>
-            <p>Revise os relatos enviados antes de iniciar uma nova solicitação.</p>
+            <p>Solicitações de check-in e relatos enviados pelos pacientes.</p>
           </div>
-          <span className="quiet-label">{initial.checkIns.length} nesta página</span>
         </div>
         <dl className="check-in-summary" aria-label="Resumo da fila">
           <div><dt>Para revisar</dt><dd>{submitted}</dd></div>

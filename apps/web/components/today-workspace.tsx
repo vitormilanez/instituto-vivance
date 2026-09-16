@@ -145,8 +145,8 @@ export function TodayWorkspace({
     <>
       <div className="page-heading today-page-heading">
         <div>
-          <h1>{data.clinic.role === "doctor" ? "Painel médico" : "Hoje"}</h1>
-          <p>
+          <h1>Hoje</h1>
+          <p className="today-date">
             {new Date(`${data.today}T12:00:00Z`).toLocaleDateString("pt-BR", {
               weekday: "long",
               day: "numeric",
@@ -154,12 +154,10 @@ export function TodayWorkspace({
               timeZone: "UTC",
             })}{" "}
             · {data.appointments.length}
-            {data.truncated ? "+" : ""} agendamentos
+            {data.truncated ? "+" : ""}{" "}
+            {data.appointments.length === 1 ? "agendamento" : "agendamentos"}
           </p>
         </div>
-        <Link className="button secondary" href={`${base}/agenda`}>
-          Ver agenda completa
-        </Link>
       </div>
       <div className="today-workspace">
         <section className="panel today-next" aria-labelledby="next-title">
@@ -202,16 +200,11 @@ export function TodayWorkspace({
                   <span className="today-consultation-doctor">
                     {next.doctor_display_name}
                   </span>
-                  <span className="today-consultation-mode">
-                    Atendimento manual disponível
-                  </span>
                 </div>
                 <div className="today-primary-action">
-                  <span>
-                    {isFutureDay
-                      ? "Sua próxima consulta já está agendada. Confira o dia e o horário."
-                      : "Revise o contexto disponível e siga para o atendimento."}
-                  </span>
+                  {isFutureDay && (
+                    <span>Nenhuma consulta restante hoje. Esta é a próxima.</span>
+                  )}
                   <Link
                     className="button"
                     href={
@@ -262,14 +255,13 @@ export function TodayWorkspace({
           aria-labelledby="attention-title"
         >
           <div className="section-heading">
-            <h2 id="attention-title">Para revisar</h2>
+            <h2 id="attention-title">Pendências</h2>
             {attentionCount > 0 && (
               <span className="quiet-label">{attentionCount}</span>
             )}
           </div>
           <p>
-            Relatos recebidos e registros seus em rascunho. Esta é uma fila de
-            trabalho, sem classificação de risco clínico.
+            Fila de trabalho, sem classificação de risco clínico.
           </p>
           {attentionCount ? (
             <ul>
@@ -332,7 +324,15 @@ export function TodayWorkspace({
               </p>
             </div>
           )}
-          <Link href={`${base}/acompanhamento`}>Ver acompanhamento</Link>
+          {data.checkIns.length > 0 ? (
+            <Link className="today-attention-more" href={`${base}/acompanhamento`}>
+              Abrir acompanhamento
+            </Link>
+          ) : data.drafts.length > 0 ? (
+            <Link className="today-attention-more" href={`${base}/atendimentos`}>
+              Abrir atendimentos
+            </Link>
+          ) : null}
         </aside>
         <section
           className="panel today-schedule"
@@ -340,7 +340,7 @@ export function TodayWorkspace({
         >
           <div className="section-heading">
             <h2 id="today-schedule-title">Consultas de hoje</h2>
-            <Link href={`${base}/agenda`}>Ver agenda completa</Link>
+            <Link href={`${base}/agenda`}>Abrir agenda</Link>
           </div>
           {!data.appointments.length ? (
             <p>Nenhuma consulta agendada hoje.</p>
