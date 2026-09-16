@@ -9,7 +9,7 @@ import {
   submitPreparationInput,
 } from "./validation";
 
-export type PreparationQuestion = { id: string; label: string };
+import type { PreparationQuestion } from "./questionnaire";
 
 export class ReturnPreparationError extends Error {
   constructor(message: string, public status: number) {
@@ -23,7 +23,7 @@ function failed(code?: string): never {
       "Seu acesso mudou ou este preparo não está disponível. Atualize a página.",
       403,
     );
-  if (["40001", "23503", "23505", "23514"].includes(code ?? ""))
+  if (["40001", "23503", "23505", "23514", "22023"].includes(code ?? ""))
     throw new ReturnPreparationError(
       "Este preparo mudou em outra sessão. Atualize a página antes de tentar novamente.",
       409,
@@ -59,10 +59,10 @@ async function questionnaire(
   return { ...result.data, questions: questionnaireQuestions(result.data.questions) };
 }
 
-export async function staffReturnPreparations(id: string, pageInput?: string) {
+export async function staffReturnPreparations(id: string, pageInput?: string, requestInput?: string) {
   const tenant = tenantId(id), page = pageNumber(pageInput);
   const { client, clinic } = await requireClinic(tenant, ["doctor"]);
-  const result = await client
+  const query = client
     .from("return_preparation_requests")
     .select("*,patients!return_preparation_requests_tenant_id_patient_id_fkey(display_name),appointments!return_preparation_requests_tenant_id_appointment_id_fkey(starts_at,ends_at,status)")
     .eq("tenant_id", tenant)
@@ -70,6 +70,8 @@ export async function staffReturnPreparations(id: string, pageInput?: string) {
     .order("requested_at", { ascending: false })
     .order("id")
     .range((page - 1) * 20, page * 20);
+  if (requestInput) query.eq("id", tenantId(requestInput));
+  const result = await query;
   if (result.error) failed(result.error.code);
   const rows = (result.data ?? []).slice(0, 20);
   const ids = rows.map((row) => row.id);
@@ -93,19 +95,22 @@ export async function staffReturnPreparations(id: string, pageInput?: string) {
     })),
     page,
     hasNext: (result.data?.length ?? 0) > 20,
+    focused: Boolean(requestInput),
   };
 }
 
-export async function patientReturnPreparations(id: string, pageInput?: string) {
+export async function patientReturnPreparations(id: string, pageInput?: string, requestInput?: string) {
   const tenant = tenantId(id), page = pageNumber(pageInput);
   const { client, clinic } = await requireClinic(tenant, ["patient"]);
-  const result = await client
+  const query = client
     .from("return_preparation_requests")
     .select("*,appointments!return_preparation_requests_tenant_id_appointment_id_fkey(starts_at,ends_at,status,doctor_display_name)")
     .eq("tenant_id", tenant)
     .order("requested_at", { ascending: false })
     .order("id")
     .range((page - 1) * 20, page * 20);
+  if (requestInput) query.eq("id", tenantId(requestInput));
+  const result = await query;
   if (result.error) failed(result.error.code);
   const rows = (result.data ?? []).slice(0, 20), ids = rows.map((row) => row.id);
   const [drafts, submissions] = ids.length
@@ -128,8 +133,43 @@ export async function patientReturnPreparations(id: string, pageInput?: string) 
     })),
     page,
     hasNext: (result.data?.length ?? 0) > 20,
+    focused: Boolean(requestInput),
   };
 }
+
+// Count all actionable requests; never derive badges from a paginated history.
+export async function patientPreparationPending(id: string) {
+  const tenant = tenantId(id);
+  const { client } = await requireClinic(tenant, ["patient"]);
+  const result = await client.from("return_preparation_requests")
+    .select("id,status", { count: "exact" })
+    .eq("tenant_id", tenant).in("status", ["requested", "draft"])
+    .order("requested_at").order("id").limit(1);
+  if (result.error) failed(result.error.code);
+  return { count: result.count ?? 0, first: result.data?.[0] ?? null };
+}
+
+export async function encounterPreparation(id: string, appointmentId: string) {
+  const tenant = tenantId(id);
+  const { client } = await requireClinic(tenant, ["doctor", "nurse"]);
+  const result = await client.from("return_preparation_requests")
+    .select("id,status,questionnaire_version,submitted_at")
+    .eq("tenant_id", tenant).eq("appointment_id", tenantId(appointmentId))
+    .in("status", ["submitted", "reviewed"])
+    .order("submitted_at", { ascending: false }).order("id").limit(1).maybeSingle();
+  if (result.error) failed(result.error.code);
+  if (!result.data) return null;
+  const row = result.data;
+  const [script, submission] = await Promise.all([
+    questionnaire(client, row.questionnaire_version),
+    client.from("return_preparation_submissions").select("answers,priorities,submitted_at")
+      .eq("tenant_id", tenant).eq("request_id", row.id).single(),
+  ]);
+  if (submission.error || !submission.data) failed(submission.error?.code);
+  return { ...row, questionnaire: script, submission: submission.data };
+}
+
+export type EncounterPreparation = Awaited<ReturnType<typeof encounterPreparation>>;
 
 export async function appointmentPreparationStates(id: string, appointmentIds: string[]) {
   const tenant = tenantId(id);
@@ -152,6 +192,7 @@ export async function requestReturnPreparation(id: string, input: unknown) {
     target_tenant: tenant,
     target_appointment: value.appointmentId,
     request_key: value.requestKey,
+    ...(value.questions ? { supplied_questions: value.questions } : {}),
   });
   if (result.error) failed(result.error.code);
   return { id: result.data };
@@ -165,6 +206,7 @@ export async function saveReturnPreparation(id: string, requestId: string, input
     target_request: target,
     read_version: value.version,
     supplied_answers: value.answers,
+    supplied_priorities: value.priorities ?? [],
   });
   if (result.error) failed(result.error.code);
   return { version: result.data };
@@ -178,6 +220,7 @@ export async function submitReturnPreparation(id: string, requestId: string, inp
     target_request: target,
     read_version: value.version,
     supplied_answers: value.answers,
+    supplied_priorities: value.priorities ?? [],
     confirmed: true,
   });
   if (result.error) failed(result.error.code);

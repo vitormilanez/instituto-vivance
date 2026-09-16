@@ -947,6 +947,8 @@ export type Database = {
           title: string;
           questions: Json;
           created_at: string;
+          tenant_id: string | null;
+          doctor_id: string | null;
         };
         Insert: never;
         Update: never;
@@ -961,6 +963,7 @@ export type Database = {
           doctor_id: string;
           questionnaire_version: number;
           request_number: number;
+          supplied_questions: Json | null;
           status: string;
           version: number;
           requested_by: string;
@@ -1000,6 +1003,7 @@ export type Database = {
           patient_id: string;
           actor_user_id: string;
           answers: Json;
+          priorities: string[];
           version: number;
           updated_at: string;
         };
@@ -1017,6 +1021,8 @@ export type Database = {
           actor_user_id: string;
           questionnaire_version: number;
           answers: Json;
+          priorities: string[];
+          submitted_draft_version: number | null;
           submitted_at: string;
         };
         Insert: never;
@@ -1107,6 +1113,7 @@ export type Database = {
           target_tenant: string;
           target_appointment: string;
           request_key: string;
+          supplied_questions?: Json;
         };
         Returns: string;
       };
@@ -1116,6 +1123,7 @@ export type Database = {
           target_request: string;
           read_version: number;
           supplied_answers: Json;
+          supplied_priorities?: string[];
         };
         Returns: number;
       };
@@ -1125,6 +1133,7 @@ export type Database = {
           target_request: string;
           read_version: number;
           supplied_answers: Json;
+          supplied_priorities?: string[];
           confirmed: boolean;
         };
         Returns: string;

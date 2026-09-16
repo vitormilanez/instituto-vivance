@@ -85,6 +85,7 @@ export function PatientArea({
   onboardingHref,
   pendingCheckInId,
   pendingReturnPreparationId,
+  preparationPending,
 }: {
   section: PatientSection;
   base: string;
@@ -94,6 +95,7 @@ export function PatientArea({
   onboardingHref?: string | null;
   pendingCheckInId?: string | null;
   pendingReturnPreparationId?: string | null;
+  preparationPending?: { count: number; first: { id: string; status: string } | null };
 }) {
   const nextAppointment = appointments.find(
     (appointment) =>
@@ -237,6 +239,16 @@ export function PatientArea({
             </div>
           </div>
           <div className="quick-actions">
+            <Link className="quick-action preparation-action" href={preparationPending?.first
+              ? `${base}/hoje?preparo=${preparationPending.first.id}#preparo-${preparationPending.first.id}`
+              : `${base}/hoje#patient-preparation-title`}>
+              <strong>Pré-consulta</strong>
+              <span>Conte o que deseja conversar com o médico</span>
+              <span className="action-state">{preparationPending?.count
+                ? `${preparationPending.count} ${preparationPending.count === 1 ? "ação pendente" : "ações pendentes"}`
+                : "Nenhuma ação pendente"}</span>
+              {Boolean(preparationPending?.count) && <span>{preparationPending?.first?.status === "draft" ? "Continuar preenchimento" : "Responder pré-consulta"}</span>}
+            </Link>
             {actions.map((action) => (
               <Link
                 className={`quick-action${action.available ? "" : " unavailable"}`}

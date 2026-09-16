@@ -36,6 +36,7 @@ export default async function ModulePage({
     aba?: string | string[];
     pagina?: string;
     paciente?: string;
+    solicitacao?: string;
     inicio?: string;
     fim?: string;
     cursor?: string;
@@ -125,12 +126,15 @@ export default async function ModulePage({
       <ClinicShell clinic={clinic} active="preparo">
         <div className="page-heading">
           <div>
-            <h1>Preparo dos retornos</h1>
+            <h1>Pré-consultas e retornos</h1>
             <p>Relatos enviados pelo paciente, ligados ao compromisso e preservados sem alterações.</p>
           </div>
           <Link className="button secondary" href={`/clinicas/${tenantId}/agenda`}>Abrir Agenda</Link>
         </div>
-        <StaffReturnPreparationWorkspace initial={await staffReturnPreparations(tenantId, query.pagina)} />
+        <StaffReturnPreparationWorkspace initial={await staffReturnPreparations(tenantId, query.solicitacao ? undefined : query.pagina, query.solicitacao).catch((error) => {
+          if (error instanceof InputError) redirect(`/clinicas/${tenantId}/preparo`);
+          throw error;
+        })} />
       </ClinicShell>
     );
   }

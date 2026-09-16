@@ -25,10 +25,10 @@ export function patientNextStep(input: PatientNextStepInput) {
     };
   if (input.pendingReturnPreparationId)
     return {
-      title: "Prepare seu próximo retorno",
+      title: "Prepare sua próxima consulta",
       detail: "Seu médico enviou um roteiro curto. Você pode responder, salvar e continuar depois.",
       action: "Começar preparo",
-      href: `${input.base}/hoje#preparo-${input.pendingReturnPreparationId}`,
+      href: `${input.base}/hoje?preparo=${input.pendingReturnPreparationId}#preparo-${input.pendingReturnPreparationId}`,
     };
   if (input.onboardingHref)
     return {

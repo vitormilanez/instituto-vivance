@@ -252,10 +252,11 @@ export function TodayWorkspace({
           {attentionCount ? (
             <ul>
               {data.preparations.map((item) => (
-                <li key={item.id}>
+                <li className="today-preconsultation-card" key={item.id}>
+                  <span className="today-pending-label">Ação pendente</span>
                   <strong>{item.patients?.display_name ?? "Paciente"}</strong>
-                  <p>Preparo do retorno enviado e aguardando revisão.</p>
-                  <Link href={`${base}/preparo#preparo-${item.id}`}>Revisar preparo</Link>
+                  <p>Pré-consulta enviada. Confira as respostas e as prioridades declaradas pela pessoa.</p>
+                  <Link href={`${base}/preparo?solicitacao=${item.id}#preparo-${item.id}`}>Checar pré-consulta</Link>
                 </li>
               ))}
               {data.checkIns.map((item) => (

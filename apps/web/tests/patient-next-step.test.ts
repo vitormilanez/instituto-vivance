@@ -72,10 +72,10 @@ test("requested return preparation becomes a resumable patient next step", () =>
       pendingReturnPreparationId: "request-id",
     }),
     {
-      title: "Prepare seu próximo retorno",
+      title: "Prepare sua próxima consulta",
       detail: "Seu médico enviou um roteiro curto. Você pode responder, salvar e continuar depois.",
       action: "Começar preparo",
-      href: `${base}/hoje#preparo-request-id`,
+      href: `${base}/hoje?preparo=request-id#preparo-request-id`,
     },
   );
 });

@@ -25,6 +25,54 @@
   gap: 20px;
 }
 
+.preparation-question-edit {
+  padding-block: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.preparation-question-edit textarea {
+  field-sizing: content;
+  min-height: 120px;
+}
+
+.preparation-card .preparation-priority-fields {
+  margin-block: 24px;
+  padding-block: 20px;
+  border-block: 1px solid var(--border);
+}
+
+.preparation-priority-fields legend {
+  font-weight: 700;
+}
+
+.preparation-priority-fields legend span {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.preparation-priorities {
+  padding-block: 12px;
+  overflow-wrap: anywhere;
+}
+
+.preparation-priorities h3,
+.preparation-priorities p {
+  margin: 0 0 8px;
+}
+
+.preparation-priorities ol {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.preparation-priorities li + li {
+  margin-top: 8px;
+}
+
+.quick-action.preparation-action {
+  background: var(--blue-soft);
+}
+
 .preparation-heading {
   display: flex;
   align-items: flex-start;
@@ -88,6 +136,8 @@
 }
 
 .preparation-card .field > span {
+  display: block;
+  margin-block: 4px;
   color: var(--muted);
   font-size: 12px;
   font-weight: 400;
@@ -2878,6 +2928,9 @@ button.calendar-day[aria-pressed="true"] {
 .today-attention li strong { font-size:14px; }
 .today-attention li p { font-size:13px; line-height:1.45; margin:6px 0 10px; color:#60708a; }
 .today-attention li a { color:var(--blue); font-size:13px; font-weight:700; text-underline-offset:3px; }
+.today-attention .today-preconsultation-card { margin:0 -4px; padding:16px; border:1px solid #d6e3f5; border-radius:12px; background:#f5f9ff; }
+.today-attention .today-preconsultation-card + li { margin-top:12px; }
+.today-pending-label { display:block; margin:0 0 8px; color:#205ca8; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .today-attention .empty { padding:24px 0; text-align:left; }
 .today-schedule { grid-column:1; }
 .today-timeline { list-style:none; padding:0; margin:14px 0 0; }
