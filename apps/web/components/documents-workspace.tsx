@@ -30,11 +30,11 @@ const reviewLabels: Record<string, string> = {
   needs_follow_up: "Precisa de acompanhamento",
 };
 
-function byteLimit() {
+export function byteLimit() {
   return `${maxDocumentBytes / (1024 * 1024)} MB`;
 }
 
-function DocumentUploadForm({
+export function DocumentUploadForm({
   tenant,
   patients,
   ownPatientId,

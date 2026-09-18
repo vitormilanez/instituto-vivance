@@ -11,12 +11,15 @@ const labels: Record<string, string> = {
   submitted: "Aguardando revisão",
   reviewed: "Revisado",
 };
+const mealPromptSuggestion =
+  "Registre o que você comeu hoje, com horário e o que consta em cada refeição do seu plano alimentar. Se quiser, envie também uma foto do prato em Documentos — ela não será interpretada automaticamente, apenas fica disponível para eu conferir.";
 export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
   const router = useRouter(),
     busy = useRef(false),
     [pending, setPending] = useState(false),
     [error, setError] = useState(""),
-    [notice, setNotice] = useState("");
+    [notice, setNotice] = useState(""),
+    [promptDraft, setPromptDraft] = useState("");
   async function send(path: string, body: unknown, message: string) {
     if (busy.current) return;
     busy.current = true;
@@ -48,16 +51,17 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
   }
   function request(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const data = new FormData(form);
     void send(
       `/api/v1/clinics/${initial.clinic.id}/check-ins`,
       {
-        patient_id: form.get("patient_id"),
-        prompt: form.get("prompt"),
-        due_on: form.get("due_on") || null,
+        patient_id: data.get("patient_id"),
+        prompt: data.get("prompt"),
+        due_on: data.get("due_on") || null,
       },
       "Check-in solicitado ao paciente.",
-    );
+    ).then(() => setPromptDraft(""));
   }
   function review(event: FormEvent<HTMLFormElement>, id: string) {
     event.preventDefault();
@@ -198,9 +202,26 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
                 {initial.patients.map((p) => <option key={p.id} value={p.id}>{p.display_name}</option>)}
               </select>
             </label>
+            <button
+              type="button"
+              className="button secondary"
+              disabled={pending}
+              onClick={() => setPromptDraft(mealPromptSuggestion)}
+            >
+              Usar sugestão para registro de refeição
+            </button>
             <label className="field">
               Pergunta
-              <textarea name="prompt" required minLength={2} maxLength={1000} rows={3} disabled={pending} />
+              <textarea
+                name="prompt"
+                required
+                minLength={2}
+                maxLength={1000}
+                rows={3}
+                disabled={pending}
+                value={promptDraft}
+                onChange={(event) => setPromptDraft(event.currentTarget.value)}
+              />
             </label>
             <label className="field">
               Responder até · opcional
