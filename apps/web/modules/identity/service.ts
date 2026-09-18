@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { DomainError } from "@/lib/errors";
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
@@ -26,14 +27,18 @@ export type ClinicAccess = {
 };
 export type ClinicInvitation = ClinicAccess & { version: number };
 
-export async function identity() {
+// Request-scoped memoisation (Next.js request memoization): a single page
+// render calls requireClinic two or three times — shell, page and workspace —
+// and each call used to re-read the session and every membership. The cache
+// lives inside one request: another request, another user, another cache.
+export const identity = cache(async function identity() {
   const client = await createClient();
   const { data, error } = await client.auth.getUser();
   if (error || !data.user) throw new AccessError(401);
   return { client, user: data.user };
-}
+});
 
-export async function clinics() {
+export const clinics = cache(async function clinics() {
   const { client, user } = await identity();
   const { data, error } = await client
     .from("memberships")
@@ -65,7 +70,7 @@ export async function clinics() {
         version: m.version,
       })) satisfies ClinicInvitation[],
   };
-}
+});
 
 export async function requireClinic(
   id: string,
