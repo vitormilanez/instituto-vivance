@@ -7,11 +7,7 @@ import type { Appointment, AgendaOptions } from "@/modules/agenda/service";
 import { clinicDate, localToInstant } from "@/modules/agenda/validation";
 import { focusedAppointment } from "@/modules/agenda/focus";
 import { PreparationRequestEditor } from "./preparation-request-editor";
-
-// pt-BR month/weekday names are lowercase; only the first letter of a
-// heading is capitalized ("Setembro de 2026", never "Setembro De 2026").
-const sentenceCase = (text: string) =>
-  text.charAt(0).toLocaleUpperCase("pt-BR") + text.slice(1);
+import { sentenceCase } from "@/lib/format";
 
 const statusPresentation: Record<string, { label: string; className: string }> =
   {

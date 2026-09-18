@@ -2662,7 +2662,6 @@ button.calendar-day[aria-pressed="true"] {
 .patient-appointment-content > strong {
   color: #334d71;
   font-size: 14px;
-  text-transform: capitalize;
 }
 .patient-appointment-time {
   margin-top: 3px;
@@ -4673,4 +4672,42 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
   .appointment-actions button:not(.quiet) { flex: 1 1 100%; }
   .appointment-actions button.quiet { flex: 0 0 auto; }
   .staff-mobile-dock details > div { bottom: calc(72px + env(safe-area-inset-bottom)); }
+}
+
+/* ------------------------------------------------------------------
+   Correções de design apontadas na análise de produto (set/2026)
+   ------------------------------------------------------------------ */
+
+/* Sidebar: o nome do profissional ocupa até duas linhas em vez de virar
+   "Dr. Guilherme Mar…". */
+.workspace-identity { align-items: flex-start; padding: 16px 14px; }
+.workspace-identity strong {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.3;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.workspace-identity .workspace-avatar { margin-top: 2px; }
+
+/* Próxima consulta: horário e ação ficam juntos, sem faixa vazia entre
+   a linha de contexto e o botão. */
+.today-consultation-when { min-width: 0; }
+.today-consultation-meta { gap: 6px 18px; padding: 12px 0 0; border-bottom: 0; }
+.today-primary-action {
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.today-primary-action > span { order: 2; margin-right: 0; max-width: 40ch; }
+
+/* Em telas largas cabe a lista inteira: "Mais" abre e o próprio rótulo sai
+   da frente (o componente cuida do estado; aqui só o visual). */
+@media (min-width: 1280px) {
+  .workspace-nav-more[open] > summary { display: none; }
+  .workspace-nav-more[open] > div { margin-top: 4px; }
 }

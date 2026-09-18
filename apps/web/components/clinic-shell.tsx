@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Header } from "./header";
+import { ClinicNavMore } from "./clinic-nav-more";
 import { roleLabels, type ClinicAccess } from "@/modules/identity/service";
 import {
   staffModules,
@@ -154,33 +155,30 @@ export async function ClinicShell({
                 </Link>
               ))}
             </div>
-            <details className="workspace-nav-more" open={secondaryActive}>
-              <summary>Mais</summary>
-              <div>
-                {secondaryGroups.map((group) => {
-                  const groupLinks = group.keys
-                    .map((key) => linkByKey(key))
-                    .filter((link): link is NonNullable<typeof link> =>
-                      Boolean(link),
-                    );
-                  if (!groupLinks.length) return null;
-                  return (
-                    <div className="workspace-nav-group" key={group.label}>
-                      <span className="workspace-nav-label">{group.label}</span>
-                      {groupLinks.map((link) => (
-                        <Link
-                          key={link.key}
-                          href={link.href}
-                          aria-current={active === link.key ? "page" : undefined}
-                        >
-                          {link.label}
-                        </Link>
-                      ))}
-                    </div>
+            <ClinicNavMore defaultOpen={secondaryActive}>
+              {secondaryGroups.map((group) => {
+                const groupLinks = group.keys
+                  .map((key) => linkByKey(key))
+                  .filter((link): link is NonNullable<typeof link> =>
+                    Boolean(link),
                   );
-                })}
-              </div>
-            </details>
+                if (!groupLinks.length) return null;
+                return (
+                  <div className="workspace-nav-group" key={group.label}>
+                    <span className="workspace-nav-label">{group.label}</span>
+                    {groupLinks.map((link) => (
+                      <Link
+                        key={link.key}
+                        href={link.href}
+                        aria-current={active === link.key ? "page" : undefined}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                );
+              })}
+            </ClinicNavMore>
           </nav>
         </aside>
         <main id="conteudo" className="workspace-main">
