@@ -1,3 +1,4 @@
+import { DomainError } from "@/lib/errors";
 import "server-only";
 import { requireClinic } from "@/modules/identity/service";
 import { InputError, tenantId } from "@/lib/validation";
@@ -8,14 +9,7 @@ import {
   localToInstant,
 } from "./validation";
 
-export class AgendaError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-  ) {
-    super(message);
-  }
-}
+export class AgendaError extends DomainError {}
 const fields =
   "id, patient_id, doctor_id, doctor_display_name, starts_at, ends_at, kind, status, version, started_at, completed_at, cancelled_at, no_show_at, patients!appointments_tenant_id_patient_id_fkey(display_name)" as const;
 export async function agendaContext(id: string) {

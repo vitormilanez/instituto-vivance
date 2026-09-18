@@ -1,28 +1,19 @@
+import { DomainError, databaseFailure } from "@/lib/errors";
 import "server-only";
 import { requireClinic } from "@/modules/identity/service";
 import { tenantId } from "@/lib/validation";
 import { planCreate, planPatch, planPage } from "./validation";
-export class CarePlanError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-  ) {
-    super(message);
-  }
-}
-function failed(code?: string): never {
-  if (code === "42501")
-    throw new CarePlanError(
-      "Somente o médico autor com vínculo ativo pode alterar este plano.",
-      403,
-    );
-  if (["23514", "23503", "23505", "40001"].includes(code ?? ""))
-    throw new CarePlanError(
-      "O plano mudou ou a transição não é permitida. Seu texto permanece na tela; confira a versão salva antes de continuar.",
-      409,
-    );
-  throw new Error("Care plan operation failed");
-}
+export class CarePlanError extends DomainError {}
+// Typed explicitly so TypeScript keeps narrowing after a call that throws.
+const failed: (code?: string) => never = databaseFailure({
+  error: CarePlanError,
+  denied:
+    "Somente o médico autor com vínculo ativo pode alterar este plano.",
+  conflict:
+    "O plano mudou ou a transição não é permitida. Seu texto permanece na tela; confira a versão salva antes de continuar.",
+  conflictCodes: ["23514", "23503", "23505", "40001"],
+  log: "Care plan operation failed",
+});
 const fields =
   "*,patients!care_plans_tenant_id_patient_id_fkey(display_name)" as const;
 export async function listPlans(id: string, pageInput?: string) {

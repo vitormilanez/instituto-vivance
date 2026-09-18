@@ -1,3 +1,4 @@
+import { DomainError, databaseFailure } from "@/lib/errors";
 import "server-only";
 import type { Json } from "@/lib/supabase/database.types";
 import { pageNumber, tenantId } from "@/lib/validation";
@@ -11,25 +12,18 @@ import {
 
 import type { PreparationQuestion } from "./questionnaire";
 
-export class ReturnPreparationError extends Error {
-  constructor(message: string, public status: number) {
-    super(message);
-  }
-}
+export class ReturnPreparationError extends DomainError {}
 
-function failed(code?: string): never {
-  if (code === "42501")
-    throw new ReturnPreparationError(
-      "Seu acesso mudou ou este preparo não está disponível. Atualize a página.",
-      403,
-    );
-  if (["40001", "23503", "23505", "23514", "22023"].includes(code ?? ""))
-    throw new ReturnPreparationError(
-      "Este preparo mudou em outra sessão. Atualize a página antes de tentar novamente.",
-      409,
-    );
-  throw new Error("Return preparation operation failed");
-}
+// Typed explicitly so TypeScript keeps narrowing after a call that throws.
+const failed: (code?: string) => never = databaseFailure({
+  error: ReturnPreparationError,
+  denied:
+    "Seu acesso mudou ou este preparo não está disponível. Atualize a página.",
+  conflict:
+    "Este preparo mudou em outra sessão. Atualize a página antes de tentar novamente.",
+  conflictCodes: ["40001", "23503", "23505", "23514", "22023"],
+  log: "Return preparation operation failed",
+});
 
 function questionnaireQuestions(value: Json): PreparationQuestion[] {
   if (!Array.isArray(value)) throw new Error("Invalid questionnaire version");

@@ -1,3 +1,4 @@
+import { DomainError, databaseFailure } from "@/lib/errors";
 import "server-only";
 import { requireClinic } from "@/modules/identity/service";
 import { tenantId } from "@/lib/validation";
@@ -11,29 +12,19 @@ import {
   encounterSearch,
   encounterStart,
 } from "./validation";
-export class EncounterError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-  ) {
-    super(message);
-  }
-}
+export class EncounterError extends DomainError {}
 const fields =
   "id,tenant_id,appointment_id,patient_id,doctor_id,doctor_display_name,status,reason,evolution,version,created_at,updated_at,finalized_at,patients!encounters_tenant_id_patient_id_fkey(display_name)" as const;
-function failed(code?: string): never {
-  if (code === "42501")
-    throw new EncounterError(
-      "Você precisa ser o médico responsável e ter um vínculo de cuidado ativo.",
-      403,
-    );
-  if (["23514", "23503", "23505", "40001"].includes(code ?? ""))
-    throw new EncounterError(
-      "O atendimento não pode ser alterado. Atualize a página e confira a situação da consulta.",
-      409,
-    );
-  throw new Error("Encounter operation failed");
-}
+// Typed explicitly so TypeScript keeps narrowing after a call that throws.
+const failed: (code?: string) => never = databaseFailure({
+  error: EncounterError,
+  denied:
+    "Você precisa ser o médico responsável e ter um vínculo de cuidado ativo.",
+  conflict:
+    "O atendimento não pode ser alterado. Atualize a página e confira a situação da consulta.",
+  conflictCodes: ["23514", "23503", "23505", "40001"],
+  log: "Encounter operation failed",
+});
 export async function listEncounters(id: string, input: unknown = {}) {
   const clinicId = tenantId(id);
   const page = encounterSearch(input, clinicId);

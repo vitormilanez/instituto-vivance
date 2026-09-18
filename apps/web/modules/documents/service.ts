@@ -1,3 +1,4 @@
+import { DomainError, databaseFailure as databaseFailureFor } from "@/lib/errors";
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { tenantId } from "@/lib/validation";
@@ -21,28 +22,18 @@ type DocumentReviewRow =
   };
 type ServerClient = Awaited<ReturnType<typeof createClient>>;
 
-export class DocumentError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-  ) {
-    super(message);
-  }
-}
+export class DocumentError extends DomainError {}
 
-function databaseFailure(code?: string): never {
-  if (code === "42501")
-    throw new DocumentError(
-      "Seu acesso mudou ou este documento não está disponível. Atualize a página.",
-      403,
-    );
-  if (["23503", "23505", "23514"].includes(code ?? ""))
-    throw new DocumentError(
-      "Este documento mudou ou não foi concluído. Atualize a página antes de tentar novamente.",
-      409,
-    );
-  throw new Error("Document operation failed");
-}
+// Typed explicitly so TypeScript keeps narrowing after a call that throws.
+const databaseFailure: (code?: string) => never = databaseFailureFor({
+  error: DocumentError,
+  denied:
+    "Seu acesso mudou ou este documento não está disponível. Atualize a página.",
+  conflict:
+    "Este documento mudou ou não foi concluído. Atualize a página antes de tentar novamente.",
+  conflictCodes: ["23503", "23505", "23514"],
+  log: "Document operation failed",
+});
 
 async function sessionToken(client: ServerClient) {
   const { data, error } = await client.auth.getSession();

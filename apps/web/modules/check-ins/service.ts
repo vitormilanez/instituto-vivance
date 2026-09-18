@@ -1,30 +1,21 @@
+import { DomainError, databaseFailure } from "@/lib/errors";
 import "server-only";
 import { requireClinic } from "@/modules/identity/service";
 import { tenantId } from "@/lib/validation";
 import { planPage } from "@/modules/care-plans/validation";
 import { requestInput, reviewInput, submissionInput } from "./validation";
 
-export class CheckInError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-  ) {
-    super(message);
-  }
-}
-function failed(code?: string): never {
-  if (code === "42501")
-    throw new CheckInError(
-      "Seu acesso mudou ou este check-in não está disponível. Atualize a página.",
-      403,
-    );
-  if (["23514", "23503", "23505"].includes(code ?? ""))
-    throw new CheckInError(
-      "Este check-in mudou. Atualize a página antes de tentar novamente.",
-      409,
-    );
-  throw new Error("Check-in operation failed");
-}
+export class CheckInError extends DomainError {}
+// Typed explicitly so TypeScript keeps narrowing after a call that throws.
+const failed: (code?: string) => never = databaseFailure({
+  error: CheckInError,
+  denied:
+    "Seu acesso mudou ou este check-in não está disponível. Atualize a página.",
+  conflict:
+    "Este check-in mudou. Atualize a página antes de tentar novamente.",
+  conflictCodes: ["23514", "23503", "23505"],
+  log: "Check-in operation failed",
+});
 async function details(
   client: Awaited<ReturnType<typeof requireClinic>>["client"],
   tenant: string,

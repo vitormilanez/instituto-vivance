@@ -1,12 +1,14 @@
+import { DomainError } from "@/lib/errors";
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 
-export class AccessError extends Error {
-  constructor(public status: 401 | 403) {
+export class AccessError extends DomainError {
+  constructor(status: 401 | 403) {
     super(
       status === 401
         ? "Entre na sua conta."
         : "Você não tem acesso a esta clínica.",
+      status,
     );
   }
 }

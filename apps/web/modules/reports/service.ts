@@ -1,3 +1,4 @@
+import { DomainError, databaseFailure } from "@/lib/errors";
 import "server-only";
 import { requireClinic } from "@/modules/identity/service";
 import { pageNumber, tenantId } from "@/lib/validation";
@@ -9,28 +10,18 @@ import {
   type ReportSourceType,
 } from "./validation";
 
-export class ReportError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-  ) {
-    super(message);
-  }
-}
+export class ReportError extends DomainError {}
 
-function failed(code?: string): never {
-  if (code === "42501")
-    throw new ReportError(
-      "Seu acesso mudou ou uma das fontes não está disponível para este relatório.",
-      403,
-    );
-  if (["23503", "23505", "23514", "40001"].includes(code ?? ""))
-    throw new ReportError(
-      "O relatório mudou ou ainda não está pronto para esta etapa. Seu texto permanece na tela.",
-      409,
-    );
-  throw new Error("Care report operation failed");
-}
+// Typed explicitly so TypeScript keeps narrowing after a call that throws.
+const failed: (code?: string) => never = databaseFailure({
+  error: ReportError,
+  denied:
+    "Seu acesso mudou ou uma das fontes não está disponível para este relatório.",
+  conflict:
+    "O relatório mudou ou ainda não está pronto para esta etapa. Seu texto permanece na tela.",
+  conflictCodes: ["23503", "23505", "23514", "40001"],
+  log: "Care report operation failed",
+});
 
 async function reportPatients(tenant: string) {
   const { client, user } = await requireClinic(tenant, ["doctor"]);

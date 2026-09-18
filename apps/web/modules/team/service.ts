@@ -1,3 +1,4 @@
+import { DomainError } from "@/lib/errors";
 import "server-only";
 import { identity, requireClinic } from "@/modules/identity/service";
 import { tenantId } from "@/lib/validation";
@@ -9,14 +10,7 @@ import {
   teamInvitationInput,
 } from "./validation";
 
-export class TeamError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-  ) {
-    super(message);
-  }
-}
+export class TeamError extends DomainError {}
 
 const memberFields =
   "user_id,display_name,role,status,version,accepted_at,created_at" as const;
