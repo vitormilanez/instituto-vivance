@@ -4797,3 +4797,82 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
   .calendar-schedule { padding: 18px 16px 20px; }
   .calendar-schedule > h2 { font-size: 18px; }
 }
+
+/* ------------------------------------------------------------------
+   Atalhos entre a próxima consulta e a agenda do dia.
+   Cartões compactos com ícone: são portas para outras áreas, não
+   conteúdo — por isso pesam menos que os painéis em volta.
+   ------------------------------------------------------------------ */
+.today-workspace { grid-template-areas: "next attention"; margin-bottom: 24px; }
+.today-schedule-wrap { margin-bottom: 32px; }
+.today-schedule-wrap .today-schedule { margin: 0; border-radius: 16px; }
+
+.shortcuts-section { margin: 0 0 24px; }
+.shortcuts-section h2 {
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.shortcuts-section .more-tools-list {
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 10px;
+}
+.shortcuts-section .more-tools-link {
+  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-areas: "icon title" "icon text";
+  align-content: center;
+  gap: 2px 12px;
+  min-height: 72px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--surface);
+}
+.shortcuts-section .more-tools-icon {
+  grid-area: icon;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+.shortcuts-section .more-tools-icon svg { grid-area: auto; color: inherit; }
+.shortcuts-section .more-tools-link strong { grid-area: title; font-size: 14px; }
+.shortcuts-section .more-tools-link > span:not(.more-tools-icon) { grid-area: text; }
+.shortcuts-section .more-tools-link span { line-height: 1.4; }
+.shortcuts-section .more-tools-link:hover .more-tools-icon {
+  background: var(--navy);
+  color: var(--surface);
+}
+
+@media (max-width: 1100px) {
+  .today-workspace { grid-template-areas: "next" "attention"; }
+}
+/* No celular os atalhos ficam entre a consulta e a agenda do dia, então
+   viram pares compactos: ícone e nome, sem a linha de apoio. */
+@media (max-width: 650px) {
+  .shortcuts-section .more-tools-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .shortcuts-section .more-tools-link {
+    grid-template-columns: 32px minmax(0, 1fr);
+    grid-template-areas: "icon title";
+    align-items: center;
+    min-height: 60px;
+    padding: 10px;
+  }
+  .shortcuts-section .more-tools-icon { width: 32px; height: 32px; }
+  .shortcuts-section .more-tools-link > span:not(.more-tools-icon) {
+    display: none;
+  }
+  .shortcuts-section .more-tools-link strong {
+    font-size: 13px;
+    line-height: 1.25;
+    padding-right: 4px;
+    overflow-wrap: anywhere;
+  }
+}
