@@ -9,22 +9,30 @@ import {
 } from "@/modules/workspace/navigation";
 import { unreadInAppNotificationCount } from "@/modules/notifications/service";
 
-// Only what a doctor/nurse/admin reaches for constantly stays on the surface;
-// everything else keeps its route but moves into "Mais" so the sidebar reads
-// as four choices, not thirteen.
-const primaryKeys = ["home", "patients", "agenda", "acompanhamento"] as const;
+// Em destaque ficam as quatro áreas do trabalho do dia: o dia em si, o
+// calendário, a busca de uma ficha e a conversa com o paciente. O que
+// chega por dentro de uma consulta — atendimento, preparo, plano — e o que
+// se consulta de vez em quando ficam em "Mais", com a rota intacta.
+// Acompanhamento sai do destaque porque os check-ins pendentes já aparecem
+// em "Pendências", no Hoje. Avisos vive no cabeçalho, com o contador.
+const primaryKeys = ["home", "agenda", "patients", "mensagens"] as const;
 const secondaryGroups = [
-  { label: "Atendimento", keys: ["atendimentos", "preparo", "planos"] },
   {
-    label: "Registros e comunicação",
-    keys: ["documentos", "mensagens", "relatorios", "processamentos", "notifications"],
+    label: "Cuidado",
+    keys: ["acompanhamento", "atendimentos", "preparo", "planos"],
   },
+  { label: "Registros", keys: ["documentos", "relatorios", "processamentos"] },
   { label: "Clínica", keys: ["team", "ia", "audit"] },
 ] as const;
 
-// The dock has five equal slots on a 320px phone; long names get a short
-// visible label while the link keeps its full accessible name.
-const dockLabels: Record<string, string> = { acompanhamento: "Acompanhar" };
+// No celular o cabeçalho esconde os links para caber, então Avisos precisa
+// existir dentro de "Mais" — no desktop ele fica no cabeçalho, com o contador.
+const dockGroups: { label: string; keys: readonly string[] }[] =
+  secondaryGroups.map((group) =>
+    group.label === "Clínica"
+      ? { label: group.label, keys: ["notifications", ...group.keys] }
+      : { label: group.label, keys: group.keys },
+  );
 
 // One 20px line-icon family (1.6 stroke) for the phone dock only.
 const dockPaths: Record<string, string> = {
@@ -33,7 +41,8 @@ const dockPaths: Record<string, string> = {
     "M7.5 9a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5ZM2.5 16.5c0-2.8 2.2-4.75 5-4.75s5 1.95 5 4.75M13 4a2.5 2.5 0 0 1 0 4.8M14.5 11.9c1.9.5 3 2.1 3 4.6",
   agenda:
     "M4 5h12a.5.5 0 0 1 .5.5V16a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5V5.5A.5.5 0 0 1 4 5ZM3.5 8.5h13M7 3v3.5M13 3v3.5",
-  acompanhamento: "M3 14.5l4-4.5 3 2.5 4.5-6 2.5 2.5",
+  mensagens:
+    "M4 5h12a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5H8.5L5 16.5V13H4a.5.5 0 0 1-.5-.5v-7A.5.5 0 0 1 4 5Z",
   more: "M5 10h.01M10 10h.01M15 10h.01",
 };
 function DockIcon({ name }: { name: string }) {
@@ -197,7 +206,7 @@ export async function ClinicShell({
             aria-label={link.label}
           >
             <DockIcon name={link.key} />
-            <span aria-hidden="true">{dockLabels[link.key] ?? link.label}</span>
+            <span aria-hidden="true">{link.label}</span>
           </Link>
         ))}
         <details open={secondaryActive}>
@@ -207,7 +216,7 @@ export async function ClinicShell({
           </summary>
           <div>
             <p className="staff-mobile-dock-title">Mais áreas</p>
-            {secondaryGroups.map((group) => {
+            {dockGroups.map((group) => {
               const groupLinks = group.keys
                 .map((key) => linkByKey(key))
                 .filter((link): link is NonNullable<typeof link> =>
