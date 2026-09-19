@@ -114,6 +114,62 @@ export function findStaffModule(slug: string) {
   return staffModules.find((item) => item.slug === slug);
 }
 
+/* Navegação da equipe --------------------------------------------------
+   Em destaque ficam as quatro áreas do trabalho do dia: o dia em si, o
+   calendário, a busca de uma ficha e a conversa com o paciente. O que se
+   alcança por dentro de uma consulta e o que se consulta de vez em quando
+   ficam em "Mais", com a rota intacta. Acompanhamento sai do destaque
+   porque os check-ins pendentes já aparecem em "Pendências", no Hoje.
+   Avisos vive no cabeçalho; no celular o cabeçalho esconde os links, então
+   ele reaparece dentro de "Mais". */
+export const staffPrimaryKeys = [
+  "home",
+  "agenda",
+  "patients",
+  "mensagens",
+] as const;
+
+export const staffSecondaryGroups = [
+  {
+    label: "Cuidado",
+    keys: ["acompanhamento", "atendimentos", "preparo", "planos"],
+  },
+  { label: "Registros", keys: ["documentos", "relatorios", "processamentos"] },
+  { label: "Clínica", keys: ["team", "ia", "audit"] },
+] as const;
+
+// As oito portas de entrada do painel da equipe. A visão do admin mostra
+// todas; o "Hoje" do médico esconde as que já estão em destaque no menu.
+export function staffActions(base: string) {
+  return [
+    { title: "Pacientes", icon: "pacientes", text: "Busque e abra uma ficha.", href: `${base}/pacientes` },
+    { title: "Novo paciente", icon: "pacientes", text: "Comece pelo cadastro.", href: `${base}/pacientes#novo-paciente` },
+    { title: "Agenda", icon: "agenda", text: "Horários e compromissos da equipe.", href: `${base}/agenda` },
+    { title: "Atendimento", icon: "atendimento", text: "Registro e evolução das consultas.", href: `${base}/atendimentos` },
+    { title: "Planos de cuidado", icon: "planos", text: "Orientações revisadas e publicadas.", href: `${base}/planos` },
+    { title: "Acompanhamento", icon: "acompanhamento", text: "Check-ins e evolução entre consultas.", href: `${base}/acompanhamento` },
+    { title: "Documentos", icon: "documentos", text: "Arquivos e exames do paciente.", href: `${base}/documentos` },
+    { title: "Equipe de cuidado", icon: "equipe", text: "Revise suas responsabilidades.", href: `${base}/equipe` },
+  ];
+}
+
+// Atalhos do "Hoje": o que está um nível abaixo, sem repetir o destaque.
+export function staffShortcuts(base: string) {
+  const highlighted = new Set([
+    `${base}/pacientes`,
+    `${base}/agenda`,
+    `${base}/mensagens`,
+  ]);
+  return staffActions(base).filter((action) => !highlighted.has(action.href));
+}
+
+export const staffDockGroups: { label: string; keys: readonly string[] }[] =
+  staffSecondaryGroups.map((group) =>
+    group.label === "Clínica"
+      ? { label: group.label, keys: ["notifications", ...group.keys] }
+      : { label: group.label, keys: group.keys },
+  );
+
 export const patientSections = [
   {
     slug: "hoje",

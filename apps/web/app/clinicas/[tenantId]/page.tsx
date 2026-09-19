@@ -6,6 +6,7 @@ import { InputError } from "@/lib/validation";
 import { ClinicShell } from "@/components/clinic-shell";
 import { TodayWorkspace } from "@/components/today-workspace";
 import { todayWorkspace } from "@/modules/workspace/today";
+import { staffActions, staffShortcuts } from "@/modules/workspace/navigation";
 export const dynamic = "force-dynamic";
 
 // Ícones de traço 1.6 em 20x20, a mesma família da barra do celular.
@@ -55,81 +56,20 @@ export default async function Dashboard({
   const base = `/clinicas/${tenantId}`;
   const today =
     context.clinic.role !== "admin" ? await todayWorkspace(tenantId) : null;
-  const actions = [
-    {
-      title: "Pacientes",
-      icon: "pacientes",
-      text: "Busque e abra uma ficha.",
-      href: `${base}/pacientes`,
-    },
-    {
-      title: "Novo paciente",
-      icon: "pacientes",
-      text: "Comece pelo cadastro.",
-      href: `${base}/pacientes#novo-paciente`,
-    },
-    {
-      title: "Agenda",
-      icon: "agenda",
-      text: "Horários e compromissos da equipe.",
-      href: `${base}/agenda`,
-    },
-    {
-      title: "Atendimento",
-      icon: "atendimento",
-      text: "Registro e evolução das consultas.",
-      href: `${base}/atendimentos`,
-    },
-    {
-      title: "Planos de cuidado",
-      icon: "planos",
-      text: "Orientações revisadas e publicadas.",
-      href: `${base}/planos`,
-    },
-    {
-      title: "Acompanhamento",
-      icon: "acompanhamento",
-      text: "Check-ins e evolução entre consultas.",
-      href: `${base}/acompanhamento`,
-    },
-    {
-      title: "Documentos",
-      icon: "documentos",
-      text: "Arquivos e exames do paciente.",
-      href: `${base}/documentos`,
-    },
-    {
-      title: "Equipe de cuidado",
-      icon: "equipe",
-      text:
-        context.clinic.role === "admin"
-          ? "Gerencie acessos e vínculos."
-          : "Revise suas responsabilidades.",
-      href: `${base}/equipe`,
-    },
-  ];
-  // O menu já leva a Pacientes, Agenda e Mensagens; os atalhos só repetem
-  // o que está um nível abaixo.
-  const primaryHrefs = new Set([
-    `${base}/pacientes`,
-    `${base}/agenda`,
-    `${base}/mensagens`,
-  ]);
+
   const shortcuts = (
     <section className="shortcuts-section" aria-labelledby="quick-actions">
       <h2 id="quick-actions">Atalhos</h2>
       <ul className="more-tools-list">
-        {actions
-          .filter((action) => !primaryHrefs.has(action.href))
-          .map((action) => (
-            <li key={action.title}>
-              <Link className="more-tools-link" href={action.href}>
-                <ShortcutIcon name={action.icon} />
-                <strong>{action.title}</strong>
-                <span>{action.text}</span>
-              </Link>
-            </li>
-          ))}
+        {staffShortcuts(base).map((action) => (
+          <li key={action.title}>
+            <Link className="more-tools-link" href={action.href}>
+              <ShortcutIcon name={action.icon} />
+              <strong>{action.title}</strong>
+              <span>{action.text}</span>
+            </Link>
+          </li>
+        ))}
       </ul>
     </section>
   );
@@ -172,7 +112,7 @@ export default async function Dashboard({
             <p>Continue o cuidado pelo ponto certo, sem perder o contexto.</p>
           </div>
           <div className="quick-actions">
-            {actions.map((action) => (
+            {staffActions(base).map((action) => (
               <Link className="quick-action" href={action.href} key={action.title}>
                 <strong>{action.title}</strong>
                 <span>{action.text}</span>

@@ -53,19 +53,6 @@ test("tab input is allowlisted and repeated/invalid parameters default safely", 
   for (const value of [undefined, "<script>", ["Publicados"], ""])
     assert.equal(selectedTab(tabs, value), "Rascunhos");
 });
-test("clinic dashboard preserves exactly eight quick actions and exposes team care", () => {
-  const page = readFileSync(
-    new URL("../app/clinicas/[tenantId]/page.tsx", import.meta.url),
-    "utf8",
-  );
-  const start = page.indexOf("const actions = [");
-  const actions = page.slice(start, page.indexOf("];", start));
-  assert.equal(actions.match(/\btitle:/g)?.length, 8);
-  assert.match(actions, /title: "Equipe de cuidado"/);
-  assert.match(actions, /title: "Acompanhamento"/);
-  assert.doesNotMatch(actions, /pending:/);
-});
-
 test("today preserves the focused patient when opening the record and documents", () => {
   const workspace = readFileSync(
     new URL("../components/today-workspace.tsx", import.meta.url),

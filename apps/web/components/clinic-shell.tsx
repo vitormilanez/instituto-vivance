@@ -5,34 +5,12 @@ import { ClinicNavMore } from "./clinic-nav-more";
 import { roleLabels, type ClinicAccess } from "@/modules/identity/service";
 import {
   staffModules,
+  staffDockGroups as dockGroups,
+  staffPrimaryKeys as primaryKeys,
+  staffSecondaryGroups as secondaryGroups,
   type StaffModuleSlug,
 } from "@/modules/workspace/navigation";
 import { unreadInAppNotificationCount } from "@/modules/notifications/service";
-
-// Em destaque ficam as quatro áreas do trabalho do dia: o dia em si, o
-// calendário, a busca de uma ficha e a conversa com o paciente. O que
-// chega por dentro de uma consulta — atendimento, preparo, plano — e o que
-// se consulta de vez em quando ficam em "Mais", com a rota intacta.
-// Acompanhamento sai do destaque porque os check-ins pendentes já aparecem
-// em "Pendências", no Hoje. Avisos vive no cabeçalho, com o contador.
-const primaryKeys = ["home", "agenda", "patients", "mensagens"] as const;
-const secondaryGroups = [
-  {
-    label: "Cuidado",
-    keys: ["acompanhamento", "atendimentos", "preparo", "planos"],
-  },
-  { label: "Registros", keys: ["documentos", "relatorios", "processamentos"] },
-  { label: "Clínica", keys: ["team", "ia", "audit"] },
-] as const;
-
-// No celular o cabeçalho esconde os links para caber, então Avisos precisa
-// existir dentro de "Mais" — no desktop ele fica no cabeçalho, com o contador.
-const dockGroups: { label: string; keys: readonly string[] }[] =
-  secondaryGroups.map((group) =>
-    group.label === "Clínica"
-      ? { label: group.label, keys: ["notifications", ...group.keys] }
-      : { label: group.label, keys: group.keys },
-  );
 
 // One 20px line-icon family (1.6 stroke) for the phone dock only.
 const dockPaths: Record<string, string> = {
