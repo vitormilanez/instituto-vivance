@@ -206,19 +206,29 @@ export async function ClinicShell({
             <span>Mais</span>
           </summary>
           <div>
-            {links
-              .filter(
-                (link) => !primaryKeys.includes(link.key as (typeof primaryKeys)[number]),
-              )
-              .map((link) => (
-                <Link
-                  key={link.key}
-                  href={link.href}
-                  aria-current={active === link.key ? "page" : undefined}
-                >
-                  {link.label}
-                </Link>
-              ))}
+            <p className="staff-mobile-dock-title">Mais áreas</p>
+            {secondaryGroups.map((group) => {
+              const groupLinks = group.keys
+                .map((key) => linkByKey(key))
+                .filter((link): link is NonNullable<typeof link> =>
+                  Boolean(link),
+                );
+              if (!groupLinks.length) return null;
+              return (
+                <div className="staff-mobile-dock-group" key={group.label}>
+                  <span className="workspace-nav-label">{group.label}</span>
+                  {groupLinks.map((link) => (
+                    <Link
+                      key={link.key}
+                      href={link.href}
+                      aria-current={active === link.key ? "page" : undefined}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              );
+            })}
           </div>
         </details>
       </nav>
