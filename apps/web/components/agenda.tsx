@@ -19,6 +19,7 @@ const statusPresentation: Record<string, { label: string; className: string }> =
   };
 
 export function AppointmentList({
+  showDate = true,
   appointments,
   currentTime,
   nextId,
@@ -39,6 +40,9 @@ export function AppointmentList({
   onStart?: (appointment: Appointment) => void;
   onPrepare?: (appointment: Appointment) => void;
   preparationStates?: Record<string, string>;
+  // Na agenda de um dia escolhido a data já está no título da lista; ela só
+  // acompanha cada linha quando a lista mistura dias (próximos retornos).
+  showDate?: boolean;
   // Only the staff Agenda passes this; a patient viewing their own
   // consultations should never see a link to a "ficha".
   patientRecordBase?: string;
@@ -66,13 +70,15 @@ export function AppointmentList({
                 minute: "2-digit",
               })}
             </strong>
-            <span>
-              {new Date(a.starts_at).toLocaleDateString("pt-BR", {
-                timeZone: "America/Sao_Paulo",
-                day: "2-digit",
-                month: "short",
-              })}
-            </span>
+            {showDate && (
+              <span>
+                {new Date(a.starts_at).toLocaleDateString("pt-BR", {
+                  timeZone: "America/Sao_Paulo",
+                  day: "2-digit",
+                  month: "short",
+                })}
+              </span>
+            )}
           </div>
           <div className="appointment-patient">
             <span className="patient-avatar" aria-hidden="true">
@@ -766,6 +772,7 @@ export function Agenda({
             <p role="status">Carregando horários…</p>
           ) : (
             <AppointmentList
+              showDate={returns}
               appointments={chosen}
               nextId={nextAppointment?.id}
               currentTime={currentTime}
