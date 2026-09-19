@@ -91,18 +91,27 @@ export async function patientCheckIns(id: string, pageInput?: string) {
   const tenant = tenantId(id),
     page = planPage(pageInput),
     { client, clinic } = await requireClinic(tenant, ["patient"]);
-  const result = await client
-    .from("care_check_ins")
-    .select("*")
-    .eq("tenant_id", tenant)
-    .order("requested_at", { ascending: false })
-    .order("id")
-    .range((page - 1) * 20, page * 20);
-  if (result.error) failed(result.error.code);
+  const [result, account] = await Promise.all([
+    client
+      .from("care_check_ins")
+      .select("*")
+      .eq("tenant_id", tenant)
+      .order("requested_at", { ascending: false })
+      .order("id")
+      .range((page - 1) * 20, page * 20),
+    client
+      .from("patient_accounts")
+      .select("patient_id")
+      .eq("tenant_id", tenant)
+      .maybeSingle(),
+  ]);
+  if (result.error || account.error)
+    failed(result.error?.code ?? account.error?.code);
   const rows = (result.data ?? []).slice(0, 20),
     related = await details(client, tenant, rows);
   return {
     clinic,
+    patientId: account.data?.patient_id ?? null,
     checkIns: rows.map((row) => ({
       ...row,
       submission:

@@ -4876,3 +4876,7 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
     overflow-wrap: anywhere;
   }
 }
+
+/* Atalho de texto sugerido: é uma ação, não um campo — não estica na
+   largura do formulário. */
+.prompt-suggestion { justify-self: start; }

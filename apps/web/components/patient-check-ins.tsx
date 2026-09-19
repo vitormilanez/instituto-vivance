@@ -6,15 +6,18 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import type { PatientCheckIns as PatientCheckInsData } from "@/modules/check-ins/service";
 import { clinicalTime } from "./encounter-editor";
+import { byteLimit, DocumentUploadForm } from "./documents-workspace";
 
 function PatientCheckIn({
   item,
   today,
   tenant,
+  patientId,
 }: {
   item: PatientCheckInsData["checkIns"][number];
   today: string;
   tenant: string;
+  patientId: string | null;
 }) {
   const router = useRouter();
   const busy = useRef(false);
@@ -177,6 +180,21 @@ function PatientCheckIn({
           </button>
         </form>
       )}
+      {patientId && (
+        <details className="document-upload-panel">
+          <summary>Enviar foto da refeição · opcional</summary>
+          <p>
+            Aceita PDF, JPG e PNG de até {byteLimit()}. A foto não é
+            interpretada automaticamente, não gera nenhum veredito e fica
+            disponível para a equipe conferir manualmente.
+          </p>
+          <DocumentUploadForm
+            tenant={tenant}
+            ownPatientId={patientId}
+            category="clinical_document"
+          />
+        </details>
+      )}
       <p className="module-footnote">
         Este registro não altera seu plano automaticamente e não é um canal de
         urgência. Em caso de necessidade, use os canais habituais da clínica.
@@ -205,6 +223,7 @@ export function PatientCheckIns({
             item={item}
             today={today}
             tenant={initial.clinic.id}
+            patientId={initial.patientId}
           />
         ))
       ) : (

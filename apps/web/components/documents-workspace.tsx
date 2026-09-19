@@ -30,18 +30,23 @@ const reviewLabels: Record<string, string> = {
   needs_follow_up: "Precisa de acompanhamento",
 };
 
-function byteLimit() {
+export function byteLimit() {
   return `${maxDocumentBytes / (1024 * 1024)} MB`;
 }
 
-function DocumentUploadForm({
+export function DocumentUploadForm({
   tenant,
   patients,
   ownPatientId,
+  category,
 }: {
   tenant: string;
   patients?: StaffDocuments["patients"];
   ownPatientId?: string | null;
+  // Quando o envio acontece dentro de um contexto que já define o tipo do
+  // arquivo (a foto de uma refeição, por exemplo), o seletor sai da tela e
+  // o valor vem daqui. Sem ela, o formulário segue como sempre foi.
+  category?: "exam" | "clinical_document";
 }) {
   const router = useRouter();
   const busy = useRef(false);
@@ -73,7 +78,9 @@ function DocumentUploadForm({
         tenantId: tenant,
         patientId: String(ownPatientId ?? data.get("patient_id") ?? ""),
         file,
-        category: String(data.get("category") ?? ""),
+        // A categoria fixa vem do contexto (a foto de uma refeição, por
+        // exemplo); sem ela, vale a escolha do formulário.
+        category: category ?? String(data.get("category") ?? ""),
         visibility: patientUpload
           ? "shared"
           : String(data.get("visibility") ?? ""),
@@ -112,13 +119,15 @@ function DocumentUploadForm({
           </select>
         </label>
       )}
-      <label className="field">
-        Tipo de documento
-        <select name="category" defaultValue="exam" disabled={pending}>
-          <option value="exam">Exame</option>
-          <option value="clinical_document">Documento clínico</option>
-        </select>
-      </label>
+      {!category && (
+        <label className="field">
+          Tipo de documento
+          <select name="category" defaultValue="exam" disabled={pending}>
+            <option value="exam">Exame</option>
+            <option value="clinical_document">Documento clínico</option>
+          </select>
+        </label>
+      )}
       {!patientUpload && (
         <label className="field">
           Visibilidade
