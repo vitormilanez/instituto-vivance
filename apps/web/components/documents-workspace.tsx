@@ -38,10 +38,15 @@ export function DocumentUploadForm({
   tenant,
   patients,
   ownPatientId,
+  category,
 }: {
   tenant: string;
   patients?: StaffDocuments["patients"];
   ownPatientId?: string | null;
+  // Quando o envio acontece dentro de um contexto que já define o tipo do
+  // arquivo (a foto de uma refeição, por exemplo), o seletor sai da tela e
+  // o valor vem daqui. Sem ela, o formulário segue como sempre foi.
+  category?: "exam" | "clinical_document";
 }) {
   const router = useRouter();
   const busy = useRef(false);
@@ -78,7 +83,7 @@ export function DocumentUploadForm({
           filename: file.name,
           content_type: file.type,
           byte_size: file.size,
-          category: data.get("category"),
+          category: category ?? data.get("category"),
           visibility: patientUpload ? "shared" : data.get("visibility"),
         }),
       });
@@ -140,13 +145,15 @@ export function DocumentUploadForm({
           </select>
         </label>
       )}
-      <label className="field">
-        Tipo de documento
-        <select name="category" defaultValue="exam" disabled={pending}>
-          <option value="exam">Exame</option>
-          <option value="clinical_document">Documento clínico</option>
-        </select>
-      </label>
+      {!category && (
+        <label className="field">
+          Tipo de documento
+          <select name="category" defaultValue="exam" disabled={pending}>
+            <option value="exam">Exame</option>
+            <option value="clinical_document">Documento clínico</option>
+          </select>
+        </label>
+      )}
       {!patientUpload && (
         <label className="field">
           Visibilidade

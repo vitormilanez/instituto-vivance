@@ -181,14 +181,18 @@ function PatientCheckIn({
         </form>
       )}
       {patientId && (
-        <details className="panel document-upload-panel">
+        <details className="document-upload-panel">
           <summary>Enviar foto da refeição · opcional</summary>
           <p>
             Aceita PDF, JPG e PNG de até {byteLimit()}. A foto não é
             interpretada automaticamente, não gera nenhum veredito e fica
             disponível para a equipe conferir manualmente.
           </p>
-          <DocumentUploadForm tenant={tenant} ownPatientId={patientId} />
+          <DocumentUploadForm
+            tenant={tenant}
+            ownPatientId={patientId}
+            category="clinical_document"
+          />
         </details>
       )}
       <p className="module-footnote">

@@ -12,7 +12,7 @@ const labels: Record<string, string> = {
   reviewed: "Revisado",
 };
 const mealPromptSuggestion =
-  "Registre o que você comeu hoje, com horário e o que consta em cada refeição do seu plano alimentar. Se quiser, envie também uma foto do prato em Documentos — ela não será interpretada automaticamente, apenas fica disponível para eu conferir.";
+  "Conte o que você comeu hoje, com os horários e o que havia em cada refeição. Se quiser, envie junto uma foto do prato: ela não é interpretada automaticamente e fica disponível para eu conferir.";
 export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
   const router = useRouter(),
     busy = useRef(false),
@@ -20,8 +20,10 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [promptDraft, setPromptDraft] = useState("");
+  // Devolve se a operação foi concluída, para quem chama só limpar o que
+  // o usuário escreveu quando o envio realmente deu certo.
   async function send(path: string, body: unknown, message: string) {
-    if (busy.current) return;
+    if (busy.current) return false;
     busy.current = true;
     setPending(true);
     setError("");
@@ -38,12 +40,14 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
         throw new Error(data.error ?? "Não foi possível concluir.");
       setNotice(message);
       router.refresh();
+      return true;
     } catch (e) {
       setError(
         e instanceof Error && e.name !== "TimeoutError"
           ? e.message
           : "A conexão demorou. Atualize a página antes de tentar novamente.",
       );
+      return false;
     } finally {
       busy.current = false;
       setPending(false);
@@ -61,7 +65,10 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
         due_on: data.get("due_on") || null,
       },
       "Check-in solicitado ao paciente.",
-    ).then(() => setPromptDraft(""));
+    ).then((sent) => {
+      // Em erro o texto permanece na tela; só o envio concluído limpa.
+      if (sent) setPromptDraft("");
+    });
   }
   function review(event: FormEvent<HTMLFormElement>, id: string) {
     event.preventDefault();
@@ -204,7 +211,7 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
             </label>
             <button
               type="button"
-              className="button secondary"
+              className="button secondary prompt-suggestion"
               disabled={pending}
               onClick={() => setPromptDraft(mealPromptSuggestion)}
             >

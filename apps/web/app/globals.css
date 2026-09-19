@@ -4674,3 +4674,7 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
   .appointment-actions button.quiet { flex: 0 0 auto; }
   .staff-mobile-dock details > div { bottom: calc(72px + env(safe-area-inset-bottom)); }
 }
+
+/* Atalho de texto sugerido: é uma ação, não um campo — não estica na
+   largura do formulário. */
+.prompt-suggestion { justify-self: start; }
