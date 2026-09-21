@@ -212,12 +212,12 @@ function DocumentList({
               )}
             </div>
             <div className="document-actions">
-              <Link
+              <a
                 className="button secondary"
                 href={`/api/v1/clinics/${tenant}/documents/${document.id}/download`}
               >
                 Abrir original
-              </Link>
+              </a>
             </div>
             {canReview && (
               <DocumentReviewPanel

@@ -1,5 +1,6 @@
 import { apiError } from "@/lib/api";
 import { documentDownload } from "@/modules/documents/service";
+import { documentDownloadResponse } from "@/modules/documents/download-response";
 
 export async function GET(
   _request: Request,
@@ -10,10 +11,7 @@ export async function GET(
   try {
     const { tenantId, documentId } = await params;
     const document = await documentDownload(tenantId, documentId);
-    const response = Response.redirect(document.url, 302);
-    response.headers.set("Cache-Control", "private, no-store");
-    response.headers.set("X-Content-Type-Options", "nosniff");
-    return response;
+    return documentDownloadResponse(document.url);
   } catch (error) {
     return apiError(error);
   }
