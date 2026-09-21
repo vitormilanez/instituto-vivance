@@ -14,3 +14,8 @@ export type PatientIntakeContext = {
   completedAt: string | null;
   updatedAt: string;
 };
+
+export type StaffPatientIntake = {
+  record: PatientIntakeContext;
+  awaitingPatient: boolean;
+};
