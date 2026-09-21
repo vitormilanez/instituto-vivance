@@ -59,7 +59,7 @@ export default async function Patient({
       ? patientCareContext(tenantId, patientId)
       : Promise.resolve(null),
   ]);
-  const canInviteToIntake = intake && context.clinic.role === "doctor"
+  const canInviteToIntake = intake && !intake.awaitingPatient && context.clinic.role === "doctor"
     ? await canInvitePatientToIntake(tenantId, patientId)
     : false;
   const headerFacts = patientHeaderFacts(care, tenantId);
@@ -188,11 +188,12 @@ export default async function Patient({
           {intake && (
             <>
               <PatientIntakePanel
-                key={`${tenantId}:${patientId}:${intake.id}`}
+                key={`${tenantId}:${patientId}:${intake.record.id}`}
                 tenantId={tenantId}
                 patientId={patientId}
-                initial={intake}
-                canEdit={context.clinic.role === "doctor"}
+                initial={intake.record}
+                canEdit={context.clinic.role === "doctor" && !intake.awaitingPatient}
+                awaitingPatient={intake.awaitingPatient}
                 focusOnLoad={query.acolhimento === "novo"}
               />
               {canInviteToIntake ? (

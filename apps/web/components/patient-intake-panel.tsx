@@ -10,6 +10,7 @@ export function PatientIntakePanel({
   patientId,
   initial,
   canEdit,
+  awaitingPatient = false,
   focusOnLoad = false,
   audience = "staff",
   continueHref,
@@ -19,6 +20,7 @@ export function PatientIntakePanel({
   patientId: string;
   initial: PatientIntakeContext;
   canEdit: boolean;
+  awaitingPatient?: boolean;
   focusOnLoad?: boolean;
   audience?: "staff" | "patient";
   continueHref?: string;
@@ -214,15 +216,19 @@ export function PatientIntakePanel({
               : "Contexto inicial para preparar a primeira conversa."}
           </p>
         </div>
-        <span className={`appointment-status ${record.status === "completed" ? "completed" : "scheduled"}`}>
-          {record.status === "completed"
+        <span className={`appointment-status ${record.status === "completed" && !awaitingPatient ? "completed" : "scheduled"}`}>
+          {awaitingPatient
+            ? "Aguardando envio do paciente"
+            : record.status === "completed"
             ? patientView
               ? "Enviado para a equipe"
               : "Pronto para a primeira consulta"
             : "Acolhimento pendente"}
         </span>
       </div>
-      {record.status === "completed" ? (
+      {awaitingPatient ? (
+        <PatientIntakeSummary record={record} awaitingPatient />
+      ) : record.status === "completed" ? (
         <>
           <PatientIntakeSummary record={record} />
           {patientView && continueHref ? (

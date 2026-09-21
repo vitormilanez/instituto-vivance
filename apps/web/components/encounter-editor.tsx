@@ -6,7 +6,7 @@ import type { OnboardingRecord } from "@/modules/onboarding/types";
 import { OnboardingSummary } from "@/components/onboarding-summary";
 import type { EncounterPreparation } from "@/modules/return-preparation/service";
 import { EncounterPreparationSummary } from "./preparation-summary";
-import type { PatientIntakeContext } from "@/modules/patient-intake/types";
+import type { StaffPatientIntake } from "@/modules/patient-intake/types";
 import { PatientIntakeSummary } from "./patient-intake-summary";
 export function clinicalTime(value: string) {
   return new Date(value).toLocaleString("pt-BR", {
@@ -35,7 +35,7 @@ export function EncounterEditor({
   preparation,
 }: {
   initial: EncounterDetail;
-  intake?: PatientIntakeContext | null;
+  intake?: StaffPatientIntake | null;
   onboarding?: OnboardingRecord | null;
   preparation?: EncounterPreparation;
 }) {
@@ -349,11 +349,14 @@ export function EncounterEditor({
             </button>
           </div>
           {preparation && <EncounterPreparationSummary preparation={preparation} tenantId={e.tenant_id} />}
-          {intake?.status === "completed" ? (
+          {intake && (intake.record.status === "completed" || intake.awaitingPatient) ? (
             <section className="panel encounter-preparation-source">
               <h2>O que o paciente busca</h2>
               <p>Contexto registrado antes da primeira consulta.</p>
-              <PatientIntakeSummary record={intake} />
+              <PatientIntakeSummary
+                record={intake.record}
+                awaitingPatient={intake.awaitingPatient}
+              />
             </section>
           ) : null}
           {onboarding ? (

@@ -3951,6 +3951,8 @@ test("linked invitation reuses the assisted intake and preserves doctor and pati
       { source: "patient_reported", version: 2 },
       { source: "patient_reported", version: 3 },
     ]);
+    await switchActor("doctor");
+    assert.deepEqual((await db.query<{ source: string; status: string; version: number }>("select source,status,version from public.patient_intake_contexts where tenant_id=$1 and patient_id=$2", [a, patient])).rows, [{ source: "patient_reported", status: "completed", version: 3 }]);
     await switchActor("admin");
     assert.equal((await db.query("select id from public.patient_intake_contexts where patient_id=$1", [patient])).rows.length, 0);
   });

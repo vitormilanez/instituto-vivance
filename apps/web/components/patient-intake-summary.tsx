@@ -2,8 +2,10 @@ import type { PatientIntakeContext } from "@/modules/patient-intake/types";
 
 export function PatientIntakeSummary({
   record,
+  awaitingPatient = false,
 }: {
   record: PatientIntakeContext;
+  awaitingPatient?: boolean;
 }) {
   return (
     <div className="patient-intake-summary">
@@ -32,6 +34,12 @@ export function PatientIntakeSummary({
           : ""}
         .
       </p>
+      {awaitingPatient ? (
+        <p className="patient-intake-attribution">
+          O paciente está preenchendo a própria versão. Estas são as respostas
+          registradas com a equipe; as dele aparecem aqui quando ele enviar.
+        </p>
+      ) : null}
     </div>
   );
 }
