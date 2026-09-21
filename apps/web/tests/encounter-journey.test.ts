@@ -32,6 +32,8 @@ test("encounter journey keeps the four manual stages distinct", () => {
 });
 
 test("encounter preparation uses only the submitted onboarding available to care", () => {
+  assert.match(page, /getPatientIntake/);
+  assert.match(editor, /<PatientIntakeSummary/);
   assert.match(page, /getSubmittedPatientOnboarding/);
   assert.match(page, /detail\.encounter\.patient_id/);
   assert.match(editor, /<OnboardingSummary/);

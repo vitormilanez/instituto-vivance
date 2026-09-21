@@ -50,7 +50,7 @@ export default async function Patients({
           className="button page-heading-jump"
           href={canInvite ? "#convidar-paciente" : "#novo-paciente"}
         >
-          {canInvite ? "Convidar paciente" : "Cadastrar paciente"}
+          {canInvite ? "Adicionar paciente" : "Cadastrar paciente"}
         </Link>
       </div>
       <div className="grid patient-directory-grid">
@@ -119,6 +119,15 @@ export default async function Patients({
                           Cadastro inicial enviado
                         </span>
                       )}
+                      {p.intakeStatus && (
+                        <span
+                          className={`badge appointment-status ${p.intakeStatus === "completed" ? "completed" : "scheduled"} patient-row-badge`}
+                        >
+                          {p.intakeStatus === "completed"
+                            ? "Acolhimento concluído"
+                            : "Acolhimento pendente"}
+                        </span>
+                      )}
                     </span>
                     <span className="row-action">Ver ficha</span>
                   </Link>
@@ -162,7 +171,7 @@ export default async function Patients({
           <section className="panel" id="novo-paciente">
             <h2>Novo paciente</h2>
             <p>Informe os dados básicos para abrir a ficha.</p>
-            <PatientForm tenantId={tenantId} />
+            <PatientForm tenantId={tenantId} role={context.clinic.role} />
           </section>
         </aside>
       </div>

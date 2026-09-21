@@ -19,10 +19,12 @@ export function PatientInvitationForm({
   tenantId,
   role,
   doctors = [],
+  targetPatient,
 }: {
   tenantId: string;
   role: "doctor" | "admin";
   doctors?: InvitationDoctor[];
+  targetPatient?: { id: string; displayName: string };
 }) {
   const router = useRouter();
   const [channel, setChannel] = useState<"email" | "whatsapp">("email");
@@ -61,6 +63,7 @@ export function PatientInvitationForm({
             ...(role === "admin"
               ? { doctorId: String(form.get("doctorId") ?? "") }
               : {}),
+            ...(targetPatient ? { targetPatientId: targetPatient.id } : {}),
           }),
         },
       );
@@ -70,7 +73,7 @@ export function PatientInvitationForm({
       if (!response.ok)
         throw new Error(payload.error ?? "Não foi possível criar o convite.");
       setCreated(payload);
-      router.refresh();
+      if (!targetPatient) router.refresh();
       setCopied(false);
       setWhatsappUrl(
         channel === "whatsapp" && payload.shareUrl
@@ -109,10 +112,13 @@ export function PatientInvitationForm({
       className="panel patient-invitation-form"
       aria-labelledby="patient-invitation-title"
     >
-      <h2 id="patient-invitation-title">Convidar paciente</h2>
+      <h2 id="patient-invitation-title">
+        {targetPatient ? "Enviar acolhimento ao paciente" : "Convidar paciente"}
+      </h2>
       <p>
-        A pessoa recebe o convite, confirma seu acesso e começa o cadastro já
-        vinculada à clínica e ao médico responsável.
+        {targetPatient
+          ? "A pessoa confirma o acesso, revisa as três perguntas padrão e continua na mesma ficha."
+          : "A pessoa recebe o convite, confirma seu acesso e começa o cadastro já vinculada à clínica e ao médico responsável."}
       </p>
       <form onSubmit={submit}>
         <div className="field">
@@ -125,6 +131,8 @@ export function PatientInvitationForm({
             maxLength={120}
             required
             disabled={pending}
+            readOnly={Boolean(targetPatient)}
+            defaultValue={targetPatient?.displayName}
           />
         </div>
         {role === "admin" ? (
@@ -210,7 +218,11 @@ export function PatientInvitationForm({
           type="submit"
           disabled={pending || (role === "admin" && !doctors.length)}
         >
-          {pending ? "Criando convite…" : "Criar convite"}
+          {pending
+            ? "Criando convite…"
+            : targetPatient
+              ? "Criar convite para continuar"
+              : "Criar convite"}
         </button>
       </form>
       {error ? (

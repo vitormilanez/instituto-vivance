@@ -22,6 +22,11 @@ import {
   onboardingSubmissionInput,
   patientInvitationInput,
 } from "../modules/onboarding/validation.ts";
+import {
+  patientIntakeInput,
+  patientIntakeMaxBodyBytes,
+} from "../modules/patient-intake/validation.ts";
+import { boundedJson } from "../lib/api.ts";
 
 test("normalizes demographic input without creating placeholder values", () => {
   assert.deepEqual(
@@ -195,11 +200,12 @@ test("notification preferences accept only an explicit in-app boolean", () => {
 });
 test("patient invitations keep recipient channels exclusive and server-owned", () => {
   assert.deepEqual(patientInvitationInput({ displayName: "  Maria   Silva ", channel: "email", email: " MARIA@EXAMPLE.COM " }), {
-    displayName: "Maria Silva", channel: "email", email: "maria@example.com", doctorId: undefined,
+    displayName: "Maria Silva", channel: "email", email: "maria@example.com", doctorId: undefined, targetPatientId: undefined,
   });
   assert.deepEqual(patientInvitationInput({ displayName: "Maria", channel: "whatsapp", phone: "+55 (11) 99999-9999" }), {
-    displayName: "Maria", channel: "whatsapp", phone: "+5511999999999", doctorId: undefined,
+    displayName: "Maria", channel: "whatsapp", phone: "+5511999999999", doctorId: undefined, targetPatientId: undefined,
   });
+  assert.equal(patientInvitationInput({ displayName: "Maria", channel: "email", email: "m@example.com", targetPatientId: "00000000-0000-4000-8000-000000000001" }).targetPatientId, "00000000-0000-4000-8000-000000000001");
   assert.throws(() => patientInvitationInput({ displayName: "Maria", channel: "whatsapp", phone: "+5511999999999", email: "forged@example.com" }));
   assert.throws(() => patientInvitationInput({ displayName: "Maria", channel: "email", email: "m@example.com", invitedBy: "forged" }));
 });
@@ -222,4 +228,74 @@ test("onboarding patch is partial, bounded and versioned", () => {
 
 test("onboarding rejects impossible ISO dates with a user input error", () => {
   assert.throws(() => onboardingPatchInput({version:1, profile:{birthDate:"2026-99-99"}}), InputError);
+});
+
+test("patient intake keeps drafts bounded and requires explicit attribution on completion", () => {
+  assert.deepEqual(
+    patientIntakeInput({
+      version: 1,
+      reason: "  Quero dormir melhor  ",
+      expectedOutcome: "",
+      firstPriority: "",
+      intent: "draft",
+      confirmPatientWords: false,
+    }),
+    {
+      expected_version: 1,
+      status: "draft",
+      reason_text: "Quero dormir melhor",
+      expected_outcome: "",
+      first_priority: "",
+    },
+  );
+  assert.deepEqual(
+    patientIntakeInput({
+      version: 2,
+      reason: "Sono ruim",
+      expectedOutcome: "Dormir sem interrupções",
+      firstPriority: "Entender os despertares",
+      intent: "complete",
+      confirmPatientWords: true,
+    }).status,
+    "completed",
+  );
+  assert.throws(() =>
+    patientIntakeInput({
+      version: 2,
+      reason: "Sono ruim",
+      expectedOutcome: "Dormir melhor",
+      firstPriority: "Sono",
+      intent: "complete",
+      confirmPatientWords: false,
+    }),
+  );
+  assert.throws(() =>
+    patientIntakeInput({
+      version: 1,
+      reason: "x".repeat(2001),
+      expectedOutcome: "",
+      firstPriority: "",
+      intent: "draft",
+    }),
+  );
+});
+
+test("patient intake HTTP boundary accepts three valid long answers", async () => {
+  const body = {
+    version: 1,
+    reason: "á".repeat(2000),
+    expectedOutcome: "é".repeat(2000),
+    firstPriority: "í".repeat(2000),
+    intent: "complete",
+    confirmPatientWords: true,
+  };
+  const parsed = await boundedJson(
+    new Request("https://vivance.test/intake", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+    patientIntakeMaxBodyBytes,
+  );
+  assert.equal(patientIntakeInput(parsed).reason_text.length, 2000);
 });

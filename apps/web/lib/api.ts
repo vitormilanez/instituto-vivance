@@ -1,5 +1,5 @@
-import { InputError } from "./validation";
-import { DomainError } from "./errors";
+import { InputError } from "./validation.ts";
+import { DomainError } from "./errors.ts";
 
 export function json(body: unknown, status = 200) {
   return Response.json(body, {

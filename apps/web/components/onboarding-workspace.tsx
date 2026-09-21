@@ -90,16 +90,22 @@ export function OnboardingWorkspace({
   clinicName,
   doctorName,
   initial,
+  skipQuestions = false,
 }: {
   tenantId: string;
   clinicName: string;
   doctorName: string;
   initial: OnboardingDraft;
+  skipQuestions?: boolean;
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState(initial);
   const [step, setStep] = useState<Step>(
-    hasProgress(initial) ? initial.currentStep : "welcome",
+    hasProgress(initial)
+      ? skipQuestions && initial.currentStep === "questions"
+        ? "exams"
+        : initial.currentStep
+      : "welcome",
   );
   const [questionIndex, setQuestionIndex] = useState(0);
   const [saveState, setSaveState] = useState<
@@ -305,18 +311,22 @@ export function OnboardingWorkspace({
     const saved = await persist();
     if (saved) router.push(`/clinicas/${tenantId}/meu-cuidado/hoje`);
   }
-  const progress =
-    step === "welcome"
-      ? 0
-      : step === "profile"
-        ? 1
-        : step === "measurements"
-          ? 2
-          : step === "questions"
-            ? 3
-            : step === "exams"
-              ? 4
-              : 5;
+  const progressLabels = skipQuestions
+    ? ["Perfil", "Medidas", "Exames", "Revisão"]
+    : ["Perfil", "Medidas", "Pré-consulta", "Exames", "Revisão"];
+  const progress = step === "welcome"
+    ? 0
+    : progressLabels.indexOf(
+        step === "profile"
+          ? "Perfil"
+          : step === "measurements"
+            ? "Medidas"
+            : step === "questions"
+              ? "Pré-consulta"
+              : step === "exams"
+                ? "Exames"
+                : "Revisão",
+      ) + 1;
   const question = questionFields[questionIndex];
 
   return (
@@ -339,7 +349,7 @@ export function OnboardingWorkspace({
         </button>
       </header>
       <ol className="onboarding-progress" aria-label="Etapas do cadastro">
-        {["Perfil", "Medidas", "Pré-consulta", "Exames", "Revisão"].map(
+        {progressLabels.map(
           (label, index) => (
             <li
               key={label}
@@ -379,7 +389,7 @@ export function OnboardingWorkspace({
               para preparar a primeira conversa.
             </p>
             <ul className="onboarding-welcome-expectations">
-              <li>Leva cerca de 5 minutos, no seu ritmo.</li>
+              <li>Leva apenas alguns minutos, no seu ritmo.</li>
               <li>
                 Tudo é salvo automaticamente; você pode pausar e continuar
                 quando quiser.
@@ -550,20 +560,20 @@ export function OnboardingWorkspace({
               </div>
             </div>
             <div className="onboarding-actions">
-              <button type="button" onClick={() => void move("questions")}>
+              <button type="button" onClick={() => void move(skipQuestions ? "exams" : "questions")}>
                 Continuar
               </button>
               <button
                 className="secondary"
                 type="button"
-                onClick={() => void move("questions", "measurements")}
+                onClick={() => void move(skipQuestions ? "exams" : "questions", "measurements")}
               >
                 Pular por enquanto
               </button>
             </div>
           </>
         ) : null}
-        {step === "questions" ? (
+        {step === "questions" && !skipQuestions ? (
           <>
             <p className="question-counter">
               Pergunta {questionIndex + 1} de {questionFields.length}
@@ -737,7 +747,7 @@ export function OnboardingWorkspace({
                     .join(" · ") || "Ainda não informado"}
                 </dd>
               </div>
-              {questionFields.map(([key, title]) => (
+              {!skipQuestions && questionFields.map(([key, title]) => (
                 <div key={key}>
                   <dt>{title}</dt>
                   <dd

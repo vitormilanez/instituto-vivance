@@ -50,19 +50,22 @@ function optionalNumber(value: unknown, max: number, message: string) {
 
 export function patientInvitationInput(value: unknown) {
   const body = object(value, "Convite inválido.");
-  exact(body, ["displayName", "channel", "email", "phone", "doctorId"], "O convite contém campos não permitidos.");
+  exact(body, ["displayName", "channel", "email", "phone", "doctorId", "targetPatientId"], "O convite contém campos não permitidos.");
   if (body.channel !== "email" && body.channel !== "whatsapp")
     throw new InputError("Escolha email ou WhatsApp.");
   const channel = body.channel as InvitationChannel;
   const doctorId = body.doctorId === undefined ? undefined : uuid(body.doctorId, "Médico inválido.");
+  const targetPatientId = body.targetPatientId === undefined
+    ? undefined
+    : uuid(body.targetPatientId, "Paciente inválido.");
   if (channel === "email") {
     if (body.phone !== undefined) throw new InputError("Não envie telefone em um convite por email.");
-    return { displayName: name(body.displayName), channel, email: email(body.email), doctorId };
+    return { displayName: name(body.displayName), channel, email: email(body.email), doctorId, targetPatientId };
   }
   if (body.email !== undefined) throw new InputError("O email será informado pelo paciente ao aceitar.");
   const phone = typeof body.phone === "string" ? body.phone.replace(/[^\d+]/gu, "") : "";
   if (!/^\+[1-9]\d{7,14}$/u.test(phone)) throw new InputError("Informe o telefone com código do país.");
-  return { displayName: name(body.displayName), channel, phone, doctorId };
+  return { displayName: name(body.displayName), channel, phone, doctorId, targetPatientId };
 }
 
 export function claimInvitationInput(value: unknown) {
