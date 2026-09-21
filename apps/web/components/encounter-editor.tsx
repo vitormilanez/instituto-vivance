@@ -6,6 +6,8 @@ import type { OnboardingRecord } from "@/modules/onboarding/types";
 import { OnboardingSummary } from "@/components/onboarding-summary";
 import type { EncounterPreparation } from "@/modules/return-preparation/service";
 import { EncounterPreparationSummary } from "./preparation-summary";
+import type { PatientIntakeContext } from "@/modules/patient-intake/types";
+import { PatientIntakeSummary } from "./patient-intake-summary";
 export function clinicalTime(value: string) {
   return new Date(value).toLocaleString("pt-BR", {
     timeZone: "America/Sao_Paulo",
@@ -28,10 +30,12 @@ const stages: Array<{
 
 export function EncounterEditor({
   initial,
+  intake,
   onboarding,
   preparation,
 }: {
   initial: EncounterDetail;
+  intake?: PatientIntakeContext | null;
   onboarding?: OnboardingRecord | null;
   preparation?: EncounterPreparation;
 }) {
@@ -328,7 +332,7 @@ export function EncounterEditor({
           {error}
         </p>
       )}
-      {stage === "preparation" && (
+        {stage === "preparation" && (
         <section
           className="encounter-stage"
           aria-labelledby="preparation-title"
@@ -345,6 +349,13 @@ export function EncounterEditor({
             </button>
           </div>
           {preparation && <EncounterPreparationSummary preparation={preparation} tenantId={e.tenant_id} />}
+          {intake?.status === "completed" ? (
+            <section className="panel encounter-preparation-source">
+              <h2>O que o paciente busca</h2>
+              <p>Contexto registrado antes da primeira consulta.</p>
+              <PatientIntakeSummary record={intake} />
+            </section>
+          ) : null}
           {onboarding ? (
             <OnboardingSummary
               record={onboarding}

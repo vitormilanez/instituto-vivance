@@ -511,6 +511,72 @@ export type Database = {
           },
         ];
       };
+      patient_intake_contexts: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          questionnaire_version: string;
+          status: string;
+          reason_text: string;
+          expected_outcome: string;
+          first_priority: string;
+          source: string;
+          recorded_by: string;
+          recorded_by_name: string;
+          version: number;
+          expected_version: number | null;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: {
+          status?: string;
+          reason_text?: string;
+          expected_outcome?: string;
+          first_priority?: string;
+          expected_version: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "patient_intake_contexts_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: true;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "patient_intake_contexts_tenant_id_recorded_by_fkey";
+            columns: ["tenant_id", "recorded_by"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
+      patient_intake_context_versions: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          intake_id: string;
+          patient_id: string;
+          questionnaire_version: string;
+          status: string;
+          reason_text: string;
+          expected_outcome: string;
+          first_priority: string;
+          source: string;
+          recorded_by: string;
+          recorded_by_name: string;
+          version: number;
+          completed_at: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       care_conversations: {
         Row: {
           created_at: string;
@@ -1126,6 +1192,20 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      create_patient_for_care: {
+        Args: {
+          target_tenant: string;
+          supplied_name: string;
+          supplied_birth_date: string | null;
+          begin_intake: boolean;
+        };
+        Returns: {
+          id: string;
+          display_name: string;
+          birth_date: string | null;
+          created_at: string;
+        }[];
+      };
       request_return_preparation: {
         Args: {
           target_tenant: string;

@@ -6,6 +6,7 @@ import { ClinicShell } from "@/components/clinic-shell";
 import { EncounterEditor } from "@/components/encounter-editor";
 import { getSubmittedPatientOnboarding } from "@/modules/onboarding/service";
 import { encounterPreparation } from "@/modules/return-preparation/service";
+import { getPatientIntake } from "@/modules/patient-intake/service";
 export const dynamic = "force-dynamic";
 export default async function EncounterPage({
   params,
@@ -32,16 +33,17 @@ export default async function EncounterPage({
       notFound();
     throw e;
   });
-  const onboarding = await getSubmittedPatientOnboarding(
-    tenantId,
-    detail.encounter.patient_id,
-  );
-  const preparation = await encounterPreparation(tenantId, detail.encounter.appointment_id);
+  const [intake, onboarding, preparation] = await Promise.all([
+    getPatientIntake(tenantId, detail.encounter.patient_id),
+    getSubmittedPatientOnboarding(tenantId, detail.encounter.patient_id),
+    encounterPreparation(tenantId, detail.encounter.appointment_id),
+  ]);
   return (
     <ClinicShell clinic={detail.clinic} active="atendimentos">
       <EncounterEditor
         key={`${detail.encounter.id}:${page.versoes_antes_de ?? "latest"}:${page.adendos_antes_de ?? "latest"}`}
         initial={detail}
+        intake={intake}
         onboarding={onboarding}
         preparation={preparation}
       />

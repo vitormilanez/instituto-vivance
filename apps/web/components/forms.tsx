@@ -42,13 +42,25 @@ export function LoginForm() {
     </form>
   );
 }
-export function PatientForm({ tenantId }: { tenantId: string }) {
+export function PatientForm({
+  tenantId,
+  role,
+}: {
+  tenantId: string;
+  role: string;
+}) {
   const [state, action, pending] = useActionState(
     savePatient.bind(null, tenantId),
     { error: "" },
   );
   return (
     <form action={action}>
+      {role === "doctor" ? (
+        <p className="form-intro">
+          Primeiro salve os dados básicos. Em seguida, registre em cerca de dois
+          minutos o que a pessoa busca neste cuidado.
+        </p>
+      ) : null}
       <div className="field">
         <label htmlFor="display_name">Nome completo</label>
         <input
@@ -72,7 +84,11 @@ export function PatientForm({ tenantId }: { tenantId: string }) {
         </p>
       )}
       <button className="full" disabled={pending}>
-        {pending ? "Salvando…" : "Cadastrar paciente"}
+        {pending
+          ? "Salvando…"
+          : role === "doctor"
+            ? "Salvar e iniciar acolhimento"
+            : "Cadastrar paciente"}
       </button>
     </form>
   );

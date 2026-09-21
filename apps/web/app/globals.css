@@ -4222,6 +4222,87 @@ a.more-tools-card:hover {
   font-weight: 600;
 }
 
+/* Short, staff-assisted intake before the first appointment. */
+.patient-intake-panel {
+  scroll-margin-top: 1.5rem;
+}
+
+.patient-intake-form {
+  margin-top: 1.25rem;
+}
+
+.patient-intake-form fieldset {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.patient-intake-form legend {
+  margin-bottom: 0.4rem;
+  color: var(--navy);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.patient-intake-form label:not(.patient-intake-confirmation) {
+  margin-top: 0.7rem;
+  font-weight: 650;
+}
+
+.patient-intake-form textarea {
+  width: 100%;
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+.patient-intake-form small,
+.patient-intake-attribution {
+  color: var(--muted);
+}
+
+.patient-intake-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.patient-intake-confirmation input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.15rem;
+}
+
+.patient-intake-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.patient-intake-panel details {
+  margin-top: 1rem;
+}
+
+.patient-intake-panel summary {
+  min-height: 44px;
+  color: var(--blue);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.patient-intake-summary dd {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.encounter-preparation-source {
+  margin-top: 1rem;
+}
+
 /* Care-continuity refinement: make the next verified decision readable. */
 .check-in-board > .section-heading p {
   max-width: 62ch;

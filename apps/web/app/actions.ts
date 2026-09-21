@@ -52,11 +52,13 @@ export async function savePatient(
   _previous: FormState,
   form: FormData,
 ): Promise<FormState> {
+  let patientId = "";
   try {
-    await createPatient(id, {
+    const patient = await createPatient(id, {
       display_name: form.get("display_name"),
       birth_date: form.get("birth_date"),
     });
+    patientId = patient.id;
   } catch (error) {
     if (error instanceof InputError || error instanceof AccessError)
       return { error: error.message };
@@ -67,5 +69,7 @@ export async function savePatient(
   }
   revalidatePath(`/clinicas/${id}`);
   revalidatePath(`/clinicas/${id}/pacientes`);
-  redirect(`/clinicas/${id}/pacientes`);
+  redirect(
+    `/clinicas/${id}/pacientes/${patientId}?acolhimento=novo#acolhimento-inicial`,
+  );
 }

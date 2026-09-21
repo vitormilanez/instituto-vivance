@@ -769,6 +769,80 @@ test("doctor names are required for new bookings and existing snapshots never ch
   }
 });
 
+test("doctor-created patient starts an attributed intake with isolated version history", async () => {
+  await asUser("doctor", async () => {
+    const created = await db.query<{ id: string }>(
+      "select id from public.create_patient_for_care($1,$2,$3::date,true)",
+      [a, "Synthetic intake patient", null],
+    );
+    const patientId = created.rows[0].id;
+    const relationship = await db.query<{ status: string }>(
+      "select status from public.care_relationships where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+      [a, patientId, users.doctor.id],
+    );
+    assert.equal(relationship.rows[0].status, "active");
+    const draft = await db.query<{ id: string; version: number; status: string }>(
+      "select id,version,status from public.patient_intake_contexts where tenant_id=$1 and patient_id=$2",
+      [a, patientId],
+    );
+    assert.deepEqual(
+      { version: draft.rows[0].version, status: draft.rows[0].status },
+      { version: 1, status: "draft" },
+    );
+    await db.query(
+      `update public.patient_intake_contexts set
+        reason_text=$1,expected_outcome=$2,first_priority=$3,
+        status='completed',expected_version=1
+       where tenant_id=$4 and patient_id=$5`,
+      ["Sono ruim", "Dormir melhor", "Entender os despertares", a, patientId],
+    );
+    const completed = await db.query<{
+      version: number;
+      status: string;
+      recorded_by: string;
+      recorded_by_name: string;
+    }>(
+      "select version,status,recorded_by,recorded_by_name from public.patient_intake_contexts where tenant_id=$1 and patient_id=$2",
+      [a, patientId],
+    );
+    assert.deepEqual(completed.rows[0], {
+      version: 2,
+      status: "completed",
+      recorded_by: users.doctor.id,
+      recorded_by_name: "Synthetic doctor",
+    });
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.patient_intake_context_versions where tenant_id=$1 and patient_id=$2",
+          [a, patientId],
+        )
+      ).rows.length,
+      2,
+    );
+    await denied(
+      "update public.patient_intake_contexts set first_priority='Forged',expected_version=1 where tenant_id=$1 and patient_id=$2",
+      [a, patientId],
+    );
+    await switchActor("admin");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.patient_intake_contexts where tenant_id=$1 and patient_id=$2",
+          [a, patientId],
+        )
+      ).rows.length,
+      0,
+    );
+  });
+  await asUser("nurse", async () => {
+    await denied(
+      "select id from public.create_patient_for_care($1,$2,$3::date,true)",
+      [a, "Denied patient", null],
+    );
+  });
+});
+
 async function asUser(
   name: string,
   callback: () => Promise<void>,
