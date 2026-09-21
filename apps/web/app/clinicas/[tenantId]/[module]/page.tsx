@@ -13,6 +13,8 @@ import {
 import { EmptyCalendar } from "@/components/empty-calendar";
 import { CheckInError, staffCheckIns } from "@/modules/check-ins/service";
 import { CheckInWorkspace } from "@/components/check-in-workspace";
+import { StaffMealLogs } from "@/components/staff-meal-logs";
+import { staffMeals } from "@/modules/meals/service";
 import { staffLongitudinal } from "@/modules/longitudinal/service";
 import { StaffLongitudinalWorkspace } from "@/components/longitudinal-workspace";
 import { staffDocuments } from "@/modules/documents/service";
@@ -67,6 +69,9 @@ export default async function ModulePage({
     const query = await searchParams;
     const active = query.aba === "evolucao" ? "evolucao" : "check-ins";
     const base = `/clinicas/${tenantId}/acompanhamento`;
+    const checkIns = active === "check-ins"
+      ? JSON.parse(JSON.stringify(await staffCheckIns(tenantId, query.pagina)))
+      : null;
     const longitudinal =
       active === "evolucao"
         ? await staffLongitudinal(tenantId, query.paciente, { from: query.inicio, to: query.fim, cursor: query.cursor }).catch((error) => {
@@ -103,9 +108,10 @@ export default async function ModulePage({
             base={base}
           />
         ) : (
-          <CheckInWorkspace
-            initial={await staffCheckIns(tenantId, query.pagina)}
-          />
+          <>
+            <StaffMealLogs initial={await staffMeals(tenantId)} />
+            <CheckInWorkspace initial={checkIns} />
+          </>
         )}
       </ClinicShell>
     );

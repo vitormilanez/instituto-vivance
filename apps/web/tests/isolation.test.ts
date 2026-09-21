@@ -2396,6 +2396,40 @@ test("patient measurements are append-only, idempotent and visible only to the l
   });
 });
 
+test("patient meal reports are append-only, idempotent and visible only to the linked care team", async () => {
+  await asUser("doctor", async () => {
+    await startClinical("2099-10-21T12:00:00Z", "2099-10-21T12:30:00Z");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3) on conflict do nothing",
+      [a, pa, users.patient.id],
+    );
+    await switchActor("patient");
+    const request = randomUUID();
+    await denied(
+      "insert into public.patient_meal_logs(tenant_id,patient_id,actor_user_id,meal_type,eaten_at,description,client_request_id) values($1,$2,$3,'lunch',clock_timestamp(),'Forged',$4)",
+      [a, pa, users.patient.id, request],
+    );
+    const first = await db.query<{ id: string }>(
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() - interval '5 minutes','Arroz, frango e salada.') id",
+      [a, request],
+    );
+    const replay = await db.query<{ id: string }>(
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() - interval '5 minutes','Arroz, frango e salada.') id",
+      [a, request],
+    );
+    assert.equal(replay.rows[0].id, first.rows[0].id);
+    await denied("update public.patient_meal_logs set description='Forged'");
+    await switchActor("nurse");
+    assert.equal((await db.query("select id from public.patient_meal_logs")).rows.length, 0);
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.patient_meal_logs where id=$1", [first.rows[0].id])).rows.length,
+      1,
+    );
+  });
+});
+
 async function privateDocumentFixture(visibility: "internal" | "shared" = "shared") {
   await startClinical("2099-12-01T12:00:00Z", "2099-12-01T12:30:00Z");
   await db.exec("reset role");
