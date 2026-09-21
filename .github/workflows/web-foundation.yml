@@ -3,7 +3,7 @@ on:
   pull_request:
     paths: ['apps/web/**', 'supabase/migrations/**', '.github/workflows/web-foundation.yml']
   push:
-    branches: ['codex/vercel-supabase-foundation']
+    branches: ['main', 'codex/vercel-supabase-foundation']
     paths: ['apps/web/**', 'supabase/migrations/**', '.github/workflows/web-foundation.yml']
 permissions:
   contents: read
