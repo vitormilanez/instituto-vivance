@@ -1,3 +1,4 @@
+import { DomainError } from "@/lib/errors";
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { identity, requireClinic } from "@/modules/identity/service";
@@ -12,9 +13,7 @@ import {
 import type { OnboardingRecord, PatientInvitation } from "./types";
 import type { Database } from "@/lib/supabase/database.types";
 
-export class OnboardingError extends Error {
-  constructor(message: string, public status: number) { super(message); }
-}
+export class OnboardingError extends DomainError {}
 
 const onboardingFields = "tenant_id,patient_id,status,current_step,skipped_steps,questionnaire_version,exam_document_ids,photo_document_id,birth_date,weight_kg,height_cm,waist_cm,measured_on,answer_goal,answer_history,answer_routine,answer_treatments,answer_questions,share_consent,version,submitted_at,updated_at" as const;
 const submissionFields = "tenant_id,patient_id,current_step,skipped_steps,questionnaire_version,exam_document_ids,photo_document_id,birth_date,weight_kg,height_cm,waist_cm,measured_on,answer_goal,answer_history,answer_routine,answer_treatments,answer_questions,share_consent,source_version,submitted_at" as const;

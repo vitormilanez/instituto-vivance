@@ -2,11 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/browser";
-import {
-  documentBucket,
-  maxDocumentBytes,
-} from "@/modules/documents/validation";
+import { maxDocumentBytes } from "@/modules/documents/validation";
+import { DocumentUploadError, uploadDocument } from "@/lib/document-upload";
 
 export type OnboardingDraft = {
   tenantId: string;
@@ -227,57 +224,29 @@ export function OnboardingWorkspace({
     setUploading(true);
     setMessage("");
     try {
-      const intent = await fetch(`/api/v1/clinics/${tenantId}/documents`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          patient_id: draftRef.current.patientId,
-          filename: file.name,
-          content_type: file.type,
-          byte_size: file.size,
-          category: "clinical_document",
-          visibility: "internal",
-        }),
+      const { documentId } = await uploadDocument({
+        tenantId,
+        patientId: draftRef.current.patientId,
+        file,
+        category: "clinical_document",
+        visibility: "internal",
+      }).catch((reason) => {
+        throw reason instanceof DocumentUploadError
+          ? new Error(
+              reason.stage === "upload"
+                ? "A foto não foi recebida. Tente novamente."
+                : (reason.serverMessage ??
+                  (reason.stage === "prepare"
+                    ? "Não foi possível preparar a foto."
+                    : "Não foi possível conferir a foto.")),
+            )
+          : reason;
       });
-      const prepared = (await intent.json()) as {
-        documentId?: string;
-        uploadPath?: string;
-        uploadToken?: string;
-        error?: string;
-      };
-      if (
-        !intent.ok ||
-        !prepared.documentId ||
-        !prepared.uploadPath ||
-        !prepared.uploadToken
-      )
-        throw new Error(prepared.error ?? "Não foi possível preparar a foto.");
-      const storage = createClient();
-      const upload = await storage.storage
-        .from(documentBucket)
-        .uploadToSignedUrl(prepared.uploadPath, prepared.uploadToken, file, {
-          cacheControl: "0",
-          contentType: file.type,
-          upsert: false,
-        });
-      if (upload.error)
-        throw new Error("A foto não foi recebida. Tente novamente.");
-      const completed = await fetch(
-        `/api/v1/clinics/${tenantId}/documents/${prepared.documentId}/complete`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ confirmed: true }),
-        },
-      );
-      const result = (await completed.json()) as { error?: string };
-      if (!completed.ok)
-        throw new Error(result.error ?? "Não foi possível conferir a foto.");
       const next = {
         ...draftRef.current,
         profile: {
           ...draftRef.current.profile,
-          photoDocumentId: prepared.documentId,
+          photoDocumentId: documentId,
         },
       };
       update({ profile: next.profile });
@@ -856,56 +825,27 @@ function OnboardingExamUpload({
     setError("");
     try {
       for (const file of files) {
-        const intent = await fetch(`/api/v1/clinics/${tenantId}/documents`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            patient_id: patientId,
-            filename: file.name,
-            content_type: file.type,
-            byte_size: file.size,
-            category: "exam",
-            visibility: "internal",
-          }),
+        const { documentId } = await uploadDocument({
+          tenantId,
+          patientId,
+          file,
+          category: "exam",
+          visibility: "internal",
+        }).catch((reason) => {
+          throw reason instanceof DocumentUploadError
+            ? new Error(
+                `${file.name}: ${
+                  reason.stage === "upload"
+                    ? "o arquivo não foi recebido."
+                    : (reason.serverMessage ??
+                      (reason.stage === "prepare"
+                        ? "não foi possível preparar o envio."
+                        : "não foi possível conferir o arquivo."))
+                }`,
+              )
+            : reason;
         });
-        const prepared = (await intent.json()) as {
-          documentId?: string;
-          uploadPath?: string;
-          uploadToken?: string;
-          error?: string;
-        };
-        if (
-          !intent.ok ||
-          !prepared.documentId ||
-          !prepared.uploadPath ||
-          !prepared.uploadToken
-        )
-          throw new Error(
-            `${file.name}: ${prepared.error ?? "não foi possível preparar o envio."}`,
-          );
-        const upload = await createClient()
-          .storage.from(documentBucket)
-          .uploadToSignedUrl(prepared.uploadPath, prepared.uploadToken, file, {
-            cacheControl: "0",
-            contentType: file.type,
-            upsert: false,
-          });
-        if (upload.error)
-          throw new Error(`${file.name}: o arquivo não foi recebido.`);
-        const complete = await fetch(
-          `/api/v1/clinics/${tenantId}/documents/${prepared.documentId}/complete`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ confirmed: true }),
-          },
-        );
-        const result = (await complete.json()) as { error?: string };
-        if (!complete.ok)
-          throw new Error(
-            `${file.name}: ${result.error ?? "não foi possível conferir o arquivo."}`,
-          );
-        await onComplete([prepared.documentId]);
+        await onComplete([documentId]);
       }
       form.reset();
     } catch (reason) {

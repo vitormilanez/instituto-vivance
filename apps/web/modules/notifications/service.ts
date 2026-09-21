@@ -1,3 +1,4 @@
+import { DomainError, databaseFailure as databaseFailureFor } from "@/lib/errors";
 import "server-only";
 import { pageNumber, tenantId } from "@/lib/validation";
 import type { Database } from "@/lib/supabase/database.types";
@@ -6,28 +7,18 @@ import { notificationId, notificationPreferenceInput } from "./validation";
 
 type NoticeRow = Database["public"]["Tables"]["in_app_notifications"]["Row"];
 
-export class NotificationError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-  ) {
-    super(message);
-  }
-}
+export class NotificationError extends DomainError {}
 
-function databaseFailure(code?: string): never {
-  if (code === "42501")
-    throw new NotificationError(
-      "Seu acesso mudou ou este aviso não está disponível. Atualize a página.",
-      403,
-    );
-  if (["23503", "23505", "23514"].includes(code ?? ""))
-    throw new NotificationError(
-      "Este aviso mudou. Atualize a página antes de tentar novamente.",
-      409,
-    );
-  throw new Error("In-app notification operation failed");
-}
+// Typed explicitly so TypeScript keeps narrowing after a call that throws.
+const databaseFailure: (code?: string) => never = databaseFailureFor({
+  error: NotificationError,
+  denied:
+    "Seu acesso mudou ou este aviso não está disponível. Atualize a página.",
+  conflict:
+    "Este aviso mudou. Atualize a página antes de tentar novamente.",
+  conflictCodes: ["23503", "23505", "23514"],
+  log: "In-app notification operation failed",
+});
 
 export async function inAppNotifications(id: string, pageInput?: string) {
   const tenant = tenantId(id);

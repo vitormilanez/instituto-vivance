@@ -1,16 +1,5 @@
-import { AccessError } from "@/modules/identity/service";
 import { InputError } from "./validation";
-import { AgendaError } from "@/modules/agenda/service";
-import { EncounterError } from "@/modules/encounters/service";
-import { TeamError } from "@/modules/team/service";
-import { CarePlanError } from "@/modules/care-plans/service";
-import { CheckInError } from "@/modules/check-ins/service";
-import { DocumentError } from "@/modules/documents/service";
-import { ConversationError } from "@/modules/messages/service";
-import { NotificationError } from "@/modules/notifications/service";
-import { OnboardingError } from "@/modules/onboarding/service";
-import { ReportError } from "@/modules/reports/service";
-import { ReturnPreparationError } from "@/modules/return-preparation/service";
+import { DomainError } from "./errors";
 
 export function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -22,29 +11,8 @@ export function json(body: unknown, status = 200) {
   });
 }
 export function apiError(error: unknown) {
-  if (error instanceof ReturnPreparationError)
-    return json({ error: error.message }, error.status);
-  if (error instanceof ReportError)
-    return json({ error: error.message }, error.status);
-  if (error instanceof OnboardingError)
-    return json({ error: error.message }, error.status);
-  if (error instanceof NotificationError)
-    return json({ error: error.message }, error.status);
-  if (error instanceof ConversationError)
-    return json({ error: error.message }, error.status);
-  if (error instanceof DocumentError)
-    return json({ error: error.message }, error.status);
-  if (error instanceof CheckInError)
-    return json({ error: error.message }, error.status);
-  if (error instanceof CarePlanError)
-    return json({ error: error.message }, error.status);
-  if (error instanceof TeamError)
-    return json({ error: error.message }, error.status);
-  if (error instanceof EncounterError)
-    return json({ error: error.message }, error.status);
-  if (error instanceof AgendaError)
-    return json({ error: error.message }, error.status);
-  if (error instanceof AccessError)
+  // Every module's error extends DomainError and carries its own status.
+  if (error instanceof DomainError)
     return json({ error: error.message }, error.status);
   if (error instanceof InputError || error instanceof SyntaxError)
     return json(

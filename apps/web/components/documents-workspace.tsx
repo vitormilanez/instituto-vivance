@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
-import { createClient } from "@/lib/supabase/browser";
-import { documentBucket, maxDocumentBytes } from "@/modules/documents/validation";
+import { maxDocumentBytes } from "@/modules/documents/validation";
+import { uploadDocument } from "@/lib/document-upload";
 import type {
   PatientDocuments,
   StaffDocuments,
@@ -30,18 +30,23 @@ const reviewLabels: Record<string, string> = {
   needs_follow_up: "Precisa de acompanhamento",
 };
 
-function byteLimit() {
+export function byteLimit() {
   return `${maxDocumentBytes / (1024 * 1024)} MB`;
 }
 
-function DocumentUploadForm({
+export function DocumentUploadForm({
   tenant,
   patients,
   ownPatientId,
+  category,
 }: {
   tenant: string;
   patients?: StaffDocuments["patients"];
   ownPatientId?: string | null;
+  // Quando o envio acontece dentro de um contexto que já define o tipo do
+  // arquivo (a foto de uma refeição, por exemplo), o seletor sai da tela e
+  // o valor vem daqui. Sem ela, o formulário segue como sempre foi.
+  category?: "exam" | "clinical_document";
 }) {
   const router = useRouter();
   const busy = useRef(false);
@@ -69,43 +74,17 @@ function DocumentUploadForm({
     setError("");
     setNotice("");
     try {
-      const intent = await fetch(`/api/v1/clinics/${tenant}/documents`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(20_000),
-        body: JSON.stringify({
-          patient_id: ownPatientId ?? data.get("patient_id"),
-          filename: file.name,
-          content_type: file.type,
-          byte_size: file.size,
-          category: data.get("category"),
-          visibility: patientUpload ? "shared" : data.get("visibility"),
-        }),
+      await uploadDocument({
+        tenantId: tenant,
+        patientId: String(ownPatientId ?? data.get("patient_id") ?? ""),
+        file,
+        // A categoria fixa vem do contexto (a foto de uma refeição, por
+        // exemplo); sem ela, vale a escolha do formulário.
+        category: category ?? String(data.get("category") ?? ""),
+        visibility: patientUpload
+          ? "shared"
+          : String(data.get("visibility") ?? ""),
       });
-      const prepared = await intent.json();
-      if (!intent.ok)
-        throw new Error(prepared.error ?? "Não foi possível preparar o envio.");
-      const storage = createClient();
-      const upload = await storage.storage
-        .from(documentBucket)
-        .uploadToSignedUrl(prepared.uploadPath, prepared.uploadToken, file, {
-          cacheControl: "0",
-          contentType: file.type,
-          upsert: false,
-        });
-      if (upload.error) throw new Error("O arquivo não foi recebido. Tente novamente.");
-      const complete = await fetch(
-        `/api/v1/clinics/${tenant}/documents/${prepared.documentId}/complete`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          signal: AbortSignal.timeout(20_000),
-          body: JSON.stringify({ confirmed: true }),
-        },
-      );
-      const completed = await complete.json();
-      if (!complete.ok)
-        throw new Error(completed.error ?? "Não foi possível conferir o arquivo.");
       form.reset();
       setNotice("Documento enviado e disponibilizado para as pessoas autorizadas.");
       router.refresh();
@@ -140,13 +119,15 @@ function DocumentUploadForm({
           </select>
         </label>
       )}
-      <label className="field">
-        Tipo de documento
-        <select name="category" defaultValue="exam" disabled={pending}>
-          <option value="exam">Exame</option>
-          <option value="clinical_document">Documento clínico</option>
-        </select>
-      </label>
+      {!category && (
+        <label className="field">
+          Tipo de documento
+          <select name="category" defaultValue="exam" disabled={pending}>
+            <option value="exam">Exame</option>
+            <option value="clinical_document">Documento clínico</option>
+          </select>
+        </label>
+      )}
       {!patientUpload && (
         <label className="field">
           Visibilidade

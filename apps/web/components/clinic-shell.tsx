@@ -1,29 +1,16 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Header } from "./header";
+import { ClinicNavMore } from "./clinic-nav-more";
 import { roleLabels, type ClinicAccess } from "@/modules/identity/service";
 import {
   staffModules,
+  staffDockGroups as dockGroups,
+  staffPrimaryKeys as primaryKeys,
+  staffSecondaryGroups as secondaryGroups,
   type StaffModuleSlug,
 } from "@/modules/workspace/navigation";
 import { unreadInAppNotificationCount } from "@/modules/notifications/service";
-
-// Only what a doctor/nurse/admin reaches for constantly stays on the surface;
-// everything else keeps its route but moves into "Mais" so the sidebar reads
-// as four choices, not thirteen.
-const primaryKeys = ["home", "patients", "agenda", "acompanhamento"] as const;
-const secondaryGroups = [
-  { label: "Atendimento", keys: ["atendimentos", "preparo", "planos"] },
-  {
-    label: "Registros e comunicação",
-    keys: ["documentos", "mensagens", "relatorios", "processamentos", "notifications"],
-  },
-  { label: "Clínica", keys: ["team", "ia", "audit"] },
-] as const;
-
-// The dock has five equal slots on a 320px phone; long names get a short
-// visible label while the link keeps its full accessible name.
-const dockLabels: Record<string, string> = { acompanhamento: "Acompanhar" };
 
 // One 20px line-icon family (1.6 stroke) for the phone dock only.
 const dockPaths: Record<string, string> = {
@@ -32,7 +19,8 @@ const dockPaths: Record<string, string> = {
     "M7.5 9a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5ZM2.5 16.5c0-2.8 2.2-4.75 5-4.75s5 1.95 5 4.75M13 4a2.5 2.5 0 0 1 0 4.8M14.5 11.9c1.9.5 3 2.1 3 4.6",
   agenda:
     "M4 5h12a.5.5 0 0 1 .5.5V16a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5V5.5A.5.5 0 0 1 4 5ZM3.5 8.5h13M7 3v3.5M13 3v3.5",
-  acompanhamento: "M3 14.5l4-4.5 3 2.5 4.5-6 2.5 2.5",
+  mensagens:
+    "M4 5h12a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5H8.5L5 16.5V13H4a.5.5 0 0 1-.5-.5v-7A.5.5 0 0 1 4 5Z",
   more: "M5 10h.01M10 10h.01M15 10h.01",
 };
 function DockIcon({ name }: { name: string }) {
@@ -154,33 +142,30 @@ export async function ClinicShell({
                 </Link>
               ))}
             </div>
-            <details className="workspace-nav-more" open={secondaryActive}>
-              <summary>Mais</summary>
-              <div>
-                {secondaryGroups.map((group) => {
-                  const groupLinks = group.keys
-                    .map((key) => linkByKey(key))
-                    .filter((link): link is NonNullable<typeof link> =>
-                      Boolean(link),
-                    );
-                  if (!groupLinks.length) return null;
-                  return (
-                    <div className="workspace-nav-group" key={group.label}>
-                      <span className="workspace-nav-label">{group.label}</span>
-                      {groupLinks.map((link) => (
-                        <Link
-                          key={link.key}
-                          href={link.href}
-                          aria-current={active === link.key ? "page" : undefined}
-                        >
-                          {link.label}
-                        </Link>
-                      ))}
-                    </div>
+            <ClinicNavMore defaultOpen={secondaryActive}>
+              {secondaryGroups.map((group) => {
+                const groupLinks = group.keys
+                  .map((key) => linkByKey(key))
+                  .filter((link): link is NonNullable<typeof link> =>
+                    Boolean(link),
                   );
-                })}
-              </div>
-            </details>
+                if (!groupLinks.length) return null;
+                return (
+                  <div className="workspace-nav-group" key={group.label}>
+                    <span className="workspace-nav-label">{group.label}</span>
+                    {groupLinks.map((link) => (
+                      <Link
+                        key={link.key}
+                        href={link.href}
+                        aria-current={active === link.key ? "page" : undefined}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                );
+              })}
+            </ClinicNavMore>
           </nav>
         </aside>
         <main id="conteudo" className="workspace-main">
@@ -199,7 +184,7 @@ export async function ClinicShell({
             aria-label={link.label}
           >
             <DockIcon name={link.key} />
-            <span aria-hidden="true">{dockLabels[link.key] ?? link.label}</span>
+            <span aria-hidden="true">{link.label}</span>
           </Link>
         ))}
         <details open={secondaryActive}>
@@ -208,19 +193,29 @@ export async function ClinicShell({
             <span>Mais</span>
           </summary>
           <div>
-            {links
-              .filter(
-                (link) => !primaryKeys.includes(link.key as (typeof primaryKeys)[number]),
-              )
-              .map((link) => (
-                <Link
-                  key={link.key}
-                  href={link.href}
-                  aria-current={active === link.key ? "page" : undefined}
-                >
-                  {link.label}
-                </Link>
-              ))}
+            <p className="staff-mobile-dock-title">Mais áreas</p>
+            {dockGroups.map((group) => {
+              const groupLinks = group.keys
+                .map((key) => linkByKey(key))
+                .filter((link): link is NonNullable<typeof link> =>
+                  Boolean(link),
+                );
+              if (!groupLinks.length) return null;
+              return (
+                <div className="staff-mobile-dock-group" key={group.label}>
+                  <span className="workspace-nav-label">{group.label}</span>
+                  {groupLinks.map((link) => (
+                    <Link
+                      key={link.key}
+                      href={link.href}
+                      aria-current={active === link.key ? "page" : undefined}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              );
+            })}
           </div>
         </details>
       </nav>

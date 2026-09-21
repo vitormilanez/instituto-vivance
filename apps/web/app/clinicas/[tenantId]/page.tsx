@@ -6,7 +6,41 @@ import { InputError } from "@/lib/validation";
 import { ClinicShell } from "@/components/clinic-shell";
 import { TodayWorkspace } from "@/components/today-workspace";
 import { todayWorkspace } from "@/modules/workspace/today";
+import { staffActions, staffShortcuts } from "@/modules/workspace/navigation";
 export const dynamic = "force-dynamic";
+
+// Ícones de traço 1.6 em 20x20, a mesma família da barra do celular.
+const shortcutIcons: Record<string, string> = {
+  pacientes:
+    "M7.5 9a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5ZM2.5 16.5c0-2.8 2.2-4.75 5-4.75s5 1.95 5 4.75M14 4.5v5M11.5 7h5",
+  atendimento:
+    "M7 4h6M6.5 4h7a.5.5 0 0 1 .5.5V16a.5.5 0 0 1-.5.5h-7A.5.5 0 0 1 6 16V4.5a.5.5 0 0 1 .5-.5ZM8.5 8h3M8.5 11h3",
+  planos:
+    "M5.5 3h6L15 6.5V17a.5.5 0 0 1-.5.5h-9A.5.5 0 0 1 5 17V3.5a.5.5 0 0 1 .5-.5ZM11 3v4h4",
+  acompanhamento: "M3 14.5l4-4.5 3 2.5 4.5-6 2.5 2.5",
+  documentos:
+    "M3.5 5.5h4l1.5 2h7a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5V6a.5.5 0 0 1 .5-.5Z",
+  equipe:
+    "M7.5 9a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5ZM2.5 16.5c0-2.8 2.2-4.75 5-4.75s5 1.95 5 4.75M13 4a2.5 2.5 0 0 1 0 4.8M14.5 11.9c1.9.5 3 2.1 3 4.6",
+};
+function ShortcutIcon({ name }: { name: string }) {
+  const d = shortcutIcons[name];
+  if (!d) return null;
+  return (
+    <span className="more-tools-icon" aria-hidden="true">
+      <svg viewBox="0 0 20 20" width="20" height="20">
+        <path
+          d={d}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  );
+}
 
 export default async function Dashboard({
   params,
@@ -22,55 +56,27 @@ export default async function Dashboard({
   const base = `/clinicas/${tenantId}`;
   const today =
     context.clinic.role !== "admin" ? await todayWorkspace(tenantId) : null;
-  const actions = [
-    {
-      title: "Pacientes",
-      text: "Busque e abra uma ficha.",
-      href: `${base}/pacientes`,
-    },
-    {
-      title: "Novo paciente",
-      text: "Comece pelo cadastro.",
-      href: `${base}/pacientes#novo-paciente`,
-    },
-    {
-      title: "Agenda",
-      text: "Horários e compromissos da equipe.",
-      href: `${base}/agenda`,
-    },
-    {
-      title: "Atendimento",
-      text: "Registro e evolução das consultas.",
-      href: `${base}/atendimentos`,
-    },
-    {
-      title: "Planos de cuidado",
-      text: "Orientações revisadas e publicadas.",
-      href: `${base}/planos`,
-    },
-    {
-      title: "Acompanhamento",
-      text: "Check-ins e evolução entre consultas.",
-      href: `${base}/acompanhamento`,
-    },
-    {
-      title: "Documentos",
-      text: "Arquivos e exames do paciente.",
-      href: `${base}/documentos`,
-    },
-    {
-      title: "Equipe de cuidado",
-      text:
-        context.clinic.role === "admin"
-          ? "Gerencie acessos e vínculos."
-          : "Revise suas responsabilidades.",
-      href: `${base}/equipe`,
-    },
-  ];
+
+  const shortcuts = (
+    <section className="shortcuts-section" aria-labelledby="quick-actions">
+      <h2 id="quick-actions">Atalhos</h2>
+      <ul className="more-tools-list">
+        {staffShortcuts(base).map((action) => (
+          <li key={action.title}>
+            <Link className="more-tools-link" href={action.href}>
+              <ShortcutIcon name={action.icon} />
+              <strong>{action.title}</strong>
+              <span>{action.text}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
   return (
     <ClinicShell clinic={context.clinic} active="home">
       {today ? (
-        <TodayWorkspace base={base} data={today} />
+        <TodayWorkspace base={base} data={today} shortcuts={shortcuts} />
       ) : (
         <>
           <div className="page-heading">
@@ -99,68 +105,23 @@ export default async function Dashboard({
           </section>
         </>
       )}
-      <section
-        className={`quick-actions-section${today ? " quick-actions-section-secondary" : ""}`}
-        aria-labelledby="quick-actions"
-      >
-        <div className="quick-actions-heading">
-          <h2 id="quick-actions">
-            {today ? "Atalhos" : "Ações rápidas"}
-          </h2>
-          {!today && (
+      {!today && (
+        <section className="quick-actions-section" aria-labelledby="quick-actions-admin">
+          <div className="quick-actions-heading">
+            <h2 id="quick-actions-admin">Ações rápidas</h2>
             <p>Continue o cuidado pelo ponto certo, sem perder o contexto.</p>
-          )}
-        </div>
-        {today ? (
-          <ul className="more-tools-list">
-            {actions.map((action) => (
-              <li key={action.title}>
-                <Link className="more-tools-link" href={action.href}>
-                  <strong>{action.title}</strong>
-                  <span>{action.text}</span>
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 16 16"
-                    width="16"
-                    height="16"
-                  >
-                    <path
-                      d="M6 3.5 10.5 8 6 12.5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="quick-actions">
-            {actions.map((action) =>
-              action.href ? (
-                <Link
-                  className="quick-action"
-                  href={action.href}
-                  key={action.title}
-                >
-                  <strong>{action.title}</strong>
-                  <span>{action.text}</span>
-                  <span className="action-state">Abrir</span>
-                </Link>
-              ) : (
-                <div className="quick-action unavailable" key={action.title}>
-                  <strong>{action.title}</strong>
-                  <span>{action.text}</span>
-                  <span className="action-state">Em breve</span>
-                </div>
-              ),
-            )}
           </div>
-        )}
-      </section>
+          <div className="quick-actions">
+            {staffActions(base).map((action) => (
+              <Link className="quick-action" href={action.href} key={action.title}>
+                <strong>{action.title}</strong>
+                <span>{action.text}</span>
+                <span className="action-state">Abrir</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
       {!today && (
         <section className="panel" aria-labelledby="directory-title">
           <div className="section-heading">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import type {
   todayWorkspace,
   patientCareContext,
@@ -128,9 +129,13 @@ export function PatientCareLinks({
 export function TodayWorkspace({
   base,
   data,
+  shortcuts,
 }: {
   base: string;
   data: Awaited<ReturnType<typeof todayWorkspace>>;
+  // Atalhos ficam entre a próxima consulta e a agenda do dia: depois do que
+  // exige ação agora, antes da lista que a pessoa percorre.
+  shortcuts?: ReactNode;
 }) {
   const { next } = data;
   const nextDate = data.nextDate ?? data.today;
@@ -312,6 +317,9 @@ export function TodayWorkspace({
             </Link>
           ) : null}
         </aside>
+      </div>
+      {shortcuts}
+      <div className="today-schedule-wrap">
         <section
           className="panel today-schedule"
           aria-labelledby="today-schedule-title"

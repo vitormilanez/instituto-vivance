@@ -1,3 +1,4 @@
+import { DomainError, databaseFailure as databaseFailureFor } from "@/lib/errors";
 import "server-only";
 import { requireClinic } from "@/modules/identity/service";
 import { tenantId } from "@/lib/validation";
@@ -45,28 +46,18 @@ export type SelectedConversation = {
   displayName: string;
 };
 
-export class ConversationError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-  ) {
-    super(message);
-  }
-}
+export class ConversationError extends DomainError {}
 
-function databaseFailure(code?: string): never {
-  if (code === "42501")
-    throw new ConversationError(
-      "Seu acesso mudou ou esta conversa não está disponível. Atualize a página.",
-      403,
-    );
-  if (["23503", "23505", "23514"].includes(code ?? ""))
-    throw new ConversationError(
-      "Esta conversa mudou. Atualize a página antes de tentar novamente.",
-      409,
-    );
-  throw new Error("Direct message operation failed");
-}
+// Typed explicitly so TypeScript keeps narrowing after a call that throws.
+const databaseFailure: (code?: string) => never = databaseFailureFor({
+  error: ConversationError,
+  denied:
+    "Seu acesso mudou ou esta conversa não está disponível. Atualize a página.",
+  conflict:
+    "Esta conversa mudou. Atualize a página antes de tentar novamente.",
+  conflictCodes: ["23503", "23505", "23514"],
+  log: "Direct message operation failed",
+});
 
 function recentByRecipient(rows: ConversationRow[]) {
   return new Map(rows.map((row) => [row.patient_id, row]));

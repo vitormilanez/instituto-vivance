@@ -65,7 +65,7 @@ test("multiple exam uploads persist each successful file before continuing", () 
   assert.match(onboardingWorkspace, /for \(const file of files\)/);
   assert.match(
     onboardingWorkspace,
-    /await onComplete\(\[prepared\.documentId\]\)/,
+    /await onComplete\(\[documentId\]\)/,
   );
   assert.match(
     onboardingWorkspace,

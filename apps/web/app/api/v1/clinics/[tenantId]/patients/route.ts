@@ -1,5 +1,5 @@
 import { createPatient, listPatients } from "@/modules/patients/service";
-import { apiError, json } from "@/lib/api";
+import { apiError, boundedJson, json } from "@/lib/api";
 import { pageNumber, sameOrigin, patientSearch } from "@/lib/validation";
 type Context = { params: Promise<{ tenantId: string }> };
 export async function GET(request: Request, { params }: Context) {
@@ -21,22 +21,8 @@ export async function POST(request: Request, { params }: Context) {
   if (!request.headers.get("content-type")?.startsWith("application/json"))
     return json({ error: "Use JSON." }, 415);
   try {
-    // Bound the streamed body, not only its optional Content-Length header.
-    const reader = request.body?.getReader();
-    if (!reader) return json({ error: "Cadastro vazio." }, 400);
-    const chunks: Uint8Array[] = [];
-    let size = 0;
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      size += value.byteLength;
-      if (size > 4096) {
-        await reader.cancel();
-        return json({ error: "Cadastro muito grande." }, 413);
-      }
-      chunks.push(value);
-    }
-    const body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    // The same bounded streamed reader every other mutation route uses.
+    const body = await boundedJson(request);
     return json(
       { patient: await createPatient((await params).tenantId, body) },
       201,

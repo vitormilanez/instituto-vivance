@@ -11,6 +11,7 @@ import type {
 import { clinicalTime } from "./encounter-editor";
 import { preparationActionPending, preparationTopics } from "@/modules/return-preparation/questionnaire";
 import { PreparationPriorities } from "./preparation-summary";
+import { sentenceCase } from "@/lib/format";
 
 const statusLabels: Record<string, string> = {
   requested: "Solicitado",
@@ -21,14 +22,16 @@ const statusLabels: Record<string, string> = {
 };
 
 function appointmentDate(value: string) {
-  return new Date(value).toLocaleString("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return sentenceCase(
+    new Date(value).toLocaleString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  );
 }
 
 function answerRecord(value: unknown): Record<string, string> {

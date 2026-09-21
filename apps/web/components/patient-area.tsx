@@ -5,6 +5,7 @@ import type { Appointment } from "@/modules/agenda/service";
 import { patientNextStep } from "@/modules/workspace/patient-next-step";
 import { patientTodayTasks } from "@/modules/workspace/patient-today-tasks";
 import { EmptyModule, FutureButton } from "./module-ui";
+import { sentenceCase } from "@/lib/format";
 
 const actions = [
   {
@@ -198,14 +199,16 @@ export function PatientArea({
             {nextAppointment ? (
               <div className="patient-appointment-content">
                 <strong>
-                  {new Date(nextAppointment.starts_at).toLocaleDateString(
-                    "pt-BR",
-                    {
-                      timeZone: "America/Sao_Paulo",
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                    },
+                  {sentenceCase(
+                    new Date(nextAppointment.starts_at).toLocaleDateString(
+                      "pt-BR",
+                      {
+                        timeZone: "America/Sao_Paulo",
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                      },
+                    ),
                   )}
                 </strong>
                 <span className="patient-appointment-time">

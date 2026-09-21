@@ -8,16 +8,7 @@ import { PatientInvitationForm } from "@/components/patient-invitation-form";
 import { PatientInvitationList } from "@/components/patient-invitation-list";
 import { listClinicPatientInvitations } from "@/modules/onboarding/service";
 import { PatientForm } from "@/components/forms";
-
-// Age in whole years on the clinic's (Brasília) calendar date.
-const ageFrom = (birthDate: string) => {
-  const today = new Date().toLocaleDateString("sv-SE", {
-    timeZone: "America/Sao_Paulo",
-  });
-  const [by, bm, bd] = birthDate.split("-").map(Number);
-  const [ty, tm, td] = today.split("-").map(Number);
-  return ty - by - (tm < bm || (tm === bm && td < bd) ? 1 : 0);
-};
+import { ageInYears } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function Patients({
@@ -120,7 +111,7 @@ export default async function Patients({
                       <strong>{p.display_name}</strong>
                       <small>
                         {p.birth_date
-                          ? `${ageFrom(p.birth_date)} ${ageFrom(p.birth_date) === 1 ? "ano" : "anos"} · nascimento em ${p.birth_date.split("-").reverse().join("/")}`
+                          ? `${ageInYears(p.birth_date)} ${ageInYears(p.birth_date) === 1 ? "ano" : "anos"} · nascimento em ${p.birth_date.split("-").reverse().join("/")}`
                           : "Nascimento não informado"}
                       </small>
                       {p.onboardingSubmittedAt && (

@@ -1,30 +1,21 @@
+import { DomainError, databaseFailure } from "@/lib/errors";
 import "server-only";
 import { requireClinic } from "@/modules/identity/service";
 import { tenantId } from "@/lib/validation";
 import { planPage } from "@/modules/care-plans/validation";
 import { requestInput, reviewInput, submissionInput } from "./validation";
 
-export class CheckInError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-  ) {
-    super(message);
-  }
-}
-function failed(code?: string): never {
-  if (code === "42501")
-    throw new CheckInError(
-      "Seu acesso mudou ou este check-in não está disponível. Atualize a página.",
-      403,
-    );
-  if (["23514", "23503", "23505"].includes(code ?? ""))
-    throw new CheckInError(
-      "Este check-in mudou. Atualize a página antes de tentar novamente.",
-      409,
-    );
-  throw new Error("Check-in operation failed");
-}
+export class CheckInError extends DomainError {}
+// Typed explicitly so TypeScript keeps narrowing after a call that throws.
+const failed: (code?: string) => never = databaseFailure({
+  error: CheckInError,
+  denied:
+    "Seu acesso mudou ou este check-in não está disponível. Atualize a página.",
+  conflict:
+    "Este check-in mudou. Atualize a página antes de tentar novamente.",
+  conflictCodes: ["23514", "23503", "23505"],
+  log: "Check-in operation failed",
+});
 async function details(
   client: Awaited<ReturnType<typeof requireClinic>>["client"],
   tenant: string,
@@ -100,18 +91,27 @@ export async function patientCheckIns(id: string, pageInput?: string) {
   const tenant = tenantId(id),
     page = planPage(pageInput),
     { client, clinic } = await requireClinic(tenant, ["patient"]);
-  const result = await client
-    .from("care_check_ins")
-    .select("*")
-    .eq("tenant_id", tenant)
-    .order("requested_at", { ascending: false })
-    .order("id")
-    .range((page - 1) * 20, page * 20);
-  if (result.error) failed(result.error.code);
+  const [result, account] = await Promise.all([
+    client
+      .from("care_check_ins")
+      .select("*")
+      .eq("tenant_id", tenant)
+      .order("requested_at", { ascending: false })
+      .order("id")
+      .range((page - 1) * 20, page * 20),
+    client
+      .from("patient_accounts")
+      .select("patient_id")
+      .eq("tenant_id", tenant)
+      .maybeSingle(),
+  ]);
+  if (result.error || account.error)
+    failed(result.error?.code ?? account.error?.code);
   const rows = (result.data ?? []).slice(0, 20),
     related = await details(client, tenant, rows);
   return {
     clinic,
+    patientId: account.data?.patient_id ?? null,
     checkIns: rows.map((row) => ({
       ...row,
       submission:

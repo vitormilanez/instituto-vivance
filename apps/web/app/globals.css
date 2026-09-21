@@ -2662,7 +2662,6 @@ button.calendar-day[aria-pressed="true"] {
 .patient-appointment-content > strong {
   color: #334d71;
   font-size: 14px;
-  text-transform: capitalize;
 }
 .patient-appointment-time {
   margin-top: 3px;
@@ -4660,7 +4659,8 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
   .calendar-schedule .appointment-row { padding-inline: 12px !important; }
 }
 @media (max-width: 760px) {
-  .page-heading > .button { align-self: stretch; text-align: center; }
+  .page-heading > .button,
+  .page-heading > button { align-self: stretch; width: 100%; text-align: center; }
   .check-in-card > .section-heading {
     flex-direction: column-reverse;
     align-items: flex-start;
@@ -4674,3 +4674,209 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
   .appointment-actions button.quiet { flex: 0 0 auto; }
   .staff-mobile-dock details > div { bottom: calc(72px + env(safe-area-inset-bottom)); }
 }
+
+/* ------------------------------------------------------------------
+   Correções de design apontadas na análise de produto (set/2026)
+   ------------------------------------------------------------------ */
+
+/* Sidebar: o nome do profissional ocupa até duas linhas em vez de virar
+   "Dr. Guilherme Mar…". */
+.workspace-identity { align-items: flex-start; padding: 16px 14px; }
+.workspace-identity strong {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.3;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.workspace-identity .workspace-avatar { margin-top: 2px; }
+
+/* Próxima consulta: horário e ação ficam juntos, sem faixa vazia entre
+   a linha de contexto e o botão. */
+.today-consultation-when { min-width: 0; }
+.today-consultation-meta { gap: 6px 18px; padding: 12px 0 0; border-bottom: 0; }
+.today-primary-action {
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.today-primary-action > span { order: 2; margin-right: 0; max-width: 40ch; }
+
+/* Em telas largas cabe a lista inteira: "Mais" abre e o próprio rótulo sai
+   da frente (o componente cuida do estado; aqui só o visual). */
+@media (min-width: 1280px) {
+  .workspace-nav-more[open] > summary { display: none; }
+  .workspace-nav-more[open] > div { margin-top: 4px; }
+}
+
+/* ------------------------------------------------------------------
+   Menu "Mais" do celular: as mesmas três famílias da sidebar, em linhas
+   de menu — não uma pilha de links sublinhados soltos.
+   ------------------------------------------------------------------ */
+@media (max-width: 1100px) {
+  .staff-mobile-dock details > div {
+    padding: 8px;
+    border-radius: 18px;
+  }
+  .staff-mobile-dock-title {
+    margin: 2px 10px 6px;
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .staff-mobile-dock-group + .staff-mobile-dock-group {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+  .staff-mobile-dock-group .workspace-nav-label {
+    display: block;
+    padding: 6px 10px 2px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .staff-mobile-dock details a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 6px 10px;
+    line-height: 1.2;
+    border-radius: 12px;
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .staff-mobile-dock details a:hover {
+    background: var(--blue-soft);
+  }
+  .staff-mobile-dock details a[aria-current="page"] {
+    background: var(--navy);
+    color: var(--surface);
+  }
+}
+
+/* ------------------------------------------------------------------
+   Agenda no celular: o calendário é um seletor de dia, não a tela toda.
+   Compacta a grade para a lista de consultas caber na primeira rolagem,
+   e devolve "Atualizar agenda" ao peso de ação secundária.
+   ------------------------------------------------------------------ */
+@media (max-width: 650px) {
+  .agenda-view-controls { gap: 8px; }
+  .agenda-view-controls button:last-child {
+    justify-self: start;
+    width: auto;
+    min-height: 36px;
+    padding: 6px 2px;
+    border-color: transparent;
+    background: transparent;
+    color: var(--blue);
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .calendar-month { padding: 14px 12px 16px; }
+  .calendar-toolbar { margin-bottom: 10px; }
+  .calendar-toolbar h2 { font-size: 16px; }
+  .calendar-toolbar button { width: 40px; min-height: 40px; padding: 8px; }
+  .calendar-weekday { padding: 4px 0; font-size: 11px; }
+  button.calendar-day {
+    height: 40px;
+    min-height: 40px;
+    gap: 2px;
+    font-size: 15px;
+  }
+  .calendar-today { margin-top: 12px; min-height: 42px; }
+  .calendar-schedule { padding: 18px 16px 20px; }
+  .calendar-schedule > h2 { font-size: 18px; }
+}
+
+/* ------------------------------------------------------------------
+   Atalhos entre a próxima consulta e a agenda do dia.
+   Cartões compactos com ícone: são portas para outras áreas, não
+   conteúdo — por isso pesam menos que os painéis em volta.
+   ------------------------------------------------------------------ */
+.today-workspace { grid-template-areas: "next attention"; margin-bottom: 24px; }
+.today-schedule-wrap { margin-bottom: 32px; }
+.today-schedule-wrap .today-schedule { margin: 0; border-radius: 16px; }
+
+.shortcuts-section { margin: 0 0 24px; }
+.shortcuts-section h2 {
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.shortcuts-section .more-tools-list {
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 10px;
+}
+.shortcuts-section .more-tools-link {
+  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-areas: "icon title" "icon text";
+  align-content: center;
+  gap: 2px 12px;
+  min-height: 72px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--surface);
+}
+.shortcuts-section .more-tools-icon {
+  grid-area: icon;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+.shortcuts-section .more-tools-icon svg { grid-area: auto; color: inherit; }
+.shortcuts-section .more-tools-link strong { grid-area: title; font-size: 14px; }
+.shortcuts-section .more-tools-link > span:not(.more-tools-icon) { grid-area: text; }
+.shortcuts-section .more-tools-link span { line-height: 1.4; }
+.shortcuts-section .more-tools-link:hover .more-tools-icon {
+  background: var(--navy);
+  color: var(--surface);
+}
+
+@media (max-width: 1100px) {
+  .today-workspace { grid-template-areas: "next" "attention"; }
+}
+/* No celular os atalhos ficam entre a consulta e a agenda do dia, então
+   viram pares compactos: ícone e nome, sem a linha de apoio. */
+@media (max-width: 650px) {
+  .shortcuts-section .more-tools-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .shortcuts-section .more-tools-link {
+    grid-template-columns: 32px minmax(0, 1fr);
+    grid-template-areas: "icon title";
+    align-items: center;
+    min-height: 60px;
+    padding: 10px;
+  }
+  .shortcuts-section .more-tools-icon { width: 32px; height: 32px; }
+  .shortcuts-section .more-tools-link > span:not(.more-tools-icon) {
+    display: none;
+  }
+  .shortcuts-section .more-tools-link strong {
+    font-size: 13px;
+    line-height: 1.25;
+    padding-right: 4px;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Atalho de texto sugerido: é uma ação, não um campo — não estica na
+   largura do formulário. */
+.prompt-suggestion { justify-self: start; }
