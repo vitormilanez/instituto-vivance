@@ -172,6 +172,45 @@
   color: var(--muted);
 }
 
+.patient-required-preparation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 24px;
+  border-color: var(--attention-border);
+  background: var(--attention-surface);
+}
+
+.patient-required-preparation h2,
+.patient-required-preparation p {
+  margin: 0;
+}
+
+.patient-required-preparation > div > p {
+  max-width: 62ch;
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.patient-required-preparation-action {
+  display: grid;
+  gap: 8px;
+  min-width: 190px;
+}
+
+@media (max-width: 760px) {
+  .patient-required-preparation {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .patient-required-preparation-action,
+  .patient-required-preparation-action button {
+    width: 100%;
+  }
+}
+
 .preparation-card fieldset {
   display: grid;
   gap: 16px;

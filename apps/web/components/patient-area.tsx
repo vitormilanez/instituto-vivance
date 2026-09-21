@@ -4,6 +4,8 @@ import { patientSections } from "@/modules/workspace/navigation";
 import type { Appointment } from "@/modules/agenda/service";
 import { patientNextStep } from "@/modules/workspace/patient-next-step";
 import { patientTodayTasks } from "@/modules/workspace/patient-today-tasks";
+import { patientNextAppointment } from "@/modules/workspace/patient-appointment";
+import { PatientRequiredPreparation } from "./return-preparation-workspace";
 import { EmptyModule, FutureButton } from "./module-ui";
 import { sentenceCase } from "@/lib/format";
 
@@ -81,6 +83,7 @@ function actionState(action: (typeof actions)[number]) {
 export function PatientArea({
   section,
   base,
+  tenantId,
   appointments = [],
   currentTime,
   latestPublication = null,
@@ -89,10 +92,12 @@ export function PatientArea({
   pendingCheckInId,
   pendingReturnPreparationId,
   preparationPending,
+  requiredPreparation,
   latestMeasurement,
 }: {
   section: PatientSection;
   base: string;
+  tenantId: string;
   appointments?: Appointment[];
   currentTime: string;
   latestPublication?: { title: string; revision: number } | null;
@@ -101,6 +106,11 @@ export function PatientArea({
   pendingCheckInId?: string | null;
   pendingReturnPreparationId?: string | null;
   preparationPending?: { count: number; first: { id: string; status: string } | null };
+  requiredPreparation?: {
+    appointmentId: string;
+    startsAt: string;
+    doctorDisplayName: string;
+  } | null;
   latestMeasurement?: {
     measure_label: string;
     measure_value: number;
@@ -108,12 +118,7 @@ export function PatientArea({
     reported_on: string;
   } | null;
 }) {
-  const nextAppointment = appointments.find(
-    (appointment) =>
-      appointment.status === "in_progress" ||
-      (appointment.status === "scheduled" &&
-        appointment.ends_at >= currentTime),
-  );
+  const nextAppointment = patientNextAppointment(appointments, currentTime);
   const latestCompleted = [...appointments]
     .reverse()
     .find((appointment) => appointment.status === "completed");
@@ -121,10 +126,9 @@ export function PatientArea({
     base,
     onboardingHref,
     unreadPlanTitle: unreadPublication?.title,
-    hasConsultationInProgress: Boolean(
-      appointments.some((appointment) => appointment.status === "in_progress"),
-    ),
+    hasConsultationInProgress: nextAppointment?.status === "in_progress",
     hasUpcomingConsultation: Boolean(nextAppointment),
+    hasRequiredPreparation: Boolean(requiredPreparation),
     pendingCheckInId,
     pendingReturnPreparationId,
   });
@@ -132,6 +136,7 @@ export function PatientArea({
     base,
     onboardingHref,
     pendingCheckInId,
+    hasRequiredPreparation: Boolean(requiredPreparation),
     preparationPending,
     unreadPlan: unreadPublication,
     hasMeasurement: Boolean(latestMeasurement),
@@ -154,6 +159,13 @@ export function PatientArea({
             {nextStep.action}
           </Link>
         </section>
+        {requiredPreparation && (
+          <PatientRequiredPreparation
+            base={base}
+            tenantId={tenantId}
+            appointment={requiredPreparation}
+          />
+        )}
         {todayTasks.length > 0 && (
           <section className="panel patient-pending-tasks" aria-labelledby="patient-pending-tasks-title">
             <div className="section-heading">
@@ -282,16 +294,6 @@ export function PatientArea({
             </div>
           </div>
           <div className="quick-actions">
-            <Link className="quick-action preparation-action" href={preparationPending?.first
-              ? `${base}/hoje?preparo=${preparationPending.first.id}#preparo-${preparationPending.first.id}`
-              : `${base}/hoje#patient-preparation-title`}>
-              <strong>Pré-consulta</strong>
-              <span>Conte o que deseja conversar com o médico</span>
-              <span className="action-state">{preparationPending?.count
-                ? `${preparationPending.count} ${preparationPending.count === 1 ? "ação pendente" : "ações pendentes"}`
-                : "Nenhuma ação pendente"}</span>
-              {Boolean(preparationPending?.count) && <span>{preparationPending?.first?.status === "draft" ? "Continuar preenchimento" : "Responder pré-consulta"}</span>}
-            </Link>
             <Link className={`quick-action measurement-action${latestMeasurement ? "" : " is-pending"}`} href={`${base}/evolucao#atualizar-medidas`}>
               <strong>Atualizar medidas</strong>
               <span>{latestMeasurement ? `${latestMeasurement.measure_label}: ${latestMeasurement.measure_value} ${latestMeasurement.measure_unit}` : "Registre peso, altura ou circunferência abdominal"}</span>

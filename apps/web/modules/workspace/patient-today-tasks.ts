@@ -10,6 +10,7 @@ export type PatientTodayTasksInput = {
   base: string;
   onboardingHref?: string | null;
   pendingCheckInId?: string | null;
+  hasRequiredPreparation?: boolean;
   preparationPending?: {
     count: number;
     first: { id: string; status: string } | null;
@@ -22,6 +23,15 @@ export type PatientTodayTasksInput = {
 // deliberately not presented as a task for the patient.
 export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTask[] {
   const tasks: PatientTodayTask[] = [];
+
+  if (input.hasRequiredPreparation)
+    tasks.push({
+      id: "required-preparation",
+      title: "Preencher sua pré-consulta",
+      detail: "Responda às cinco perguntas antes da sua próxima consulta.",
+      action: "Preencher agora",
+      href: "#preconsulta-obrigatoria",
+    });
 
   if (input.pendingCheckInId)
     tasks.push({

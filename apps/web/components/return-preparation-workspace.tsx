@@ -73,6 +73,10 @@ function PatientPreparation({
   const [feedback, setFeedback] = useState("");
   const editable = preparationActionPending(item.status);
   const dirty = editable && JSON.stringify({ answers, priorities }) !== saved;
+  const answeredCount = item.questionnaire.questions.filter(
+    (question) => Boolean(answers[question.id]?.trim()),
+  ).length;
+  const complete = answeredCount === item.questionnaire.questions.length;
   useEffect(() => {
     if (!dirty) return;
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); };
@@ -141,12 +145,12 @@ function PatientPreparation({
     <article className="panel preparation-card" id={`preparo-${item.id}`}>
       <div className="preparation-heading">
         <div>
-          <h2>{item.questionnaire.title}</h2>
+          <h2>Pré-consulta obrigatória</h2>
           <p>
-            Consulta em {appointmentDate(item.appointments.starts_at)} · {item.appointments.doctor_display_name}
+            {item.questionnaire.title} · Consulta em {appointmentDate(item.appointments.starts_at)} · {item.appointments.doctor_display_name}
           </p>
         </div>
-        <span className={`preparation-status ${item.status}`}>{editable ? "1 ação pendente" : statusLabels[item.status]}</span>
+        <span className={`preparation-status ${item.status}`}>{editable ? `${answeredCount} de ${item.questionnaire.questions.length} respondidas` : statusLabels[item.status]}</span>
       </div>
       {item.status === "cancelled" && !item.submission ? (
         <div className="preparation-closed">
@@ -156,16 +160,17 @@ function PatientPreparation({
       ) : editable ? (
         <form onSubmit={save}>
           <p className="preparation-guidance">
-            Seu rascunho é privado até você enviar. Todas as perguntas são opcionais; você também pode preferir conversar na consulta.
+            Responda às cinco perguntas para enviar sua pré-consulta. Seu rascunho é privado até o envio e pode ser salvo a qualquer momento.
           </p>
           <fieldset disabled={pending}>
             {item.questionnaire.questions.map((question) => (
               <label className="field" key={question.id}>
-                {question.label} <span>Opcional</span>
+                {question.label} <span>Obrigatória</span>
                 <textarea
                   rows={3}
                   maxLength={4000}
                   value={answers[question.id] ?? ""}
+                  aria-required="true"
                   onChange={(event) => { setConfirmed(false); setAnswers((current) => ({ ...current, [question.id]: event.target.value })); }}
                 />
               </label>
@@ -187,20 +192,24 @@ function PatientPreparation({
               </select>
             </label>)}
           </fieldset>
-          <p className="module-footnote" role="status">{dirty ? "Você tem alterações não salvas." : "Salve para continuar depois, ou revise e envie para a equipe."}</p>
+          <p className="module-footnote" role="status">
+            {complete
+              ? "As cinco perguntas foram respondidas. Revise e envie para a equipe."
+              : `Faltam ${item.questionnaire.questions.length - answeredCount} resposta${item.questionnaire.questions.length - answeredCount === 1 ? "" : "s"} obrigatória${item.questionnaire.questions.length - answeredCount === 1 ? "" : "s"}. Você pode salvar o rascunho e continuar depois.`}
+          </p>
           {feedback && <p className={feedback.startsWith("Rascunho") ? "notice" : "feedback"} role="status">{feedback}</p>}
           <label className="publication-confirm">
             <input
               type="checkbox"
               checked={confirmed}
-              disabled={pending}
+              disabled={pending || !complete}
               onChange={(event) => setConfirmed(event.target.checked)}
             />
             Confirmo o envio final. Depois disso, as respostas não poderão ser alteradas.
           </label>
           <div className="agenda-actions">
             <button disabled={pending}>{pending ? "Salvando…" : "Salvar rascunho"}</button>
-            <button className="secondary" type="button" disabled={pending || !confirmed} onClick={submit}>
+            <button className="secondary" type="button" disabled={pending || !complete || !confirmed} onClick={submit}>
               {pending ? "Aguarde…" : "Confirmar e enviar uma vez"}
             </button>
           </div>
@@ -226,6 +235,54 @@ function PatientPreparation({
         </div>
       )}
     </article>
+  );
+}
+
+export function PatientRequiredPreparation({
+  base,
+  tenantId,
+  appointment,
+}: {
+  base: string;
+  tenantId: string;
+  appointment: { appointmentId: string; startsAt: string; doctorDisplayName: string };
+}) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+
+  async function start() {
+    if (pending) return;
+    setPending(true);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/v1/clinics/${tenantId}/return-preparations/required`,
+        { method: "POST", signal: AbortSignal.timeout(20_000) },
+      );
+      const result = (await response.json()) as { id?: string; error?: string };
+      if (!response.ok || !result.id)
+        throw new Error(result.error ?? "Não foi possível abrir sua pré-consulta.");
+      router.push(`${base}/hoje?preparo=${result.id}#preparo-${result.id}`);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível abrir sua pré-consulta.");
+      setPending(false);
+    }
+  }
+
+  return (
+    <section className="panel patient-required-preparation" id="preconsulta-obrigatoria" aria-labelledby="required-preparation-title">
+      <div>
+        <h2 id="required-preparation-title">Pré-consulta obrigatória</h2>
+        <p>Antes da consulta em {appointmentDate(appointment.startsAt)} com {appointment.doctorDisplayName}, responda às cinco perguntas que prepararão a conversa.</p>
+      </div>
+      <div className="patient-required-preparation-action">
+        <button type="button" onClick={start} disabled={pending}>
+          {pending ? "Abrindo…" : "Preencher pré-consulta"}
+        </button>
+        {error && <p className="feedback" role="alert">{error}</p>}
+      </div>
+    </section>
   );
 }
 

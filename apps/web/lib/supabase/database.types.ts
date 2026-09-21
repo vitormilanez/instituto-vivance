@@ -1216,6 +1216,12 @@ export type Database = {
         };
         Returns: string;
       };
+      start_required_preconsultation: {
+        Args: {
+          target_tenant: string;
+        };
+        Returns: string;
+      };
       save_return_preparation_draft: {
         Args: {
           target_tenant: string;

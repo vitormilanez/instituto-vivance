@@ -28,7 +28,7 @@ test("patient priorities are explicit, ordered and bounded, never inferred from 
   for (const value of [["sleep", "sleep"], ["diagnosis"], [["sleep"]], null, ["sleep", "energy", "other", "movement"]])
     assert.throws(() => priorityInput(value));
   assert.deepEqual(savePreparationInput({ version: 0, answers: {}, priorities: ["sleep"] }), { version: 0, answers: {}, priorities: ["sleep"] });
-  assert.deepEqual(submitPreparationInput({ version: 0, answers: {}, priorities: [], confirmed: true }), { version: 0, answers: {}, priorities: [] });
+  assert.throws(() => submitPreparationInput({ version: 0, answers: {}, priorities: [], confirmed: true }));
 });
 
 test("action badges follow task state, not unread notifications", () => {
@@ -42,7 +42,7 @@ test("action badges follow task state, not unread notifications", () => {
 const appointment = "11111111-1111-4111-8111-111111111111";
 const requestKey = "22222222-2222-4222-8222-222222222222";
 
-test("return preparation accepts optional answers and omits skipped blanks", () => {
+test("return preparation saves partial drafts but requires all five answers to submit", () => {
   assert.deepEqual(requestPreparationInput({ appointment_id: appointment, request_key: requestKey }), {
     appointmentId: appointment,
     requestKey,
@@ -51,9 +51,13 @@ test("return preparation accepts optional answers and omits skipped blanks", () 
     version: 0,
     answers: { changes: "Melhor sono" },
   });
-  assert.deepEqual(submitPreparationInput({ version: 2, answers: {}, confirmed: true }), {
+  const complete = Object.fromEntries(
+    preparationQuestions.map((question) => [question.id, `Resposta sobre ${question.id}`]),
+  );
+  assert.throws(() => submitPreparationInput({ version: 2, answers: { goal: "Objetivo" }, confirmed: true }));
+  assert.deepEqual(submitPreparationInput({ version: 2, answers: complete, confirmed: true }), {
     version: 2,
-    answers: {},
+    answers: complete,
   });
 });
 
@@ -75,7 +79,9 @@ test("patient UI requires an explicit final confirmation and keeps cancelled sub
     "utf8",
   );
   assert.match(component, /checked=\{confirmed\}/);
-  assert.match(component, /disabled=\{pending \|\| !confirmed\}/);
+  assert.match(component, /disabled=\{pending \|\| !complete \|\| !confirmed\}/);
+  assert.match(component, /aria-required="true"/);
+  assert.match(component, /Pré-consulta obrigatória/);
   assert.match(component, /item\.status === "cancelled" && !item\.submission/);
   assert.match(component, /seu envio continua no histórico/);
 });
