@@ -7,7 +7,7 @@ export type PatientIntakeContext = {
   reason: string;
   expectedOutcome: string;
   firstPriority: string;
-  source: "staff_assisted";
+  source: "staff_assisted" | "patient_reported";
   recordedBy: string;
   recordedByName: string;
   version: number;

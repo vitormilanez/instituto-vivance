@@ -974,6 +974,7 @@ export type Database = {
           version: number;
           claimed_at: string | null; accepted_at: string | null;
           accepted_by: string | null; patient_id: string | null;
+          target_patient_id: string | null;
           created_at: string; updated_at: string;
         };
         Insert: never;
@@ -1329,6 +1330,10 @@ export type Database = {
           invitation_id: string; tenant_id: string; patient_id: string;
           onboarding_version: number;
         }[];
+      };
+      patient_intake_invitation_available: {
+        Args: { target_tenant: string; target_patient: string };
+        Returns: boolean;
       };
       submit_patient_onboarding: {
         Args: { target_tenant: string; read_version: number; explicit_share_consent: boolean };

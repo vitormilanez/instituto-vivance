@@ -200,11 +200,12 @@ test("notification preferences accept only an explicit in-app boolean", () => {
 });
 test("patient invitations keep recipient channels exclusive and server-owned", () => {
   assert.deepEqual(patientInvitationInput({ displayName: "  Maria   Silva ", channel: "email", email: " MARIA@EXAMPLE.COM " }), {
-    displayName: "Maria Silva", channel: "email", email: "maria@example.com", doctorId: undefined,
+    displayName: "Maria Silva", channel: "email", email: "maria@example.com", doctorId: undefined, targetPatientId: undefined,
   });
   assert.deepEqual(patientInvitationInput({ displayName: "Maria", channel: "whatsapp", phone: "+55 (11) 99999-9999" }), {
-    displayName: "Maria", channel: "whatsapp", phone: "+5511999999999", doctorId: undefined,
+    displayName: "Maria", channel: "whatsapp", phone: "+5511999999999", doctorId: undefined, targetPatientId: undefined,
   });
+  assert.equal(patientInvitationInput({ displayName: "Maria", channel: "email", email: "m@example.com", targetPatientId: "00000000-0000-4000-8000-000000000001" }).targetPatientId, "00000000-0000-4000-8000-000000000001");
   assert.throws(() => patientInvitationInput({ displayName: "Maria", channel: "whatsapp", phone: "+5511999999999", email: "forged@example.com" }));
   assert.throws(() => patientInvitationInput({ displayName: "Maria", channel: "email", email: "m@example.com", invitedBy: "forged" }));
 });

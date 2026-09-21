@@ -33,7 +33,7 @@ function mapIntake(row: Record<string, unknown>): PatientIntakeContext {
     reason: row.reason_text as string,
     expectedOutcome: row.expected_outcome as string,
     firstPriority: row.first_priority as string,
-    source: "staff_assisted",
+    source: row.source as PatientIntakeContext["source"],
     recordedBy: row.recorded_by as string,
     recordedByName: row.recorded_by_name as string,
     version: row.version as number,
@@ -56,6 +56,39 @@ export async function getPatientIntake(id: string, patientId: string) {
   return result.data ? mapIntake(result.data as Record<string, unknown>) : null;
 }
 
+export async function canInvitePatientToIntake(id: string, patientId: string) {
+  const tenant = tenantId(id);
+  const patient = tenantId(patientId);
+  const { client } = await requireClinic(tenant, ["doctor"]);
+  const result = await client.rpc("patient_intake_invitation_available", {
+    target_tenant: tenant,
+    target_patient: patient,
+  });
+  if (result.error) databaseError(result.error);
+  return result.data === true;
+}
+
+export async function getOwnPatientIntake(id: string) {
+  const tenant = tenantId(id);
+  const { client, user } = await requireClinic(tenant, ["patient"]);
+  const account = await client
+    .from("patient_accounts")
+    .select("patient_id")
+    .eq("tenant_id", tenant)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (account.error) databaseError(account.error);
+  if (!account.data) return null;
+  const result = await client
+    .from("patient_intake_contexts")
+    .select(fields)
+    .eq("tenant_id", tenant)
+    .eq("patient_id", account.data.patient_id)
+    .maybeSingle();
+  if (result.error) databaseError(result.error);
+  return result.data ? mapIntake(result.data as Record<string, unknown>) : null;
+}
+
 export async function savePatientIntake(
   id: string,
   patientId: string,
@@ -64,7 +97,7 @@ export async function savePatientIntake(
   const tenant = tenantId(id);
   const patient = tenantId(patientId);
   const values = patientIntakeInput(input);
-  const { client } = await requireClinic(tenant, ["doctor"]);
+  const { client } = await requireClinic(tenant, ["doctor", "patient"]);
   const result = await client
     .from("patient_intake_contexts")
     .update(values)

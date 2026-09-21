@@ -3901,6 +3901,58 @@ test("verified patient invitation acceptance atomically creates identity, active
     assert.deepEqual((await db.query<{ status: string }>("select status from public.care_relationships where tenant_id=$1 and patient_id=$2", [a, patient])).rows, [{ status: "active" }]);
     await switchActor("outsider");
     assert.deepEqual((await db.query<{ status: string; questionnaire_version: string }>("select status,questionnaire_version from public.patient_onboarding where tenant_id=$1", [a])).rows, [{ status: "draft", questionnaire_version: "vivance-preconsulta-v1" }]);
+    assert.deepEqual((await db.query<{ status: string; source: string }>("select status,source from public.patient_intake_contexts where tenant_id=$1", [a])).rows, [{ status: "draft", source: "patient_reported" }]);
+  });
+});
+
+test("linked invitation reuses the assisted intake and preserves doctor and patient authorship", async () => {
+  await asUser("outsider", async () => {
+    await db.exec("reset role");
+    await db.query("update auth.users set email='linked.patient@example.com',email_confirmed_at=clock_timestamp() where id=$1", [users.outsider.id]);
+    await switchActor("doctor");
+    const created = await db.query<{ id: string }>(
+      "select id from public.create_patient_for_care($1,'Linked Patient',null,true)",
+      [a],
+    );
+    const patient = created.rows[0].id;
+    assert.equal((await db.query<{ available: boolean }>("select public.patient_intake_invitation_available($1,$2) available", [a, patient])).rows[0].available, true);
+    await db.exec("reset role");
+    const before = (await db.query<{ count: string }>("select count(*)::text count from public.patients where tenant_id=$1", [a])).rows[0].count;
+    const invitation = await db.query<{ id: string }>(
+      "insert into public.patient_invitations(tenant_id,display_name,channel,recipient_email,doctor_id,invited_by,target_patient_id,delivery_status) values($1,'Linked Patient','email','linked.patient@example.com',$2,$2,$3,'requested') returning id",
+      [a, users.doctor.id, patient],
+    );
+    await switchActor("doctor");
+    assert.equal((await db.query<{ available: boolean }>("select public.patient_intake_invitation_available($1,$2) available", [a, patient])).rows[0].available, false);
+    await switchActor("outsider");
+    const accepted = await db.query<{ patient_id: string }>("select patient_id from public.accept_patient_invitation($1,true)", [invitation.rows[0].id]);
+    assert.equal(accepted.rows[0].patient_id, patient);
+    await db.exec("reset role");
+    assert.equal((await db.query<{ count: string }>("select count(*)::text count from public.patients where tenant_id=$1", [a])).rows[0].count, before);
+    await switchActor("outsider");
+    assert.deepEqual((await db.query<{ source: string; version: number }>("select source,version from public.patient_intake_contexts where tenant_id=$1 and patient_id=$2", [a, patient])).rows, [{ source: "staff_assisted", version: 1 }]);
+    await db.query(
+      "update public.patient_intake_contexts set reason_text='Rascunho privado',expected_version=1 where tenant_id=$1 and patient_id=$2",
+      [a, patient],
+    );
+    await switchActor("doctor");
+    assert.equal((await db.query("select id from public.patient_intake_contexts where patient_id=$1", [patient])).rows.length, 0);
+    assert.deepEqual((await db.query<{ source: string; version: number }>("select source,version from public.patient_intake_context_versions where patient_id=$1 order by version", [patient])).rows, [{ source: "staff_assisted", version: 1 }]);
+    await switchActor("outsider");
+    await db.query(
+      "update public.patient_intake_contexts set status='completed',reason_text='Preciso de ajuda',expected_outcome='Quero melhorar',first_priority='Sono',expected_version=2 where tenant_id=$1 and patient_id=$2",
+      [a, patient],
+    );
+    await denied("update public.patient_intake_contexts set first_priority='stale',expected_version=2 where tenant_id=$1 and patient_id=$2", [a, patient]);
+    assert.deepEqual((await db.query<{ source: string; recorded_by: string; version: number }>("select source,recorded_by,version from public.patient_intake_contexts where tenant_id=$1 and patient_id=$2", [a, patient])).rows, [{ source: "patient_reported", recorded_by: users.outsider.id, version: 3 }]);
+    await db.exec("reset role");
+    assert.deepEqual((await db.query<{ source: string; version: number }>("select source,version from public.patient_intake_context_versions where tenant_id=$1 and patient_id=$2 order by version", [a, patient])).rows, [
+      { source: "staff_assisted", version: 1 },
+      { source: "patient_reported", version: 2 },
+      { source: "patient_reported", version: 3 },
+    ]);
+    await switchActor("admin");
+    assert.equal((await db.query("select id from public.patient_intake_contexts where patient_id=$1", [patient])).rows.length, 0);
   });
 });
 

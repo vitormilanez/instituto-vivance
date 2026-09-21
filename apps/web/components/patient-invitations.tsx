@@ -41,7 +41,7 @@ export function PatientInvitations({
           payload.error ?? "Não foi possível aceitar este convite.",
         );
       router.push(
-        `/clinicas/${payload.clinic?.tenantId ?? invitation.tenantId}/primeiros-passos`,
+        `/clinicas/${payload.clinic?.tenantId ?? invitation.tenantId}/primeiros-passos#acolhimento-inicial`,
       );
       router.refresh();
     } catch (reason) {

@@ -28,19 +28,20 @@ function redirectUrl() {
 function input(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const body = value as Record<string, unknown>;
-  if (Object.keys(body).some((key) => !["tenantId", "displayName", "channel", "email", "phone", "doctorId"].includes(key))) return null;
+  if (Object.keys(body).some((key) => !["tenantId", "displayName", "channel", "email", "phone", "doctorId", "targetPatientId"].includes(key))) return null;
   const tenantId = typeof body.tenantId === "string" ? body.tenantId : "";
   const displayName = typeof body.displayName === "string" ? body.displayName.trim().replace(/\s+/g, " ") : "";
   const doctorId = body.doctorId === undefined ? undefined : String(body.doctorId);
-  if (!uuid.test(tenantId) || displayName.length < 2 || displayName.length > 160 || (doctorId && !uuid.test(doctorId))) return null;
+  const targetPatientId = body.targetPatientId === undefined ? undefined : String(body.targetPatientId);
+  if (!uuid.test(tenantId) || displayName.length < 2 || displayName.length > 160 || (doctorId && !uuid.test(doctorId)) || (targetPatientId && !uuid.test(targetPatientId))) return null;
   if (body.channel === "email") {
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     if (!emailPattern.test(email) || email.length > 254 || body.phone !== undefined) return null;
-    return { tenantId, displayName, channel: "email" as const, email, doctorId };
+    return { tenantId, displayName, channel: "email" as const, email, doctorId, targetPatientId };
   }
   const phone = typeof body.phone === "string" ? body.phone.replace(/[^\d+]/g, "") : "";
   if (body.channel !== "whatsapp" || !/^\+[1-9]\d{7,14}$/.test(phone) || body.email !== undefined) return null;
-  return { tenantId, displayName, channel: "whatsapp" as const, phone, doctorId };
+  return { tenantId, displayName, channel: "whatsapp" as const, phone, doctorId, targetPatientId };
 }
 
 async function sha256(value: string) {
@@ -80,6 +81,7 @@ Deno.serve(async (request: Request) => {
       if (doctor.error || !doctor.data) return response({ error: "Selecione um médico ativo." }, 409);
       doctorId = doctor.data.user_id;
     }
+    if (values.targetPatientId && membership.data.role !== "doctor") return response({ error: "Somente o médico responsável pode vincular este convite." }, 403);
     const admin = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
     const token = values.channel === "whatsapp" ? opaqueToken() : null;
     const inserted = await admin.from("patient_invitations").insert({
@@ -87,6 +89,7 @@ Deno.serve(async (request: Request) => {
       channel: values.channel, recipient_email: values.channel === "email" ? values.email : null,
       recipient_phone: values.channel === "whatsapp" ? values.phone : null,
       token_hash: token ? await sha256(token) : null, doctor_id: doctorId,
+      target_patient_id: values.targetPatientId ?? null,
       invited_by: auth.data.user.id, delivery_status: values.channel === "email" ? "requested" : "not_applicable",
     }).select("id,tenant_id,display_name,channel,status,doctor_id,expires_at,created_at,delivery_status").single();
     if (inserted.error) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import type { PatientIntakeContext } from "@/modules/patient-intake/types";
 import { PatientIntakeSummary } from "./patient-intake-summary";
 
@@ -10,12 +11,18 @@ export function PatientIntakePanel({
   initial,
   canEdit,
   focusOnLoad = false,
+  audience = "staff",
+  continueHref,
+  detailsHref,
 }: {
   tenantId: string;
   patientId: string;
   initial: PatientIntakeContext;
   canEdit: boolean;
   focusOnLoad?: boolean;
+  audience?: "staff" | "patient";
+  continueHref?: string;
+  detailsHref?: string;
 }) {
   const [record, setRecord] = useState(initial);
   const [reason, setReason] = useState(initial.reason);
@@ -29,6 +36,7 @@ export function PatientIntakePanel({
   const outcomeRef = useRef<HTMLTextAreaElement>(null);
   const priorityRef = useRef<HTMLTextAreaElement>(null);
   const confirmationRef = useRef<HTMLInputElement>(null);
+  const patientView = audience === "patient";
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -50,7 +58,11 @@ export function PatientIntakePanel({
         return;
       }
       if (!confirmed) {
-        setError("Confirme que o registro representa as palavras do paciente.");
+        setError(
+          patientView
+            ? "Confirme que deseja compartilhar as respostas com a equipe."
+            : "Confirme que o registro representa as palavras do paciente.",
+        );
         confirmationRef.current?.focus();
         return;
       }
@@ -89,7 +101,9 @@ export function PatientIntakePanel({
       setNotice(
         intent === "draft"
           ? "Rascunho salvo. Você pode continuar depois."
-          : "Acolhimento concluído e disponível no preparo da consulta.",
+          : patientView
+            ? "Respostas enviadas. Sua equipe já pode preparar a primeira conversa."
+            : "Acolhimento concluído e disponível no preparo da consulta.",
       );
     } catch (cause) {
       setError(
@@ -108,8 +122,9 @@ export function PatientIntakePanel({
       <fieldset disabled={pending}>
         <legend>O que você busca neste cuidado?</legend>
         <p>
-          Leva cerca de dois minutos. Registre apenas o que o paciente relatou;
-          os detalhes podem ser completados depois.
+          {patientView
+            ? "Leva cerca de dois minutos. Escreva do seu jeito; os detalhes podem ser completados depois."
+            : "Leva cerca de dois minutos. Registre apenas o que o paciente relatou; os detalhes podem ser completados depois."}
         </p>
         <label htmlFor="intake-reason">
           O que fez você procurar o Vivance agora?
@@ -124,7 +139,7 @@ export function PatientIntakePanel({
           onChange={(event) => setReason(event.target.value)}
           aria-required="true"
         />
-        <small>Use as palavras do paciente.</small>
+        <small>{patientView ? "Escreva do seu jeito." : "Use as palavras do paciente."}</small>
 
         <label htmlFor="intake-outcome">
           O que você espera melhorar ou conseguir com o acompanhamento?
@@ -160,7 +175,9 @@ export function PatientIntakePanel({
             type="checkbox"
             aria-required="true"
           />
-          Confirmo que registrei as respostas nas palavras do paciente.
+          {patientView
+            ? "Confirmo que quero compartilhar estas respostas com a equipe para preparar minha consulta."
+            : "Confirmo que registrei as respostas nas palavras do paciente."}
         </label>
       </fieldset>
       <div className="patient-intake-actions">
@@ -170,7 +187,13 @@ export function PatientIntakePanel({
           </button>
         ) : null}
         <button name="intent" value="complete" type="submit" disabled={pending}>
-          {pending ? "Salvando…" : record.status === "completed" ? "Salvar atualização" : "Salvar e abrir ficha"}
+          {pending
+            ? "Salvando…"
+            : record.status === "completed"
+              ? "Salvar atualização"
+              : patientView
+                ? "Enviar para a equipe"
+                : "Salvar e abrir ficha"}
         </button>
       </div>
       <div className="patient-intake-feedback" aria-live="polite">
@@ -184,16 +207,30 @@ export function PatientIntakePanel({
     <section id="acolhimento-inicial" className="panel patient-intake-panel">
       <div className="section-heading patient-record-section-heading">
         <div>
-          <h2>O que o paciente busca</h2>
-          <p>Contexto inicial para preparar a primeira conversa.</p>
+          <h2>{patientView ? "Antes da primeira consulta" : "O que o paciente busca"}</h2>
+          <p>
+            {patientView
+              ? "Queremos entender o que é mais importante para você."
+              : "Contexto inicial para preparar a primeira conversa."}
+          </p>
         </div>
         <span className={`appointment-status ${record.status === "completed" ? "completed" : "scheduled"}`}>
-          {record.status === "completed" ? "Pronto para a primeira consulta" : "Acolhimento pendente"}
+          {record.status === "completed"
+            ? patientView
+              ? "Enviado para a equipe"
+              : "Pronto para a primeira consulta"
+            : "Acolhimento pendente"}
         </span>
       </div>
       {record.status === "completed" ? (
         <>
           <PatientIntakeSummary record={record} />
+          {patientView && continueHref ? (
+            <div className="patient-intake-actions">
+              {detailsHref ? <Link className="secondary button" href={detailsHref}>Continuar meu cadastro</Link> : null}
+              <Link className="button" href={continueHref}>Ir para meu cuidado</Link>
+            </div>
+          ) : null}
           {canEdit ? <details><summary>Atualizar respostas</summary>{form}</details> : null}
         </>
       ) : canEdit ? (

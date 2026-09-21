@@ -16,8 +16,9 @@ import { CheckInError } from "@/modules/check-ins/service";
 import { staffLongitudinal } from "@/modules/longitudinal/service";
 import { DocumentError, staffDocuments } from "@/modules/documents/service";
 import { StaffPatientDocumentsPanel } from "@/components/documents-workspace";
-import { getPatientIntake } from "@/modules/patient-intake/service";
+import { canInvitePatientToIntake, getPatientIntake } from "@/modules/patient-intake/service";
 import { PatientIntakePanel } from "@/components/patient-intake-panel";
+import { PatientInvitationForm } from "@/components/patient-invitation-form";
 export const dynamic = "force-dynamic";
 
 export default async function Patient({
@@ -58,6 +59,9 @@ export default async function Patient({
       ? patientCareContext(tenantId, patientId)
       : Promise.resolve(null),
   ]);
+  const canInviteToIntake = intake && context.clinic.role === "doctor"
+    ? await canInvitePatientToIntake(tenantId, patientId)
+    : false;
   const headerFacts = patientHeaderFacts(care, tenantId);
   const longitudinal =
     clinicalArea && ["Linha do tempo", "Evolução"].includes(active)
@@ -182,14 +186,26 @@ export default async function Patient({
       {active === "Visão geral" ? (
         <>
           {intake && (
-            <PatientIntakePanel
-              key={`${tenantId}:${patientId}:${intake.id}`}
-              tenantId={tenantId}
-              patientId={patientId}
-              initial={intake}
-              canEdit={context.clinic.role === "doctor"}
-              focusOnLoad={query.acolhimento === "novo"}
-            />
+            <>
+              <PatientIntakePanel
+                key={`${tenantId}:${patientId}:${intake.id}`}
+                tenantId={tenantId}
+                patientId={patientId}
+                initial={intake}
+                canEdit={context.clinic.role === "doctor"}
+                focusOnLoad={query.acolhimento === "novo"}
+              />
+              {canInviteToIntake ? (
+                <details className="panel patient-record-invitation">
+                  <summary>Enviar para o paciente continuar</summary>
+                  <PatientInvitationForm
+                    tenantId={tenantId}
+                    role="doctor"
+                    targetPatient={{ id: patientId, displayName: p.display_name }}
+                  />
+                </details>
+              ) : null}
+            </>
           )}
           {onboarding && (
             <OnboardingSummary

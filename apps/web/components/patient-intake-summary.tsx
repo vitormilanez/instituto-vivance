@@ -22,7 +22,9 @@ export function PatientIntakeSummary({
         </div>
       </dl>
       <p className="patient-intake-attribution">
-        Registrado por {record.recordedByName}, com o paciente
+        {record.source === "patient_reported"
+          ? `Compartilhado por ${record.recordedByName}`
+          : `Registrado por ${record.recordedByName}, com o paciente`}
         {record.completedAt
           ? ` em ${new Date(record.completedAt).toLocaleDateString("pt-BR", {
               timeZone: "America/Sao_Paulo",
