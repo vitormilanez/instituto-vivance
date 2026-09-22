@@ -9,6 +9,8 @@ import { InputError } from "@/lib/validation";
 import { findPatientSection } from "@/modules/workspace/navigation";
 import { PatientShell } from "@/components/patient-shell";
 import { PatientArea } from "@/components/patient-area";
+import { PatientHome } from "@/components/patient-home";
+import { patientRecentSent } from "@/modules/workspace/patient-sent";
 import { DevelopmentNotice } from "@/components/module-ui";
 import { listAppointments } from "@/modules/agenda/service";
 import { clinicDate } from "@/modules/agenda/validation";
@@ -129,6 +131,10 @@ export default async function PatientAreaPage({
   const careRequests = patient && slug === "hoje"
     ? await myPendingCareRequests(tenantId)
     : [];
+  // O que a pessoa já enviou: confirma que chegou. Falha vira ausência da seção.
+  const sent = patient && slug === "hoje"
+    ? await patientRecentSent(tenantId).catch(() => null)
+    : null;
   const appointments =
     slug === "consultas" || slug === "hoje"
       ? await listAppointments(
@@ -225,10 +231,10 @@ export default async function PatientAreaPage({
           </section>
         ) : (
           <>
-            <PatientArea
-              section={section}
+            <PatientHome
               base={`/clinicas/${tenantId}/meu-cuidado`}
               tenantId={tenantId}
+              today={clinicDate()}
               appointments={appointments.appointments}
               currentTime={currentTime}
               latestPublication={latestPublication}
@@ -242,16 +248,32 @@ export default async function PatientAreaPage({
                 checkIns?.checkIns.find((item) => item.status === "pending")?.id ??
                 null
               }
-              pendingReturnPreparationId={
-                preparationPending?.first?.id ?? null
-              }
               preparationPending={preparationPending}
               requiredPreparation={requiredPreparation}
               latestMeasurement={latestMeasurement}
               careRequests={careRequests}
+              sent={sent}
             />
-            {preparations && preparations.preparations.length > 0 && (
-              <PatientReturnPreparationWorkspace initial={preparations} />
+            {/* Na Home só aparece o preparo que ainda espera a pessoa (ou o que
+                ela abriu pelo link). O que já foi enviado sai daqui: está
+                confirmado em "Seus últimos envios". */}
+            {preparations &&
+              (preparations.focused ||
+                preparations.preparations.some((item) =>
+                  ["requested", "draft"].includes(item.status),
+                )) && (
+              <PatientReturnPreparationWorkspace
+                initial={
+                  preparations.focused
+                    ? preparations
+                    : {
+                        ...preparations,
+                        preparations: preparations.preparations.filter((item) =>
+                          ["requested", "draft"].includes(item.status),
+                        ),
+                      }
+                }
+              />
             )}
           </>
         )
@@ -270,8 +292,6 @@ export default async function PatientAreaPage({
           <PatientArea
             section={section}
             base={`/clinicas/${tenantId}/meu-cuidado`}
-            tenantId={tenantId}
-            currentTime={currentTime}
           />
         </>
       )}

@@ -439,7 +439,9 @@ export function PatientDocumentsWorkspace({ initial }: { initial: PatientDocumen
   return (
     <>
       {initial.patientId ? (
-        <details className="panel document-upload-panel">
+        // Para o paciente, enviar é a ação principal desta página: o
+        // formulário já vem aberto, sem um clique a mais.
+        <details className="panel document-upload-panel" id="enviar-documento" open>
           <summary>Enviar exame, foto ou documento para a equipe</summary>
           <p>
             Aceita PDF, JPG e PNG de até {byteLimit()}. O arquivo fica privado,

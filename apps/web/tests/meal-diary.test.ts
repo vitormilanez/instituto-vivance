@@ -37,6 +37,10 @@ const area = readFileSync(
   new URL("../components/patient-area.tsx", import.meta.url),
   "utf8",
 );
+const homeLogs = readFileSync(
+  new URL("../modules/workspace/patient-home.ts", import.meta.url),
+  "utf8",
+);
 const css = readFileSync(
   new URL("../app/globals.css", import.meta.url),
   "utf8",
@@ -50,10 +54,10 @@ const migration = readFileSync(
 );
 
 test("o diário alimentar entra na jornada existente sem criar uma nona ação rápida", () => {
-  assert.match(area, /Meu diário/);
-  assert.match(area, /Registre refeições e como você está/);
-  // A jornada do paciente continua com as mesmas oito portas de entrada.
-  assert.equal(area.match(/available: (?:true|false)/g)?.length, 8);
+  // O diário continua no menu e ganhou um atalho direto na Home do paciente,
+  // que abre o formulário de refeição sem passos no meio.
+  assert.match(area, /module-tabs/);
+  assert.match(homeLogs, /diario#registrar-refeicao/);
   // O diário é montado dentro de "Meu diário", a seção que já existia.
   assert.match(patientPage, /slug === "diario" \? await patientMeals\(tenantId\)/);
   assert.match(patientPage, /<PatientMealLogs initial=\{meals\} \/>/);
