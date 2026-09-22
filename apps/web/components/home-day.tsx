@@ -14,7 +14,6 @@ import {
   earlierLabel,
   receivedFailureCopy,
   receivedView,
-  receivedWhen,
   rowSummary,
   splitDay,
   type CareLink,
@@ -24,6 +23,7 @@ import { ConsultationBlock } from "@/components/consultation-block";
 import { StickyConsultation } from "@/components/sticky-consultation";
 import { RetryButton } from "@/components/retry-button";
 import { OpenWork } from "@/components/open-work";
+import { ReceivedRow } from "@/components/received-since";
 
 type Data = Awaited<ReturnType<typeof todayWorkspace>>;
 type Appointment = Data["appointments"][number];
@@ -293,17 +293,13 @@ export function HomeDay({
                   </div>
                   <ul className="home-received-list">
                     {patient.items.slice(0, 5).map((item) => (
-                      <li key={`${item.kind}-${item.id}`}>
-                        <a href={item.href}>
-                          <strong>{receivedItemLabels[item.kind]}</strong>
-                          <time dateTime={item.at}>
-                            {receivedWhen(item.at, data.today)}
-                          </time>
-                          <span className="home-received-open" aria-hidden="true">
-                            Abrir
-                          </span>
-                        </a>
-                      </li>
+                      <ReceivedRow
+                        key={`${item.kind}-${item.id}`}
+                        item={item}
+                        today={data.today}
+                        tenantId={tenantId}
+                        label={receivedItemLabels[item.kind]}
+                      />
                     ))}
                   </ul>
                   {patient.items.length > 5 ? (

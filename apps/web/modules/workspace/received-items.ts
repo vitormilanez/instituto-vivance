@@ -25,6 +25,9 @@ export type ReceivedItem = {
   author: string | null;
   // Abre o registro original. Nada de resumo no lugar da fonte.
   href: string;
+  // Se o profissional logado já abriu este item. null quando não foi possível
+  // saber — a tela então não diz "novo" nem "visto".
+  seen?: boolean | null;
 };
 
 export type ReceivedRow = ReceivedItem & { patientId: string };

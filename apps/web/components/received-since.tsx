@@ -4,22 +4,46 @@ import {
   receivedWhen,
 } from "@/modules/workspace/home-view";
 import { RetryButton } from "@/components/retry-button";
+import { ReceivedLink } from "@/components/received-link";
 
 type Item = ReceivedView["visible"][number];
 
 // Uma linha por item: o tipo e quando chegou. O alvo inteiro abre o registro
 // original — nada de resumo no lugar da fonte, nem nome de arquivo cru. O autor
 // não aparece: nesta versão é sempre o próprio paciente.
-function ReceivedRow({ item, today }: { item: Item; today: string }) {
+// "Novo" é estado de leitura desta pessoa, não prioridade: um ponto neutro e
+// a palavra para leitor de tela. Quando não dá para saber, nada é marcado.
+export function ReceivedRow({
+  item,
+  today,
+  tenantId,
+  label,
+}: {
+  item: Item | (Omit<Item, "label"> & { label?: string });
+  today: string;
+  tenantId: string;
+  label: string;
+}) {
+  const unseen = item.seen === false;
   return (
-    <li>
-      <a href={item.href}>
-        <strong>{item.label}</strong>
+    <li className={unseen ? "is-unseen" : undefined}>
+      <ReceivedLink
+        tenantId={tenantId}
+        kind={item.kind}
+        itemId={item.id}
+        href={item.href}
+        unseen={unseen}
+      >
+        <strong>
+          {unseen ? <span className="home-unseen-dot" aria-hidden="true" /> : null}
+          {label}
+          {unseen ? <small className="sr-only"> (novo)</small> : null}
+        </strong>
         <time dateTime={item.at}>{receivedWhen(item.at, today)}</time>
         <span className="home-received-open" aria-hidden="true">
           Abrir
         </span>
-      </a>
+      </ReceivedLink>
     </li>
   );
 }
@@ -32,10 +56,12 @@ export function ReceivedSince({
   view,
   today,
   headingId,
+  tenantId,
 }: {
   view: ReceivedView;
   today: string;
   headingId: string;
+  tenantId: string;
 }) {
   return (
     <section className="home-received" aria-labelledby={headingId}>
@@ -43,7 +69,7 @@ export function ReceivedSince({
       {view.visible.length ? (
         <ul className="home-received-list">
           {view.visible.map((item) => (
-            <ReceivedRow key={`${item.kind}-${item.id}`} item={item} today={today} />
+            <ReceivedRow key={`${item.kind}-${item.id}`} item={item} today={today} tenantId={tenantId} label={item.label} />
           ))}
         </ul>
       ) : null}
@@ -56,7 +82,7 @@ export function ReceivedSince({
           </summary>
           <ul className="home-received-list">
             {view.more.map((item) => (
-              <ReceivedRow key={`${item.kind}-${item.id}`} item={item} today={today} />
+              <ReceivedRow key={`${item.kind}-${item.id}`} item={item} today={today} tenantId={tenantId} label={item.label} />
             ))}
           </ul>
         </details>

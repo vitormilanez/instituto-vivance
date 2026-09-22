@@ -148,6 +148,7 @@ export function ConsultationBlock({
             <ReceivedSince
               view={received}
               today={today}
+              tenantId={tenantId}
               headingId={`consulta-${appointment.id}-recebido`}
             />
           ) : null}

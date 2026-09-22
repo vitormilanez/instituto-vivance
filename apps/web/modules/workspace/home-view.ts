@@ -82,7 +82,19 @@ export function rowSummary(input: {
   if (input.link.status !== "active") return noCareLinkRowLabel;
   if (input.failed.length) return receivedUnavailableLabel;
   if (!input.received.length) return "Nada recebido";
-  return receivedCountLabel(input.received.length);
+  const total = receivedCountLabel(input.received.length);
+  const unseen = unseenCount(input.received);
+  // Só diz "novos" quando sabe: item com leitura desconhecida não conta.
+  if (unseen === null || unseen === 0) return total;
+  return `${total} · ${unseen} ${unseen === 1 ? "novo" : "novos"}`;
+}
+
+// Quantos itens esta pessoa ainda não abriu. null se a leitura de algum item
+// é desconhecida — melhor não dizer do que dizer errado.
+export function unseenCount(items: ReceivedItem[]): number | null {
+  if (items.some((item) => item.seen === null || item.seen === undefined))
+    return null;
+  return items.filter((item) => item.seen === false).length;
 }
 
 export type ReceivedView = {

@@ -1,6 +1,9 @@
 import "server-only";
 import { requireClinic } from "@/modules/identity/service";
-import { tenantId } from "@/lib/validation";
+import { InputError, tenantId } from "@/lib/validation";
+import { DomainError } from "@/lib/errors";
+
+export class ReceivedError extends DomainError {}
 import {
   earliestCutoff,
   receivedCutoff,
@@ -103,7 +106,7 @@ export async function receivedForPatients(
   const tenant = tenantId(id);
   const patientIds = [...cutoffs.keys()];
   if (!patientIds.length) return { byPatient: new Map(), failed: [] };
-  const { client } = await requireClinic(tenant, ["doctor", "nurse"]);
+  const { client, user } = await requireClinic(tenant, ["doctor", "nurse"]);
   const bound = earliestCutoff(cutoffs);
   const accounts = await client
     .from("patient_accounts")
@@ -230,6 +233,24 @@ export async function receivedForPatients(
     measurements,
     (row) => row.actor_user_id === userByPatient.get(row.patient_id),
   );
+  // O que este profissional já abriu. Leitura é por pessoa: a RLS só devolve
+  // as linhas do próprio usuário, e o filtro explícito diz a mesma coisa. Se a
+  // leitura falhar, nenhum item vira "novo" nem "visto" — fica sem marcação.
+  const reads = rows.length
+    ? await client
+        .from("patient_item_reads")
+        .select("item_kind,item_id")
+        .eq("tenant_id", tenant)
+        .eq("user_id", user.id)
+        .in("patient_id", patientIds)
+    : { data: [], error: null };
+  const seen = reads.error
+    ? null
+    : new Set(
+        (reads.data ?? []).map((row) => `${row.item_kind}:${row.item_id}`),
+      );
+  for (const row of rows)
+    row.seen = seen ? seen.has(`${row.kind}:${row.id}`) : null;
   return { byPatient: splitByPatient(rows, cutoffs), failed };
 }
 
@@ -268,4 +289,29 @@ export async function myCareLinks(id: string) {
     version: row.version,
     name: row.patients?.display_name ?? "Paciente",
   }));
+}
+
+const readableKinds = new Set<ReceivedItemKind>(allReceivedKinds);
+
+// Marca um item como aberto pelo profissional logado. A função no banco lê o
+// item sob a RLS da tabela de origem e exige vínculo ativo: um id inventado,
+// de outra clínica ou de outro paciente falha fechado. Idempotente.
+export async function markReceivedRead(id: string, input: unknown) {
+  const tenant = tenantId(id);
+  const body = (input ?? {}) as { kind?: unknown; item_id?: unknown };
+  if (
+    typeof body.kind !== "string" ||
+    !readableKinds.has(body.kind as ReceivedItemKind) ||
+    typeof body.item_id !== "string"
+  )
+    throw new InputError("Item inválido.");
+  const item = tenantId(body.item_id);
+  const { client } = await requireClinic(tenant, ["doctor", "nurse"]);
+  const result = await client.rpc("mark_patient_item_read", {
+    target_tenant: tenant,
+    target_kind: body.kind,
+    target_item: item,
+  });
+  if (result.error) throw new ReceivedError("Item indisponível.", 403);
+  return { ok: true };
 }

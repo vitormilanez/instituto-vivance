@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  unseenCount,
   betweenConsultations,
   careLinkCopy,
   earlierLabel,
@@ -177,4 +178,19 @@ test("Entre consultas: só quem enviou algo, quem enviou por último primeiro", 
   );
   assert.deepEqual(rows.map((row) => row.name), ["Caio", "Ana"]);
   assert.equal(rows[0].items[0].id, "c2");
+});
+
+test("novos: só quando a leitura de todos é conhecida, e nunca como prioridade", () => {
+  const seen = (id: string, value: boolean | null) => ({ ...item(id, "2026-09-20T10:00:00Z"), seen: value });
+  const link = { status: "active" } as const;
+  assert.equal(
+    rowSummary({ link, received: [seen("a", false), seen("b", true), seen("c", false)], failed: [] }),
+    "3 recebidos · 2 novos",
+  );
+  assert.equal(rowSummary({ link, received: [seen("a", false)], failed: [] }), "1 recebido · 1 novo");
+  assert.equal(rowSummary({ link, received: [seen("a", true), seen("b", true)], failed: [] }), "2 recebidos");
+  // Leitura desconhecida (tabela indisponível): não afirma "novo" nem "visto".
+  assert.equal(rowSummary({ link, received: [seen("a", null), seen("b", false)], failed: [] }), "2 recebidos");
+  assert.equal(unseenCount([seen("a", null)]), null);
+  assert.equal(unseenCount([seen("a", false), seen("b", true)]), 1);
 });

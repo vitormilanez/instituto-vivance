@@ -1,9 +1,10 @@
 # Proposta — estado de "não visto" por profissional
 
-**Status: aguardando aprovação. Nada foi aplicado em nenhum banco.** A
-migration está aqui, fora de `supabase/migrations/`, de propósito: o
-workflow `release.yml` faz `supabase db push` quando `supabase/**` muda na
-`main`, e esta mudança só entra no banco depois da sua aprovação.
+**Status: aprovada em 22/09/2026.** A migration foi movida para
+`supabase/migrations/20260923120000_patient_item_reads.sql` e o teste para
+`tests/isolation.test.ts`. Aplicação no Supabase de desenvolvimento: pelo
+comando do protocolo abaixo, rodado no Mac (o ambiente do agente não tem o
+token da CLI). O `rollback.sql` continua nesta pasta.
 
 ## O que muda para o médico
 
@@ -20,8 +21,7 @@ prioridade. Abrir o item marca como visto **só para quem abriu**.
   idempotente, falha fechada para item inexistente, de outra clínica ou de
   outro paciente).
 - `rollback.sql` — remove a função e a tabela; não toca em dado clínico.
-- `patient-item-reads.isolation.test.snippet.ts` — teste para
-  `tests/isolation.test.ts`.
+- O teste está em `tests/isolation.test.ts` ("não visto é por profissional…").
 
 ## Verificação feita
 
@@ -42,10 +42,10 @@ um teste de que o rollback remove só o que a proposta criou.
    função, marcação ao abrir o item a partir da Home (antes da navegação),
    e a contagem "N novos" por anti-join com `patient_item_reads`.
 
-## Decisões em aberto para você
+## Decisões
 
-- Mensagens já têm cursor próprio (`care_conversation_reads`). A proposta
-  trata mensagem como item também, para a Home ter uma regra só. Se preferir,
-  mensagens podem usar o cursor existente.
+- Mensagens seguem a mesma regra dos outros itens na Home (uma regra só). O
+  cursor da conversa (`care_conversation_reads`) continua valendo na tela de
+  Mensagens; os dois não se sincronizam — abrir pela Home marca na Home.
 - Não há auditoria de leitura (não é ato clínico). Se a clínica precisar de
   trilha de "quem viu o quê", isto muda.

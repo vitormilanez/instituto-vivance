@@ -4972,3 +4972,7 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
 .home-section-head h2 { margin: 0; color: var(--ink); font-size: 16px; letter-spacing: -.01em; }
 .home-section-head > span { color: var(--context-muted); font-size: 13px; }
 .home-work .home-plain-list { margin-top: 8px; }
+/* "Novo" é estado de leitura desta pessoa: um ponto navy discreto antes do
+   tipo, nunca cor de prioridade. */
+.home-unseen-dot { display: inline-block; width: 7px; height: 7px; margin: 0 7px 1px 0; border-radius: 50%; background: var(--navy); vertical-align: middle; }
+.home-received-list li.is-unseen strong { color: var(--ink); }

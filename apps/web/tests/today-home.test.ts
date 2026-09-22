@@ -134,3 +134,19 @@ test("a Home reserva espaço para o dock no breakpoint estreito", () => {
     /\.workspace-main \{\s*padding-bottom: calc\(110px \+ env\(safe-area-inset-bottom\)\);/,
   );
 });
+
+test("abrir um item novo avisa o servidor sem segurar a navegação", () => {
+  const link = read("../components/received-link.tsx");
+  assert.match(link, /if \(!unseen\) return;/);
+  assert.match(link, /keepalive: true/);
+  assert.match(link, /received\/read/);
+  assert.doesNotMatch(link, /preventDefault/);
+  const route = read("../app/api/v1/clinics/[tenantId]/received/read/route.ts");
+  assert.match(route, /if \(!sameOrigin\(request\)\)/);
+  const service = read("../modules/workspace/received.ts");
+  assert.match(service, /\.from\("patient_item_reads"\)[\s\S]*?\.eq\("user_id", user\.id\)/);
+  assert.match(service, /row\.seen = seen \? seen\.has\(`\$\{row\.kind\}:\$\{row\.id\}`\) : null;/);
+  assert.match(service, /client\.rpc\("mark_patient_item_read"/);
+  // O ponto é navy (estrutura), não cor de alerta.
+  assert.match(css(), /\.home-unseen-dot \{[^}]*background: var\(--navy\);/);
+});
