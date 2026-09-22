@@ -28,7 +28,7 @@ import { patientMessages } from "@/modules/messages/service";
 import { PatientMessagesWorkspace } from "@/components/messages-workspace";
 import { patientReportPublications } from "@/modules/reports/publication-service";
 import { PublishedReports } from "@/components/published-reports";
-import { patientPreparationPending, patientReturnPreparations } from "@/modules/return-preparation/service";
+import { patientPreparationPending, patientPreparationRequirement, patientReturnPreparations } from "@/modules/return-preparation/service";
 import { PatientReturnPreparationWorkspace } from "@/components/return-preparation-workspace";
 export const dynamic = "force-dynamic";
 
@@ -115,6 +115,9 @@ export default async function PatientAreaPage({
         })
       : null;
   const preparationPending = patient && slug === "hoje" ? await patientPreparationPending(tenantId) : undefined;
+  const requiredPreparation = patient && slug === "hoje"
+    ? await patientPreparationRequirement(tenantId)
+    : null;
   const latestMeasurement = patient && slug === "hoje"
     ? await patientMeasurementSummary(tenantId)
     : null;
@@ -214,6 +217,7 @@ export default async function PatientAreaPage({
             <PatientArea
               section={section}
               base={`/clinicas/${tenantId}/meu-cuidado`}
+              tenantId={tenantId}
               appointments={appointments.appointments}
               currentTime={currentTime}
               latestPublication={latestPublication}
@@ -231,9 +235,10 @@ export default async function PatientAreaPage({
                 preparationPending?.first?.id ?? null
               }
               preparationPending={preparationPending}
+              requiredPreparation={requiredPreparation}
               latestMeasurement={latestMeasurement}
             />
-            {preparations && (
+            {preparations && preparations.preparations.length > 0 && (
               <PatientReturnPreparationWorkspace initial={preparations} />
             )}
           </>
@@ -253,6 +258,7 @@ export default async function PatientAreaPage({
           <PatientArea
             section={section}
             base={`/clinicas/${tenantId}/meu-cuidado`}
+            tenantId={tenantId}
             currentTime={currentTime}
           />
         </>

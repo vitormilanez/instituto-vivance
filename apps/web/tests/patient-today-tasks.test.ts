@@ -23,6 +23,18 @@ test("patient today lists only unresolved actions in their expected order", () =
   );
 });
 
+test("a required pre-consultation comes before every other patient task", () => {
+  assert.deepEqual(
+    patientTodayTasks({
+      base: "/clinicas/tenant/meu-cuidado",
+      hasRequiredPreparation: true,
+      pendingCheckInId: "check-in-1",
+      hasMeasurement: true,
+    }).map((task) => task.id),
+    ["required-preparation", "check-in-check-in-1"],
+  );
+});
+
 test("a published plan is a patient task only until the patient confirms its reading", () => {
   const [task] = patientTodayTasks({
     base: "/clinicas/tenant/meu-cuidado",

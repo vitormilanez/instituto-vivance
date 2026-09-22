@@ -39,6 +39,16 @@ function answers(value: unknown) {
   return result;
 }
 
+function completeAnswers(value: unknown) {
+  const result = answers(value);
+  // The saved questionnaire is immutable per request. Legacy requests use
+  // different ids, so the API only counts complete answers here; the database
+  // trigger verifies that they cover this request's exact questionnaire ids.
+  if (Object.keys(result).length !== 5)
+    throw new InputError("Responda às cinco perguntas da pré-consulta antes de enviar.");
+  return result;
+}
+
 export function requestPreparationInput(value: unknown) {
   const body = object(value);
   exactKeys(body, ["appointment_id", "request_key", "questions"]);
@@ -91,7 +101,7 @@ export function submitPreparationInput(value: unknown) {
     throw new InputError("Confirme o envio das respostas.");
   return {
     version: integer(body.version, "Versão do rascunho", 0),
-    answers: answers(body.answers),
+    answers: completeAnswers(body.answers),
     ...(body.priorities === undefined ? {} : { priorities: priorityInput(body.priorities) }),
   };
 }

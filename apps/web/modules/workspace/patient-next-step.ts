@@ -4,6 +4,7 @@ export type PatientNextStepInput = {
   unreadPlanTitle?: string | null;
   hasConsultationInProgress: boolean;
   hasUpcomingConsultation: boolean;
+  hasRequiredPreparation?: boolean;
   pendingCheckInId?: string | null;
   pendingReturnPreparationId?: string | null;
 };
@@ -15,6 +16,13 @@ export function patientNextStep(input: PatientNextStepInput) {
       detail: "Veja as informações já registradas pela clínica.",
       action: "Ver consulta",
       href: `${input.base}/consultas`,
+    };
+  if (input.hasRequiredPreparation)
+    return {
+      title: "Preencha sua pré-consulta",
+      detail: "Responda às cinco perguntas antes da sua próxima consulta.",
+      action: "Preencher agora",
+      href: "#preconsulta-obrigatoria",
     };
   if (input.pendingCheckInId)
     return {

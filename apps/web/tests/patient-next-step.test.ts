@@ -49,6 +49,21 @@ test("patient today chooses one next step from actual available context", () => 
     }).href,
     "/onboarding",
   );
+  assert.deepEqual(
+    patientNextStep({
+      base,
+      hasConsultationInProgress: false,
+      hasUpcomingConsultation: true,
+      hasRequiredPreparation: true,
+      pendingCheckInId: "check-in",
+    }),
+    {
+      title: "Preencha sua pré-consulta",
+      detail: "Responda às cinco perguntas antes da sua próxima consulta.",
+      action: "Preencher agora",
+      href: "#preconsulta-obrigatoria",
+    },
+  );
   assert.match(area, /Seu próximo passo/);
   assert.equal(area.match(/available: (?:true|false)/g)?.length, 8);
   assert.match(area, /!action\.available/);
@@ -59,7 +74,10 @@ test("patient onboarding draft is presented as the next step instead of a duplic
   assert.match(page, /onboardingHref=/);
   assert.match(page, /onboarding\?\.status === "draft"/);
   assert.match(page, /item\.status === "pending"/);
+  assert.match(page, /preparations\.preparations\.length > 0/);
   assert.doesNotMatch(page, /Vamos preparar sua primeira conversa/);
+  assert.doesNotMatch(area, /patient-preparation-title/);
+  assert.match(area, /PatientRequiredPreparation/);
 });
 
 test("requested return preparation becomes a resumable patient next step", () => {

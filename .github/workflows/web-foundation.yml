@@ -1,5 +1,6 @@
 name: Vivance native web
 on:
+  workflow_call:
   pull_request:
     paths: ['apps/web/**', 'supabase/migrations/**', '.github/workflows/web-foundation.yml']
   push:

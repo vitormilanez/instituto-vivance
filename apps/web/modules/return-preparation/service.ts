@@ -143,6 +143,48 @@ export async function patientPreparationPending(id: string) {
   return { count: result.count ?? 0, first: result.data?.[0] ?? null };
 }
 
+export async function patientPreparationRequirement(id: string) {
+  const tenant = tenantId(id);
+  const { client } = await requireClinic(tenant, ["patient"]);
+  const appointment = await client
+    .from("appointments")
+    .select("id,starts_at,doctor_display_name")
+    .eq("tenant_id", tenant)
+    .eq("status", "scheduled")
+    .gt("starts_at", new Date().toISOString())
+    .order("starts_at")
+    .order("id")
+    .limit(1)
+    .maybeSingle();
+  if (appointment.error) failed(appointment.error.code);
+  if (!appointment.data) return null;
+  const preparation = await client
+    .from("return_preparation_requests")
+    .select("id")
+    .eq("tenant_id", tenant)
+    .eq("appointment_id", appointment.data.id)
+    .neq("status", "cancelled")
+    .limit(1)
+    .maybeSingle();
+  if (preparation.error) failed(preparation.error.code);
+  if (preparation.data) return null;
+  return {
+    appointmentId: appointment.data.id,
+    startsAt: appointment.data.starts_at,
+    doctorDisplayName: appointment.data.doctor_display_name,
+  };
+}
+
+export async function startRequiredPreparation(id: string) {
+  const tenant = tenantId(id);
+  const { client } = await requireClinic(tenant, ["patient"]);
+  const result = await client.rpc("start_required_preconsultation", {
+    target_tenant: tenant,
+  });
+  if (result.error) failed(result.error.code);
+  return { id: result.data };
+}
+
 export async function encounterPreparation(id: string, appointmentId: string) {
   const tenant = tenantId(id);
   const { client } = await requireClinic(tenant, ["doctor", "nurse"]);

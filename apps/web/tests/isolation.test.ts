@@ -4115,6 +4115,13 @@ test("return preparation keeps a private draft, one immutable submission and an 
       assert.equal((await db.query("select id from public.return_preparation_drafts where request_id=$1", [first.rows[0].id])).rows.length, 0);
     }
     await switchActor("patient");
+    const completeLegacyAnswers = {
+      changes: "Original\npatient answer",
+      progress: "O progresso que percebi.",
+      difficulties: "A dificuldade que tive.",
+      treatment: "Como segui o tratamento.",
+      questions: "A dúvida que quero levar.",
+    };
     const saved = await db.query<{ version: number }>(
       "select public.save_return_preparation_draft($1,$2,0,$3::jsonb) version",
       [a, first.rows[0].id, JSON.stringify({ changes: "Original\npatient answer" })],
@@ -4132,20 +4139,20 @@ test("return preparation keeps a private draft, one immutable submission and an 
     await switchActor("patient");
     const submission = await db.query<{ id: string }>(
       "select public.submit_return_preparation($1,$2,1,$3::jsonb,true) id",
-      [a, first.rows[0].id, JSON.stringify({ changes: "Original\npatient answer" })],
+      [a, first.rows[0].id, JSON.stringify(completeLegacyAnswers)],
     );
     const repeatedSubmission = await db.query<{ id: string }>(
       "select public.submit_return_preparation($1,$2,1,$3::jsonb,true) id",
-      [a, first.rows[0].id, JSON.stringify({ changes: "Original\npatient answer" })],
+      [a, first.rows[0].id, JSON.stringify(completeLegacyAnswers)],
     );
     assert.equal(repeatedSubmission.rows[0].id, submission.rows[0].id);
     await denied(
       "select public.submit_return_preparation($1,$2,1,$3::jsonb,true)",
-      [a, first.rows[0].id, JSON.stringify({ changes: "Changed replay" })],
+      [a, first.rows[0].id, JSON.stringify({ ...completeLegacyAnswers, changes: "Changed replay" })],
     );
     await denied(
       "select public.submit_return_preparation($1,$2,0,$3::jsonb,true)",
-      [a, first.rows[0].id, JSON.stringify({ changes: "Original\npatient answer" })],
+      [a, first.rows[0].id, JSON.stringify(completeLegacyAnswers)],
     );
     await denied("update public.return_preparation_submissions set answers='{}'::jsonb where id=$1", [submission.rows[0].id]);
     await switchActor("doctor");
@@ -4214,6 +4221,13 @@ test("pre-consultation snapshots custom questions and ordered priorities without
       ...question,
       label: question.label.trim(),
     }));
+    const completeAnswers = {
+      goal: "Synthetic goal",
+      routine: "Synthetic routine",
+      changes: "Synthetic change",
+      treatment: "Synthetic treatment",
+      questions: "Synthetic question",
+    };
     const requestKey = randomUUID();
     const request = await db.query<{ id: string }>(
       "select public.request_return_preparation($1,$2,$3,$4::jsonb) id",
@@ -4364,12 +4378,21 @@ test("pre-consultation snapshots custom questions and ordered priorities without
       ],
     );
     assert.equal(draft.rows[0].version, 1);
+    await denied(
+      "select public.submit_return_preparation($1,$2,1,$3::jsonb,true,$4::text[])",
+      [
+        a,
+        request.rows[0].id,
+        JSON.stringify({ goal: "Synthetic goal" }),
+        ["energy", "sleep", "nutrition"],
+      ],
+    );
     const submission = await db.query<{ id: string }>(
       "select public.submit_return_preparation($1,$2,1,$3::jsonb,true,$4::text[]) id",
       [
         a,
         request.rows[0].id,
-        JSON.stringify({ goal: "Synthetic goal" }),
+        JSON.stringify(completeAnswers),
         ["energy", "sleep", "nutrition"],
       ],
     );
@@ -4380,7 +4403,7 @@ test("pre-consultation snapshots custom questions and ordered priorities without
           [
             a,
             request.rows[0].id,
-            JSON.stringify({ goal: "Synthetic goal" }),
+            JSON.stringify(completeAnswers),
             ["energy", "sleep", "nutrition"],
           ],
         )
@@ -4392,7 +4415,7 @@ test("pre-consultation snapshots custom questions and ordered priorities without
       [
         a,
         request.rows[0].id,
-        JSON.stringify({ goal: "Changed replay" }),
+        JSON.stringify({ ...completeAnswers, goal: "Changed replay" }),
         ["energy", "sleep", "nutrition"],
       ],
     );
@@ -4401,7 +4424,7 @@ test("pre-consultation snapshots custom questions and ordered priorities without
       [
         a,
         request.rows[0].id,
-        JSON.stringify({ goal: "Synthetic goal" }),
+        JSON.stringify(completeAnswers),
         ["sleep", "energy", "nutrition"],
       ],
     );
@@ -4410,7 +4433,7 @@ test("pre-consultation snapshots custom questions and ordered priorities without
       [
         a,
         request.rows[0].id,
-        JSON.stringify({ goal: "Synthetic goal" }),
+        JSON.stringify(completeAnswers),
         ["energy", "sleep", "nutrition"],
       ],
     );

@@ -1,0 +1,167 @@
+name: Publicação da main
+
+# Uma mudança só chega ao domínio oficial por aqui: testes verdes, migrações
+# aplicadas no banco de destino, Edge Functions publicadas e só então o
+# deployment do mesmo commit assume institutovivance.app.
+
+on:
+  push:
+    branches: ['main']
+    paths:
+      - 'apps/web/**'
+      - 'supabase/**'
+      - '.github/workflows/release.yml'
+      - '.github/workflows/web-foundation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    uses: ./.github/workflows/web-foundation.yml
+
+  migrate:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ vars.SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - id: check
+        name: Conferir se o destino está configurado
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ] || [ -z "${SUPABASE_DB_PASSWORD:-}" ] || [ -z "${SUPABASE_PROJECT_ID:-}" ]; then
+            echo "::notice::Supabase ainda não configurado (SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD, vars.SUPABASE_PROJECT_ID). Etapa ignorada."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.check.outputs.configured == 'true'
+        name: Instalar a CLI do Supabase
+        run: npm install -g supabase@2.117.0
+      - if: steps.check.outputs.configured == 'true'
+        name: Vincular ao projeto de destino
+        run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
+      - if: steps.check.outputs.configured == 'true'
+        name: Estado das migrações antes de aplicar
+        run: supabase migration list --linked
+      - if: steps.check.outputs.configured == 'true'
+        name: Aplicar migrações
+        run: supabase db push --linked
+      - if: steps.check.outputs.configured == 'true'
+        name: Estado das migrações depois de aplicar
+        run: supabase migration list --linked
+      - if: steps.check.outputs.configured == 'true'
+        name: Publicar Edge Functions quando mudarem
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          changed="all"
+          if [ -n "${BEFORE:-}" ] && git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            changed="$(git diff --name-only "$BEFORE" "$GITHUB_SHA" -- supabase/functions || true)"
+          fi
+          if [ -z "$changed" ]; then
+            echo "Nenhuma Edge Function alterada neste push."
+            exit 0
+          fi
+          supabase functions deploy --project-ref "$SUPABASE_PROJECT_ID"
+
+  promote:
+    needs: [verify, migrate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+    steps:
+      - id: check
+        name: Conferir se a Vercel está configurada
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN:-}" ] || [ -z "${VERCEL_PROJECT_ID:-}" ]; then
+            echo "::notice::Vercel ainda não configurada (VERCEL_TOKEN, vars.VERCEL_PROJECT_ID). Promoção ignorada."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.check.outputs.configured == 'true'
+        id: build
+        name: Esperar o deployment deste commit ficar pronto
+        run: |
+          set -euo pipefail
+          query="projectId=$VERCEL_PROJECT_ID&target=production&limit=50"
+          if [ -n "${VERCEL_TEAM_ID:-}" ]; then query="$query&teamId=$VERCEL_TEAM_ID"; fi
+          for attempt in $(seq 1 60); do
+            body="$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v6/deployments?$query")"
+            entry="$(printf '%s' "$body" | jq -c --arg sha "$GITHUB_SHA" 'first(.deployments[]? | select(.meta.githubCommitSha == $sha))')"
+            if [ "$entry" = "null" ] || [ -z "$entry" ]; then
+              echo "Deployment do commit $GITHUB_SHA ainda não apareceu ($attempt/60)."
+              sleep 20
+              continue
+            fi
+            uid="$(printf '%s' "$entry" | jq -r '.uid')"
+            state="$(printf '%s' "$entry" | jq -r '.state // .readyState')"
+            echo "Deployment $uid está em $state ($attempt/60)."
+            case "$state" in
+              READY)
+                echo "uid=$uid" >> "$GITHUB_OUTPUT"
+                exit 0
+                ;;
+              ERROR|CANCELED|DELETED)
+                echo "::error::O build $uid terminou em $state; nada será promovido."
+                exit 1
+                ;;
+            esac
+            sleep 20
+          done
+          echo "::error::O deployment do commit $GITHUB_SHA não ficou pronto a tempo."
+          exit 1
+      - if: steps.check.outputs.configured == 'true'
+        name: Promover o deployment para o domínio de produção
+        env:
+          DEPLOYMENT: ${{ steps.build.outputs.uid }}
+        run: |
+          set -euo pipefail
+          suffix=""
+          if [ -n "${VERCEL_TEAM_ID:-}" ]; then suffix="?teamId=$VERCEL_TEAM_ID"; fi
+          curl -sS -X POST -o /dev/null -w '%{http_code}\n' \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/promote/$DEPLOYMENT$suffix" \
+            | grep -qE '^(200|201|202)$'
+          echo "Promoção solicitada para $DEPLOYMENT."
+      - if: steps.check.outputs.configured == 'true'
+        name: Confirmar que o domínio passou a servir este commit
+        env:
+          DEPLOYMENT: ${{ steps.build.outputs.uid }}
+        run: |
+          set -euo pipefail
+          suffix=""
+          if [ -n "${VERCEL_TEAM_ID:-}" ]; then suffix="?teamId=$VERCEL_TEAM_ID"; fi
+          for attempt in $(seq 1 30); do
+            current="$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID$suffix" \
+              | jq -r '.targets.production.id // empty')"
+            if [ "$current" = "$DEPLOYMENT" ]; then
+              echo "Produção agora serve $DEPLOYMENT."
+              exit 0
+            fi
+            echo "Produção ainda aponta para ${current:-desconhecido} ($attempt/30)."
+            sleep 10
+          done
+          echo "::error::A promoção foi aceita, mas produção não passou a apontar para $DEPLOYMENT."
+          exit 1
