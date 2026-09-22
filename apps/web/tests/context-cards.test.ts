@@ -110,17 +110,28 @@ test("o resumo conta só o que o paciente deve fornecer", () => {
 
 test("a tela mostra os cards e distingue falta de vínculo de falta de registro", () => {
   const component = readFileSync(
-    new URL("../components/today-workspace.tsx", import.meta.url),
+    new URL("../components/context-card-list.tsx", import.meta.url),
+    "utf8",
+  );
+  const block = readFileSync(
+    new URL("../components/consultation-block.tsx", import.meta.url),
+    "utf8",
+  );
+  const view = readFileSync(
+    new URL("../modules/workspace/home-view.ts", import.meta.url),
     "utf8",
   );
   const css = readFileSync(
     new URL("../app/globals.css", import.meta.url),
     "utf8",
   );
-  // A frase genérica saiu; a falta de vínculo tem causa e consequência.
-  assert.doesNotMatch(component, /Não há contexto clínico disponível/);
-  assert.match(component, /Sem vínculo de cuidado ativo com este paciente para o seu\s+acesso\./);
-  assert.match(component, /Pré-consulta, exames, medidas e metas aparecem aqui/);
+  // A frase genérica saiu; a falta de vínculo tem causa e saída: aceite quando
+  // há atribuição, e quem atribui quando não há.
+  assert.doesNotMatch(block, /Não há contexto clínico disponível/);
+  assert.match(view, /if \(link\.status === "assigned"\) return noCareLinkCopy;/);
+  assert.match(view, /A atribuição é feita pela administração em Equipe de cuidado\./);
+  // Sem vínculo, nem recebidos nem cards: a cópia do vínculo substitui os dois.
+  assert.match(block, /\{linkCopy \? \(/);
   // Todo card é um alvo único e focável — nada de linha inerte.
   assert.match(component, /<ul className="context-cards">/);
   assert.match(component, /<a className=\{card\.pending \? "is-pending" : undefined\} href=\{card\.href\}>/);

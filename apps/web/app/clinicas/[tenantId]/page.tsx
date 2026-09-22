@@ -44,10 +44,16 @@ function ShortcutIcon({ name }: { name: string }) {
 
 export default async function Dashboard({
   params,
+  searchParams,
 }: {
   params: Promise<{ tenantId: string }>;
+  searchParams: Promise<{ consulta?: string | string[] }>;
 }) {
   const { tenantId } = await params;
+  // A consulta aberta na Home pode ser escolhida pela URL; qualquer valor que
+  // não seja uma consulta do dia cai na próxima, sem erro.
+  const { consulta } = await searchParams;
+  const focus = typeof consulta === "string" ? consulta : null;
   const context = await listPatients(tenantId).catch((error) => {
     if (error instanceof AccessError && error.status === 401) redirect("/");
     if (error instanceof AccessError || error instanceof InputError) notFound();
@@ -55,7 +61,7 @@ export default async function Dashboard({
   });
   const base = `/clinicas/${tenantId}`;
   const today =
-    context.clinic.role !== "admin" ? await todayWorkspace(tenantId) : null;
+    context.clinic.role !== "admin" ? await todayWorkspace(tenantId, focus) : null;
 
   const shortcuts = (
     <section className="shortcuts-section" aria-labelledby="quick-actions">

@@ -55,17 +55,17 @@ test("tab input is allowlisted and repeated/invalid parameters default safely", 
 });
 test("today preserves the focused patient when opening the record and documents", () => {
   const workspace = readFileSync(
-    new URL("../components/today-workspace.tsx", import.meta.url),
+    new URL("../components/consultation-block.tsx", import.meta.url),
     "utf8",
   );
-  assert.match(workspace, /contextCardsFrom\(\s*base,\s*next\.patient_id,/);
-  assert.match(workspace, /`\$\{base\}\/pacientes\/\$\{next\.patient_id\}`/);
+  assert.match(workspace, /contextCardsFrom\(\s*base,\s*appointment\.patient_id,/);
+  assert.match(workspace, /`\$\{base\}\/pacientes\/\$\{appointment\.patient_id\}`/);
   assert.match(workspace, /Preparar atendimento/);
   // O bloco de contexto usa a mesma lista de cards do resto do produto, e a
-  // Home passa a identidade do paciente focado para a ação de solicitar.
+  // Home passa a identidade do paciente aberto para a ação de solicitar.
   assert.match(
     workspace,
-    /<ContextCardList\s+cards=\{contextCards\}\s+base=\{base\}\s+patientId=\{next\.patient_id\}\s*\/>/,
+    /<ContextCardList\s+cards=\{cards\}\s+base=\{base\}\s+patientId=\{appointment\.patient_id\}\s*\/>/,
   );
 });
 
@@ -75,7 +75,11 @@ test("today falls forward to the next scheduled day without changing today's lis
     "utf8",
   );
   const workspace = readFileSync(
-    new URL("../components/today-workspace.tsx", import.meta.url),
+    new URL("../components/home-day.tsx", import.meta.url),
+    "utf8",
+  );
+  const block = readFileSync(
+    new URL("../components/consultation-block.tsx", import.meta.url),
     "utf8",
   );
   assert.match(service, /if \(!next\)/);
@@ -83,7 +87,7 @@ test("today falls forward to the next scheduled day without changing today's lis
   assert.match(service, /\.gt\("starts_at", now\)/);
   assert.match(service, /nextDate: next \? clinicDate/);
   assert.match(workspace, /Amanhã, \$\{formatted\}/);
-  assert.match(workspace, /agenda\?data=\$\{nextDate\}/);
+  assert.match(block, /agenda\?data=\$\{date\}/);
   assert.match(workspace, /Consultas de hoje/);
 });
 

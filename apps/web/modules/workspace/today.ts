@@ -4,12 +4,25 @@ import { listAppointments } from "@/modules/agenda/service";
 import { clinicDate } from "@/modules/agenda/validation";
 import { focusedAppointment } from "@/modules/agenda/focus";
 import { requestInstant } from "@/lib/request-time";
+import { openConsultationId } from "./home-view";
+import {
+  allReceivedKinds,
+  myCareLinks,
+  receivedCutoffs,
+  receivedForPatients,
+} from "./received";
 
 const appointmentFields =
   "id, patient_id, doctor_id, doctor_display_name, starts_at, ends_at, kind, status, version, started_at, completed_at, cancelled_at, no_show_at, patients!appointments_tenant_id_patient_id_fkey(display_name)" as const;
 
 // Read-only composition. Existing RLS remains the authority for every record.
-export async function todayWorkspace(id: string) {
+//
+// A Home é o dia: a consulta aberta (a próxima, ou a que a pessoa escolheu na
+// URL), o que cada paciente do dia enviou desde a última consulta e, recolhido,
+// o que chegou de quem não tem consulta hoje. A antiga fila "Pendências" saiu:
+// pré-consulta e check-in enviados estão em "Recebido"; rascunho de
+// atendimento continua aqui, porque é trabalho do médico, não do paciente.
+export async function todayWorkspace(id: string, requestedFocus?: string | null) {
   const now = requestInstant().toISOString(),
     today = clinicDate();
   const tomorrow = new Date(`${today}T12:00:00Z`);
@@ -32,11 +45,23 @@ export async function todayWorkspace(id: string) {
     if (future.error) throw new Error("Unable to load next appointment");
     next = future.data?.[0] ?? null;
   }
-  const [drafts, checkIns, preparations] = await Promise.all([
+  const nextToday =
+    next && agenda.appointments.some((item) => item.id === next?.id)
+      ? next.id
+      : null;
+  const openId = openConsultationId(
+    agenda.appointments,
+    requestedFocus,
+    nextToday,
+  );
+  const open =
+    agenda.appointments.find((item) => item.id === openId) ??
+    (nextToday ? null : next);
+  const [drafts, links] = await Promise.all([
     client
       .from("encounters")
       .select(
-        "id,patient_id,appointment_id,updated_at,patients!encounters_tenant_id_patient_id_fkey(display_name)",
+        "id,patient_id,appointment_id,updated_at,created_at,patients!encounters_tenant_id_patient_id_fkey(display_name)",
       )
       .eq("tenant_id", id)
       .eq("doctor_id", user.id)
@@ -44,37 +69,46 @@ export async function todayWorkspace(id: string) {
       .order("updated_at")
       .order("id")
       .limit(5),
-    client
-      .from("care_check_ins")
-      .select(
-        "id,patient_id,submitted_at,patients!care_check_ins_tenant_id_patient_id_fkey(display_name)",
-      )
-      .eq("tenant_id", id)
-      .eq("status", "submitted")
-      .order("submitted_at")
-      .order("id")
-      .limit(5),
-    client
-      .from("return_preparation_requests")
-      .select("id,patient_id,submitted_at,patients!return_preparation_requests_tenant_id_patient_id_fkey(display_name)")
-      .eq("tenant_id", id)
-      .eq("doctor_id", user.id)
-      .eq("status", "submitted")
-      .order("submitted_at")
-      .order("id")
-      .limit(5),
+    myCareLinks(id),
   ]);
-  if (drafts.error || checkIns.error || preparations.error)
-    throw new Error("Unable to load care pending items");
-  const context = next ? await patientCareContext(id, next.patient_id) : null;
+  if (drafts.error) throw new Error("Unable to load encounter drafts");
+  const linkByPatient = new Map(links.map((link) => [link.patientId, link]));
+  const activeIds = links
+    .filter((link) => link.status === "active")
+    .map((link) => link.patientId);
+  // Recebidos de todos os pacientes com vínculo ativo, numa leitura só: os do
+  // dia aparecem nas linhas, os demais em "Entre consultas". Se o corte não
+  // puder ser lido, todos os tipos contam como indisponíveis — nunca zero.
+  let cutoffs = new Map<string, string | null>();
+  let received: Awaited<ReturnType<typeof receivedForPatients>>;
+  try {
+    cutoffs = await receivedCutoffs(id, activeIds);
+    received = await receivedForPatients(id, cutoffs);
+  } catch {
+    received = { byPatient: new Map(), failed: [...allReceivedKinds] };
+  }
+  const todayPatients = new Set(
+    agenda.appointments.map((item) => item.patient_id),
+  );
+  const context = open ? await patientCareContext(id, open.patient_id) : null;
   return {
     ...agenda,
     next,
+    nextToday,
+    open,
     nextDate: next ? clinicDate(new Date(next.starts_at)) : null,
     context,
     drafts: drafts.data ?? [],
-    checkIns: checkIns.data ?? [],
-    preparations: preparations.data ?? [],
+    links: linkByPatient,
+    cutoffs,
+    received: received.byPatient,
+    failed: received.failed,
+    between: links
+      .filter(
+        (link) =>
+          link.status === "active" && !todayPatients.has(link.patientId),
+      )
+      .map((link) => ({ patientId: link.patientId, name: link.name })),
     now,
     today,
   };
