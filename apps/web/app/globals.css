@@ -3116,7 +3116,9 @@ button.calendar-day[aria-pressed="true"] {
 /* "Contexto para esta consulta" is a quiet list of links now, not a grid
    of bordered cards — same links, less visual weight next to the queue. */
 .today-context { margin:0; padding:18px 24px 22px; border-top:1px solid var(--border); }
-.today-context > h3 { margin:0; font-size:15px; letter-spacing:-.01em; color:#405c7e; }
+/* O título deste bloco é <h2> desde a correção semântica anterior; a regra
+   continuava presa ao <h3> antigo e não aplicava em nada. */
+.today-context > h2 { margin:0; font-size:15px; letter-spacing:-.01em; color:#405c7e; }
 .today-context > p { max-width:62ch; margin:4px 0 14px; color:#60708a; font-size:13px; }
 /* "Contexto para esta consulta": um card por informação, sempre na mesma ordem,
    inclusive quando falta. Cada card é um alvo único, focável e acionável. */
@@ -3156,7 +3158,10 @@ button.calendar-day[aria-pressed="true"] {
 .today-timeline li { display:grid; grid-template-columns:52px auto minmax(0,1fr) auto; gap:12px; align-items:center; min-height:60px; padding:10px; border-top:1px solid #eef1f6; }
 .today-timeline li:first-child { border-top:0; }
 .today-timeline time { color:#243d5b; font-size:14px; font-weight:750; font-variant-numeric:tabular-nums; }
-.today-timeline p { margin:2px 0 0; font-size:13px; color:#60708a; }
+/* Secundário da linha do tempo por token: #60708a dava 4.45:1 sobre o
+   --blue-soft da linha em destaque, abaixo de AA. O token dá 5.98:1 ali e
+   6.68:1 sobre o branco. */
+.today-timeline p { margin:2px 0 0; font-size:13px; color:var(--context-muted); }
 .today-timeline .is-next { background:var(--blue-soft); border-radius:12px; border-top-color:transparent; }
 .today-timeline .is-next + li { border-top-color:transparent; }
 .today-timeline a { color:var(--navy); }
@@ -4589,7 +4594,7 @@ button.calendar-day[aria-pressed="true"] {
 .today-primary-action { justify-content: flex-end; margin-top: 20px; }
 .today-primary-action > span { margin-right: auto; font-size: 13px; }
 .today-context { padding: 20px 28px 24px; background: var(--canvas); }
-.today-context > h3 { color: var(--ink); font-size: 15px; }
+.today-context > h2 { color: var(--ink); font-size: 15px; }
 .today-context > p { color: var(--muted); }
 
 /* Pendências: rótulo de tipo discreto, título, detalhe, ação. */
@@ -4605,6 +4610,10 @@ button.calendar-day[aria-pressed="true"] {
 }
 .today-attention li a,
 .today-attention-more {
+  /* Mesma régua dos cards de contexto: alvo de 44px, não 13px de texto. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--blue);
   font-size: 14px;
   font-weight: 650;
