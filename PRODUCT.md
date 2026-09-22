@@ -9,7 +9,7 @@ web
 ## Users
 
 - Profissionais de saúde responsáveis por acompanhar pessoas em jornadas de emagrecimento e envelhecimento saudável.
-- Pacientes convidados para registrar contexto, acompanhar um plano publicado e conversar com a equipe dentro do protótipo.
+- Pacientes convidados para registrar contexto, acompanhar um plano publicado e conversar com a equipe.
 
 - Administradores do instituto responsáveis por cadastros, acessos e vínculos de cuidado, sem permissão clínica automática.
 
@@ -26,8 +26,8 @@ O produto não tenta substituir o prontuário ou automatizar decisões médicas.
 ## Operating Context
 
 - Uso principal em desktop durante preparo, consulta e acompanhamento; tablet e mobile devem permitir leitura e ações essenciais.
-- O protótipo reúne pré-consulta, check-ins, diário, mensagens, documentos, planos, consultas e evolução.
-- Dados e integrações são demonstrativos. O prontuário oficial e eventuais sistemas externos permanecem fora do mock.
+- A aplicação reúne pré-consulta, check-ins, mensagens, documentos, planos, consultas e evolução. Funcionalidades ainda fora da `main` não devem ser apresentadas como disponíveis.
+- O prontuário oficial e sistemas externos permanecem fora do produto atual. A publicação técnica ainda não autoriza dados clínicos reais.
 - A experiência profissional deve priorizar exceções e itens para revisão, sem classificar risco ou urgência.
 
 ## Capabilities and Constraints
@@ -38,7 +38,7 @@ O produto não tenta substituir o prontuário ou automatizar decisões médicas.
 - Aprovar é diferente de publicar ou exportar. Exportar manualmente não significa sincronizar.
 - Originais são preservados e ligados a resumos, revisões e versões derivadas.
 - O fluxo manual permanece disponível quando a IA está indisponível ou não autorizada.
-- O mock utiliza apenas dados fictícios e não deve alegar integrações, retenção ou monitoramento que não existam.
+- Validações usam apenas dados sintéticos autorizados e não devem alegar integrações, retenção ou monitoramento que não existam.
 
 ## Brand Commitments
 
@@ -47,12 +47,12 @@ O produto não tenta substituir o prontuário ou automatizar decisões médicas.
 - Menus e barras podem usar transparência semelhante a vidro quando isso ajuda a separar navegação e conteúdo; o restante permanece claro e simples.
 - A interface profissional deve parecer confiável, elegante e funcional; expressão visual não pode competir com tarefa, estado ou evidência.
 
-## Evidence on Hand
+## Evidência vigente
 
-- Contexto do MVP e casos de uso em `Instituto_Vivance_Contexto_MVP_e_Casos_de_Uso.md` e nos artefatos de documentação do repositório.
-- Protótipo navegável em `app/`, com fluxos de profissional e paciente e estado demonstrativo em sessão.
-- Referências visuais fornecidas pelo usuário em 1 de setembro de 2026 e comparação isolada com o protótipo do Skip.
-- Não há evidência de prontuário oficial, integração clínica real, telemonitoramento contínuo ou validação clínica deste protótipo.
+- O estado técnico e operacional está em `docs/STATUS_ATUAL.md`.
+- O contrato funcional consolidado está em `docs/FUNCIONALIDADES.md`.
+- O protótipo anterior em `app/` é apenas referência e não participa do deploy atual.
+- Não há comprovação de prontuário oficial, integração clínica real, telemonitoramento contínuo ou liberação clínica do produto.
 
 ## Product Principles
 

@@ -1,72 +1,50 @@
-# Publicação automática da `main`
+# Pipeline de publicação
 
-Hoje a publicação depende de gestos manuais: alguém aplica as migrações no
-Supabase pela CLI ou pelo painel e alguém promove o deployment na Vercel. Foi
-assim que, em 21/09/2026, as PRs #31 e #32 ficaram mescladas e construídas sem
-nunca assumirem `institutovivance.app` — o domínio seguia no commit `a261f07`.
+O workflow `.github/workflows/release.yml` publica somente mudanças integradas
+à `main` e preserva a ordem: verificar → migrar banco → promover Vercel.
 
-O workflow `.github/workflows/release.yml` passa essa sequência para o CI.
+## Sequência
 
-## O que acontece a cada push na `main`
+1. `verify`: testes, lint, TypeScript e build de `apps/web`.
+2. `migrate`: vincula o Supabase de destino, lista e aplica migrations e publica
+   Edge Functions alteradas.
+3. `promote`: espera o deployment Vercel do mesmo commit ficar `READY`, promove
+   o artefato e confirma o alvo de produção.
 
-1. **verify** — reaproveita `web-foundation.yml` (test, lint, typecheck, build).
-2. **migrate** — vincula o projeto Supabase de destino, imprime o estado das
-   migrações, aplica o que falta (`supabase db push`), imprime o estado de novo
-   e publica as Edge Functions quando algo em `supabase/functions` mudou.
-3. **promote** — espera o deployment que a integração Git criou **para este
-   commit** ficar `READY`, promove esse deployment e confirma que o alvo de
-   produção do projeto passou a ser ele.
+Migrations precisam ser compatíveis com o código ainda publicado enquanto a
+promoção não terminou. Remoções ou renomes destrutivos exigem estratégia em mais
+de uma versão.
 
-A ordem importa: schema primeiro, código depois. Como o código antigo continua
-no ar entre os passos 2 e 3, **toda migração precisa ser compatível para trás**
-— adicionar coluna, tabela ou política pode; remover ou renomear o que o código
-publicado ainda usa, não.
+## Configuração protegida
 
-Enquanto os segredos não estiverem preenchidos, os passos 2 e 3 se anunciam como
-ignorados e o workflow passa. Nada quebra por ainda não estar configurado.
+No environment `production` do GitHub:
 
-## O que precisa ser preenchido
-
-No repositório, em *Settings → Secrets and variables → Actions*.
-
-### Secrets
-
-| Nome | O que é | Onde obter |
+| Tipo | Nome | Uso |
 |---|---|---|
-| `SUPABASE_ACCESS_TOKEN` | Token pessoal da conta Supabase | Painel Supabase → Account → Access Tokens |
-| `SUPABASE_DB_PASSWORD` | Senha do banco do projeto de destino | Painel do projeto → Settings → Database |
-| `VERCEL_TOKEN` | Token de API da Vercel | vercel.com → Account Settings → Tokens (escopo do time `VTR CONSULTING`) |
+| Secret | `SUPABASE_ACCESS_TOKEN` | autenticar a CLI Supabase |
+| Secret | `SUPABASE_DB_PASSWORD` | conectar ao banco de destino |
+| Variable | `SUPABASE_PROJECT_ID` | identificar o projeto de produção |
+| Secret | `VERCEL_TOKEN` | autenticar a promoção |
+| Variable | `VERCEL_PROJECT_ID` | projeto `instituto-vivance` |
+| Variable | `VERCEL_TEAM_ID` | time `VTR CONSULTING` |
 
-### Variables
+Nunca registrar valores desses campos em arquivo ou log. Required reviewers no
+environment mantêm aprovação humana antes da publicação.
 
-| Nome | Valor |
-|---|---|
-| `SUPABASE_PROJECT_ID` | Ref do projeto de destino (hoje `oxuwrdjojsmgxoljqkuk`, o `instituto-vivance-dev`; passa a ser o projeto de produção quando ele existir) |
-| `VERCEL_PROJECT_ID` | ID do projeto `instituto-vivance` (Settings → General) |
-| `VERCEL_TEAM_ID` | ID do time `VTR CONSULTING` (Settings → General do time) |
+## Comportamento quando falta configuração
 
-Os três *secrets* nunca aparecem em log: o workflow só testa se estão vazios.
+O workflow atual deixa `migrate` e `promote` como etapas ignoradas quando os
+campos obrigatórios estão vazios. Portanto, um run verde pode provar apenas o
+build. Conferir os logs e o alvo real antes de declarar publicação completa.
 
-## Environment `production`
+Na execução de 22/09/2026, a verificação passou, mas a migration foi ignorada
+por falta da configuração de produção. A Vercel foi promovida depois pela CLI;
+isso não comprova que o schema remoto esteja reconciliado.
 
-Os jobs `migrate` e `promote` rodam no environment `production`. Se você criar
-esse environment em *Settings → Environments* e marcar *Required reviewers*,
-cada publicação passa a esperar um clique seu — útil enquanto o banco de
-produção for o mesmo de desenvolvimento. Sem reviewers configurados, publica
-sozinho.
+## Reversão
 
-## Como reverter
+- Código: promover o deployment anterior ou reverter a PR e publicar novamente.
+- Banco: criar uma nova migration compatível que corrija a anterior; não editar
+  uma migration já aplicada.
 
-- **Código:** promover o deployment anterior na Vercel (Deployments → o anterior
-  → Promote), ou `Revert` na PR e deixar o pipeline publicar de novo.
-- **Schema:** migração não tem volta automática. Reverter é escrever uma
-  migração nova que desfaz o que a anterior fez — mais uma razão para manter
-  cada migração compatível para trás.
-
-## O que este workflow não faz
-
-- Não troca variáveis de ambiente da Vercel. A promoção controlada para um
-  Supabase de produção — criar o projeto, aplicar migrações, publicar funções,
-  trocar `NEXT_PUBLIC_SUPABASE_URL` e a chave pública, limpar as variáveis
-  legadas — continua sendo uma decisão manual, registrada no Gate P.
-- Não publica nada a partir de branch: só `main`.
+O fechamento operacional depende também do [Gate P](GATE_P.md).
