@@ -40,22 +40,23 @@ Atualizado em 22/09/2026.
 
 - A migration `20260921185603_required_preconsultation.sql` não foi confirmada
   em um Supabase de produção.
-- A migration `20260921191924_patient_meal_logs.sql`, do diário alimentar, foi
-  validada apenas no banco efêmero dos testes e não foi aplicada remotamente por
-  este trabalho. Uma sondagem somente-leitura do projeto Supabase de
-  desenvolvimento já encontrou a tabela e a função, em versão anterior a este
-  ajuste.
+- A migration `20260921191924_patient_meal_logs.sql`, do diário alimentar, está
+  aplicada no Supabase de desenvolvimento. A tabela e a função que já existiam
+  naquele destino estavam em versão anterior ao ajuste de preservação literal.
 - A correção do relato literal vem em
   `20260922015500_patient_meal_literal_description.sql`, que recria o CHECK e a
-  função para bancos onde a migration anterior já rodou. Ela também não foi
-  aplicada remotamente: a reaplicação no destino continua pendente.
+  função para bancos onde a migration anterior já rodou. Ela foi aplicada em
+  22/09/2026 no projeto de desenvolvimento `instituto-vivance-dev`
+  (`oxuwrdjojsmgxoljqkuk`); segue pendente somente em um eventual destino de
+  produção, que não foi definido neste trabalho.
 - O diário alimentar não foi homologado em produção nem em Preview.
 - **Medição de 22/09/2026 no ambiente de desenvolvimento: a correção do relato
   literal ainda não está em vigor ali.** Um relato enviado com espaços nas
   extremidades voltou normalizado — `"  texto  "` foi gravado como `"texto"` —,
   o que confirma que a função em uso é a anterior a
-  `20260922015500_patient_meal_literal_description.sql`. Enquanto a migration não
-  for aplicada no destino, a tela contradiz o contrato de `FUNCIONALIDADES.md`.
+  `20260922015500_patient_meal_literal_description.sql`. A migration foi aplicada
+  depois dessa medição; falta repetir o envio autenticado para confirmar o texto
+  literal no histórico atualizado.
 - O `.env.local` de `apps/web` mistura credenciais de **dois** projetos Supabase:
   o app usa `oxuwrdjojsmgxoljqkuk` (`instituto-vivance-dev`, o mesmo do link em
   `supabase/.temp/`), enquanto `POSTGRES_HOST`/`POSTGRES_URL` apontam para
