@@ -78,15 +78,7 @@ export type Database = {
         };
         Insert: never;
         Update: never;
-        Relationships: [
-          {
-            foreignKeyName: "patient_meal_logs_tenant_id_patient_id_fkey";
-            columns: ["tenant_id", "patient_id"];
-            isOneToOne: false;
-            referencedRelation: "patients";
-            referencedColumns: ["tenant_id", "id"];
-          },
-        ];
+        Relationships: [];
       };
       care_check_in_reviews: {
         Row: {

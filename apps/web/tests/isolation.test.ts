@@ -2404,28 +2404,87 @@ test("patient meal reports are append-only, idempotent and visible only to the l
       "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3) on conflict do nothing",
       [a, pa, users.patient.id],
     );
+    // A peer patient in the same clinic: an active patient account that still
+    // must never read the first patient's reports.
+    const peer = randomUUID();
+    await db.query(
+      "insert into public.patients(id,tenant_id,display_name,created_by) values($1,$2,'Synthetic peer',$3)",
+      [peer, a, users.admin.id],
+    );
+    await db.query(
+      "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,'patient','active','Synthetic peer')",
+      [a, users.outsider.id],
+    );
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+      [a, peer, users.outsider.id],
+    );
     await switchActor("patient");
     const request = randomUUID();
     await denied(
       "insert into public.patient_meal_logs(tenant_id,patient_id,actor_user_id,meal_type,eaten_at,description,client_request_id) values($1,$2,$3,'lunch',clock_timestamp(),'Forged',$4)",
       [a, pa, users.patient.id, request],
     );
+    for (const invalid of [
+      "select public.record_patient_meal($1,$2,'clinical_diagnosis',clock_timestamp(),'Café')",
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp(),'   ')",
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp(),repeat('a',2001))",
+      "select public.record_patient_meal($1,$2,'lunch',null,'Sem horário')",
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() + interval '1 hour','Almoço adiantado')",
+    ])
+      await denied(invalid, [a, randomUUID()]);
     const first = await db.query<{ id: string }>(
       "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() - interval '5 minutes','Arroz, frango e salada.') id",
       [a, request],
     );
     const replay = await db.query<{ id: string }>(
-      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() - interval '5 minutes','Arroz, frango e salada.') id",
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() - interval '5 minutes','Outra descrição') id",
       [a, request],
     );
     assert.equal(replay.rows[0].id, first.rows[0].id);
+    assert.equal(
+      (await db.query<{ description: string }>("select description from public.patient_meal_logs")).rows[0].description,
+      "Arroz, frango e salada.",
+    );
+    assert.equal((await db.query("select id from public.patient_meal_logs")).rows.length, 1);
     await denied("update public.patient_meal_logs set description='Forged'");
-    await switchActor("nurse");
-    assert.equal((await db.query("select id from public.patient_meal_logs")).rows.length, 0);
+    await denied("delete from public.patient_meal_logs");
+    // The signed patient reads their own report; the peer account reads nothing.
+    assert.equal(
+      (await db.query("select id from public.patient_meal_logs where patient_id=$1", [pa])).rows.length,
+      1,
+    );
+    assert.equal(
+      (await db.query("select id from public.patient_meal_logs where patient_id=$1", [peer])).rows.length,
+      0,
+    );
+    for (const role of ["admin", "nurse", "other", "suspended", "outsider"]) {
+      await switchActor(role);
+      assert.equal(
+        (await db.query("select id from public.patient_meal_logs")).rows.length,
+        0,
+        `${role} must not read patient meal reports`,
+      );
+    }
+    await switchActor("admin");
+    await denied(
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp(),'Nota do administrador')",
+      [a, randomUUID()],
+    );
     await switchActor("doctor");
     assert.equal(
       (await db.query("select id from public.patient_meal_logs where id=$1", [first.rows[0].id])).rows.length,
       1,
+    );
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=1 where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+      [a, pa, users.doctor.id],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.patient_meal_logs where id=$1", [first.rows[0].id])).rows.length,
+      0,
     );
   });
 });

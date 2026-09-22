@@ -2,6 +2,11 @@ import { InputError, tenantId } from "../../lib/validation.ts";
 
 const mealTypes = ["breakfast", "lunch", "dinner", "snack", "other"] as const;
 
+// A 2.000-character report may reach 8 KB as UTF-8 (accents and emoji), so the
+// transport bound stays safely above the character limit instead of rejecting
+// a valid report written in Portuguese.
+export const patientMealMaxBodyBytes = 12_000;
+
 function object(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value))
     throw new InputError("Dados inválidos.");
