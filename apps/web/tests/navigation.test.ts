@@ -58,10 +58,11 @@ test("today preserves the focused patient when opening the record and documents"
     new URL("../components/today-workspace.tsx", import.meta.url),
     "utf8",
   );
-  assert.match(workspace, /patientId=\{next\.patient_id\}/);
-  assert.match(workspace, /recordBase=\{`\$\{base\}\/pacientes\/\$\{next\.patient_id\}`\}/);
+  assert.match(workspace, /contextCardsFrom\(\s*base,\s*next\.patient_id,/);
+  assert.match(workspace, /`\$\{base\}\/pacientes\/\$\{next\.patient_id\}`/);
   assert.match(workspace, /Preparar atendimento/);
-  assert.match(workspace, /density="compact"/);
+  // O bloco de contexto usa a mesma lista de cards do resto do produto.
+  assert.match(workspace, /<ContextCardList cards=\{contextCards\} \/>/);
 });
 
 test("today falls forward to the next scheduled day without changing today's list", () => {

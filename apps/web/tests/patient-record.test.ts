@@ -39,6 +39,10 @@ test("patient header states an active link honestly even with no consultation or
     patientHeaderFacts(
       {
         relationshipId: "rel-1",
+preparation: null,
+        documents: { total: 0, latest_at: null },
+        measurements: { total: 0, latest_at: null },
+        intake: null,
         encounter: null,
         nextAppointment: null,
         publications: [],
@@ -62,6 +66,10 @@ test("patient header links to the real finalized encounter and published plan", 
     patientHeaderFacts(
       {
         relationshipId: "rel-1",
+preparation: null,
+        documents: { total: 0, latest_at: null },
+        measurements: { total: 0, latest_at: null },
+        intake: null,
         encounter: { id: "enc-1", finalized_at: "2026-09-10T12:00:00.000Z" },
         nextAppointment: null,
         publications: [
@@ -92,6 +100,10 @@ test("patient header links to the next scheduled appointment", () => {
   const facts = patientHeaderFacts(
     {
       relationshipId: "rel-1",
+preparation: null,
+      documents: { total: 0, latest_at: null },
+      measurements: { total: 0, latest_at: null },
+      intake: null,
       encounter: null,
       nextAppointment: {
         id: "appointment-1",
@@ -122,6 +134,6 @@ test("today omits clinical context when the focused appointment has no active ca
       new URL("../components/today-workspace.tsx", import.meta.url),
       "utf8",
     ),
-    /Não há contexto clínico disponível para este vínculo/,
+    /Sem vínculo de cuidado ativo com este paciente para o seu\s+acesso\./,
   );
 });

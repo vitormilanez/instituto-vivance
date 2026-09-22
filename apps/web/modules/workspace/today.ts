@@ -91,6 +91,14 @@ export type PatientCareContext = {
     revision: number;
     published_at: string | null;
   }[];
+  preparation: {
+    id: string;
+    status: string;
+    submitted_at: string | null;
+  } | null;
+  documents: { total: number; latest_at: string | null };
+  measurements: { total: number; latest_at: string | null };
+  intake: { hasGoal: boolean; updatedAt: string | null } | null;
 };
 
 export async function patientCareContext(
@@ -144,10 +152,80 @@ export async function patientCareContext(
   ]);
   if (encounter.error || nextAppointment.error || publications.error)
     throw new Error("Unable to load patient care context");
+  // O que o paciente deve fornecer e o que a clínica registrou, por tipo: o
+  // bloco "Contexto para esta consulta" mostra um estado factual para cada um,
+  // inclusive quando falta. Somente leitura; nenhuma inferência clínica.
+  const appointmentId = nextAppointment.data?.[0]?.id ?? null;
+  const [preparation, documents, measurements, intake] = await Promise.all([
+    appointmentId
+      ? client
+          .from("return_preparation_requests")
+          .select("id,status,submitted_at")
+          .eq("tenant_id", id)
+          .eq("patient_id", patientId)
+          .eq("appointment_id", appointmentId)
+          .neq("status", "cancelled")
+          .order("requested_at", { ascending: false })
+          .order("id")
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    client
+      .from("patient_documents")
+      .select("created_at", { count: "exact" })
+      .eq("tenant_id", id)
+      .eq("patient_id", patientId)
+      .eq("status", "available")
+      .order("created_at", { ascending: false })
+      .order("id")
+      .limit(1),
+    client
+      .from("patient_measurements")
+      .select("submitted_at", { count: "exact" })
+      .eq("tenant_id", id)
+      .eq("patient_id", patientId)
+      .order("submitted_at", { ascending: false })
+      .order("id")
+      .limit(1),
+    client
+      .from("patient_intake_contexts")
+      .select("expected_outcome,first_priority,updated_at")
+      .eq("tenant_id", id)
+      .eq("patient_id", patientId)
+      .maybeSingle(),
+  ]);
+  if (preparation.error || documents.error || measurements.error || intake.error)
+    throw new Error("Unable to load patient care context");
+  const documentRow = documents.data?.[0] ?? null;
+  const measurementRow = measurements.data?.[0] ?? null;
+  const intakeRow = intake.data ?? null;
   return {
     relationshipId: relationship.data.id,
     encounter: encounter.data?.[0] ?? null,
     nextAppointment: nextAppointment.data?.[0] ?? null,
     publications: publications.data ?? [],
+    preparation: preparation.data
+      ? {
+          id: preparation.data.id,
+          status: preparation.data.status,
+          submitted_at: preparation.data.submitted_at,
+        }
+      : null,
+    documents: {
+      total: documents.count ?? (documentRow ? 1 : 0),
+      latest_at: documentRow?.created_at ?? null,
+    },
+    measurements: {
+      total: measurements.count ?? (measurementRow ? 1 : 0),
+      latest_at: measurementRow?.submitted_at ?? null,
+    },
+    intake: intakeRow
+      ? {
+          hasGoal: Boolean(
+            intakeRow.expected_outcome?.trim() || intakeRow.first_priority?.trim(),
+          ),
+          updatedAt: intakeRow.updated_at,
+        }
+      : null,
   };
 }

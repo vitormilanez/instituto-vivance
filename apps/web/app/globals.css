@@ -14,6 +14,7 @@
   --attention: #8a5b09;
   --attention-border: #e6c77a;
   --attention-surface: #fff9eb;
+  --context-muted: #4c5d78;
 }
 
 /* Return preparation extends the incumbent operational surface: one linked
@@ -3117,14 +3118,16 @@ button.calendar-day[aria-pressed="true"] {
 .today-context { margin:0; padding:18px 24px 22px; border-top:1px solid var(--border); }
 .today-context > h3 { margin:0; font-size:15px; letter-spacing:-.01em; color:#405c7e; }
 .today-context > p { max-width:62ch; margin:4px 0 14px; color:#60708a; font-size:13px; }
-.care-context-links { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:10px; }
-.care-context-links > a, .care-context-links > div { display:flex; flex-direction:column; gap:6px; min-height:120px; padding:15px; border:1px solid #e0e8f1; border-radius:12px; background:#fff; min-width:0; text-decoration:none; transition:border-color .15s ease, background-color .15s ease; }
-.care-context-links > a:hover { border-color:#9bc7bc; background:#f7fbfa; }
-.care-context-links strong { font-size:13px; color:var(--navy); }
-.care-context-links span { font-size:12px; line-height:1.45; color:#61718a; }
-.care-context-links a > span:last-child { margin-top:auto; padding-top:5px; color:var(--positive); font-weight:700; }
-.care-context-links > .care-context-plan { background:#f4faf8; border-color:#d6e9e3; }
-.care-context-links > .care-context-future { background:#fafbfd; }
+/* "Contexto para esta consulta": um card por informação, sempre na mesma ordem,
+   inclusive quando falta. Cada card é um alvo único, focável e acionável. */
+.context-cards { display: grid; gap: 8px; list-style: none; padding: 0; margin: 0; }
+.context-cards > li { min-width: 0; }
+.context-cards > li > a { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 2px 16px; min-height: 44px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); text-decoration: none; transition: border-color .15s ease, background-color .15s ease; }
+.context-cards > li > a:hover { border-color: #b7c8de; background: var(--blue-soft); }
+.context-cards strong { font-size: 13px; color: var(--navy); }
+.context-cards .context-state { grid-column: 1; max-width: 52ch; font-size: 12px; line-height: 1.45; color: var(--context-muted); overflow-wrap: anywhere; }
+.context-cards .context-action { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--blue); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.context-cards > li > a.is-pending .context-state { color: var(--ink); }
 .today-primary-action { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; margin-top:18px; padding:0; border:0; background:transparent; }
 .today-primary-action > span { max-width:34ch; color:var(--muted); font-size:12px; line-height:1.5; }
 /* Para revisar: one consistent row style for every kind of pending item —
@@ -3191,7 +3194,6 @@ button.calendar-day[aria-pressed="true"] {
   .today-next > h2 { padding:22px 20px 0; }
   .today-next-heading { align-items:flex-start; }
   .today-patient h3 { font-size:23px; }
-  .care-context-links { grid-template-columns:1fr 1fr; }
 
   /* time · avatar · who, with the "Próxima" badge under the name — the
      row keeps all three tracks instead of wrapping the name into 52px. */
@@ -3664,38 +3666,6 @@ a.more-tools-card:hover {
   color:var(--muted);
   font-size:13px;
   text-align:right;
-}
-.care-context-links-compact {
-  display: flex;
-  flex-direction: column;
-  grid-template-columns: none;
-}
-.care-context-links-compact > a,
-.care-context-links-compact > div {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0 8px;
-  min-height: 0;
-  padding: 11px 0;
-  border: 0;
-  border-top: 1px solid #e9eef4;
-  border-radius: 0;
-  background: transparent;
-}
-.care-context-links-compact > a:first-child,
-.care-context-links-compact > div:first-child {
-  border-top: 0;
-}
-.care-context-links-compact span {
-  font-size: 12px;
-}
-.care-context-links-compact a > span:last-child {
-  margin-top: 0;
-  padding-top: 0;
-}
-.care-context-links-compact a > span:last-child::after {
-  content: " →";
 }
 .patient-directory-grid {
   grid-template-columns: minmax(0, 1fr) minmax(320px, 370px);
@@ -4679,12 +4649,9 @@ button.calendar-day[aria-pressed="true"] {
 .more-tools-link:hover { border-color: #b7c8de; background: var(--blue-soft); }
 
 /* Uma só cor de link em listas e contextos. */
-.patient-list .row-action,
-.care-context-links a > span:last-child { color: var(--blue); }
+.patient-list .row-action { color: var(--blue); }
 .patient-list > li > a { padding: 14px 8px; }
-.patient-list > li > a:hover,
-.care-context-links > a:hover { background: var(--blue-soft); border-color: #b7c8de; }
-.care-context-links > .care-context-plan { background: var(--surface); border-color: var(--border); }
+.patient-list > li > a:hover { background: var(--blue-soft); border-color: #b7c8de; }
 
 /* Pacientes: o atalho do topo só existe quando o formulário fica abaixo. */
 @media (min-width: 1151px) {

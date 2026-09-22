@@ -4,6 +4,11 @@ import type {
   todayWorkspace,
   patientCareContext,
 } from "@/modules/workspace/today";
+import {
+  consultationContextCards,
+  contextSummary,
+  type ContextCard,
+} from "@/modules/workspace/patient-context-cards";
 
 const time = (date: string) =>
   new Date(date).toLocaleTimeString("pt-BR", {
@@ -50,77 +55,81 @@ const initials = (name: string) =>
     .join("")
     .toUpperCase();
 
+// Um card por tipo de informação, na mesma ordem em todas as telas. Cada card é
+// um único alvo focável: ausência também é acionável, nunca um <div> inerte.
+export function ContextCardList({ cards }: { cards: ContextCard[] }) {
+  return (
+    <ul className="context-cards">
+      {cards.map((card) => (
+        <li key={card.id}>
+          <a className={card.pending ? "is-pending" : undefined} href={card.href}>
+            <strong>{card.title}</strong>
+            <span className="context-state">{card.state}</span>
+            <span className="context-action">{card.action}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function contextCardsFrom(
+  base: string,
+  patientId: string,
+  context: NonNullable<Awaited<ReturnType<typeof patientCareContext>>>,
+  recordBase?: string,
+) {
+  const latest = context.publications[0] ?? null;
+  return consultationContextCards({
+    base,
+    recordBase: recordBase ?? `${base}/pacientes/${patientId}`,
+    preparation: context.preparation
+      ? {
+          id: context.preparation.id,
+          status: context.preparation.status,
+          submittedAt: context.preparation.submitted_at,
+        }
+      : null,
+    documents: {
+      total: context.documents.total,
+      latestAt: context.documents.latest_at,
+    },
+    measurements: {
+      total: context.measurements.total,
+      latestAt: context.measurements.latest_at,
+    },
+    intake: context.intake,
+    encounter: context.encounter
+      ? {
+          id: context.encounter.id,
+          finalizedAt: context.encounter.finalized_at,
+        }
+      : null,
+    publication: latest
+      ? {
+          planId: latest.plan_id,
+          revision: latest.revision,
+          publishedAt: latest.published_at,
+        }
+      : null,
+  });
+}
+
 export function PatientCareLinks({
   base,
   patientId,
   context,
   recordBase,
-  density = "full",
 }: {
   base: string;
   patientId: string;
   context: NonNullable<Awaited<ReturnType<typeof patientCareContext>>>;
   recordBase?: string;
-  density?: "compact" | "full";
 }) {
-  const publications = context.publications.slice(
-    0,
-    density === "compact" ? 1 : 5,
-  );
   return (
-    <div className={`care-context-links care-context-links-${density}`}>
-      {context.encounter ? (
-        <Link href={`${base}/atendimentos/${context.encounter.id}`}>
-          <strong>Última consulta</strong>
-          <span>
-            Registro finalizado ·{" "}
-            {new Date(context.encounter.finalized_at!).toLocaleDateString(
-              "pt-BR",
-              { timeZone: "America/Sao_Paulo" },
-            )}
-          </span>
-          <span>Abrir registro</span>
-        </Link>
-      ) : (
-        <div>
-          <strong>Última consulta</strong>
-          <span>Nenhum registro finalizado disponível para este acesso.</span>
-        </div>
-      )}
-      {publications.map((p) => (
-        <Link
-          className="care-context-plan"
-          key={p.id}
-          href={`${base}/planos/${p.plan_id}`}
-        >
-          <strong>{p.title}</strong>
-          <span>Plano publicado · revisão {p.revision}</span>
-          <span>Ver plano</span>
-        </Link>
-      ))}
-      {!context.publications.length && (
-        <div>
-          <strong>Plano de cuidado</strong>
-          <span>Nenhum plano publicado disponível para este acesso.</span>
-        </div>
-      )}
-      <Link href={`${base}/pacientes/${patientId}`}>
-        <strong>Contexto do paciente</strong>
-        <span>Cadastro e registros disponíveis.</span>
-        <span>Abrir ficha</span>
-      </Link>
-      <Link
-        href={
-          recordBase ? `${recordBase}?aba=Documentos` : `${base}/documentos`
-        }
-      >
-        <strong>Acompanhamento e exames</strong>
-        <span>
-          Check-ins e documentos privados disponíveis conforme o vínculo de cuidado.
-        </span>
-        <span>Abrir documentos</span>
-      </Link>
-    </div>
+    <ContextCardList
+      cards={contextCardsFrom(base, patientId, context, recordBase)}
+    />
   );
 }
 
@@ -141,6 +150,16 @@ export function TodayWorkspace({
   const nextDate = data.nextDate ?? data.today;
   const isFutureDay = Boolean(next && nextDate !== data.today);
   const active = next && data.drafts.find((p) => p.appointment_id === next.id);
+  // Cards de contexto na mesma ordem em qualquer tela, inclusive quando faltam.
+  const contextCards =
+    next && data.context
+      ? contextCardsFrom(
+          base,
+          next.patient_id,
+          data.context,
+          `${base}/pacientes/${next.patient_id}`,
+        )
+      : [];
   const attentionCount =
     data.checkIns.length +
     data.drafts.length +
@@ -222,20 +241,18 @@ export function TodayWorkspace({
                 </div>
               </div>
               <div className="today-context">
-                <h3>Contexto para esta consulta</h3>
-                <p>
-                  {data.context
-                    ? "Registros essenciais para orientar a próxima conversa."
-                    : "Não há contexto clínico disponível para este vínculo."}
-                </p>
-                {data.context && (
-                  <PatientCareLinks
-                    base={base}
-                    patientId={next.patient_id}
-                    context={data.context}
-                    recordBase={`${base}/pacientes/${next.patient_id}`}
-                    density="compact"
-                  />
+                <h2>Contexto para esta consulta</h2>
+                {data.context ? (
+                  <>
+                    <p>{contextSummary(contextCards)}</p>
+                    <ContextCardList cards={contextCards} />
+                  </>
+                ) : (
+                  <p>
+                    Sem vínculo de cuidado ativo com este paciente para o seu
+                    acesso. Pré-consulta, exames, medidas e metas aparecem aqui
+                    quando o vínculo estiver ativo.
+                  </p>
                 )}
               </div>
             </>
