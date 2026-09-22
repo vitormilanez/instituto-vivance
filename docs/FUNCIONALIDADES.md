@@ -50,7 +50,8 @@ implementação pertencem ao código, às migrations e aos testes da `main`.
 ## Diário alimentar do paciente
 
 - O paciente registra tipo da refeição, data e horário e uma descrição entre 1 e
-  2.000 caracteres, preservada como enviada.
+  2.000 caracteres, gravada e exibida literalmente como enviada, inclusive
+  espaços, acentos e quebras de linha nas extremidades.
 - O histórico exibe os 20 relatos mais recentes do próprio paciente, com data e
   horário, sem reescrever o texto.
 - A gravação é idempotente por `request_key`: reenviar a mesma solicitação não

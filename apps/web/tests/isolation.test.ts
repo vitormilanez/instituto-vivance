@@ -2433,9 +2433,16 @@ test("patient meal reports are append-only, idempotent and visible only to the l
       "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() + interval '1 hour','Almoço adiantado')",
     ])
       await denied(invalid, [a, randomUUID()]);
+    // Only whitespace, including line breaks, is rejected; anything else is
+    // stored exactly as sent.
+    await denied(
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp(),$3)",
+      [a, randomUUID(), "\n \t\n"],
+    );
+    const report = "  Arroz, frango e salada.\nSem sobremesa.  ";
     const first = await db.query<{ id: string }>(
-      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() - interval '5 minutes','Arroz, frango e salada.') id",
-      [a, request],
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() - interval '5 minutes',$3) id",
+      [a, request, report],
     );
     const replay = await db.query<{ id: string }>(
       "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() - interval '5 minutes','Outra descrição') id",
@@ -2444,7 +2451,7 @@ test("patient meal reports are append-only, idempotent and visible only to the l
     assert.equal(replay.rows[0].id, first.rows[0].id);
     assert.equal(
       (await db.query<{ description: string }>("select description from public.patient_meal_logs")).rows[0].description,
-      "Arroz, frango e salada.",
+      report,
     );
     assert.equal((await db.query("select id from public.patient_meal_logs")).rows.length, 1);
     await denied("update public.patient_meal_logs set description='Forged'");

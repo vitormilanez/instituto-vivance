@@ -103,9 +103,11 @@ test("a rota HTTP exige mesma origem, JSON e comporta 2.000 caracteres", () => {
   assert.ok(patientMealMaxBodyBytes > 2000 * 4, "limite de corpo menor que 2.000 caracteres UTF-8");
 });
 
-test("a migration mantém o diário append-only, idempotente e restrito ao vínculo ativo", () => {
+test("a migration mantém o diário append-only, idempotente, literal e restrito ao vínculo ativo", () => {
   assert.match(migration, /create table public\.patient_meal_logs/);
-  assert.match(migration, /check \(char_length\(btrim\(description\)\) between 1 and 2000\)/);
+  // O limite conta caracteres; só o relato composto apenas por espaços falha.
+  assert.match(migration, /char_length\(description\) between 1 and 2000 and description !~ '\^\[\[:space:\]\]\*\$'/);
+  assert.match(migration, /note_text is null or char_length\(note_text\) not between 1 and 2000/);
   assert.match(migration, /unique \(tenant_id, actor_user_id, client_request_id\)/);
   assert.match(migration, /enable row level security/);
   assert.match(migration, /revoke all on public\.patient_meal_logs from public, anon, authenticated/);
@@ -113,6 +115,9 @@ test("a migration mantém o diário append-only, idempotente e restrito ao vínc
   assert.match(migration, /patient_meal_logs_care_read/);
   assert.match(migration, /private\.has_care_access\(tenant_id, patient_id\)/);
   assert.match(migration, /happened_at > clock_timestamp\(\) \+ interval '15 minutes'/);
+  // O texto é gravado como enviado: nada de btrim trim() no valor persistido.
+  assert.doesNotMatch(migration, /btrim\(note_text\)/);
+  assert.match(migration, /type_text, happened_at, note_text, request_key/);
   // Nenhum privilégio de escrita direta: só a função idempotente grava.
   assert.doesNotMatch(migration, /grant (insert|update|delete) on public\.patient_meal_logs/);
 });

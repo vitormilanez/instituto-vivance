@@ -23,8 +23,14 @@ export function mealInput(value: unknown) {
     throw new InputError("Informe um horário válido.");
   if (typeof body.description !== "string")
     throw new InputError("Descreva sua refeição.");
-  const description = body.description.trim();
-  if (description.length < 1 || description.length > 2000 || /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(description))
+  // The report is persisted exactly as sent. Only the emptiness test normalises
+  // whitespace, and the 1–2.000 limit counts code points, like char_length.
+  const description = body.description;
+  if (
+    description.trim().length < 1 ||
+    [...description].length > 2000 ||
+    /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(description)
+  )
     throw new InputError("Descreva a refeição em até 2.000 caracteres.");
   return {
     requestKey: tenantId(String(body.request_key)),

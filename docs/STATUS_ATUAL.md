@@ -30,8 +30,10 @@ Atualizado em 22/09/2026.
 - A migration `20260921185603_required_preconsultation.sql` não foi confirmada
   em um Supabase de produção.
 - A migration `20260921191924_patient_meal_logs.sql`, do diário alimentar, foi
-  validada apenas no banco efêmero dos testes; ela não foi aplicada em nenhum
-  banco remoto.
+  validada apenas no banco efêmero dos testes e não foi aplicada remotamente por
+  este trabalho. Uma sondagem somente-leitura do projeto Supabase de
+  desenvolvimento já encontrou a tabela e a função, em versão anterior a este
+  ajuste; a reaplicação no destino continua pendente.
 - O diário alimentar não foi homologado em produção, Preview ou com contas
   reais; o aceite autenticado do fluxo continua pendente.
 - Na execução de publicação da PR #34, as etapas de Supabase e promoção Vercel

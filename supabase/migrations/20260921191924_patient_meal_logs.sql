@@ -1,5 +1,8 @@
 -- Patient-owned meal notes support longitudinal context. They are original
 -- self-reports: no nutritional inference, adherence score, or care decision.
+-- The description is persisted exactly as the patient typed it, including edge
+-- spaces, accents and line breaks; only a report made of whitespace alone is
+-- rejected, and the 1–2.000 limit counts characters, not bytes.
 create table public.patient_meal_logs (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null,
@@ -7,7 +10,8 @@ create table public.patient_meal_logs (
   actor_user_id uuid not null,
   meal_type text not null check (meal_type in ('breakfast','lunch','dinner','snack','other')),
   eaten_at timestamptz not null,
-  description text not null check (char_length(btrim(description)) between 1 and 2000),
+  description text not null check (
+    char_length(description) between 1 and 2000 and description !~ '^[[:space:]]*$'),
   client_request_id uuid not null,
   created_at timestamptz not null default clock_timestamp(),
   unique (tenant_id, id),
@@ -56,7 +60,8 @@ begin
   end if;
   if type_text not in ('breakfast','lunch','dinner','snack','other')
     or happened_at is null or happened_at > clock_timestamp() + interval '15 minutes'
-    or char_length(btrim(coalesce(note_text, ''))) not between 1 and 2000 then
+    or note_text is null or char_length(note_text) not between 1 and 2000
+    or note_text ~ '^[[:space:]]*$' then
     raise exception 'Valid meal details required' using errcode = '23514';
   end if;
   select patient_id into target_patient
@@ -72,7 +77,7 @@ begin
   insert into public.patient_meal_logs(
     tenant_id, patient_id, actor_user_id, meal_type, eaten_at, description, client_request_id
   ) values (
-    target_tenant, target_patient, auth.uid(), type_text, happened_at, btrim(note_text), request_key
+    target_tenant, target_patient, auth.uid(), type_text, happened_at, note_text, request_key
   ) returning id into result;
   return result;
 end;
