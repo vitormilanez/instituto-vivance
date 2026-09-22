@@ -5,6 +5,8 @@ import { clinicDate } from "@/modules/agenda/validation";
 import { focusedAppointment } from "@/modules/agenda/focus";
 import { requestInstant } from "@/lib/request-time";
 import { openConsultationId } from "./home-view";
+import { openWork } from "./open-work";
+import type { OpenWorkItem } from "./open-work-items";
 import {
   allReceivedKinds,
   myCareLinks,
@@ -90,6 +92,17 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
   const todayPatients = new Set(
     agenda.appointments.map((item) => item.patient_id),
   );
+  // Trabalho em aberto do profissional. Uma falha aqui não derruba a Home: a
+  // seção diz que não carregou e oferece tentar de novo.
+  let work: OpenWorkItem[] | null;
+  try {
+    work = await openWork(id, {
+      activePatientIds: activeIds,
+      names: new Map(links.map((link) => [link.patientId, link.name])),
+    });
+  } catch {
+    work = null;
+  }
   // Contexto só de quem aparece aberto: a consulta aberta e, se for de outro
   // dia, a próxima. Cada bloco usa o contexto do PRÓPRIO paciente — nunca o
   // de outra linha.
@@ -114,6 +127,7 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
     nextDate: next ? clinicDate(new Date(next.starts_at)) : null,
     context,
     contexts,
+    work,
     drafts: drafts.data ?? [],
     links: linkByPatient,
     cutoffs,

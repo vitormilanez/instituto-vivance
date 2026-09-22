@@ -4967,3 +4967,7 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
 @media (prefers-reduced-motion: reduce) {
   .home-sticky, .home-earlier summary::before, .home-between summary::before { transition: none; }
 }
+.home-section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.home-section-head h2 { margin: 0; color: var(--ink); font-size: 16px; letter-spacing: -.01em; }
+.home-section-head > span { color: var(--context-muted); font-size: 13px; }
+.home-work .home-plain-list { margin-top: 8px; }

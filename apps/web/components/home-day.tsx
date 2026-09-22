@@ -23,6 +23,7 @@ import { receivedItemLabels } from "@/modules/workspace/received-items";
 import { ConsultationBlock } from "@/components/consultation-block";
 import { StickyConsultation } from "@/components/sticky-consultation";
 import { RetryButton } from "@/components/retry-button";
+import { OpenWork } from "@/components/open-work";
 
 type Data = Awaited<ReturnType<typeof todayWorkspace>>;
 type Appointment = Data["appointments"][number];
@@ -199,9 +200,10 @@ export function HomeDay({
     : null;
 
   const between = betweenConsultations(data.between, data.received);
-  const todayPatients = new Set(data.appointments.map((item) => item.patient_id));
-  const otherDrafts = data.drafts.filter(
-    (draft) => !todayPatients.has(draft.patient_id) && draft.patient_id !== future?.patient_id,
+  // Só a consulta aberta (e a próxima de outro dia) mostra o rascunho no
+  // próprio bloco; o de uma linha recolhida continua na fila.
+  const blockPatients = new Set(
+    [open?.patient_id, future?.patient_id].filter(Boolean) as string[],
   );
   const noConsultations = counts.consultations === 0;
 
@@ -251,25 +253,17 @@ export function HomeDay({
         </section>
       ) : null}
 
-      {otherDrafts.length ? (
-        <section className="home-section" aria-labelledby="home-drafts-title">
-          <h2 id="home-drafts-title">Seus rascunhos</h2>
-          <ul className="home-plain-list">
-            {otherDrafts.map((draft) => (
-              <li key={draft.id}>
-                <span>
-                  <strong>{draft.patients?.display_name ?? "Paciente"}</strong>
-                  <span>
-                    Atendimento iniciado, ainda não finalizado · atualizado{" "}
-                    {receivedWhen(draft.updated_at, data.today).replace("Hoje", "hoje")}
-                  </span>
-                </span>
-                <Link href={`${base}/atendimentos/${draft.id}`}>Retomar</Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <OpenWork
+        items={
+          data.work?.filter(
+            (item) =>
+              // O rascunho de quem tem consulta aberta na tela já aparece no
+              // bloco dela; aqui ficaria repetido.
+              !(item.kind === "encounter" && blockPatients.has(item.patientId)),
+          ) ?? null
+        }
+        today={data.today}
+      />
 
       <section className="home-section home-between" aria-labelledby="home-between-title">
         <details open={noConsultations}>
