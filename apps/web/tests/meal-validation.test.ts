@@ -24,10 +24,46 @@ test("meal registration preserves the report exactly as sent", () => {
         mealType: "lunch",
         eatenAt: "2026-09-21T12:30:00.000Z",
         description,
+        photoDocument: null,
       },
       `a descrição "${JSON.stringify(description)}" foi alterada`,
     );
   assert.equal(mealTypeLabels.snack, "Lanche");
+});
+
+test("meal registration accepts only a well-formed photo document id", () => {
+  const photo = "22222222-2222-4222-8222-222222222222";
+  assert.equal(
+    mealInput({
+      request_key: key,
+      meal_type: "lunch",
+      eaten_at: "2026-09-21T12:30:00Z",
+      description: "Com foto.",
+      photo_document_id: photo,
+    }).photoDocument,
+    photo,
+  );
+  // Sem foto continua válido; o campo nulo explícito também.
+  assert.equal(
+    mealInput({
+      request_key: key,
+      meal_type: "lunch",
+      eaten_at: "2026-09-21T12:30:00Z",
+      description: "Sem foto.",
+      photo_document_id: null,
+    }).photoDocument,
+    null,
+  );
+  for (const photo_document_id of ["", "not-a-uuid", 42, "22222222-2222-4222-8222-22222222222"])
+    assert.throws(() =>
+      mealInput({
+        request_key: key,
+        meal_type: "lunch",
+        eaten_at: "2026-09-21T12:30:00Z",
+        description: "Foto inválida.",
+        photo_document_id,
+      }),
+    );
 });
 
 test("meal registration counts characters, not bytes, up to 2.000", () => {

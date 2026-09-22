@@ -48,6 +48,17 @@ const migration = readFileSync(
   ),
   "utf8",
 );
+const photoMigration = readFileSync(
+  new URL(
+    "../../../supabase/migrations/20260922114500_patient_meal_photo.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+const documentsService = readFileSync(
+  new URL("../modules/documents/service.ts", import.meta.url),
+  "utf8",
+);
 
 test("o diário alimentar entra na jornada existente sem criar uma nona ação rápida", () => {
   assert.match(area, /Meu diário/);
@@ -66,9 +77,9 @@ test("o diário alimentar entra na jornada existente sem criar uma nona ação r
 test("a interface orienta o primeiro registro, bloqueia reenvio duplicado e permite nova tentativa", () => {
   assert.match(component, /Seu primeiro registro começa aqui/);
   assert.match(component, /if \(busy\.current\) return;/);
-  assert.match(component, /disabled=\{pending\}/);
+  assert.match(component, /disabled=\{pending !== ""\}/);
   assert.match(component, /role="alert"/);
-  assert.match(component, /Tentar novamente|Registrar refeição/);
+  assert.match(component, /Enviando foto…|Registrar refeição/);
   // A mesma request_key só é reaproveitada quando o conteúdo não mudou, então
   // repetir o envio não cria uma segunda refeição.
   assert.match(component, /request\.current\.fingerprint !== fingerprint/);
@@ -129,7 +140,10 @@ test("a correção do relato literal alcança bancos onde a migration antiga já
   const folder = new URL("../../../supabase/migrations/", import.meta.url);
   const name = "20260922015500_patient_meal_literal_description.sql";
   const files = readdirSync(folder).filter((file) => file.endsWith(".sql")).sort();
-  assert.equal(files.at(-1), name, "a correção precisa ser a migration mais recente");
+  assert.ok(
+    files.indexOf(name) > files.indexOf("20260921191924_patient_meal_logs.sql"),
+    "a correção precisa vir depois da migration original",
+  );
   const followUp = readFileSync(new URL(name, folder), "utf8");
   // Recria o CHECK pelo nome e substitui a função; nada de btrim no caminho.
   assert.match(followUp, /drop constraint if exists patient_meal_logs_description_check/);
@@ -140,4 +154,72 @@ test("a correção do relato literal alcança bancos onde a migration antiga já
   assert.doesNotMatch(followUp, /btrim/);
   // Não reescreve relatos já gravados.
   assert.doesNotMatch(followUp, /(update|delete from) public\.patient_meal_logs/);
+});
+
+test("a foto opcional é uma só fonte: prévia, troca, remoção e recuperação de falha", () => {
+  // Só JPG e PNG, com prévia local antes de qualquer envio.
+  assert.match(component, /accept="image\/jpeg,image\/png"/);
+  assert.match(component, /acceptedPhotoTypes = \["image\/jpeg", "image\/png"\]/);
+  assert.match(component, /URL\.createObjectURL\(chosen\)/);
+  assert.match(component, /URL\.revokeObjectURL\(preview\)/);
+  assert.match(component, /<img src=\{preview\} alt="Prévia da foto escolhida" \/>/);
+  assert.match(component, />\s*Trocar foto\s*</);
+  assert.match(component, />\s*Remover foto\s*</);
+  // Progresso por etapa e erro específico da foto.
+  assert.match(component, /Enviando a foto…/);
+  assert.match(component, /Registrando a refeição…/);
+  assert.match(component, /id="meal-log-photo-error" role="alert"/);
+  assert.match(component, /aria-describedby=\{`meal-log-photo-hint/);
+  // Falha na foto preserva texto e oferece as duas saídas.
+  assert.match(component, /A foto não foi enviada\. Seu texto continua aqui\./);
+  assert.match(component, />\s*Tentar foto novamente\s*</);
+  assert.match(component, />\s*Salvar sem foto\s*</);
+  // A foto é enviada antes e o resultado é reaproveitado numa nova tentativa.
+  assert.match(component, /const sent = await uploadDocument\(\{/);
+  assert.match(component, /uploaded\.current\?\.fingerprint === photoFingerprint/);
+  assert.match(component, /setPending\("photo"\)[\s\S]*setPending\("meal"\)/);
+  // A foto viaja no mesmo registro, e o formulário só limpa após sucesso.
+  assert.match(component, /photo_document_id: documentId/);
+  assert.match(component, /setSuccess\("Refeição registrada no seu diário\."\)/);
+  assert.match(component, /formElement\.reset\(\)/);
+  // Nada de análise da imagem.
+  assert.doesNotMatch(component, /kcal|\bIMC\b|classificação|nutri/i);
+});
+
+test("paciente e equipe veem a mesma foto pela rota protegida de download", () => {
+  const download = /\/api\/v1\/clinics\/\$\{[^}]+\}\/documents\/\$\{[^}]+\}\/download/;
+  assert.match(component, download);
+  assert.match(staffComponent, download);
+  // A equipe recebe imagem e texto como o mesmo relato, com autoria e horário.
+  assert.match(staffComponent, /meal\.photo_document_id/);
+  assert.match(staffComponent, /<figcaption className="quiet-label">Foto enviada por/);
+  assert.match(staffComponent, /clinicalTime\(meal\.eaten_at\)/);
+  assert.match(staffComponent, /alt=\{`Foto da refeição enviada por/);
+  // Sem URL pública de storage nem signed URL persistida.
+  assert.doesNotMatch(component, /storage\/v1|createSignedUrl|supabase\.co/);
+  assert.doesNotMatch(staffComponent, /storage\/v1|createSignedUrl|supabase\.co/);
+  // A biblioteca de documentos não mistura a foto da refeição.
+  assert.equal(documentsService.match(/\.eq\("attached_to", "documents"\)/g)?.length, 2);
+});
+
+test("a migration da foto vincula, valida e mantém a idempotência estrita", () => {
+  assert.match(photoMigration, /add column photo_document_id uuid/);
+  assert.match(photoMigration, /foreign key \(tenant_id, photo_document_id\)\s*references public\.patient_documents\(tenant_id, id\)/);
+  assert.match(photoMigration, /unique \(tenant_id, photo_document_id\)/);
+  assert.match(photoMigration, /add column attached_to text not null default 'documents'/);
+  // Só documento disponível, de imagem, do próprio paciente e do mesmo tenant.
+  assert.match(photoMigration, /document\.patient_id = target_patient/);
+  assert.match(photoMigration, /document\.uploaded_by = auth\.uid\(\)/);
+  assert.match(photoMigration, /document\.status = 'available'/);
+  assert.match(photoMigration, /document\.content_type in \('image\/jpeg','image\/png'\)/);
+  // Mesma chave com outro conteúdo ou foto é recusada, não silenciada.
+  assert.match(photoMigration, /detail = 'meal_request_key_reused'/);
+  assert.match(photoMigration, /stored\.photo_document_id is not distinct from photo_document/);
+  // A assinatura antiga sai de cena: uma função por chamada, sem sobrecarga.
+  assert.match(photoMigration, /drop function if exists public\.record_patient_meal\(uuid, uuid, text, timestamptz, text\)/);
+  assert.match(photoMigration, /drop function if exists private\.record_patient_meal\(uuid, uuid, text, timestamptz, text\)/);
+  // A migration não abre privilégio nenhum e não analisa a imagem.
+  assert.doesNotMatch(photoMigration, /grant (insert|update|delete) on public\.patient_meal_logs/);
+  assert.doesNotMatch(photoMigration, /grant (insert|update|delete) on public\.patient_documents/);
+  assert.doesNotMatch(photoMigration, /caloria|kcal|IMC|nutri/i);
 });

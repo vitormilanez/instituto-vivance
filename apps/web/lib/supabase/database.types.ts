@@ -122,6 +122,7 @@ export type Database = {
           eaten_at: string;
           description: string;
           client_request_id: string;
+          photo_document_id: string | null;
           created_at: string;
         };
         Insert: never;
@@ -132,6 +133,13 @@ export type Database = {
             columns: ["tenant_id", "patient_id"];
             isOneToOne: false;
             referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "patient_meal_logs_photo_document_fkey";
+            columns: ["tenant_id", "photo_document_id"];
+            isOneToOne: false;
+            referencedRelation: "patient_documents";
             referencedColumns: ["tenant_id", "id"];
           },
           {
@@ -932,6 +940,7 @@ export type Database = {
       };
       patient_documents: {
         Row: {
+          attached_to: string;
           available_at: string | null;
           byte_size: number;
           category: string;
@@ -1260,6 +1269,7 @@ export type Database = {
           type_text: string;
           happened_at: string;
           note_text: string;
+          photo_document?: string | null;
         };
         Returns: string;
       };

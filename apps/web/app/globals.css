@@ -194,8 +194,18 @@
 
 .meal-log-item { display: grid; gap: 10px; padding: 20px 24px; }
 .meal-log-item > div { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
-.meal-log-item span { color: var(--muted); font-size: 14px; white-space: nowrap; }
+.meal-log-item > div > span { color: var(--muted); font-size: 14px; white-space: nowrap; }
 .meal-log-item p { margin: 0; max-width: 70ch; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Foto opcional: a mesma fonte original do relato, servida pela rota protegida. */
+.meal-log-photo-field { display: grid; gap: 8px; }
+.meal-log-photo-field input[type="file"] { max-width: 100%; }
+.meal-log-photo { display: grid; gap: 10px; justify-items: start; margin: 0; }
+.meal-log-photo img { display: block; width: 100%; max-width: 340px; height: auto; border: 1px solid var(--border); border-radius: 14px; background: var(--canvas); }
+.meal-log-photo .quiet-label { overflow-wrap: anywhere; }
+.meal-log-photo-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.meal-log-progress { margin: 0; color: var(--muted); font-weight: 600; }
+.meal-log-success { margin: 0; padding: 12px 16px; border-radius: 10px; background: #e7f4f0; color: var(--positive); font-weight: 600; }
 
 @media (max-width: 760px) {
   .meal-log-fields { grid-template-columns: 1fr; }

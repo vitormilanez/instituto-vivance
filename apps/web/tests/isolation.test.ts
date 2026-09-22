@@ -2440,15 +2440,27 @@ test("patient meal reports are append-only, idempotent and visible only to the l
       [a, randomUUID(), "\n \t\n"],
     );
     const report = "  Arroz, frango e salada.\nSem sobremesa.  ";
+    // Instante fixo e já passado: a idempotência compara o valor exato.
+    const happenedAt = new Date(Date.now() - 5 * 60_000).toISOString();
     const first = await db.query<{ id: string }>(
-      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() - interval '5 minutes',$3) id",
-      [a, request, report],
+      "select public.record_patient_meal($1,$2,'lunch',$3::timestamptz,$4) id",
+      [a, request, happenedAt, report],
     );
+    // Idempotência estrita: o mesmo conteúdo devolve a mesma linha…
     const replay = await db.query<{ id: string }>(
-      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() - interval '5 minutes','Outra descrição') id",
-      [a, request],
+      "select public.record_patient_meal($1,$2,'lunch',$3::timestamptz,$4) id",
+      [a, request, happenedAt, report],
     );
     assert.equal(replay.rows[0].id, first.rows[0].id);
+    // …e a mesma request_key com conteúdo diferente é recusada, não silenciada.
+    await denied(
+      "select public.record_patient_meal($1,$2,'lunch',$3::timestamptz,'Outra descrição')",
+      [a, request, happenedAt],
+    );
+    await denied(
+      "select public.record_patient_meal($1,$2,'dinner',$3::timestamptz,$4)",
+      [a, request, happenedAt, report],
+    );
     assert.equal(
       (await db.query<{ description: string }>("select description from public.patient_meal_logs")).rows[0].description,
       report,
@@ -2496,9 +2508,119 @@ test("patient meal reports are append-only, idempotent and visible only to the l
   });
 });
 
+test("a foto da refeição é vinculada, validada e exclusiva", async () => {
+  const peer = randomUUID();
+  const photo = async (over: Record<string, string> = {}) => {
+    const values = {
+      tenant: a,
+      patient: pa,
+      uploader: users.patient.id,
+      contentType: "image/png",
+      status: "available",
+      ...over,
+    };
+    const id = randomUUID();
+    await db.query(
+      `insert into public.patient_documents(
+         id,tenant_id,patient_id,uploaded_by,original_filename,storage_path,content_type,
+         byte_size,category,visibility,status,available_at)
+       values($1,$2,$3,$4,'foto.png',$5,$6,1024,'clinical_document','shared',$7,
+         case when $7 = 'available' then clock_timestamp() else null end)`,
+      [
+        id,
+        values.tenant,
+        values.patient,
+        values.uploader,
+        `synthetic/${id}.png`,
+        values.contentType,
+        values.status,
+      ],
+    );
+    return id;
+  };
+
+  await asUser("doctor", async () => {
+    await startClinical("2099-12-21T12:00:00Z", "2099-12-21T12:30:00Z");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+      [a, pa, users.patient.id],
+    );
+    await db.query(
+      "insert into public.patients(id,tenant_id,display_name,created_by) values($1,$2,'Synthetic peer',$3)",
+      [peer, a, users.admin.id],
+    );
+    const happenedAt = new Date(Date.now() - 5 * 60_000).toISOString();
+    const recipe = "select public.record_patient_meal($1,$2,'lunch',$3::timestamptz,$4,$5) id";
+    // Documentos sintéticos são criados pelo dono do schema: o paciente só lê.
+    const valid = await photo();
+    const other = await photo();
+    const rejectedPhotos = [
+      await photo({ patient: peer }),
+      await photo({ tenant: b, patient: pb, uploader: users.other.id }),
+      await photo({ status: "reserved" }),
+      await photo({ contentType: "application/pdf" }),
+      await photo({ uploader: users.doctor.id }),
+    ];
+
+    await switchActor("patient");
+    const key = randomUUID();
+    const stored = await db.query<{ id: string }>(recipe, [a, key, happenedAt, "Com foto.", valid]);
+    assert.equal(
+      (await db.query<{ attached_to: string }>(
+        "select attached_to from public.patient_documents where id=$1",
+        [valid],
+      )).rows[0].attached_to,
+      "meal_log",
+      "a foto vinculada sai da biblioteca de documentos",
+    );
+    // Mesmo conteúdo e mesma foto: mesma refeição.
+    const replay = await db.query<{ id: string }>(recipe, [a, key, happenedAt, "Com foto.", valid]);
+    assert.equal(replay.rows[0].id, stored.rows[0].id);
+    // Mesma request_key com outra foto: recusada, não silenciada.
+    await denied(recipe, [a, key, happenedAt, "Com foto.", other]);
+    // A mesma foto não serve para uma segunda refeição.
+    await denied(recipe, [a, randomUUID(), happenedAt, "Outra refeição.", valid]);
+    // Documentos que não podem ser vinculados.
+    for (const rejected of rejectedPhotos)
+      await denied(recipe, [a, randomUUID(), happenedAt, "Com foto inválida.", rejected]);
+    // Refeição sem foto continua funcionando.
+    const withoutPhoto = await db.query<{ id: string }>(recipe, [a, randomUUID(), happenedAt, "Sem foto.", null]);
+    assert.ok(withoutPhoto.rows[0].id);
+    assert.equal(
+      (await db.query("select id from public.patient_meal_logs")).rows.length,
+      2,
+      "nenhuma tentativa recusada pode ter sido persistida",
+    );
+    // A foto viaja com o relato: paciente e equipe vinculada leem a mesma linha.
+    const patientView = await db.query<{ photo_document_id: string }>(
+      "select photo_document_id from public.patient_meal_logs where id=$1",
+      [stored.rows[0].id],
+    );
+    assert.equal(patientView.rows[0].photo_document_id, valid);
+    await switchActor("nurse");
+    assert.equal((await db.query("select id from public.patient_meal_logs")).rows.length, 0);
+    await switchActor("doctor");
+    const doctorView = await db.query<{ photo_document_id: string }>(
+      "select photo_document_id from public.patient_meal_logs where id=$1",
+      [stored.rows[0].id],
+    );
+    assert.equal(doctorView.rows[0].photo_document_id, valid);
+    assert.equal(
+      (await db.query("select id from public.patient_documents where id=$1", [valid])).rows.length,
+      1,
+      "a equipe vinculada lê o documento da foto",
+    );
+  });
+});
+
 // Forma anterior à correção: gravava btrim(note_text). Serve para provar que a
 // migration de correção substitui a função em um banco que já foi migrado.
-const legacyMealFunction = `create or replace function private.record_patient_meal(
+// As versões de seis argumentos saem antes: assim a chamada de cinco argumentos
+// não fica ambígua e o estado simulado é mesmo o anterior à correção.
+const legacyMealFunction = `drop function if exists public.record_patient_meal(uuid,uuid,text,timestamptz,text,uuid);
+drop function if exists private.record_patient_meal(uuid,uuid,text,timestamptz,text,uuid);
+create or replace function private.record_patient_meal(
   target_tenant uuid, request_key uuid, type_text text, happened_at timestamptz, note_text text
 ) returns uuid language plpgsql security definer set search_path = '' as $$
 declare
@@ -2523,6 +2645,11 @@ begin
   ) returning id into result;
   return result;
 end;
+$$;
+create or replace function public.record_patient_meal(
+  target_tenant uuid, request_key uuid, type_text text, happened_at timestamptz, note_text text
+) returns uuid language sql security invoker set search_path = '' as $$
+  select private.record_patient_meal(target_tenant, request_key, type_text, happened_at, note_text);
 $$;`;
 
 const mealConstraintDefinition = async () =>
@@ -2542,8 +2669,16 @@ const mealFunctionDefinition = async () =>
 test("a migration de correção leva um banco já migrado ao armazenamento literal", async () => {
   const folder = new URL("../../../supabase/migrations/", import.meta.url);
   const name = "20260922015500_patient_meal_literal_description.sql";
+  const photoName = "20260922114500_patient_meal_photo.sql";
   const files = readdirSync(folder).filter((file) => file.endsWith(".sql")).sort();
-  assert.equal(files.at(-1), name, "a correção precisa ser posterior à migration original");
+  assert.ok(
+    files.indexOf(name) > files.indexOf("20260921191924_patient_meal_logs.sql"),
+    "a correção precisa ser posterior à migration original",
+  );
+  assert.ok(
+    files.indexOf(photoName) > files.indexOf(name),
+    "a foto precisa vir depois da correção do texto",
+  );
   const followUp = readFileSync(new URL(name, folder), "utf8");
 
   await asUser("doctor", async () => {
