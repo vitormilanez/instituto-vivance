@@ -1,8 +1,10 @@
-// O dia do médico como eixo: o cabeçalho, o agrupamento por horário e o estado
-// de dia sem consultas. Puro — a tela só compõe o que já está decidido aqui.
+// O dia do médico como eixo: o cabeçalho, o agrupamento por horário, a contagem
+// por status e o estado de dia sem consultas. Puro — a tela só compõe o que já
+// está decidido aqui.
 //
 // Nada neste módulo ordena por relevância, prioridade ou gravidade: a ordem é
-// sempre o horário marcado, e o texto nunca sugere diagnóstico ou conduta.
+// sempre o horário marcado, e nenhum texto sugere diagnóstico, conduta, risco
+// ou urgência. Cancelada e falta continuam no eixo, com o status escrito.
 export type DayAppointment = {
   id: string;
   patientId: string;
@@ -20,31 +22,84 @@ export const dayStatusLabels: Record<string, string> = {
   no_show: "Falta",
 };
 
-// "Hoje, terça 22 · 6 consultas". O dia é o de São Paulo, como o resto da Home.
-const weekdayDay = new Intl.DateTimeFormat("pt-BR", {
+// Status que contam como consulta do dia. Cancelada e falta ficam de fora do
+// número principal e aparecem como contagens próprias, só quando existem.
+const consultationStatuses = ["scheduled", "in_progress", "completed"];
+
+export type DayCounts = {
+  consultations: number;
+  cancelled: number;
+  noShow: number;
+};
+
+export function dayCounts(appointments: DayAppointment[]): DayCounts {
+  return {
+    consultations: appointments.filter((item) =>
+      consultationStatuses.includes(item.status),
+    ).length,
+    cancelled: appointments.filter((item) => item.status === "cancelled").length,
+    noShow: appointments.filter((item) => item.status === "no_show").length,
+  };
+}
+
+// A próxima consulta nunca é uma cancelada nem uma falta.
+export function nextConsultation(
+  appointments: DayAppointment[],
+): DayAppointment | null {
+  return (
+    appointments.find((item) => consultationStatuses.includes(item.status)) ??
+    null
+  );
+}
+
+// "terça" e não "terça-feira": sábado e domingo já vêm sem o sufixo.
+const weekday = new Intl.DateTimeFormat("pt-BR", {
   weekday: "long",
+  timeZone: "America/Sao_Paulo",
+});
+const dayNumber = new Intl.DateTimeFormat("pt-BR", {
   day: "numeric",
   timeZone: "America/Sao_Paulo",
 });
 
 export function dayHeading(today: string): string {
-  const label = weekdayDay.format(new Date(`${today}T12:00:00Z`));
-  return `Hoje, ${label}`;
+  const at = new Date(`${today}T12:00:00Z`);
+  return `Hoje, ${weekday.format(at).replace("-feira", "")}, ${dayNumber.format(at)}`;
 }
 
 export function dayCountLabel(count: number): string {
   return `${count} consulta${count === 1 ? "" : "s"}`;
 }
 
-export function homeDayHeader(input: { today: string; count: number }): string {
-  return `${dayHeading(input.today)} · ${dayCountLabel(input.count)}`;
+// O número principal são as consultas que vão acontecer ou aconteceram.
+// Cancelada e falta entram depois, e só se existirem: "· 1 cancelada · 1 falta".
+export function homeDayHeader(input: { today: string; counts: DayCounts }): string {
+  const parts = [dayCountLabel(input.counts.consultations)];
+  if (input.counts.cancelled)
+    parts.push(`${input.counts.cancelled} cancelada${input.counts.cancelled === 1 ? "" : "s"}`);
+  if (input.counts.noShow)
+    parts.push(`${input.counts.noShow} falta${input.counts.noShow === 1 ? "" : "s"}`);
+  return `${dayHeading(input.today)} · ${parts.join(" · ")}`;
 }
 
-// Um dia sem consultas é dito com todas as letras, e "Entre consultas" abre no
-// lugar. Nunca um placeholder nem dado de exemplo.
-export function emptyDayCopy(): string {
-  return "Nenhuma consulta marcada para hoje.";
+// Um dia sem consultas é dito com todas as letras. Se só houver cancelada ou
+// falta, elas continuam nomeadas — nunca um placeholder nem dado de exemplo.
+export function emptyDayCopy(counts: DayCounts = { consultations: 0, cancelled: 0, noShow: 0 }): string {
+  const parts = ["Nenhuma consulta hoje"];
+  if (counts.cancelled)
+    parts.push(`${counts.cancelled} cancelada${counts.cancelled === 1 ? "" : "s"}`);
+  if (counts.noShow) parts.push(`${counts.noShow} falta${counts.noShow === 1 ? "" : "s"}`);
+  return parts.join(" · ");
 }
+
+// O que a linha recolhida mostra quando não há vínculo de cuidado ativo com o
+// profissional logado: nem contagem, nem zero — o fato.
+export const noCareLinkRowLabel = "Sem vínculo ativo";
+
+export const noCareLinkCopy =
+  "Sem vínculo de cuidado ativo. O contexto aparece depois do aceite.";
+
+export const noCareLinkAction = "Aceitar vínculo e trazer contexto";
 
 // A hora de cada linha, no fuso da clínica. `startsAt` é instante; a hora é
 // derivada, nunca fatiada da string ISO.
@@ -84,5 +139,9 @@ export function stickyLabel(input: {
   startsAt: string;
   received: number;
 }): string {
-  return [input.patientName, appointmentClock(input.startsAt), receivedCountLabel(input.received)].join(" · ");
+  return [
+    input.patientName,
+    appointmentClock(input.startsAt),
+    receivedCountLabel(input.received),
+  ].join(" · ");
 }
