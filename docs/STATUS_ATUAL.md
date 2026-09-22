@@ -54,6 +54,13 @@ Atualizado em 22/09/2026.
   isso deixou uma leitura real na conta de demonstração do médico (a
   pré-consulta de 21/09 de Vitor Milanez), que não pode ser desfeita pela
   aplicação.
+- MVP com um médico: a migration `20260923130000_single_doctor_care.sql` foi
+  aplicada e registrada no dev em 22/09/2026. Como a clínica tinha dois
+  médicos ativos, o membro "Médico QA Slice 7B.1" foi suspenso (reversível) e
+  o backfill foi rodado de novo. Resultado: Dr. Guilherme Martins com 20
+  vínculos ativos e nenhum aguardando aceite; os 12 `assigned` restantes são
+  do médico de QA suspenso e não dão acesso. Na Home, os 6 pacientes do dia
+  passaram de "Sem vínculo ativo" para "Nada recebido".
 - A aplicação preserva separação por clínica, papéis, vínculo de cuidado, RLS,
   versionamento, auditoria e ações clínicas explícitas conforme os testes.
 
