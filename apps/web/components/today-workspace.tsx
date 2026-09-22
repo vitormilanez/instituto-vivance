@@ -9,6 +9,7 @@ import {
   contextSummary,
   type ContextCard,
 } from "@/modules/workspace/patient-context-cards";
+import { CareRequestAction } from "@/components/care-request-action";
 
 const time = (date: string) =>
   new Date(date).toLocaleTimeString("pt-BR", {
@@ -55,9 +56,19 @@ const initials = (name: string) =>
     .join("")
     .toUpperCase();
 
-// Um card por tipo de informação, na mesma ordem em todas as telas. Cada card é
-// um único alvo focável: ausência também é acionável, nunca um <div> inerte.
-export function ContextCardList({ cards }: { cards: ContextCard[] }) {
+// Um card por tipo de informação, na mesma ordem em todas as telas. O link que
+// abre o registro e o botão que pede a informação são alvos irmãos, nunca um
+// dentro do outro: um navega, o outro cria uma pendência auditável.
+export function ContextCardList({
+  cards,
+  base,
+  patientId,
+}: {
+  cards: ContextCard[];
+  base?: string;
+  patientId?: string;
+}) {
+  const tenantId = base?.split("/")[2];
   return (
     <ul className="context-cards">
       {cards.map((card) => (
@@ -67,6 +78,14 @@ export function ContextCardList({ cards }: { cards: ContextCard[] }) {
             <span className="context-state">{card.state}</span>
             <span className="context-action">{card.action}</span>
           </a>
+          {card.request && tenantId && patientId ? (
+            <CareRequestAction
+              tenantId={tenantId}
+              patientId={patientId}
+              kind={card.request.kind}
+              requestedAt={card.request.requestedAt}
+            />
+          ) : null}
         </li>
       ))}
     </ul>
@@ -112,6 +131,7 @@ export function contextCardsFrom(
           publishedAt: latest.published_at,
         }
       : null,
+    requests: context.requests,
   });
 }
 
@@ -129,6 +149,8 @@ export function PatientCareLinks({
   return (
     <ContextCardList
       cards={contextCardsFrom(base, patientId, context, recordBase)}
+      base={base}
+      patientId={patientId}
     />
   );
 }
@@ -245,7 +267,11 @@ export function TodayWorkspace({
                 {data.context ? (
                   <>
                     <p>{contextSummary(contextCards)}</p>
-                    <ContextCardList cards={contextCards} />
+                    <ContextCardList
+                      cards={contextCards}
+                      base={base}
+                      patientId={next.patient_id}
+                    />
                   </>
                 ) : (
                   <p>

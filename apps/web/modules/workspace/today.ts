@@ -99,6 +99,8 @@ export type PatientCareContext = {
   documents: { total: number; latest_at: string | null };
   measurements: { total: number; latest_at: string | null };
   intake: { hasGoal: boolean; updatedAt: string | null } | null;
+  // Pendências abertas com o paciente: só o tipo e a data entram no card.
+  requests: { kind: string; requested_at: string }[];
 };
 
 export async function patientCareContext(
@@ -156,7 +158,8 @@ export async function patientCareContext(
   // bloco "Contexto para esta consulta" mostra um estado factual para cada um,
   // inclusive quando falta. Somente leitura; nenhuma inferência clínica.
   const appointmentId = nextAppointment.data?.[0]?.id ?? null;
-  const [preparation, documents, measurements, intake] = await Promise.all([
+  const [preparation, documents, measurements, intake, requests] =
+    await Promise.all([
     appointmentId
       ? client
           .from("return_preparation_requests")
@@ -193,8 +196,22 @@ export async function patientCareContext(
       .eq("tenant_id", id)
       .eq("patient_id", patientId)
       .maybeSingle(),
+    client
+      .from("patient_care_requests")
+      .select("kind,requested_at")
+      .eq("tenant_id", id)
+      .eq("patient_id", patientId)
+      .eq("status", "requested")
+      .order("requested_at")
+      .order("id"),
   ]);
-  if (preparation.error || documents.error || measurements.error || intake.error)
+  if (
+    preparation.error ||
+    documents.error ||
+    measurements.error ||
+    intake.error ||
+    requests.error
+  )
     throw new Error("Unable to load patient care context");
   const documentRow = documents.data?.[0] ?? null;
   const measurementRow = measurements.data?.[0] ?? null;
@@ -227,5 +244,6 @@ export async function patientCareContext(
           updatedAt: intakeRow.updated_at,
         }
       : null,
+    requests: requests.data ?? [],
   };
 }

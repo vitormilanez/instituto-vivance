@@ -20,6 +20,7 @@ const empty: ConsultationContextInput = {
   intake: null,
   encounter: null,
   publication: null,
+  requests: [],
 };
 
 const card = (cards: ReturnType<typeof consultationContextCards>, id: string) => {

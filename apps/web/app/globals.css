@@ -3129,6 +3129,14 @@ button.calendar-day[aria-pressed="true"] {
 .context-cards strong { font-size: 13px; color: var(--navy); }
 .context-cards .context-state { grid-column: 1; max-width: 52ch; font-size: 12px; line-height: 1.45; color: var(--context-muted); overflow-wrap: anywhere; }
 .context-cards .context-action { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--blue); font-size: 12px; font-weight: 700; white-space: nowrap; }
+/* Pedido ao paciente: botão próprio, abaixo do link que abre o registro —
+   alvos irmãos, nunca um controle dentro do outro. A ação nomeia o objeto, e o
+   convite ao bilhete fica mais discreto que ela. */
+.context-request { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; padding: 0 2px; }
+.context-request .field { flex: 1 1 240px; min-width: 0; margin: 0; }
+.context-request-state { margin: 0; font-size: 12px; font-weight: 700; color: var(--context-muted); }
+.context-request-note { display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0; background: none; color: var(--blue); font-size: 12px; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.context-request-note:hover { background: none; color: var(--navy-soft); }
 .context-cards > li > a.is-pending .context-state { color: var(--ink); }
 .today-primary-action { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; margin-top:18px; padding:0; border:0; background:transparent; }
 .today-primary-action > span { max-width:34ch; color:var(--muted); font-size:12px; line-height:1.5; }

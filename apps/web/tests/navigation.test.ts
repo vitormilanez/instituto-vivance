@@ -61,8 +61,12 @@ test("today preserves the focused patient when opening the record and documents"
   assert.match(workspace, /contextCardsFrom\(\s*base,\s*next\.patient_id,/);
   assert.match(workspace, /`\$\{base\}\/pacientes\/\$\{next\.patient_id\}`/);
   assert.match(workspace, /Preparar atendimento/);
-  // O bloco de contexto usa a mesma lista de cards do resto do produto.
-  assert.match(workspace, /<ContextCardList cards=\{contextCards\} \/>/);
+  // O bloco de contexto usa a mesma lista de cards do resto do produto, e a
+  // Home passa a identidade do paciente focado para a ação de solicitar.
+  assert.match(
+    workspace,
+    /<ContextCardList\s+cards=\{contextCards\}\s+base=\{base\}\s+patientId=\{next\.patient_id\}\s*\/>/,
+  );
 });
 
 test("today falls forward to the next scheduled day without changing today's list", () => {
