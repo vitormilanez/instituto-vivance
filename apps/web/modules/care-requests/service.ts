@@ -45,6 +45,22 @@ export async function requestPatientCare(
   return { id: result.data, kind: values.kind };
 }
 
+// O que foi pedido a esta pessoa. A RLS já limita a leitura ao próprio
+// paciente; aqui só se escolhe o que vira tarefa no "Hoje".
+export async function myPendingCareRequests(id: string) {
+  const tenant = tenantId(id);
+  const { client } = await requireClinic(tenant, ["patient"]);
+  const result = await client
+    .from("patient_care_requests")
+    .select("kind,requested_at")
+    .eq("tenant_id", tenant)
+    .eq("status", "requested")
+    .order("requested_at")
+    .order("id");
+  if (result.error) databaseFailure(result.error.code);
+  return result.data ?? [];
+}
+
 // Leitura para o card: só a pendência interessa ao médico, e o histórico
 // completo já vive na auditoria da tabela.
 export async function pendingCareRequests(id: string, patientInput: string) {

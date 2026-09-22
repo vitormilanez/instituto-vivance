@@ -94,6 +94,7 @@ export function PatientArea({
   preparationPending,
   requiredPreparation,
   latestMeasurement,
+  careRequests = [],
 }: {
   section: PatientSection;
   base: string;
@@ -117,6 +118,7 @@ export function PatientArea({
     measure_unit: string;
     reported_on: string;
   } | null;
+  careRequests?: { kind: string; requested_at: string }[];
 }) {
   const nextAppointment = patientNextAppointment(appointments, currentTime);
   const latestCompleted = [...appointments]
@@ -140,6 +142,7 @@ export function PatientArea({
     preparationPending,
     unreadPlan: unreadPublication,
     hasMeasurement: Boolean(latestMeasurement),
+    careRequests,
   });
   if (section.slug === "hoje")
     return (

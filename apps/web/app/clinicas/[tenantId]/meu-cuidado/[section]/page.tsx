@@ -32,6 +32,7 @@ import { patientReportPublications } from "@/modules/reports/publication-service
 import { PublishedReports } from "@/components/published-reports";
 import { patientPreparationPending, patientPreparationRequirement, patientReturnPreparations } from "@/modules/return-preparation/service";
 import { PatientReturnPreparationWorkspace } from "@/components/return-preparation-workspace";
+import { myPendingCareRequests } from "@/modules/care-requests/service";
 export const dynamic = "force-dynamic";
 
 export default async function PatientAreaPage({
@@ -124,6 +125,10 @@ export default async function PatientAreaPage({
   const latestMeasurement = patient && slug === "hoje"
     ? await patientMeasurementSummary(tenantId)
     : null;
+  // O que a equipe pediu a esta pessoa vira tarefa no "Hoje".
+  const careRequests = patient && slug === "hoje"
+    ? await myPendingCareRequests(tenantId)
+    : [];
   const appointments =
     slug === "consultas" || slug === "hoje"
       ? await listAppointments(
@@ -243,6 +248,7 @@ export default async function PatientAreaPage({
               preparationPending={preparationPending}
               requiredPreparation={requiredPreparation}
               latestMeasurement={latestMeasurement}
+              careRequests={careRequests}
             />
             {preparations && preparations.preparations.length > 0 && (
               <PatientReturnPreparationWorkspace initial={preparations} />
