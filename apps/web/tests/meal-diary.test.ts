@@ -182,6 +182,14 @@ test("a foto opcional é uma só fonte: prévia, troca, remoção e recuperaçã
   assert.match(component, /photo_document_id: documentId/);
   assert.match(component, /setSuccess\("Refeição registrada no seu diário\."\)/);
   assert.match(component, /formElement\.reset\(\)/);
+  // Sem foto, a API mantém os cinco argumentos de sempre.
+  assert.match(service, /\.\.\.\(value\.photoDocument \? \{ photo_document: value\.photoDocument \} : \{\}\)/);
+  // Acabamento: o botão nomeia a recuperação e a foto já enviada é explicada.
+  assert.match(component, /aria-busy=\{pending !== ""\}/);
+  assert.match(component, /\? "Tentar novamente"/);
+  assert.match(component, /A foto já foi enviada\. Tentar de novo não envia outra\./);
+  // A imagem reserva espaço antes de carregar: sem salto de layout.
+  assert.match(css, /\.meal-log-photo img \{[^}]*aspect-ratio: 4 \/ 3;[^}]*object-fit: contain;/);
   // Nada de análise da imagem.
   assert.doesNotMatch(component, /kcal|\bIMC\b|classificação|nutri/i);
 });

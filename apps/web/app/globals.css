@@ -201,7 +201,7 @@
 .meal-log-photo-field { display: grid; gap: 8px; }
 .meal-log-photo-field input[type="file"] { max-width: 100%; }
 .meal-log-photo { display: grid; gap: 10px; justify-items: start; margin: 0; }
-.meal-log-photo img { display: block; width: 100%; max-width: 340px; height: auto; border: 1px solid var(--border); border-radius: 14px; background: var(--canvas); }
+.meal-log-photo img { display: block; width: 100%; max-width: 340px; aspect-ratio: 4 / 3; object-fit: contain; height: auto; border: 1px solid var(--border); border-radius: 14px; background: var(--canvas); }
 .meal-log-photo .quiet-label { overflow-wrap: anywhere; }
 .meal-log-photo-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .meal-log-progress { margin: 0; color: var(--muted); font-weight: 600; }

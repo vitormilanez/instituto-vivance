@@ -166,6 +166,7 @@ export function PatientMealLogs({ initial }: { initial: PatientMeals }) {
           </div>
         </div>
         <form
+          aria-busy={pending !== ""}
           onSubmit={(event: FormEvent<HTMLFormElement>) => {
             event.preventDefault();
             void send(event.currentTarget);
@@ -302,6 +303,11 @@ export function PatientMealLogs({ initial }: { initial: PatientMeals }) {
               {error}
             </p>
           )}
+          {error && preview && !photoError && (
+            <p className="module-footnote">
+              A foto já foi enviada. Tentar de novo não envia outra.
+            </p>
+          )}
           {success && (
             <p className="meal-log-success" role="status">
               {success}
@@ -312,7 +318,9 @@ export function PatientMealLogs({ initial }: { initial: PatientMeals }) {
               ? "Enviando foto…"
               : pending === "meal"
                 ? "Registrando…"
-                : "Registrar refeição"}
+                : error
+                  ? "Tentar novamente"
+                  : "Registrar refeição"}
           </button>
         </form>
       </article>

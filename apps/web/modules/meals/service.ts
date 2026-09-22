@@ -70,7 +70,10 @@ export async function recordMeal(id: string, input: unknown) {
     type_text: value.mealType,
     happened_at: value.eatenAt,
     note_text: value.description,
-    photo_document: value.photoDocument,
+    // A foto é opcional também na chamada: sem foto continuam os cinco
+    // argumentos, então registrar refeição segue funcionando mesmo em um banco
+    // onde a migration da foto ainda não chegou.
+    ...(value.photoDocument ? { photo_document: value.photoDocument } : {}),
   });
   if (result.error)
     recordFailure(result.error.code, result.error.details, result.error.message);
