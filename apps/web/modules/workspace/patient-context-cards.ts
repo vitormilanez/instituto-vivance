@@ -95,10 +95,10 @@ export function consultationContextCards(
     documents: {
       id: "documents",
       title: "Exames",
+      // A contagem vem junto: o médico sabe quantos arquivos existem antes de
+      // abrir a lista, sem que o card classifique qualidade ou risco.
       state: input.documents.total
-        ? documentDate
-          ? `Enviado em ${documentDate}`
-          : "Enviado"
+        ? `${input.documents.total} exame${input.documents.total > 1 ? "s" : ""} enviado${input.documents.total > 1 ? "s" : ""}${documentDate ? ` em ${documentDate}` : ""}`
         : "Nenhum exame enviado",
       pending: input.documents.total === 0,
       action: "Abrir documentos",

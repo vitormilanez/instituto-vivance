@@ -58,7 +58,15 @@ test("cada card escreve o próprio estado factual, sem frase genérica", () => {
     publication: { planId: "plan-1", revision: 3, publishedAt: "2026-09-13T12:00:00Z" },
   });
   assert.equal(card(cards, "preparation").state, "Rascunho salvo");
-  assert.equal(card(cards, "documents").state, "Enviado em 17/09");
+  assert.equal(card(cards, "documents").state, "2 exames enviados em 17/09");
+  // A contagem funciona no singular e mesmo sem data conhecida.
+  assert.equal(
+    card(
+      consultationContextCards({ ...empty, documents: { total: 1, latestAt: null } }),
+      "documents",
+    ).state,
+    "1 exame enviado",
+  );
   assert.equal(card(cards, "measurements").state, "Última atualização em 18/09");
   assert.equal(card(cards, "goals").state, "Respondidas");
   assert.equal(card(cards, "encounter").state, "Finalizada em 12/09");

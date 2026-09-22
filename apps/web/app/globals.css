@@ -4228,6 +4228,37 @@ a.more-tools-card:hover {
 }
 .onboarding-upload input[type="file"] {
   min-height: 44px;
+  max-width: 100%;
+}
+/* Exames do cadastro: um estado factual do conjunto e um card por arquivo, com
+   nome original, tipo, tamanho, estado e erro próprios. Cada arquivo é
+   removível e reenviável sozinho; nada aqui rola na horizontal a 320px. */
+.exam-state { margin: 0; font-size: 14px; font-weight: 700; color: var(--navy); }
+.exam-hint { margin: 0; max-width: 62ch; font-size: 12px; line-height: 1.5; color: var(--context-muted); }
+.exam-rejected { padding: 12px 14px; border: 1px solid var(--attention-border); border-radius: 12px; background: var(--attention-surface); }
+.exam-rejected > p { margin: 0; font-size: 13px; font-weight: 700; color: var(--attention); }
+.exam-rejected > ul { display: grid; gap: 6px; margin: 8px 0 12px; padding: 0; list-style: none; }
+.exam-rejected > ul > li { display: grid; gap: 2px; min-width: 0; font-size: 12px; color: var(--ink); }
+.exam-rejected > ul > li > strong { overflow-wrap: anywhere; }
+.exam-rejected > ul > li > span { color: var(--context-muted); }
+.exam-selection { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+/* Uma linha por arquivo, separada por fio — não um card dentro do painel. */
+.exam-selection > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; min-width: 0; padding: 12px 0; border-top: 1px solid var(--border); }
+.exam-selection > li:first-child { border-top: 0; padding-top: 0; }
+.exam-selection .exam-file { display: grid; grid-column: 1; min-width: 0; }
+.exam-selection .exam-file > strong { font-size: 13px; color: var(--navy); overflow-wrap: anywhere; }
+.exam-selection .exam-file > span { font-size: 12px; color: var(--context-muted); }
+.exam-selection .exam-file-state { grid-column: 2; grid-row: 1; align-self: start; font-size: 12px; font-weight: 700; white-space: nowrap; color: var(--context-muted); }
+.exam-selection > li[data-state="sent"] .exam-file-state { color: var(--positive); }
+.exam-selection > li[data-state="failed"] .exam-file-state { color: var(--attention); }
+.exam-selection .exam-file-error { grid-column: 1 / -1; margin: 0; font-size: 12px; line-height: 1.5; color: var(--attention); overflow-wrap: anywhere; }
+.exam-selection .exam-file-actions { display: flex; flex-wrap: wrap; grid-column: 1 / -1; gap: 8px; margin-top: 4px; }
+.exam-sent { margin: 0; font-size: 12px; color: var(--context-muted); }
+/* Em telas estreitas o estado do arquivo desce para a própria linha, em vez de
+   disputar a largura com um nome de arquivo longo. */
+@media (max-width: 650px) {
+  .exam-selection > li { grid-template-columns: minmax(0, 1fr); }
+  .exam-selection .exam-file-state { grid-column: 1; grid-row: auto; }
 }
 .onboarding-review {
   display: grid;

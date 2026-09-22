@@ -1,9 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { maxDocumentBytes } from "@/modules/documents/validation";
 import { DocumentUploadError, uploadDocument } from "@/lib/document-upload";
+import {
+  examByteLimit,
+  examFileLabel,
+  examSelectionConsented,
+  examSelectionPhrase,
+  examSelectionReady,
+  examSelectionReducer,
+  examSentPhrase,
+  examStateLabel,
+  initialExamSelection,
+  maxExamFiles,
+  type ExamSelectionItem,
+} from "@/modules/onboarding/exam-selection";
 
 export type OnboardingDraft = {
   tenantId: string;
@@ -652,12 +665,9 @@ export function OnboardingWorkspace({
                 });
                 if (!(await persist()))
                   throw new Error(
-                    "O arquivo foi recebido, mas falta salvar sua associação ao cadastro. Tente salvar novamente antes de sair.",
+                    "O arquivo foi recebido, mas falta salvar sua associação ao cadastro. Tente novamente para concluir.",
                   );
                 setSaveState("saved");
-                setMessage(
-                  `${ids.length} exame${ids.length > 1 ? "s" : ""} recebido${ids.length > 1 ? "s" : ""}.`,
-                );
               }}
             />
             <div className="onboarding-actions">
@@ -801,6 +811,27 @@ export function OnboardingWorkspace({
   );
 }
 
+// O motivo da falha no vocabulário do estágio que falhou. Quando o arquivo já
+// chegou e só faltou salvar a associação, a mensagem vem de quem persistiu.
+function examFailure(reason: unknown): string {
+  if (reason instanceof DocumentUploadError) {
+    if (reason.stage === "upload")
+      return "O arquivo não foi recebido. Tente reenviar este arquivo.";
+    if (reason.serverMessage) return reason.serverMessage;
+    return reason.stage === "prepare"
+      ? "Não foi possível preparar o envio. Tente reenviar este arquivo."
+      : "Não foi possível conferir o arquivo. Tente reenviar este arquivo.";
+  }
+  if (reason instanceof Error && reason.name === "TimeoutError")
+    return "A conexão demorou. Tente reenviar este arquivo.";
+  return reason instanceof Error
+    ? reason.message
+    : "Não foi possível enviar este arquivo. Tente reenviar este arquivo.";
+}
+
+// Um arquivo por linha, cada um com o próprio estado, erro e reenvio: um arquivo
+// que falha não derruba os outros, e remover um não perde os demais. O
+// consentimento vale para a lista efetivamente selecionada.
 function OnboardingExamUpload({
   tenantId,
   patientId,
@@ -814,87 +845,185 @@ function OnboardingExamUpload({
   onPendingChange: (pending: boolean) => void;
   onComplete: (ids: string[]) => Promise<void>;
 }) {
-  const [pending, setPending] = useState(false);
+  const [selection, dispatch] = useReducer(
+    examSelectionReducer,
+    receivedIds,
+    initialExamSelection,
+  );
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const files = Array.from(new FormData(form).getAll("files")).filter(
-      (value): value is File => value instanceof File && value.size > 0,
-    );
-    if (!files.length) {
-      setError("Escolha ao menos um arquivo para enviar.");
-      return;
-    }
-    if (files.some((file) => file.size > maxDocumentBytes)) {
-      setError("Cada arquivo deve ter até 5 MB.");
-      return;
-    }
-    setPending(true);
+  const consented = examSelectionConsented(selection);
+  const ready = examSelectionReady(selection);
+  const unsent = selection.items.filter((item) => item.state !== "sent");
+  const sent = selection.sent.length;
+
+  function choose(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    // Limpar o campo permite escolher o mesmo arquivo de novo depois de removê-lo.
+    event.target.value = "";
+    if (files.length) dispatch({ type: "add", files });
+  }
+
+  // Envia um arquivo por vez. Quando os bytes já chegaram e faltou apenas salvar
+  // a associação ao cadastro, o reenvio conclui a associação sem subir o arquivo
+  // outra vez.
+  async function send(items: ExamSelectionItem[]) {
+    if (sending || !items.length) return;
+    setSending(true);
     onPendingChange(true);
     setError("");
     try {
-      for (const file of files) {
-        const { documentId } = await uploadDocument({
-          tenantId,
-          patientId,
-          file,
-          category: "exam",
-          visibility: "internal",
-        }).catch((reason) => {
-          throw reason instanceof DocumentUploadError
-            ? new Error(
-                `${file.name}: ${
-                  reason.stage === "upload"
-                    ? "o arquivo não foi recebido."
-                    : (reason.serverMessage ??
-                      (reason.stage === "prepare"
-                        ? "não foi possível preparar o envio."
-                        : "não foi possível conferir o arquivo."))
-                }`,
-              )
-            : reason;
-        });
-        await onComplete([documentId]);
+      for (const item of items) {
+        dispatch({ type: "sending", key: item.key });
+        try {
+          let documentId = item.documentId;
+          if (!documentId) {
+            const uploaded = await uploadDocument({
+              tenantId,
+              patientId,
+              file: item.file,
+              category: "exam",
+              visibility: "internal",
+            });
+            documentId = uploaded.documentId;
+            dispatch({ type: "uploaded", key: item.key, documentId });
+          }
+          await onComplete([documentId]);
+          dispatch({ type: "sent", key: item.key });
+        } catch (reason) {
+          dispatch({ type: "failed", key: item.key, error: examFailure(reason) });
+        }
       }
-      form.reset();
-    } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível enviar os exames.",
-      );
     } finally {
-      setPending(false);
+      setSending(false);
       onPendingChange(false);
     }
   }
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!ready.length) {
+      setError("Escolha ao menos um arquivo para enviar.");
+      return;
+    }
+    if (!consented) {
+      setError(
+        "Confirme que selecionou estes arquivos para compartilhar com a equipe.",
+      );
+      return;
+    }
+    await send(ready);
+  }
+
   return (
     <form className="onboarding-upload" onSubmit={submit}>
+      <p className="exam-state" role="status">
+        {examSelectionPhrase(selection)}
+      </p>
       <label className="field" htmlFor="onboarding-exam">
         Arquivos
       </label>
       <input
         id="onboarding-exam"
-        name="files"
         type="file"
         multiple
         accept="application/pdf,image/jpeg,image/png"
-        disabled={pending}
+        onChange={choose}
+        disabled={sending}
       />
-      <label className="publication-confirm">
-        <input name="consent" type="checkbox" required disabled={pending} />
-        Confirmo que selecionei estes exames para compartilhar com a equipe após
-        enviar esta versão.
-      </label>
-      {receivedIds.length ? (
-        <p role="status">
-          {receivedIds.length} arquivo{receivedIds.length > 1 ? "s" : ""}{" "}
-          recebido{receivedIds.length > 1 ? "s" : ""} nesta etapa.
+      <p className="exam-hint">
+        PDF, JPG ou PNG, até {examByteLimit()} cada. Limite de {maxExamFiles}{" "}
+        exames nesta etapa.
+      </p>
+      {selection.rejected.length ? (
+        <div className="exam-rejected" role="alert">
+          <p>Estes arquivos não foram adicionados:</p>
+          <ul>
+            {selection.rejected.map((item) => (
+              <li key={`${item.name}-${item.reason}`}>
+                <strong>{item.name}</strong>
+                <span>{item.reason}</span>
+              </li>
+            ))}
+          </ul>
+          <button
+            className="secondary"
+            type="button"
+            onClick={() => dispatch({ type: "dismissRejections" })}
+          >
+            Entendi
+          </button>
+        </div>
+      ) : null}
+      {selection.items.length ? (
+        <ul className="exam-selection">
+          {selection.items.map((item) => (
+            <li key={item.key} data-state={item.state}>
+              <div className="exam-file">
+                <strong>{item.file.name}</strong>
+                <span>{examFileLabel(item)}</span>
+              </div>
+              <span className="exam-file-state">{examStateLabel(item.state)}</span>
+              {item.error ? (
+                <p className="exam-file-error" role="alert">
+                  {item.error}
+                </p>
+              ) : null}
+              {item.state === "failed" || item.state === "ready" ? (
+                <div className="exam-file-actions">
+                  {item.state === "failed" ? (
+                    <button
+                      className="secondary"
+                      type="button"
+                      disabled={sending}
+                      onClick={() => void send([item])}
+                    >
+                      Reenviar este arquivo
+                    </button>
+                  ) : null}
+                  <button
+                    className="secondary"
+                    type="button"
+                    disabled={sending}
+                    onClick={() => dispatch({ type: "remove", key: item.key })}
+                  >
+                    Remover
+                  </button>
+                </div>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {unsent.length > 0 && sent > 0 ? (
+        <p className="exam-sent" role="status">
+          {examSentPhrase(sent)} nesta etapa.
         </p>
       ) : null}
-      <button className="secondary" type="submit" disabled={pending}>
-        {pending ? "Enviando arquivos…" : "Enviar exames"}
+      <label className="publication-confirm">
+        <input
+          type="checkbox"
+          checked={consented}
+          onChange={(event) =>
+            dispatch({ type: "consent", consented: event.target.checked })
+          }
+          disabled={sending || !ready.length}
+          required
+        />
+        Confirmo que selecionei {ready.length} arquivo
+        {ready.length > 1 ? "s" : ""} para compartilhar com a equipe depois de
+        enviar esta versão.
+      </label>
+      <button
+        className="secondary"
+        type="submit"
+        disabled={sending || !ready.length || !consented}
+      >
+        {sending
+          ? "Enviando arquivos…"
+          : ready.length
+            ? `Enviar ${ready.length} arquivo${ready.length > 1 ? "s" : ""}`
+            : "Enviar exames"}
       </button>
       {error ? (
         <p className="feedback" role="alert">

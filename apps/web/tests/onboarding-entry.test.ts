@@ -62,10 +62,12 @@ test("a recoverable claim failure restores the opaque token", () => {
 });
 
 test("multiple exam uploads persist each successful file before continuing", () => {
-  assert.match(onboardingWorkspace, /for \(const file of files\)/);
+  // Um arquivo por vez: marca o estado dele, envia, persiste a associação ao
+  // cadastro e só então passa para o próximo — um arquivo que falha não
+  // derruba os que já foram enviados.
   assert.match(
     onboardingWorkspace,
-    /await onComplete\(\[documentId\]\)/,
+    /for \(const item of items\) \{\s+dispatch\(\{ type: "sending", key: item\.key \}\);[\s\S]*await onComplete\(\[documentId\]\);\s+dispatch\(\{ type: "sent", key: item\.key \}\);/,
   );
   assert.match(
     onboardingWorkspace,
