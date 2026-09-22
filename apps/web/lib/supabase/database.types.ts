@@ -1219,6 +1219,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      patient_care_requests: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          doctor_id: string;
+          kind: string;
+          status: string;
+          note: string;
+          client_request_id: string;
+          requested_at: string;
+          completed_at: string | null;
+          cancelled_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "patient_care_requests_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "patient_care_requests_tenant_id_doctor_id_fkey";
+            columns: ["tenant_id", "doctor_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -1618,6 +1651,17 @@ export type Database = {
           target_status: string;
         };
         Returns: number;
+      };
+      request_patient_care: {
+        Args: {
+          target_tenant: string;
+          target_patient: string;
+          target_kind: string;
+          request_note: string;
+          request_key: string;
+          replace_pending?: boolean;
+        };
+        Returns: string;
       };
     };
     Enums: {
