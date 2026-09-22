@@ -33,17 +33,25 @@ Atualizado em 22/09/2026.
   status do check-in escapava do card e era recortado; o card do paciente passou
   a empilhar o cabeçalho como o card da equipe já fazia.
 - A Vercel serve o mesmo commit informado acima e o domínio público responde.
+- A migration `20260922190000_patient_care_requests.sql` (solicitação de
+  informação ao paciente) está aplicada no Supabase de desenvolvimento e os
+  objetos foram conferidos no destino. O smoke test da RPC rodou ali dentro de
+  uma transação revertida, sem resíduo, e confirmou idempotência pela mesma
+  chave, deduplicação por tipo, uma única pendência aberta, histórico com a
+  anterior cancelada e a nota preservada, e uma mensagem com um aviso por pedido
+  criado.
 - A aplicação preserva separação por clínica, papéis, vínculo de cuidado, RLS,
   versionamento, auditoria e ações clínicas explícitas conforme os testes.
 
 ## O que ainda não está confirmado
 
 - A migration `20260922190000_patient_care_requests.sql` (solicitação de
-  informação ao paciente) **está escrita e não foi aplicada em nenhum destino**,
-  nem no desenvolvimento. Ela passa na suíte de isolamento, que carrega todas as
-  migrations em um PostgreSQL efêmero — isso prova que o SQL aplica e que RLS,
-  deduplicação, idempotência e os gatilhos de conclusão se comportam —, mas não
-  substitui a aplicação em um projeto real.
+  informação ao paciente) **não está registrada** em
+  `supabase_migrations.schema_migrations`, que segue com 41 linhas: `db query
+  --file` aplica o SQL e não escreve o histórico. Consequência concreta: um
+  `supabase db push` futuro tentaria reaplicá-la e falharia no `create table`,
+  porque a tabela já existe no desenvolvimento. O registro depende de aprovação
+  e não foi feito.
 - A solicitação ainda **não tem tela**: falta a camada de serviço, a rota de API
   e o botão "Solicitar ao paciente" nos cards, além da tarefa no "Hoje" do
   paciente. O banco está pronto para receber essa camada.
