@@ -2542,8 +2542,14 @@ const mealFunctionDefinition = async () =>
 test("a migration de correção leva um banco já migrado ao armazenamento literal", async () => {
   const folder = new URL("../../../supabase/migrations/", import.meta.url);
   const name = "20260922015500_patient_meal_literal_description.sql";
+  const original = "20260921191924_patient_meal_logs.sql";
   const files = readdirSync(folder).filter((file) => file.endsWith(".sql")).sort();
-  assert.equal(files.at(-1), name, "a correção precisa ser posterior à migration original");
+  // A correção precisa ser posterior à migration original — não ser a última
+  // migration do repositório, que segue crescendo por outros motivos.
+  assert.ok(
+    files.indexOf(name) > files.indexOf(original),
+    "a correção precisa ser posterior à migration original",
+  );
   const followUp = readFileSync(new URL(name, folder), "utf8");
 
   await asUser("doctor", async () => {
@@ -4703,5 +4709,208 @@ test("pre-consultation snapshots custom questions and ordered priorities without
       "select public.save_return_preparation_draft($1,$2,0,'{}'::jsonb)",
       [a, legacyRequest.rows[0].id],
     );
+  });
+});
+
+async function careRequestFixture() {
+  await startClinical("2099-12-21T12:00:00Z", "2099-12-21T12:30:00Z");
+  await db.exec("reset role");
+  await db.query(
+    "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+    [a, pa, users.patient.id],
+  );
+  await switchActor("doctor");
+}
+
+const requestCare = (
+  kind: string,
+  requestKey = randomUUID(),
+  note = "",
+  replacePending = false,
+) =>
+  db.query<{ id: string }>(
+    "select public.request_patient_care($1,$2,$3,$4,$5,$6) id",
+    [a, pa, kind, note, requestKey, replacePending],
+  );
+
+test("a solicitação ao paciente é única por tipo, idempotente por chave e chega pela conversa", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const key = randomUUID();
+    const note = "Traga os exames do último mês.";
+    const first = (await requestCare("exams", key, note)).rows[0].id;
+    // Mesma chave: o mesmo clique devolve o mesmo pedido.
+    assert.equal((await requestCare("exams", key, note)).rows[0].id, first);
+    // Chave nova, mesmo tipo: continua sendo uma pendência, não duas.
+    assert.equal((await requestCare("exams")).rows[0].id, first);
+
+    const stored = await db.query<{
+      kind: string;
+      status: string;
+      note: string;
+      doctor_id: string;
+      completed_at: string | null;
+    }>(
+      "select kind,status,note,doctor_id,completed_at from public.patient_care_requests where tenant_id=$1 and patient_id=$2",
+      [a, pa],
+    );
+    assert.deepEqual(stored.rows, [
+      {
+        kind: "exams",
+        status: "requested",
+        note,
+        doctor_id: users.doctor.id,
+        completed_at: null,
+      },
+    ]);
+
+    // A entrega é a mensagem na conversa que já existe, com aviso no app.
+    const messages = await db.query<{
+      content: string;
+      sender_id: string;
+      client_request_id: string;
+    }>(
+      "select content,sender_id,client_request_id from public.care_messages where tenant_id=$1 and patient_id=$2",
+      [a, pa],
+    );
+    assert.equal(messages.rows.length, 1, "uma mensagem por solicitação criada");
+    assert.equal(messages.rows[0].sender_id, users.doctor.id);
+    assert.equal(messages.rows[0].client_request_id, key);
+    assert.match(
+      messages.rows[0].content,
+      /^Solicito o envio de exames ou documentos para preparar nossa próxima conversa\. Traga os exames do último mês\.$/,
+    );
+    // O aviso é do paciente: o médico não lê a caixa de entrada dele.
+    await switchActor("patient");
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.in_app_notifications where tenant_id=$1 and recipient_user_id=$2",
+          [a, users.patient.id],
+        )
+      ).rows[0].count,
+      1,
+      "o paciente recebe um aviso no app",
+    );
+    await switchActor("doctor");
+  });
+});
+
+test("só um reenvio explícito substitui a pendência, e o histórico permanece", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const first = (await requestCare("measurements", randomUUID(), "primeiro")).rows[0].id;
+    const second = (
+      await requestCare("measurements", randomUUID(), "segundo", true)
+    ).rows[0].id;
+    assert.notEqual(second, first);
+    const rows = await db.query<{
+      status: string;
+      note: string;
+      cancelled_at: string | null;
+    }>(
+      "select status,note,cancelled_at from public.patient_care_requests where tenant_id=$1 and patient_id=$2 order by note",
+      [a, pa],
+    );
+    // O pedido anterior fica registrado como cancelado, nunca apagado.
+    assert.deepEqual(
+      rows.rows.map((row) => [row.note, row.status, row.cancelled_at !== null]),
+      [
+        ["primeiro", "cancelled", true],
+        ["segundo", "requested", false],
+      ],
+    );
+  });
+});
+
+test("concluir o que foi pedido fecha a pendência sem apagar o pedido", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    await requestCare("measurements", randomUUID(), "Pese-se esta semana.");
+    // O paciente registra o que foi pedido: a pendência fecha sozinha.
+    await switchActor("patient");
+    await db.query(
+      "select public.submit_patient_measurements($1,72.4,null,null,current_date,$2,true)",
+      [a, randomUUID()],
+    );
+    await switchActor("doctor");
+    const row = await db.query<{ status: string; completed_at: string | null; note: string }>(
+      "select status,completed_at,note from public.patient_care_requests where tenant_id=$1 and patient_id=$2 and kind='measurements'",
+      [a, pa],
+    );
+    assert.equal(row.rows[0].status, "completed");
+    assert.ok(row.rows[0].completed_at, "a conclusão tem data");
+    assert.equal(row.rows[0].note, "Pese-se esta semana.", "o pedido continua legível");
+  });
+});
+
+test("o paciente lê o que foi pedido a ele e ninguém mais lê", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    await requestCare("goals", randomUUID(), "O que você espera deste acompanhamento?");
+    await switchActor("patient");
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.patient_care_requests where tenant_id=$1",
+          [a],
+        )
+      ).rows[0].count,
+      1,
+    );
+    // Outro médico, de outra clínica, não vê a solicitação deste vínculo.
+    await switchActor("other");
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.patient_care_requests where tenant_id=$1",
+          [a],
+        )
+      ).rows[0].count,
+      0,
+    );
+    await switchActor("doctor");
+  });
+});
+
+test("solicitar exige médico com vínculo ativo, e o registro é auditado", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const id = (await requestCare("preparation", randomUUID(), "")).rows[0].id;
+    // Enfermagem acompanha, mas não abre solicitação em nome do médico.
+    await switchActor("nurse");
+    await denied("select public.request_patient_care($1,$2,$3,$4,$5,$6)", [
+      a,
+      pa,
+      "preparation",
+      "",
+      randomUUID(),
+      false,
+    ]);
+    await switchActor("patient");
+    await denied("select public.request_patient_care($1,$2,$3,$4,$5,$6)", [
+      a,
+      pa,
+      "exams",
+      "",
+      randomUUID(),
+      false,
+    ]);
+    // Tipo fora do contrato não entra nem por RPC.
+    await switchActor("doctor");
+    await denied("select public.request_patient_care($1,$2,$3,$4,$5,$6)", [
+      a,
+      pa,
+      "prescription",
+      "",
+      randomUUID(),
+      false,
+    ]);
+    await db.exec("reset role");
+    const audited = await db.query<{ count: number }>(
+      "select count(*)::int count from public.audit_events where entity_type='patient_care_requests' and entity_id=$1",
+      [id],
+    );
+    assert.ok(audited.rows[0].count >= 1, "a solicitação entra na auditoria");
   });
 });

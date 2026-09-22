@@ -128,8 +128,14 @@ test("a migration mantém o diário append-only, idempotente, literal e restrito
 test("a correção do relato literal alcança bancos onde a migration antiga já rodou", () => {
   const folder = new URL("../../../supabase/migrations/", import.meta.url);
   const name = "20260922015500_patient_meal_literal_description.sql";
+  const original = "20260921191924_patient_meal_logs.sql";
   const files = readdirSync(folder).filter((file) => file.endsWith(".sql")).sort();
-  assert.equal(files.at(-1), name, "a correção precisa ser a migration mais recente");
+  // Posterior à migration original é o que importa; ser a última do repositório
+  // não é requisito, porque outras migrations entram depois dela.
+  assert.ok(
+    files.indexOf(name) > files.indexOf(original),
+    "a correção precisa ser posterior à migration original",
+  );
   const followUp = readFileSync(new URL(name, folder), "utf8");
   // Recria o CHECK pelo nome e substitui a função; nada de btrim no caminho.
   assert.match(followUp, /drop constraint if exists patient_meal_logs_description_check/);

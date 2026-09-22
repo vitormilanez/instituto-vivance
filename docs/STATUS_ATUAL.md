@@ -38,6 +38,15 @@ Atualizado em 22/09/2026.
 
 ## O que ainda não está confirmado
 
+- A migration `20260922190000_patient_care_requests.sql` (solicitação de
+  informação ao paciente) **está escrita e não foi aplicada em nenhum destino**,
+  nem no desenvolvimento. Ela passa na suíte de isolamento, que carrega todas as
+  migrations em um PostgreSQL efêmero — isso prova que o SQL aplica e que RLS,
+  deduplicação, idempotência e os gatilhos de conclusão se comportam —, mas não
+  substitui a aplicação em um projeto real.
+- A solicitação ainda **não tem tela**: falta a camada de serviço, a rota de API
+  e o botão "Solicitar ao paciente" nos cards, além da tarefa no "Hoje" do
+  paciente. O banco está pronto para receber essa camada.
 - A migration `20260921185603_required_preconsultation.sql` não foi confirmada
   em um Supabase de produção.
 - A migration `20260921191924_patient_meal_logs.sql`, do diário alimentar, está
