@@ -3556,6 +3556,11 @@ button.calendar-day[aria-pressed="true"] {
 .conversation-message { border-radius:14px; box-shadow:0 3px 10px rgba(3,19,45,.035); }
 .conversation-message.outgoing { background:#0d5c50; color:#fff; }
 .conversation-message.outgoing small { color:#d8f0e9; }
+/* A regra global `p { color: var(--muted) }` (linha 888) vence a cor herdada do
+   balão e deixava o corpo da mensagem enviada em 1,05:1 sobre #0d5c50. O
+   `small` já estava escopado; o parágrafo não estava. Mantenha os dois juntos
+   para que uma futura mudança de fundo não reintroduza o defeito. */
+.conversation-message.outgoing p { color: inherit; }
 .conversation-composer { margin-top:18px; padding:16px; border:1px solid #dbe6ef; border-radius:14px; background:#f9fbfd; }
 .conversation-composer textarea { border-color:#b9c9da; background:#fff; }
 
@@ -3722,6 +3727,15 @@ a.more-tools-card:hover {
 }
 .patient-record-section-heading {
   align-items: flex-start;
+  /* O selo de acolhimento tem rótulo longo ("Pronto para a primeira consulta")
+     e `width: fit-content`, então não encolhe. Sem quebra de linha ele
+     empurrava o cabeçalho para 353 px num viewport de 320 px, contrariando o
+     requisito de não haver rolagem horizontal a partir de 320 px. Com wrap, o
+     selo desce para a própria linha quando não cabe, sem mudar o desktop. */
+  flex-wrap: wrap;
+}
+.patient-record-section-heading > div {
+  min-width: 0;
 }
 .patient-record-section-heading p {
   margin: 6px 0 0;
