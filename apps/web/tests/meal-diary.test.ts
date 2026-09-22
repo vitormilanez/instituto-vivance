@@ -92,6 +92,9 @@ test("o formulário permanece legível em 320px e 390px sem rolagem horizontal",
   assert.match(css, /\.meal-log-fields \{ display: grid; grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(css, /@media \(max-width: 760px\) \{\s*\.meal-log-fields \{ grid-template-columns: 1fr; \}/);
   assert.match(css, /\.meal-log-item p \{ margin: 0; max-width: 70ch; white-space: pre-wrap; overflow-wrap: anywhere; \}/);
+  // O selo de status do check-in vive na mesma tela e precisa empilhar no
+  // celular: sem isso ele escapava do card e era recortado em 320px.
+  assert.match(css, /\.patient-check-in > \.section-heading \{\s*flex-direction: column-reverse;/);
 });
 
 test("a rota HTTP exige mesma origem, JSON e comporta 2.000 caracteres", () => {

@@ -4801,12 +4801,14 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
 @media (max-width: 760px) {
   .page-heading > .button,
   .page-heading > button { align-self: stretch; width: 100%; text-align: center; }
-  .check-in-card > .section-heading {
+  .check-in-card > .section-heading,
+  .patient-check-in > .section-heading {
     flex-direction: column-reverse;
     align-items: flex-start;
     gap: 8px;
   }
-  .check-in-card > .section-heading p { margin-top: 4px; }
+  .check-in-card > .section-heading p,
+  .patient-check-in > .section-heading p { margin-top: 4px; }
 }
 @media (max-width: 650px) {
   .today-primary-action .button { width: 100%; text-align: center; }

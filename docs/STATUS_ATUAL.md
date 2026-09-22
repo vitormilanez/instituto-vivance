@@ -11,7 +11,7 @@ Atualizado em 22/09/2026.
 - Deployment Vercel: `dpl_5smEofZ8GUB2shcvzDxdK5LbPHSr`, estado `READY`.
 - Validação do lote: 207 testes, lint, TypeScript e build aprovados localmente;
   os checks da PR #34 também passaram.
-- Validação do diário alimentar integrado: 216 testes, lint, TypeScript, build e
+- Validação do diário alimentar integrado: 219 testes, lint, TypeScript, build e
   `git diff --check` aprovados localmente.
 
 ## O que está confirmado
@@ -21,6 +21,14 @@ Atualizado em 22/09/2026.
 - O diário alimentar está integrado e validado localmente sobre a `main` atual,
   na branch `codex/patient-meal-diary-integration` (commit final local, sem
   push, merge ou deploy).
+- A tela "Meu diário" foi exercitada com sessão autenticada real, usando as
+  contas de demonstração do ambiente de desenvolvimento: em 320px, 390px e
+  1440px, com três relatos persistidos, sem rolagem horizontal e sem conteúdo
+  encoberto pelo dock fixo. A visão da equipe ("Refeições registradas", em
+  Acompanhamento) foi conferida com a conta de médico nas mesmas larguras.
+- Essa conferência encontrou um defeito e ele foi corrigido: em 320px o selo de
+  status do check-in escapava do card e era recortado; o card do paciente passou
+  a empilhar o cabeçalho como o card da equipe já fazia.
 - A Vercel serve o mesmo commit informado acima e o domínio público responde.
 - A aplicação preserva separação por clínica, papéis, vínculo de cuidado, RLS,
   versionamento, auditoria e ações clínicas explícitas conforme os testes.
@@ -38,8 +46,10 @@ Atualizado em 22/09/2026.
   `20260922015500_patient_meal_literal_description.sql`, que recria o CHECK e a
   função para bancos onde a migration anterior já rodou. Ela também não foi
   aplicada remotamente: a reaplicação no destino continua pendente.
-- O diário alimentar não foi homologado em produção, Preview ou com contas
-  reais; o aceite autenticado do fluxo continua pendente.
+- O diário alimentar não foi homologado em produção nem em Preview. A sessão
+  autenticada local conferiu leitura, histórico e layout; o envio de um relato
+  novo pelo formulário, com gravação real no banco, não foi executado nessa
+  validação.
 - Na execução de publicação da PR #34, as etapas de Supabase e promoção Vercel
   do GitHub foram ignoradas porque os segredos/variáveis de produção não estavam
   configurados. A promoção Vercel foi concluída depois pela CLI local.
