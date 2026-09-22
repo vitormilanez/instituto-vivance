@@ -33,7 +33,11 @@ Atualizado em 22/09/2026.
   validada apenas no banco efêmero dos testes e não foi aplicada remotamente por
   este trabalho. Uma sondagem somente-leitura do projeto Supabase de
   desenvolvimento já encontrou a tabela e a função, em versão anterior a este
-  ajuste; a reaplicação no destino continua pendente.
+  ajuste.
+- A correção do relato literal vem em
+  `20260922015500_patient_meal_literal_description.sql`, que recria o CHECK e a
+  função para bancos onde a migration anterior já rodou. Ela também não foi
+  aplicada remotamente: a reaplicação no destino continua pendente.
 - O diário alimentar não foi homologado em produção, Preview ou com contas
   reais; o aceite autenticado do fluxo continua pendente.
 - Na execução de publicação da PR #34, as etapas de Supabase e promoção Vercel

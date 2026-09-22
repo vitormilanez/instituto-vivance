@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import test from "node:test";
 import {
   mealTypeLabels,
@@ -120,4 +120,21 @@ test("a migration mantém o diário append-only, idempotente, literal e restrito
   assert.match(migration, /type_text, happened_at, note_text, request_key/);
   // Nenhum privilégio de escrita direta: só a função idempotente grava.
   assert.doesNotMatch(migration, /grant (insert|update|delete) on public\.patient_meal_logs/);
+});
+
+test("a correção do relato literal alcança bancos onde a migration antiga já rodou", () => {
+  const folder = new URL("../../../supabase/migrations/", import.meta.url);
+  const name = "20260922015500_patient_meal_literal_description.sql";
+  const files = readdirSync(folder).filter((file) => file.endsWith(".sql")).sort();
+  assert.equal(files.at(-1), name, "a correção precisa ser a migration mais recente");
+  const followUp = readFileSync(new URL(name, folder), "utf8");
+  // Recria o CHECK pelo nome e substitui a função; nada de btrim no caminho.
+  assert.match(followUp, /drop constraint if exists patient_meal_logs_description_check/);
+  assert.match(followUp, /add constraint patient_meal_logs_description_check check \(\s*char_length\(description\) between 1 and 2000/);
+  assert.match(followUp, /create or replace function private\.record_patient_meal/);
+  assert.match(followUp, /type_text, happened_at, note_text, request_key/);
+  assert.match(followUp, /grant execute on function private\.record_patient_meal\(uuid,uuid,text,timestamptz,text\)\s*to authenticated/);
+  assert.doesNotMatch(followUp, /btrim/);
+  // Não reescreve relatos já gravados.
+  assert.doesNotMatch(followUp, /(update|delete from) public\.patient_meal_logs/);
 });
