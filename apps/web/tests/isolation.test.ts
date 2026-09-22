@@ -2396,6 +2396,214 @@ test("patient measurements are append-only, idempotent and visible only to the l
   });
 });
 
+test("patient meal reports are append-only, idempotent and visible only to the linked care team", async () => {
+  await asUser("doctor", async () => {
+    await startClinical("2099-10-21T12:00:00Z", "2099-10-21T12:30:00Z");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3) on conflict do nothing",
+      [a, pa, users.patient.id],
+    );
+    // A peer patient in the same clinic: an active patient account that still
+    // must never read the first patient's reports.
+    const peer = randomUUID();
+    await db.query(
+      "insert into public.patients(id,tenant_id,display_name,created_by) values($1,$2,'Synthetic peer',$3)",
+      [peer, a, users.admin.id],
+    );
+    await db.query(
+      "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,'patient','active','Synthetic peer')",
+      [a, users.outsider.id],
+    );
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+      [a, peer, users.outsider.id],
+    );
+    await switchActor("patient");
+    const request = randomUUID();
+    await denied(
+      "insert into public.patient_meal_logs(tenant_id,patient_id,actor_user_id,meal_type,eaten_at,description,client_request_id) values($1,$2,$3,'lunch',clock_timestamp(),'Forged',$4)",
+      [a, pa, users.patient.id, request],
+    );
+    for (const invalid of [
+      "select public.record_patient_meal($1,$2,'clinical_diagnosis',clock_timestamp(),'Café')",
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp(),'   ')",
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp(),repeat('a',2001))",
+      "select public.record_patient_meal($1,$2,'lunch',null,'Sem horário')",
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() + interval '1 hour','Almoço adiantado')",
+    ])
+      await denied(invalid, [a, randomUUID()]);
+    // Only whitespace, including line breaks, is rejected; anything else is
+    // stored exactly as sent.
+    await denied(
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp(),$3)",
+      [a, randomUUID(), "\n \t\n"],
+    );
+    const report = "  Arroz, frango e salada.\nSem sobremesa.  ";
+    const first = await db.query<{ id: string }>(
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() - interval '5 minutes',$3) id",
+      [a, request, report],
+    );
+    const replay = await db.query<{ id: string }>(
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() - interval '5 minutes','Outra descrição') id",
+      [a, request],
+    );
+    assert.equal(replay.rows[0].id, first.rows[0].id);
+    assert.equal(
+      (await db.query<{ description: string }>("select description from public.patient_meal_logs")).rows[0].description,
+      report,
+    );
+    assert.equal((await db.query("select id from public.patient_meal_logs")).rows.length, 1);
+    await denied("update public.patient_meal_logs set description='Forged'");
+    await denied("delete from public.patient_meal_logs");
+    // The signed patient reads their own report; the peer account reads nothing.
+    assert.equal(
+      (await db.query("select id from public.patient_meal_logs where patient_id=$1", [pa])).rows.length,
+      1,
+    );
+    assert.equal(
+      (await db.query("select id from public.patient_meal_logs where patient_id=$1", [peer])).rows.length,
+      0,
+    );
+    for (const role of ["admin", "nurse", "other", "suspended", "outsider"]) {
+      await switchActor(role);
+      assert.equal(
+        (await db.query("select id from public.patient_meal_logs")).rows.length,
+        0,
+        `${role} must not read patient meal reports`,
+      );
+    }
+    await switchActor("admin");
+    await denied(
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp(),'Nota do administrador')",
+      [a, randomUUID()],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.patient_meal_logs where id=$1", [first.rows[0].id])).rows.length,
+      1,
+    );
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=1 where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+      [a, pa, users.doctor.id],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.patient_meal_logs where id=$1", [first.rows[0].id])).rows.length,
+      0,
+    );
+  });
+});
+
+// Forma anterior à correção: gravava btrim(note_text). Serve para provar que a
+// migration de correção substitui a função em um banco que já foi migrado.
+const legacyMealFunction = `create or replace function private.record_patient_meal(
+  target_tenant uuid, request_key uuid, type_text text, happened_at timestamptz, note_text text
+) returns uuid language plpgsql security definer set search_path = '' as $$
+declare
+  target_patient uuid;
+  result uuid;
+begin
+  if request_key is null or not private.has_tenant_role(target_tenant, array['patient']) then
+    raise exception 'Active patient access required' using errcode = '42501';
+  end if;
+  select patient_id into target_patient from public.patient_accounts
+    where tenant_id = target_tenant and user_id = auth.uid();
+  if target_patient is null then
+    raise exception 'Patient account required' using errcode = '42501';
+  end if;
+  select id into result from public.patient_meal_logs
+    where tenant_id = target_tenant and actor_user_id = auth.uid() and client_request_id = request_key;
+  if result is not null then return result; end if;
+  insert into public.patient_meal_logs(
+    tenant_id, patient_id, actor_user_id, meal_type, eaten_at, description, client_request_id
+  ) values (
+    target_tenant, target_patient, auth.uid(), type_text, happened_at, btrim(note_text), request_key
+  ) returning id into result;
+  return result;
+end;
+$$;`;
+
+const mealConstraintDefinition = async () =>
+  (
+    await db.query<{ def: string }>(
+      "select pg_get_constraintdef(oid) def from pg_constraint where conrelid='public.patient_meal_logs'::regclass and conname='patient_meal_logs_description_check'",
+    )
+  ).rows[0]?.def ?? "";
+
+const mealFunctionDefinition = async () =>
+  (
+    await db.query<{ def: string }>(
+      "select pg_get_functiondef('private.record_patient_meal(uuid,uuid,text,timestamptz,text)'::regprocedure) def",
+    )
+  ).rows[0].def;
+
+test("a migration de correção leva um banco já migrado ao armazenamento literal", async () => {
+  const folder = new URL("../../../supabase/migrations/", import.meta.url);
+  const name = "20260922015500_patient_meal_literal_description.sql";
+  const files = readdirSync(folder).filter((file) => file.endsWith(".sql")).sort();
+  assert.equal(files.at(-1), name, "a correção precisa ser posterior à migration original");
+  const followUp = readFileSync(new URL(name, folder), "utf8");
+
+  await asUser("doctor", async () => {
+    await startClinical("2099-11-21T12:00:00Z", "2099-11-21T12:30:00Z");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+      [a, pa, users.patient.id],
+    );
+    // Reproduz o banco anterior: CHECK normalizando e função com btrim.
+    await db.exec(
+      "alter table public.patient_meal_logs drop constraint patient_meal_logs_description_check",
+    );
+    await db.exec(
+      "alter table public.patient_meal_logs add constraint patient_meal_logs_description_check check (char_length(btrim(description)) between 1 and 2000)",
+    );
+    await db.exec(legacyMealFunction);
+    await switchActor("patient");
+    const legacyKey = randomUUID();
+    await db.query(
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp(),$3)",
+      [a, legacyKey, "  Arroz, frango e salada.  "],
+    );
+    assert.equal(
+      (await db.query<{ description: string }>(
+        "select description from public.patient_meal_logs where client_request_id=$1",
+        [legacyKey],
+      )).rows[0].description,
+      "Arroz, frango e salada.",
+      "o banco anterior deveria normalizar o relato",
+    );
+    // Aplica a correção, duas vezes, para provar que é reexecutável.
+    await db.exec("reset role");
+    await db.exec(followUp);
+    await db.exec(followUp);
+    assert.doesNotMatch(await mealConstraintDefinition(), /btrim/);
+    assert.match(await mealConstraintDefinition(), /char_length\(description\)/);
+    assert.doesNotMatch(await mealFunctionDefinition(), /btrim/);
+    assert.match(await mealFunctionDefinition(), /note_text, request_key/);
+    await switchActor("patient");
+    const fixedKey = randomUUID();
+    await db.query(
+      "select public.record_patient_meal($1,$2,'lunch',clock_timestamp(),$3)",
+      [a, fixedKey, "  Café com leite\n"],
+    );
+    assert.equal(
+      (await db.query<{ description: string }>(
+        "select description from public.patient_meal_logs where client_request_id=$1",
+        [fixedKey],
+      )).rows[0].description,
+      "  Café com leite\n",
+      "depois da correção o relato precisa ficar literal",
+    );
+    assert.equal(
+      (await db.query("select id from public.patient_meal_logs")).rows.length,
+      2,
+    );
+  });
+});
+
 async function privateDocumentFixture(visibility: "internal" | "shared" = "shared") {
   await startClinical("2099-12-01T12:00:00Z", "2099-12-01T12:30:00Z");
   await db.exec("reset role");

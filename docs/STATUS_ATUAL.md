@@ -11,11 +11,16 @@ Atualizado em 22/09/2026.
 - Deployment Vercel: `dpl_5smEofZ8GUB2shcvzDxdK5LbPHSr`, estado `READY`.
 - Validação do lote: 207 testes, lint, TypeScript e build aprovados localmente;
   os checks da PR #34 também passaram.
+- Validação do diário alimentar integrado: 216 testes, lint, TypeScript, build e
+  `git diff --check` aprovados localmente.
 
 ## O que está confirmado
 
 - O código da pré-consulta obrigatória e a pipeline de publicação estão em
   `main`.
+- O diário alimentar está integrado e validado localmente sobre a `main` atual,
+  na branch `codex/patient-meal-diary-integration` (commit final local, sem
+  push, merge ou deploy).
 - A Vercel serve o mesmo commit informado acima e o domínio público responde.
 - A aplicação preserva separação por clínica, papéis, vínculo de cuidado, RLS,
   versionamento, auditoria e ações clínicas explícitas conforme os testes.
@@ -24,6 +29,17 @@ Atualizado em 22/09/2026.
 
 - A migration `20260921185603_required_preconsultation.sql` não foi confirmada
   em um Supabase de produção.
+- A migration `20260921191924_patient_meal_logs.sql`, do diário alimentar, foi
+  validada apenas no banco efêmero dos testes e não foi aplicada remotamente por
+  este trabalho. Uma sondagem somente-leitura do projeto Supabase de
+  desenvolvimento já encontrou a tabela e a função, em versão anterior a este
+  ajuste.
+- A correção do relato literal vem em
+  `20260922015500_patient_meal_literal_description.sql`, que recria o CHECK e a
+  função para bancos onde a migration anterior já rodou. Ela também não foi
+  aplicada remotamente: a reaplicação no destino continua pendente.
+- O diário alimentar não foi homologado em produção, Preview ou com contas
+  reais; o aceite autenticado do fluxo continua pendente.
 - Na execução de publicação da PR #34, as etapas de Supabase e promoção Vercel
   do GitHub foram ignoradas porque os segredos/variáveis de produção não estavam
   configurados. A promoção Vercel foi concluída depois pela CLI local.
@@ -43,8 +59,11 @@ Atualizado em 22/09/2026.
 
 ## Trabalho preservado fora da `main`
 
-- O diário alimentar permanece em trabalho isolado e não deve ser tratado como
-  funcionalidade de produção até integração e nova validação.
+- O diário alimentar saiu do trabalho isolado: os dois commits originais foram
+  integrados sobre a `main` atual em
+  `codex/patient-meal-diary-integration` e validados localmente. A branch ainda
+  não foi publicada nem mesclada, então o recurso não é funcionalidade de
+  produção.
 - Dois stashes locais preservam alterações de ferramentas e cópias concorrentes;
   não fazem parte do artefato publicado.
 

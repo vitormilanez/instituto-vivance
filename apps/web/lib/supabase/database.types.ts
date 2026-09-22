@@ -112,6 +112,37 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      patient_meal_logs: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          actor_user_id: string;
+          meal_type: string;
+          eaten_at: string;
+          description: string;
+          client_request_id: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "patient_meal_logs_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "patient_meal_logs_tenant_id_actor_user_id_fkey";
+            columns: ["tenant_id", "actor_user_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
       care_plan_publications: {
         Row: CarePlanContent & {
           id: string;
@@ -1219,6 +1250,16 @@ export type Database = {
       start_required_preconsultation: {
         Args: {
           target_tenant: string;
+        };
+        Returns: string;
+      };
+      record_patient_meal: {
+        Args: {
+          target_tenant: string;
+          request_key: string;
+          type_text: string;
+          happened_at: string;
+          note_text: string;
         };
         Returns: string;
       };

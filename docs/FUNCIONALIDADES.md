@@ -47,6 +47,24 @@ implementação pertencem ao código, às migrations e aos testes da `main`.
 - A tarefa obrigatória aparece antes das demais ações do paciente.
 - Respostas canceladas permanecem legíveis e não são reabertas para edição.
 
+## Diário alimentar do paciente
+
+- O paciente registra tipo da refeição, data e horário e uma descrição entre 1 e
+  2.000 caracteres, gravada e exibida literalmente como enviada, inclusive
+  espaços, acentos e quebras de linha nas extremidades.
+- O histórico exibe os 20 relatos mais recentes do próprio paciente, com data e
+  horário, sem reescrever o texto.
+- A gravação é idempotente por `request_key`: reenviar a mesma solicitação não
+  cria uma segunda refeição. A tabela não aceita inserção, alteração ou exclusão
+  direta; apenas a função versionada grava.
+- Leitura restrita ao próprio paciente e à equipe com vínculo de cuidado ativo.
+  Administrador, outra clínica, outro paciente, profissional sem vínculo e
+  vínculo revogado não acessam.
+- "Meu diário" permanece dentro da jornada já existente, sem criar uma nona ação
+  rápida, e a Agenda e a pré-consulta obrigatória seguem inalteradas.
+- O recurso não calcula calorias ou nutrientes, não avalia a qualidade da
+  alimentação e não produz diagnóstico, alerta, meta ou recomendação automática.
+
 ## Documentos, conversas e avisos
 
 - Documentos PDF/JPG/PNG privados, com validação, armazenamento não público,

@@ -18,6 +18,8 @@ import { patientPublications } from "@/modules/care-plans/publication-service";
 import { PublishedPlans } from "@/components/published-plans";
 import { patientCheckIns } from "@/modules/check-ins/service";
 import { PatientCheckIns } from "@/components/patient-check-ins";
+import { PatientMealLogs } from "@/components/patient-meal-logs";
+import { patientMeals } from "@/modules/meals/service";
 import { patientLongitudinal } from "@/modules/longitudinal/service";
 import { PatientLongitudinalWorkspace } from "@/components/longitudinal-workspace";
 import { PatientMeasurements } from "@/components/patient-measurements";
@@ -77,6 +79,7 @@ export default async function PatientAreaPage({
     patient && ["diario", "hoje"].includes(slug)
       ? await patientCheckIns(tenantId, query.pagina)
       : null;
+  const meals = patient && slug === "diario" ? await patientMeals(tenantId) : null;
   const longitudinal =
     patient && slug === "evolucao"
       ? await patientLongitudinal(tenantId, {
@@ -186,8 +189,11 @@ export default async function PatientAreaPage({
             base={`/clinicas/${tenantId}/meu-cuidado`}
           />
         </>
-      ) : slug === "diario" && checkIns ? (
-        <PatientCheckIns initial={checkIns} today={clinicDate()} />
+      ) : slug === "diario" && checkIns && meals ? (
+        <>
+          <PatientMealLogs initial={meals} />
+          <PatientCheckIns initial={checkIns} today={clinicDate()} />
+        </>
       ) : slug === "plano" && published ? (
         <PublishedPlans initial={published} />
       ) : appointments ? (

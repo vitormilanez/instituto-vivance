@@ -36,7 +36,7 @@ const actions = [
   },
   {
     label: "Meu diário",
-    text: "Como você está se sentindo",
+    text: "Registre refeições e como você está",
     slug: "diario",
     available: true,
   },
@@ -66,7 +66,7 @@ function actionState(action: (typeof actions)[number]) {
     case "plano":
       return "Abrir orientações";
     case "diario":
-      return "Abrir check-ins";
+      return "Registrar refeição ou check-in";
     case "evolucao":
       return "Abrir evolução";
     case "documentos":
@@ -290,7 +290,7 @@ export function PatientArea({
           <div className="section-heading patient-shortcuts-heading">
             <div>
               <h2>Outras áreas do seu cuidado</h2>
-              <p>Acesse seus registros e os canais disponíveis na clínica.</p>
+              <p>Registre refeições, acompanhe seus dados e acesse os canais disponíveis na clínica.</p>
             </div>
           </div>
           <div className="quick-actions">
