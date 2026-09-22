@@ -89,14 +89,20 @@ export async function receivedCutoffs(id: string, patientIds: string[]) {
 
 // Uma query por tipo para o dia inteiro, com o menor corte entre os pacientes;
 // o corte de cada um é aplicado depois, no módulo puro. Nunca N+1.
+//
+// Falha é por tipo: se uma query cai, as outras continuam valendo e o tipo que
+// falhou volta em `failed`. A tela nomeia o que faltou e não mostra total
+// parcial — nunca um zero que parece verdade.
 export async function receivedForPatients(
   id: string,
   cutoffs: Map<string, string | null>,
-) {
+): Promise<{
+  byPatient: Map<string, ReceivedItem[]>;
+  failed: ReceivedItemKind[];
+}> {
   const tenant = tenantId(id);
   const patientIds = [...cutoffs.keys()];
-  const empty = new Map<string, ReceivedItem[]>();
-  if (!patientIds.length) return empty;
+  if (!patientIds.length) return { byPatient: new Map(), failed: [] };
   const { client } = await requireClinic(tenant, ["doctor", "nurse"]);
   const bound = earliestCutoff(cutoffs);
   const accounts = await client
@@ -104,7 +110,9 @@ export async function receivedForPatients(
     .select("patient_id,user_id")
     .eq("tenant_id", tenant)
     .in("patient_id", patientIds);
-  if (accounts.error) throw new Error("Unable to load received items");
+  // Sem a conta do paciente não há como separar o que ele enviou do que a
+  // equipe registrou: os três tipos que dependem disso ficam indisponíveis.
+  const accountsFailed = Boolean(accounts.error);
   const userByPatient = new Map(
     (accounts.data ?? []).map((row) => [row.patient_id, row.user_id]),
   );
@@ -114,6 +122,7 @@ export async function receivedForPatients(
     query: T,
     column: string,
   ) => (bound ? query.gte(column, bound) : query);
+  const skipped = Promise.resolve({ data: null, error: new Error("skipped") });
 
   const [preparations, documents, messages, checkIns, measurements] =
     await Promise.all([
@@ -126,24 +135,33 @@ export async function receivedForPatients(
           .in("patient_id", patientIds),
         "submitted_at",
       ),
-      since(
-        client
-          .from("patient_documents")
-          .select("id,patient_id,at:available_at,uploaded_by")
-          .eq("tenant_id", tenant)
-          .eq("status", "available")
-          .in("patient_id", patientIds),
-        "available_at",
-      ),
-      since(
-        client
-          .from("care_messages")
-          .select("id,patient_id,at:sent_at,sender_id")
-          .eq("tenant_id", tenant)
-          .in("patient_id", patientIds)
-          .in("sender_id", patientUsers.length ? patientUsers : ["00000000-0000-0000-0000-000000000000"]),
-        "sent_at",
-      ),
+      accountsFailed
+        ? skipped
+        : since(
+            client
+              .from("patient_documents")
+              .select("id,patient_id,at:available_at,uploaded_by")
+              .eq("tenant_id", tenant)
+              .eq("status", "available")
+              .in("patient_id", patientIds),
+            "available_at",
+          ),
+      accountsFailed
+        ? skipped
+        : since(
+            client
+              .from("care_messages")
+              .select("id,patient_id,at:sent_at,sender_id")
+              .eq("tenant_id", tenant)
+              .in("patient_id", patientIds)
+              .in(
+                "sender_id",
+                patientUsers.length
+                  ? patientUsers
+                  : ["00000000-0000-0000-0000-000000000000"],
+              ),
+            "sent_at",
+          ),
       since(
         client
           .from("care_check_ins")
@@ -153,32 +171,31 @@ export async function receivedForPatients(
           .in("patient_id", patientIds),
         "submitted_at",
       ),
-      since(
-        client
-          .from("patient_measurements")
-          .select("id,patient_id,at:submitted_at,actor_user_id")
-          .eq("tenant_id", tenant)
-          .in("patient_id", patientIds),
-        "submitted_at",
-      ),
+      accountsFailed
+        ? skipped
+        : since(
+            client
+              .from("patient_measurements")
+              .select("id,patient_id,at:submitted_at,actor_user_id")
+              .eq("tenant_id", tenant)
+              .in("patient_id", patientIds),
+            "submitted_at",
+          ),
     ]);
-  if (
-    preparations.error ||
-    documents.error ||
-    messages.error ||
-    checkIns.error ||
-    measurements.error
-  )
-    throw new Error("Unable to load received items");
 
   const base = `/clinicas/${tenant}`;
   const rows: ReceivedRow[] = [];
+  const failed: ReceivedItemKind[] = [];
   const consider = (
     kind: ReceivedItemKind,
-    data: ClockRow[] | null,
+    result: { data: unknown; error: unknown },
     sentByPatient: (row: ClockRow) => boolean,
   ) => {
-    for (const row of data ?? []) {
+    if (result.error) {
+      failed.push(kind);
+      return;
+    }
+    for (const row of (result.data as ClockRow[] | null) ?? []) {
       if (!row.at) continue;
       // Registro feito pela equipe não é "recebido do paciente".
       if (!sentByPatient(row)) continue;
@@ -196,22 +213,59 @@ export async function receivedForPatients(
   // Pré-consulta enviada e check-in respondido são do paciente por construção:
   // o status já garante isso. Documento, mensagem e medida podem ser da equipe,
   // então cada um compara o autor com o usuário daquele paciente.
-  consider("preparation", preparations.data as ClockRow[] | null, () => true);
+  consider("preparation", preparations, () => true);
   consider(
     "documents",
-    documents.data as ClockRow[] | null,
+    documents,
     (row) => row.uploaded_by === userByPatient.get(row.patient_id),
   );
   consider(
     "messages",
-    messages.data as ClockRow[] | null,
+    messages,
     (row) => row.sender_id === userByPatient.get(row.patient_id),
   );
-  consider("checkins", checkIns.data as ClockRow[] | null, () => true);
+  consider("checkins", checkIns, () => true);
   consider(
     "measurements",
-    measurements.data as ClockRow[] | null,
+    measurements,
     (row) => row.actor_user_id === userByPatient.get(row.patient_id),
   );
-  return splitByPatient(rows, cutoffs);
+  return { byPatient: splitByPatient(rows, cutoffs), failed };
+}
+
+export const allReceivedKinds: ReceivedItemKind[] = [
+  "preparation",
+  "documents",
+  "messages",
+  "checkins",
+  "measurements",
+];
+
+// Os vínculos do profissional logado — ativos e atribuídos à espera do aceite —
+// com o nome do paciente. Serve à Home inteira: decide quem tem contexto, quem
+// mostra o aceite e quem entra em "Entre consultas". RLS continua sendo a
+// autoridade; o filtro por profissional é a intenção declarada.
+const relationshipScan = 500;
+
+export async function myCareLinks(id: string) {
+  const tenant = tenantId(id);
+  const { client, user } = await requireClinic(tenant, ["doctor", "nurse"]);
+  const result = await client
+    .from("care_relationships")
+    .select(
+      "id,patient_id,status,version,patients!care_relationships_tenant_id_patient_id_fkey(display_name)",
+    )
+    .eq("tenant_id", tenant)
+    .eq("professional_id", user.id)
+    .in("status", ["active", "assigned"])
+    .order("patient_id")
+    .limit(relationshipScan);
+  if (result.error) throw new Error("Unable to load care relationships");
+  return (result.data ?? []).map((row) => ({
+    relationshipId: row.id,
+    patientId: row.patient_id,
+    status: row.status as "active" | "assigned",
+    version: row.version,
+    name: row.patients?.display_name ?? "Paciente",
+  }));
 }

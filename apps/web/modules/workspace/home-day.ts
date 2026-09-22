@@ -73,13 +73,17 @@ export function dayCountLabel(count: number): string {
 
 // O número principal são as consultas que vão acontecer ou aconteceram.
 // Cancelada e falta entram depois, e só se existirem: "· 1 cancelada · 1 falta".
+function countParts(counts: DayCounts): string[] {
+  const parts = [dayCountLabel(counts.consultations)];
+  if (counts.cancelled)
+    parts.push(`${counts.cancelled} cancelada${counts.cancelled === 1 ? "" : "s"}`);
+  if (counts.noShow)
+    parts.push(`${counts.noShow} falta${counts.noShow === 1 ? "" : "s"}`);
+  return parts;
+}
+
 export function homeDayHeader(input: { today: string; counts: DayCounts }): string {
-  const parts = [dayCountLabel(input.counts.consultations)];
-  if (input.counts.cancelled)
-    parts.push(`${input.counts.cancelled} cancelada${input.counts.cancelled === 1 ? "" : "s"}`);
-  if (input.counts.noShow)
-    parts.push(`${input.counts.noShow} falta${input.counts.noShow === 1 ? "" : "s"}`);
-  return `${dayHeading(input.today)} · ${parts.join(" · ")}`;
+  return `${dayHeading(input.today)} · ${countParts(input.counts).join(" · ")}`;
 }
 
 // Um dia sem consultas é dito com todas as letras. Se só houver cancelada ou
@@ -144,4 +148,11 @@ export function stickyLabel(input: {
     appointmentClock(input.startsAt),
     receivedCountLabel(input.received),
   ].join(" · ");
+}
+
+// A linha de contagem sob o título do dia: "5 consultas · 1 cancelada". Dia sem
+// consultas usa a cópia do dia vazio, que nomeia canceladas e faltas.
+export function dayCountsLine(counts: DayCounts): string {
+  if (!counts.consultations) return emptyDayCopy(counts);
+  return countParts(counts).join(" · ");
 }
