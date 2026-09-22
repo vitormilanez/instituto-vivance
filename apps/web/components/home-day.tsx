@@ -36,9 +36,10 @@ const futureDayLabel = (date: string, today: string) => {
     month: "long",
     timeZone: "UTC",
   });
+  const short = formatted.replace("-feira", "");
   return date === tomorrow.toISOString().slice(0, 10)
-    ? `Amanhã, ${formatted}`
-    : formatted;
+    ? `Amanhã, ${short}`
+    : short;
 };
 
 function careLink(data: Data, patientId: string): CareLink {
@@ -80,12 +81,17 @@ export function HomeDay({
   const openId = data.open?.id ?? null;
   const openInEarlier = earlier.some((item) => item.id === openId);
 
-  const viewFor = (patientId: string) => {
+  const contextFor = (appointmentId: string) =>
+    data.contexts.get(appointmentId) ?? null;
+
+  const viewFor = (appointmentId: string, patientId: string) => {
     const cutoff = data.cutoffs.get(patientId) ?? null;
     return receivedView({
       items: data.received.get(patientId) ?? [],
       cutoff,
-      hasPreviousConsultation: Boolean(data.context?.encounter?.finalized_at),
+      hasPreviousConsultation: Boolean(
+        contextFor(appointmentId)?.encounter?.finalized_at,
+      ),
       cutoffLabel: receivedDateLabel(cutoff),
       failed: data.failed,
     });
@@ -100,13 +106,18 @@ export function HomeDay({
     return (
       <ConsultationBlock
         base={base}
+        now={data.now}
         tenantId={tenantId}
         today={data.today}
         appointment={appointment}
         eyebrow={eyebrow}
         link={link}
-        context={link.status === "active" ? data.context : null}
-        received={link.status === "active" ? viewFor(appointment.patient_id) : null}
+        context={link.status === "active" ? contextFor(appointment.id) : null}
+        received={
+          link.status === "active"
+            ? viewFor(appointment.id, appointment.patient_id)
+            : null
+        }
         draft={draftFor(appointment.patient_id)}
         backToNext={
           !isNext && data.nextToday
@@ -217,7 +228,7 @@ export function HomeDay({
           {earlier.length ? (
             <li className="home-earlier">
               <details open={openInEarlier}>
-                <summary>{earlierLabel(earlier.length)}</summary>
+                <summary>{earlierLabel(earlier.length, !data.nextToday)}</summary>
                 <ol className="home-timeline">{earlier.map(row)}</ol>
               </details>
             </li>
@@ -228,7 +239,7 @@ export function HomeDay({
 
       {future ? (
         <div className="home-future" id={`consulta-${future.id}`}>
-          {block(future, futureDayLabel(data.nextDate!, data.today))}
+          {block(future, `Próxima consulta · ${futureDayLabel(data.nextDate!, data.today)}`)}
         </div>
       ) : !data.nextToday && !data.next ? (
         <section className="panel home-empty" aria-labelledby="home-empty-title">

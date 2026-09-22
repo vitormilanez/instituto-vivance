@@ -44,7 +44,9 @@ export function ConsultationBlock({
   received,
   draft,
   backToNext,
+  now,
 }: {
+  now: string;
   base: string;
   tenantId: string;
   today: string;
@@ -65,7 +67,12 @@ export function ConsultationBlock({
   }).format(new Date(appointment.starts_at));
   const agendaHref = `${base}/agenda?data=${date}#consulta-${appointment.id}`;
   const resumesThis = draft && draft.appointment_id === appointment.id;
-  const preparable = ["scheduled", "in_progress"].includes(appointment.status);
+  // Consulta agendada que já terminou não se "prepara": a ação é ir à Agenda,
+  // onde se registra o que aconteceu (concluir, falta). Nada é inferido aqui.
+  const preparable =
+    appointment.status === "in_progress" ||
+    (appointment.status === "scheduled" &&
+      Date.parse(appointment.ends_at) > Date.parse(now));
   const titleId = `consulta-${appointment.id}-titulo`;
   const cards =
     link.status === "active" && context
@@ -89,7 +96,7 @@ export function ConsultationBlock({
           </strong>
           <span>{appointment.kind === "return" ? "Retorno" : "Consulta"}</span>
           <span>{appointment.doctor_display_name}</span>
-          {!preparable ? (
+          {appointment.status !== "scheduled" && appointment.status !== "in_progress" ? (
             <span className="home-status">
               {dayStatusLabels[appointment.status] ?? appointment.status}
             </span>

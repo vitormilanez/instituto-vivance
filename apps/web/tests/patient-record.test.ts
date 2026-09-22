@@ -137,6 +137,6 @@ test("today omits clinical context when the focused appointment has no active ca
     new URL("../components/home-day.tsx", import.meta.url),
     "utf8",
   );
-  assert.match(home, /context=\{link\.status === "active" \? data\.context : null\}/);
-  assert.match(home, /received=\{link\.status === "active" \? viewFor\(appointment\.patient_id\) : null\}/);
+  assert.match(home, /context=\{link\.status === "active" \? contextFor\(appointment\.id\) : null\}/);
+  assert.match(home, /received=\{\s*link\.status === "active"\s*\? viewFor\(appointment\.id, appointment\.patient_id\)\s*: null\s*\}/);
 });

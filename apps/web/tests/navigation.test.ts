@@ -86,7 +86,7 @@ test("today falls forward to the next scheduled day without changing today's lis
   assert.match(service, /\.eq\("status", "scheduled"\)/);
   assert.match(service, /\.gt\("starts_at", now\)/);
   assert.match(service, /nextDate: next \? clinicDate/);
-  assert.match(workspace, /Amanhã, \$\{formatted\}/);
+  assert.match(workspace, /Amanhã, \$\{short\}/);
   assert.match(block, /agenda\?data=\$\{date\}/);
   assert.match(workspace, /Consultas de hoje/);
 });

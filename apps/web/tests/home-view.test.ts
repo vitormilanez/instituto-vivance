@@ -32,16 +32,18 @@ const day = [
   { id: "d", status: "scheduled" },
 ];
 
-test("as consultas anteriores à próxima ficam recolhidas; sem próxima, o dia fica inteiro", () => {
+test("as consultas anteriores à próxima ficam recolhidas; sem próxima hoje, o dia inteiro fica recolhido", () => {
   assert.deepEqual(
     splitDay(day, "c").earlier.map((row) => row.id),
     ["a", "b"],
   );
   assert.deepEqual(splitDay(day, "c").rest.map((row) => row.id), ["c", "d"]);
-  assert.deepEqual(splitDay(day, null).earlier, []);
-  assert.equal(splitDay(day, null).rest.length, 4);
+  assert.equal(splitDay(day, null).earlier.length, 4);
+  assert.deepEqual(splitDay(day, null).rest, []);
   assert.equal(earlierLabel(1), "1 consulta anterior");
   assert.equal(earlierLabel(3), "3 consultas anteriores");
+  assert.equal(earlierLabel(6, true), "6 consultas de hoje");
+  assert.equal(earlierLabel(1, true), "1 consulta de hoje");
 });
 
 test("a consulta aberta pela URL só vale se for do dia", () => {
@@ -70,7 +72,7 @@ test("a linha diz o fato: sem vínculo, indisponível ou N recebidos — nunca z
   );
   assert.equal(
     rowSummary({ link: { status: "active" }, received: [], failed: [] }),
-    "0 recebidos",
+    "Nada recebido",
   );
   assert.equal(
     rowSummary({ link: { status: "active" }, received: many(3), failed: [] }),

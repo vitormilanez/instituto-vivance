@@ -33,10 +33,11 @@ export type CareLink =
 
 export type TimelineEntry = { id: string; status: string };
 
-// Divide o dia em torno da consulta aberta. As consultas anteriores à próxima
-// ficam num grupo recolhido: às 15h ninguém deveria rolar pela manhã inteira
-// para chegar ao próximo paciente. Sem próxima consulta hoje, o dia inteiro é
-// "anterior" — ele já aconteceu — e continua visível.
+// Divide o dia em torno da próxima consulta. As anteriores ficam num grupo
+// recolhido: às 15h ninguém deveria rolar pela manhã inteira para chegar ao
+// próximo paciente. Sem próxima consulta hoje, o dia inteiro já passou e fica
+// recolhido — a próxima (de outro dia) sobe para a primeira dobra, e a contagem
+// no resumo continua dizendo quantas houve.
 export function splitDay<T extends TimelineEntry>(
   appointments: T[],
   nextId: string | null,
@@ -44,7 +45,7 @@ export function splitDay<T extends TimelineEntry>(
   const index = nextId
     ? appointments.findIndex((item) => item.id === nextId)
     : -1;
-  if (index < 0) return { earlier: [], rest: [...appointments] };
+  if (index < 0) return { earlier: [...appointments], rest: [] };
   return {
     earlier: appointments.slice(0, index),
     rest: appointments.slice(index),
@@ -63,7 +64,10 @@ export function openConsultationId(
   return nextId;
 }
 
-export function earlierLabel(count: number): string {
+// Com próxima hoje: "3 consultas anteriores". Dia encerrado: "6 consultas de
+// hoje" — nada ficou para trás de outra coisa, o dia só acabou.
+export function earlierLabel(count: number, wholeDay = false): string {
+  if (wholeDay) return `${count} ${count === 1 ? "consulta" : "consultas"} de hoje`;
   return `${count} ${count === 1 ? "consulta anterior" : "consultas anteriores"}`;
 }
 
@@ -77,6 +81,7 @@ export function rowSummary(input: {
 }): string {
   if (input.link.status !== "active") return noCareLinkRowLabel;
   if (input.failed.length) return receivedUnavailableLabel;
+  if (!input.received.length) return "Nada recebido";
   return receivedCountLabel(input.received.length);
 }
 

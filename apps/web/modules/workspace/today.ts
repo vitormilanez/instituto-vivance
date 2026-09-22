@@ -90,7 +90,22 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
   const todayPatients = new Set(
     agenda.appointments.map((item) => item.patient_id),
   );
-  const context = open ? await patientCareContext(id, open.patient_id) : null;
+  // Contexto só de quem aparece aberto: a consulta aberta e, se for de outro
+  // dia, a próxima. Cada bloco usa o contexto do PRÓPRIO paciente — nunca o
+  // de outra linha.
+  const shown = [open, next && !nextToday ? next : null].filter(
+    (item, index, list): item is NonNullable<typeof item> =>
+      Boolean(item) && list.findIndex((other) => other?.id === item?.id) === index,
+  );
+  const contexts = new Map(
+    await Promise.all(
+      shown.map(
+        async (item) =>
+          [item.id, await patientCareContext(id, item.patient_id)] as const,
+      ),
+    ),
+  );
+  const context = open ? (contexts.get(open.id) ?? null) : null;
   return {
     ...agenda,
     next,
@@ -98,6 +113,7 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
     open,
     nextDate: next ? clinicDate(new Date(next.starts_at)) : null,
     context,
+    contexts,
     drafts: drafts.data ?? [],
     links: linkByPatient,
     cutoffs,

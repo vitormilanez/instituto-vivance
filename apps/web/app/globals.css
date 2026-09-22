@@ -4849,8 +4849,13 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
     font-size: 13px;
     line-height: 1.25;
     padding-right: 4px;
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
   }
+}
+/* Abaixo de 400px duas colunas não cabem "Acompanhamento" inteiro: uma coluna
+   só, em vez de partir a palavra no meio ("Acompanhamen / to"). */
+@media (max-width: 400px) {
+  .shortcuts-section .more-tools-list { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Atalho de texto sugerido: é uma ação, não um campo — não estica na
@@ -4897,7 +4902,7 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
 .home-consultation-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin-top: 16px; }
 .home-back { display: inline-flex; align-items: center; min-height: 44px; color: var(--blue); font-size: 13px; font-weight: 700; text-underline-offset: 3px; }
 .home-draft { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
-.home-draft a { color: var(--blue); font-weight: 700; }
+.home-draft a { display: inline-flex; align-items: center; min-height: 44px; color: var(--blue); font-weight: 700; }
 
 .home-care-link { display: grid; gap: 12px; justify-items: start; margin-top: 20px; padding: 16px; border-radius: 12px; background: #f0f4fa; }
 .home-care-link > p { max-width: 60ch; margin: 0; color: var(--ink); font-size: 14px; line-height: 1.5; }

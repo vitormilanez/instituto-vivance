@@ -50,6 +50,7 @@ test("todo alvo da Home tem 44px", () => {
     "\\.home-received-more > summary",
     "\\.home-plain-list a",
     "\\.home-between-who a",
+    "\\.home-draft a",
   ])
     assert.match(
       rules,
@@ -70,8 +71,15 @@ test("sem vínculo ativo não há contexto, nem recebidos, nem query de recebido
   // Só pacientes com vínculo ativo entram no corte e, portanto, nas queries.
   assert.match(service, /\.filter\(\(link\) => link\.status === "active"\)/);
   assert.match(service, /receivedCutoffs\(id, activeIds\)/);
-  assert.match(day(), /context=\{link\.status === "active" \? data\.context : null\}/);
+  assert.match(day(), /context=\{link\.status === "active" \? contextFor\(appointment\.id\) : null\}/);
   assert.match(block(), /\{linkCopy \? \(/);
+});
+
+test("cada bloco usa o contexto do próprio paciente, nunca o de outra linha", () => {
+  const service = read("../modules/workspace/today.ts");
+  assert.match(service, /\[item\.id, await patientCareContext\(id, item\.patient_id\)\] as const/);
+  assert.match(day(), /const contextFor = \(appointmentId: string\) =>\s*data\.contexts\.get\(appointmentId\) \?\? null;/);
+  assert.doesNotMatch(day(), /data\.context\b/);
 });
 
 test("falha de um tipo não derruba a Home nem vira número", () => {
@@ -100,6 +108,12 @@ test("aceitar o vínculo usa a confirmação explícita e não abre atendimento"
   assert.match(accept, /team\/relationships\/\$\{relationshipId\}/);
   assert.match(accept, /action: "accept"/);
   assert.doesNotMatch(accept, /encounters/);
+});
+
+test("consulta agendada que já terminou não oferece 'Preparar atendimento'", () => {
+  const source = block();
+  assert.match(source, /appointment\.status === "scheduled" &&\s*Date\.parse\(appointment\.ends_at\) > Date\.parse\(now\)/);
+  assert.match(source, /Ver na agenda/);
 });
 
 test("a faixa fixa só existe no celular e não rouba o foco", () => {
