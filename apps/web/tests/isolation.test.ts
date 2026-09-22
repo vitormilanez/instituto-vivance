@@ -11,7 +11,7 @@ const db = new PGlite({ extensions: { btree_gist } });
 const a = randomUUID(),
   b = randomUUID();
 const users = Object.fromEntries(
-  ["admin", "doctor", "nurse", "patient", "other", "suspended", "outsider"].map(
+  ["admin", "doctor", "nurse", "patient", "other", "suspended", "outsider", "colleague"].map(
     (role) => [role, { id: randomUUID(), session: randomUUID() }],
   ),
 );
@@ -63,7 +63,7 @@ before(async () => {
     [a, b],
   );
   for (const [name, u] of Object.entries(users)) {
-    if (name === "outsider") continue;
+    if (name === "outsider" || name === "colleague") continue;
     await db.query(
       "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,$3,$4,$5)",
       [
@@ -75,6 +75,13 @@ before(async () => {
       ],
     );
   }
+  // A clínica A tem dois médicos ativos: é o cenário de várias pessoas no
+  // cuidado, em que atribuição e aceite são explícitos. A regra do MVP (médico
+  // único = vínculo automático) tem teste próprio, numa clínica só dela.
+  await db.query(
+    "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,'doctor','active','Synthetic colleague')",
+    [a, users.colleague.id],
+  );
   await db.query(
     "insert into public.patients(id,tenant_id,display_name,created_by) values ($1,$2,'Synthetic A',$3),($4,$5,'Synthetic B',$6)",
     [pa, a, users.admin.id, pb, b, users.other.id],
@@ -1927,10 +1934,13 @@ test("unfiltered requests cannot leak other clinics", async () => {
       (await db.query("select * from public.tenants")).rows.length,
       1,
     );
-    assert.equal(
-      (await db.query("select * from public.memberships")).rows.length,
-      1,
-    );
+    // O médico enxerga os colegas médicos da própria clínica (o colega
+    // sintético), nunca membros de outra clínica.
+    const members = (
+      await db.query<{ tenant_id: string }>("select tenant_id from public.memberships")
+    ).rows;
+    assert.equal(members.length, 2);
+    assert.ok(members.every((row) => row.tenant_id === a));
   });
 });
 test("patient, suspended membership and no membership cannot read the directory", async () => {
@@ -4994,4 +5004,104 @@ test("não visto é por profissional, idempotente e segue o vínculo de cuidado"
       0,
     );
   });
+});
+
+// MVP: clínica com um único médico ativo. Tudo numa transação revertida, numa
+// clínica só deste teste, para não mudar o cenário de dois médicos acima.
+test("médico único: paciente novo e vínculo atribuído viram cuidado ativo; dois médicos não", async () => {
+  const c = randomUUID();
+  const solo = { id: randomUUID(), session: randomUUID() };
+  const owner = { id: randomUUID(), session: randomUUID() };
+  const second = { id: randomUUID(), session: randomUUID() };
+  const actAs = async (user: { id: string; session: string }) => {
+    await db.exec("set local role authenticated");
+    await db.query("select set_config('request.jwt.claims',$1,true)", [
+      JSON.stringify({ sub: user.id, session_id: user.session }),
+    ]);
+  };
+  const statusOf = async (patient: string, professional: string) =>
+    (
+      await db.query<{ status: string }>(
+        "select status from public.care_relationships where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+        [c, patient, professional],
+      )
+    ).rows.map((row) => row.status);
+  await db.exec("begin");
+  try {
+    for (const user of [solo, owner, second]) {
+      await db.query("insert into auth.users(id) values ($1)", [user.id]);
+      await db.query("insert into auth.sessions(id,user_id) values ($1,$2)", [user.session, user.id]);
+    }
+    await db.query("insert into public.tenants(id,name) values ($1,'Clínica de um médico')", [c]);
+    await db.query(
+      "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,'doctor','active','Dr. Único'),($1,$3,'admin','active','Admin')",
+      [c, solo.id, owner.id],
+    );
+
+    // Ficha criada pela administração: sem vínculo durante a transação e com
+    // vínculo ativo ao médico único quando ela se completa.
+    await actAs(owner);
+    const created = (
+      await db.query<{ id: string }>(
+        "insert into public.patients(tenant_id,display_name) values ($1,'Paciente MVP') returning id",
+        [c],
+      )
+    ).rows[0].id;
+    await db.exec("set constraints all immediate");
+    await db.exec("reset role");
+    assert.deepEqual(await statusOf(created, solo.id), ["active"]);
+    await actAs(solo);
+    assert.equal(
+      (await db.query("select 1 from public.patients where id=$1", [created])).rows.length,
+      1,
+      "o médico único já lê a ficha",
+    );
+
+    // Revogar continua valendo; reatribuir ao médico único ativa na hora.
+    await actAs(owner);
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=version where tenant_id=$1 and patient_id=$2",
+      [c, created],
+    );
+    await db.exec("reset role");
+    assert.deepEqual(await statusOf(created, solo.id), ["revoked"]);
+    await actAs(owner);
+    await db.query(
+      "update public.care_relationships set status='assigned',expected_version=version where tenant_id=$1 and patient_id=$2",
+      [c, created],
+    );
+    await db.exec("reset role");
+    assert.deepEqual(await statusOf(created, solo.id), ["active"]);
+
+    // Com um segundo médico ativo, nada é automático.
+    await db.query(
+      "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,'doctor','active','Dra. Segunda')",
+      [c, second.id],
+    );
+    await actAs(owner);
+    const later = (
+      await db.query<{ id: string }>(
+        "insert into public.patients(tenant_id,display_name) values ($1,'Paciente com dois médicos') returning id",
+        [c],
+      )
+    ).rows[0].id;
+    await db.exec("set constraints all immediate");
+    await db.exec("reset role");
+    assert.deepEqual(await statusOf(later, solo.id), []);
+    assert.deepEqual(await statusOf(later, second.id), []);
+    // Suspensa a segunda médica, o médico volta a ser único.
+    await db.query(
+      "update public.memberships set status='suspended' where tenant_id=$1 and user_id=$2",
+      [c, second.id],
+    );
+    assert.equal(
+      (await db.query<{ doctor: string }>("select private.sole_active_doctor($1) doctor", [c])).rows[0].doctor,
+      solo.id,
+    );
+    // A função não é chamável por quem está logado.
+    await actAs(solo);
+    await denied("select private.sole_active_doctor($1)", [c]);
+  } finally {
+    await db.exec("rollback");
+  }
 });
