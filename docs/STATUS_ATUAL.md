@@ -35,26 +35,19 @@ Atualizado em 22/09/2026.
 - A Vercel serve o mesmo commit informado acima e o domínio público responde.
 - A migration `20260922190000_patient_care_requests.sql` (solicitação de
   informação ao paciente) está aplicada no Supabase de desenvolvimento e os
-  objetos foram conferidos no destino. O smoke test da RPC rodou ali dentro de
-  uma transação revertida, sem resíduo, e confirmou idempotência pela mesma
-  chave, deduplicação por tipo, uma única pendência aberta, histórico com a
-  anterior cancelada e a nota preservada, e uma mensagem com um aviso por pedido
-  criado.
+  objetos foram conferidos no destino. A versão `20260922190000` foi registrada
+  em `supabase_migrations.schema_migrations`, sem reaplicar o SQL. O smoke test
+  da RPC rodou ali dentro de uma transação revertida, sem resíduo, e confirmou
+  idempotência pela mesma chave, deduplicação por tipo, uma única pendência
+  aberta, histórico com a anterior cancelada e a nota preservada, e uma mensagem
+  com um aviso por pedido criado.
+- A entrega agora inclui a rota autenticada, o serviço, a validação do payload e
+  a ação “Solicitar” nos quatro cards que dependem de informação do paciente.
 - A aplicação preserva separação por clínica, papéis, vínculo de cuidado, RLS,
   versionamento, auditoria e ações clínicas explícitas conforme os testes.
 
 ## O que ainda não está confirmado
 
-- A migration `20260922190000_patient_care_requests.sql` (solicitação de
-  informação ao paciente) **não está registrada** em
-  `supabase_migrations.schema_migrations`, que segue com 41 linhas: `db query
-  --file` aplica o SQL e não escreve o histórico. Consequência concreta: um
-  `supabase db push` futuro tentaria reaplicá-la e falharia no `create table`,
-  porque a tabela já existe no desenvolvimento. O registro depende de aprovação
-  e não foi feito.
-- A solicitação ainda **não tem tela**: falta a camada de serviço, a rota de API
-  e o botão "Solicitar ao paciente" nos cards, além da tarefa no "Hoje" do
-  paciente. O banco está pronto para receber essa camada.
 - A migration `20260921185603_required_preconsultation.sql` não foi confirmada
   em um Supabase de produção.
 - A migration `20260921191924_patient_meal_logs.sql`, do diário alimentar, está
