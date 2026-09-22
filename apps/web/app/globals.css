@@ -4749,14 +4749,15 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
 /* ------------------------------------------------------------------
    Agenda no celular: o calendário é um seletor de dia, não a tela toda.
    Compacta a grade para a lista de consultas caber na primeira rolagem,
-   e devolve "Atualizar agenda" ao peso de ação secundária.
+   e devolve "Atualizar agenda" ao peso de ação secundária. Compacto, mas
+   nunca abaixo de 44px de alvo: o dia é o toque central no celular.
    ------------------------------------------------------------------ */
 @media (max-width: 650px) {
   .agenda-view-controls { gap: 8px; }
   .agenda-view-controls button:last-child {
     justify-self: start;
     width: auto;
-    min-height: 36px;
+    min-height: 44px;
     padding: 6px 2px;
     border-color: transparent;
     background: transparent;
@@ -4768,15 +4769,15 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
   .calendar-month { padding: 14px 12px 16px; }
   .calendar-toolbar { margin-bottom: 10px; }
   .calendar-toolbar h2 { font-size: 16px; }
-  .calendar-toolbar button { width: 40px; min-height: 40px; padding: 8px; }
+  .calendar-toolbar button { width: 44px; min-height: 44px; padding: 8px; }
   .calendar-weekday { padding: 4px 0; font-size: 11px; }
   button.calendar-day {
-    height: 40px;
-    min-height: 40px;
+    height: 44px;
+    min-height: 44px;
     gap: 2px;
     font-size: 15px;
   }
-  .calendar-today { margin-top: 12px; min-height: 42px; }
+  .calendar-today { margin-top: 12px; min-height: 44px; }
   .calendar-schedule { padding: 18px 16px 20px; }
   .calendar-schedule > h2 { font-size: 18px; }
 }

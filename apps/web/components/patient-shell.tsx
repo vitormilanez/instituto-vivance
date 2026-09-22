@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { ClinicAccess } from "@/modules/identity/service";
-import { patientSections } from "@/modules/workspace/navigation";
+import { navLabel, patientSections } from "@/modules/workspace/navigation";
 import { Header } from "./header";
 
 export function PatientShell({
@@ -56,7 +56,7 @@ export function PatientShell({
                         href={`${base}/${sub.slug}`}
                         aria-current={active === sub.slug ? "page" : undefined}
                       >
-                        {sub.title}
+                        {navLabel(sub)}
                       </Link>
                     ))}
                   </span>
