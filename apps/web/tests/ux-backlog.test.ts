@@ -64,3 +64,13 @@ test("o alerta de envio incerto anuncia só o texto, não os botões", () => {
   assert.doesNotMatch(messages, /className="conversation-recovery" role="alert"/);
   assert.match(messages, /<p role="alert">Não foi possível confirmar o envio\./);
 });
+
+test("documentos: filtro por paciente sem JS, e a paginação mantém o filtro", () => {
+  const workspace = read("../components/documents-workspace.tsx");
+  assert.match(workspace, /<form className="document-filter" method="get" action=\{base\}>/);
+  assert.match(workspace, /name="paciente"/);
+  assert.match(workspace, /pagina=\$\{initial\.page \+ 1\}\$\{filter\}/);
+  const page = read("../app/clinicas/[tenantId]/[module]/page.tsx");
+  // Paciente inválido ou sem vínculo volta para a lista completa, sem erro.
+  assert.match(page, /error instanceof DocumentError \|\| error instanceof InputError/);
+});

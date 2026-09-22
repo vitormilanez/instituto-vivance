@@ -4976,3 +4976,8 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
    tipo, nunca cor de prioridade. */
 .home-unseen-dot { display: inline-block; width: 7px; height: 7px; margin: 0 7px 1px 0; border-radius: 50%; background: var(--navy); vertical-align: middle; }
 .home-received-list li.is-unseen strong { color: var(--ink); }
+/* Filtro de documentos por paciente: um campo e um botão, sem JS. */
+.document-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; margin: 0 0 16px; }
+.document-filter label { flex-basis: 100%; color: var(--ink); font-size: 14px; font-weight: 650; }
+.document-filter select { min-height: 44px; min-width: min(100%, 280px); padding: 8px 12px; border: 1px solid var(--input-border, #98a9bf); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+.document-filter button { min-height: 44px; }
