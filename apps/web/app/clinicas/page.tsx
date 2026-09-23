@@ -8,7 +8,7 @@ import { ClinicInvitations } from "@/components/clinic-invitations";
 export const dynamic = "force-dynamic";
 export default async function Clinics() {
   const context = await clinics().catch((error) => {
-    if (error instanceof AccessError && error.status === 401) redirect("/");
+    if (error instanceof AccessError && error.status === 401) redirect("/login");
     throw error;
   });
   const patientInvitations = await listMyPatientInvitations();

@@ -102,7 +102,7 @@ export function ForgotPassword() {
         </form>
       )}
       <p style={{ marginTop: 24 }}>
-        <Link href="/">Voltar ao login</Link>
+        <Link href="/login">Voltar ao login</Link>
       </p>
     </>
   );

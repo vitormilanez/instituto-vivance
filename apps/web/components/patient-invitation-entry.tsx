@@ -26,7 +26,7 @@ export function PatientInvitationEntry() {
           Abra novamente o link completo que a clínica enviou. Se precisar, peça
           um novo convite.
         </p>
-        <Link href="/">Já tenho acesso</Link>
+        <Link href="/login">Já tenho acesso</Link>
       </>
     );
   return <PatientInvitationClaim token={token} />;

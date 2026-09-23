@@ -55,7 +55,7 @@ export default async function Dashboard({
   const { consulta } = await searchParams;
   const focus = typeof consulta === "string" ? consulta : null;
   const fail = (error: unknown): never => {
-    if (error instanceof AccessError && error.status === 401) redirect("/");
+    if (error instanceof AccessError && error.status === 401) redirect("/login");
     if (error instanceof AccessError || error instanceof InputError) notFound();
     throw error;
   };

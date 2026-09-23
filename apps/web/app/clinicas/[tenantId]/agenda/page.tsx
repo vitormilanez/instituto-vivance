@@ -34,7 +34,7 @@ export default async function AgendaPage({
     return { date, options, preparationStates, ...result };
   };
   const context = await load().catch((e) => {
-    if (e instanceof AccessError && e.status === 401) redirect("/");
+    if (e instanceof AccessError && e.status === 401) redirect("/login");
     if (e instanceof AccessError || e instanceof InputError) notFound();
     throw e;
   });

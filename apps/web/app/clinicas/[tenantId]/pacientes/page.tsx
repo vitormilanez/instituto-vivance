@@ -26,7 +26,7 @@ export default async function Patients({
     return { ...(await listPatients(tenantId, page, term)), page, term };
   };
   const context = await load().catch((error) => {
-    if (error instanceof AccessError && error.status === 401) redirect("/");
+    if (error instanceof AccessError && error.status === 401) redirect("/login");
     if (error instanceof AccessError || error instanceof InputError) notFound();
     throw error;
   });

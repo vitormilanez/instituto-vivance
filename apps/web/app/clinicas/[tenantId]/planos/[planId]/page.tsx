@@ -15,7 +15,7 @@ export default async function PlanPage({
   const p = await params,
     q = await searchParams;
   const detail = await loadPlan(p.tenantId, p.planId, q.pagina,q.publicacoes_pagina).catch((e) => {
-    if (e instanceof AccessError && e.status === 401) redirect("/");
+    if (e instanceof AccessError && e.status === 401) redirect("/login");
     if (
       e instanceof AccessError ||
       e instanceof CarePlanError ||
