@@ -14,7 +14,7 @@ export default async function ReportPage({
 }) {
   const { tenantId, reportId } = await params;
   const detail = await loadReport(tenantId, reportId).catch((error) => {
-    if (error instanceof AccessError && error.status === 401) redirect("/");
+    if (error instanceof AccessError && error.status === 401) redirect("/login");
     if (
       error instanceof AccessError ||
       error instanceof ReportError ||

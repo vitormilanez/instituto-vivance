@@ -19,7 +19,7 @@ export default async function NoticesPage({
   const query = await searchParams;
   const initial = await inAppNotifications(tenantId, query.pagina).catch(
     (error) => {
-      if (error instanceof AccessError && error.status === 401) redirect("/");
+      if (error instanceof AccessError && error.status === 401) redirect("/login");
       if (error instanceof InputError)
         redirect(`/clinicas/${tenantId}/avisos`);
       if (error instanceof AccessError) notFound();

@@ -19,7 +19,7 @@ export default async function NewPlanPage({
     patient_id: q.paciente,
     encounter_id: q.atendimento ?? null,
   }).catch((e) => {
-    if (e instanceof AccessError && e.status === 401) redirect("/");
+    if (e instanceof AccessError && e.status === 401) redirect("/login");
     if (
       e instanceof AccessError ||
       e instanceof CarePlanError ||

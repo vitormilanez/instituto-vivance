@@ -26,7 +26,7 @@ export default async function EncounterPage({
     beforeVersion: page.versoes_antes_de,
     beforeAddendum: page.adendos_antes_de,
   }).catch((e) => {
-    if (e instanceof AccessError && e.status === 401) redirect("/");
+    if (e instanceof AccessError && e.status === 401) redirect("/login");
     if (
       e instanceof AccessError ||
       e instanceof EncounterError ||

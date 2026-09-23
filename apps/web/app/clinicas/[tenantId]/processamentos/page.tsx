@@ -17,7 +17,7 @@ export default async function ProcessingPage({
   const { tenantId } = await params;
   const { pagina } = await searchParams;
   const initial = await processingJobs(tenantId, pagina).catch((error) => {
-    if (error instanceof AccessError && error.status === 401) redirect("/");
+    if (error instanceof AccessError && error.status === 401) redirect("/login");
     if (error instanceof InputError)
       redirect(`/clinicas/${tenantId}/processamentos`);
     if (error instanceof AccessError) notFound();

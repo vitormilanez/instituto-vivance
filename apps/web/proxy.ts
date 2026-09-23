@@ -4,6 +4,7 @@ import { supabaseConfig } from "./lib/supabase/config";
 import type { Database } from "./lib/supabase/database.types";
 
 export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname === "/") return NextResponse.next({ request });
   let response = NextResponse.next({ request });
   const { url, key } = supabaseConfig();
   const supabase = createServerClient<Database>(url, key, {
@@ -28,5 +29,5 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|brand/).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|brand/|landing/).*)"],
 };
