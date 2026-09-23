@@ -18,7 +18,7 @@ test("patient today lists only unresolved actions in their expected order", () =
       ["preparation-preparation-1", `${base}/hoje?preparo=preparation-1#preparo-preparation-1`],
       ["published-plan", `${base}/plano`],
       ["onboarding", "/clinicas/tenant/primeiros-passos"],
-      ["measurements", `${base}/evolucao#atualizar-medidas`],
+      ["measurements", `${base}/peso`],
     ],
   );
 });
@@ -89,7 +89,7 @@ test("o pedido do médico vira tarefa que abre direto o formulário", () => {
     `${base}/preparo`,
     "/clinicas/tenant/primeiros-passos",
     "/clinicas/tenant/primeiros-passos",
-    `${base}/evolucao#atualizar-medidas`,
+    `${base}/peso`,
   ]);
   // Cada tarefa diz de onde veio, com a data do pedido — nunca risco.
   for (const task of tasks) {

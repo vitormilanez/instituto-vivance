@@ -4,7 +4,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
+  appointmentWhen,
+  clinicLocalDateTime,
   friendlyNumber,
+  homeGreeting,
+  justSentLabel,
   patientFocus,
   quickLogs,
   recentSent,
@@ -41,7 +45,7 @@ test("sem nada pendente, a tela diz que está tudo em dia e convida a registrar"
   const clear = patientFocus({ base, consultationInProgress: false, tasks: [] });
   assert.equal(clear.focus.kind, "clear");
   assert.equal(clear.focus.title, "Tudo em dia por aqui");
-  assert.equal(clear.focus.href, `${base}/evolucao#atualizar-medidas`);
+  assert.equal(clear.focus.href, `${base}/peso`);
   assert.deepEqual(clear.rest, []);
 });
 
@@ -52,24 +56,47 @@ test("registrar agora: quatro atalhos que abrem o formulário certo", () => {
     latestMeasurement: { measure_label: "Peso", measure_value: 72.4, measure_unit: "kg", reported_on: "2026-09-20" },
   });
   assert.deepEqual(logs.map((log) => log.href), [
-    `${base}/evolucao#atualizar-medidas`,
-    `${base}/diario#registrar-refeicao`,
+    `${base}/peso`,
+    `${base}/refeicao`,
     `${base}/documentos#enviar-documento`,
     `${base}/conversas`,
   ]);
   assert.equal(logs[0].hint, "Último: peso 72,4 kg em 20/09");
-  assert.equal(logs[3].title, "Mensagem para Dr. Guilherme Martins");
+  assert.equal(logs[3].title, "Mensagem ao médico");
   const empty = quickLogs({ base, doctorName: null, latestMeasurement: null });
   assert.equal(empty[0].hint, "Leva menos de um minuto");
-  assert.equal(empty[3].title, "Mensagem para o seu médico");
   assert.equal(friendlyNumber(63.21), "63,2");
   assert.equal(friendlyNumber(72), "72");
 });
 
-test("os âncoras dos atalhos existem nas telas de destino", () => {
-  assert.match(read("../components/patient-meal-logs.tsx"), /id="registrar-refeicao"/);
+test("os destinos dos atalhos existem: tarefas de tela cheia e âncora de documentos", () => {
+  assert.match(page, /slug === "peso" && patient \? \(\s*<PatientMeasurements/);
+  assert.match(page, /slug === "refeicao" && meals\?\.patientId \? \(\s*<PatientMealQuick/);
   assert.match(read("../components/documents-workspace.tsx"), /id="enviar-documento" open/);
-  assert.match(read("../components/patient-measurements.tsx"), /id="atualizar-medidas"/);
+  const nav = read("../modules/workspace/navigation.ts");
+  for (const slug of ["peso", "refeicao", "alerta"]) assert.match(nav, new RegExp(`slug: "${slug}",\\s*title: "[^"]+",\\s*group: "acao"`));
+});
+
+test("saudação, data da consulta e confirmação de envio falam como a pessoa lê", () => {
+  // 11:21 em Brasília (14:21 UTC).
+  assert.deepEqual(homeGreeting(new Date("2026-09-23T14:21:00Z"), "Vitor"), {
+    date: "Quarta, 23 de setembro",
+    hello: "Bom dia, Vitor.",
+  });
+  assert.equal(homeGreeting(new Date("2026-09-23T17:00:00Z"), null).hello, "Boa tarde.");
+  assert.equal(homeGreeting(new Date("2026-09-24T02:30:00Z"), "Ana").hello, "Boa noite, Ana.");
+  assert.deepEqual(appointmentWhen("2026-09-23T23:34:00Z", "2026-09-24T00:04:00Z", "2026-09-23"), {
+    day: "23",
+    month: "set",
+    line: "Hoje, 20:34 – 21:04",
+  });
+  assert.equal(appointmentWhen("2026-09-24T13:00:00Z", "2026-09-24T13:30:00Z", "2026-09-23").line, "Amanhã, 10:00 – 10:30");
+  assert.equal(appointmentWhen("2026-09-28T13:00:00Z", "2026-09-28T13:30:00Z", "2026-09-23").line, "Segunda, 28/09, 10:00 – 10:30");
+  assert.equal(clinicLocalDateTime(new Date("2026-09-23T03:05:00Z")), "2026-09-23T00:05");
+  assert.equal(justSentLabel("peso"), "Peso enviado");
+  assert.equal(justSentLabel("<script>"), null);
+  assert.equal(justSentLabel("constructor"), null);
+  assert.equal(justSentLabel(["peso"]), null);
 });
 
 test("últimos envios: mais recente primeiro, um envio por linha, no máximo cinco", () => {
@@ -96,7 +123,8 @@ test("a Home não repete a navegação nem promete o que não existe", () => {
   // Envio é confirmado como "Enviado", nunca como "visto pelo médico".
   assert.match(home, /Enviado \{sentWhen/);
   assert.doesNotMatch(home, /visto|lido pelo/i);
-  assert.match(home, /Este não é um canal de urgência\./);
+  // A urgência fica no atalho fixo "Sentiu algo forte?", em todas as abas.
+  assert.match(read("../components/patient-shell.tsx"), /Sentiu algo forte\?/);
   assert.doesNotMatch(home, /urgente|risco|atenção/i);
   // Falha na leitura dos envios: a seção some, não finge vazio.
   assert.match(page, /patientRecentSent\(tenantId\)\.catch\(\(\) => null\)/);
@@ -113,7 +141,7 @@ test("envios do paciente: só da própria autoria, lidos com a sessão dele", ()
 });
 
 test("pré-consulta obrigatória e preparo continuam montados na Home", () => {
-  assert.match(home, /PatientRequiredPreparation/);
+  assert.match(home, /<StartPreparationButton base=\{base\} tenantId=\{tenantId\}/);
   assert.match(page, /onboarding\?\.status === "draft"/);
   // Só o preparo que ainda espera a pessoa (ou o aberto pelo link) aparece.
   assert.match(page, /\["requested", "draft"\]\.includes\(item\.status\)/);

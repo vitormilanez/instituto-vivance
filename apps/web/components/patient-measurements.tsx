@@ -3,153 +3,173 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { heightInCentimeters } from "@/modules/measurements/height";
 
 export type LastWeight = { value: number; reportedOn: string } | null;
 
-const decimal = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
+const decimal = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 function dayMonth(date: string) {
   const [, month, day] = date.split("-");
   return `${day}/${month}`;
 }
 
-// Registrar o peso é a tarefa do dia a dia: um campo, um botão. Altura,
-// cintura e outra data ficam a um toque, sem pesar a primeira vista. Quem
-// envia é a própria pessoa logada; a autoria vem da sessão, não de uma caixa
-// de confirmação.
+function parse(value: string) {
+  const text = value.trim().replace(",", ".");
+  if (!text) return null;
+  const number = Number(text);
+  return Number.isFinite(number) ? number : Number.NaN;
+}
+
+// Registrar peso: um campo grande, − e + de 0,1 kg e um botão. Cintura,
+// altura e outra data ficam a um toque. Quem envia é a própria pessoa logada;
+// a autoria vem da sessão, não de uma caixa de confirmação.
 export function PatientMeasurements({
   tenant,
   today,
+  base,
   last = null,
 }: {
   tenant: string;
   today: string;
+  base: string;
   last?: LastWeight;
 }) {
   const router = useRouter();
   const requestId = useRef(crypto.randomUUID());
   const busy = useRef(false);
   const weightInput = useRef<HTMLInputElement>(null);
+  const [weight, setWeight] = useState(last ? decimal.format(last.value) : "");
+  const [height, setHeight] = useState("");
+  const [waist, setWaist] = useState("");
+  const [measuredOn, setMeasuredOn] = useState(today);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  // Quem chega pelo atalho "Peso e medidas" já encontra o campo pronto.
   useEffect(() => {
-    if (window.location.hash === "#atualizar-medidas")
-      weightInput.current?.focus({ preventScroll: true });
+    weightInput.current?.focus({ preventScroll: true });
+    weightInput.current?.select();
   }, []);
+
+  const heightValue = parse(height);
+  const heightNote = heightInCentimeters(heightValue);
+
+  function step(delta: number) {
+    const current = parse(weight);
+    const base = current && Number.isFinite(current) ? current : last?.value ?? 0;
+    const next = Math.max(0, Math.round((base + delta) * 10) / 10);
+    setWeight(decimal.format(next));
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy.current) return;
-    busy.current = true;
-    setPending(true);
-    setError("");
-    setSuccess("");
-    const formElement = event.currentTarget;
-    const form = new FormData(formElement);
-    const numberOrNull = (name: string) => {
-      const value = String(form.get(name) ?? "").trim().replace(",", ".");
-      return value ? Number(value) : null;
-    };
-    const weight = numberOrNull("weight_kg");
-    const height = numberOrNull("height_cm");
-    const waist = numberOrNull("waist_cm");
-    if (weight === null && height === null && waist === null) {
+    const weightKg = parse(weight);
+    const waistCm = parse(waist);
+    const heightCm = heightNote.value;
+    if (weightKg === null && waistCm === null && heightCm === null) {
       setError("Informe o peso ou outra medida.");
-      busy.current = false;
-      setPending(false);
       weightInput.current?.focus();
       return;
     }
+    if (heightCm !== null && Number.isNaN(heightCm)) {
+      setError(heightNote.note ?? "Confira a altura.");
+      return;
+    }
+    if ([weightKg, waistCm, heightCm].some((value) => value !== null && !(value > 0))) {
+      setError("Confira os números: use só algarismos e vírgula, como 76,4.");
+      return;
+    }
+    busy.current = true;
+    setPending(true);
+    setError("");
     try {
       const response = await fetch(`/api/v1/clinics/${tenant}/measurements`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: AbortSignal.timeout(20_000),
         body: JSON.stringify({
-          weight_kg: weight,
-          height_cm: height,
-          waist_cm: waist,
-          measured_on: form.get("measured_on") || today,
+          weight_kg: weightKg,
+          height_cm: heightCm,
+          waist_cm: waistCm,
+          measured_on: measuredOn || today,
           client_request_id: requestId.current,
         }),
       });
       const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error ?? "Não foi possível registrar agora.");
-      formElement.reset();
-      const measuredOn = formElement.elements.namedItem("measured_on");
-      if (measuredOn instanceof HTMLInputElement) measuredOn.value = today;
+      if (!response.ok) throw new Error(data.error ?? "Não foi possível registrar agora.");
       requestId.current = crypto.randomUUID();
-      setSuccess(
-        weight !== null && height === null && waist === null
-          ? `✓ Peso registrado: ${decimal.format(weight)} kg. Sua equipe já vê no histórico.`
-          : "✓ Medidas registradas. Sua equipe já vê no histórico.",
-      );
+      router.push(`${base}/hoje?enviado=${weightKg !== null && waistCm === null && heightCm === null ? "peso" : "medidas"}`);
       router.refresh();
     } catch (reason) {
       setError(
         reason instanceof Error && reason.name !== "TimeoutError"
           ? reason.message
-          : "A conexão demorou. Atualize a página antes de enviar de novo, para conferir se já foi registrado.",
+          : "A conexão demorou. Confira em Evolução se já foi registrado antes de enviar de novo.",
       );
-    } finally {
       busy.current = false;
       setPending(false);
     }
   }
 
-  const describedBy = error ? "patient-measurements-error" : undefined;
-
   return (
-    <section id="atualizar-medidas" className="panel patient-measurements" aria-labelledby="patient-measurements-title">
-      <div className="section-heading">
-        <div>
-          <h2 id="patient-measurements-title">Registrar peso</h2>
-          <p>
-            {last
-              ? `Último registro: ${decimal.format(last.value)} kg em ${dayMonth(last.reportedOn)}.`
-              : "Anote o peso de hoje. Leva poucos segundos."}
-          </p>
-        </div>
+    <form className="pv-stack" onSubmit={submit} noValidate aria-labelledby="pv-weight-title">
+      <div className="pv-stack pv-tight">
+        <h2 id="pv-weight-title" className="pv-big">Quanto você está pesando hoje?</h2>
+        <p className="pv-lead">
+          {last
+            ? `Último registro: ${decimal.format(last.value)} kg em ${dayMonth(last.reportedOn)}.`
+            : "Seu primeiro registro. Leva poucos segundos."}
+        </p>
       </div>
-      <form onSubmit={submit} noValidate>
-        {error && <p id="patient-measurements-error" role="alert">{error}</p>}
-        {success && <p role="status">{success}</p>}
-        <div className="weight-entry">
-          <label className="field weight-field">
-            Peso de hoje
-            <span className="weight-input">
-              <input
-                ref={weightInput}
-                name="weight_kg"
-                type="number"
-                min="0.01"
-                max="500"
-                step="0.1"
-                inputMode="decimal"
-                autoComplete="off"
-                placeholder={last ? decimal.format(last.value) : "0,0"}
-                aria-describedby={describedBy}
-                disabled={pending}
-              />
-              <span aria-hidden="true">kg</span>
-            </span>
+      {error && <p className="pv-form-error" role="alert" id="pv-weight-error">{error}</p>}
+      <div className="pv-weight">
+        <button type="button" className="pv-step" onClick={() => step(-0.1)} aria-label="Diminuir 0,1 kg" disabled={pending}>−</button>
+        <label className="pv-weight-input">
+          <span className="pv-visually-hidden">Peso em quilos</span>
+          <input
+            ref={weightInput}
+            name="weight_kg"
+            inputMode="decimal"
+            autoComplete="off"
+            placeholder="0,0"
+            value={weight}
+            onChange={(event) => setWeight(event.target.value)}
+            aria-describedby={error ? "pv-weight-error" : undefined}
+            disabled={pending}
+          />
+          <span aria-hidden="true">kg</span>
+        </label>
+        <button type="button" className="pv-step" onClick={() => step(0.1)} aria-label="Aumentar 0,1 kg" disabled={pending}>+</button>
+      </div>
+      <p className="pv-muted pv-center">
+        {measuredOn === today ? "Hoje, agora" : `Medido em ${dayMonth(measuredOn)}`}
+      </p>
+      <details className="pv-more">
+        <summary>Cintura, altura ou outra data</summary>
+        <div className="pv-more-body">
+          <label className="pv-field">
+            Cintura (cm) · na altura do umbigo
+            <input inputMode="decimal" value={waist} onChange={(event) => setWaist(event.target.value)} disabled={pending} />
           </label>
-          <button disabled={pending}>{pending ? "Registrando…" : "Registrar"}</button>
+          <label className="pv-field">
+            Altura (cm)
+            <input inputMode="decimal" value={height} onChange={(event) => setHeight(event.target.value)} disabled={pending} aria-describedby="pv-height-note" />
+            {heightNote.note && <small id="pv-height-note" className="pv-hint-warn">{heightNote.note}</small>}
+          </label>
+          <label className="pv-field">
+            Data da medição
+            <input type="date" max={today} value={measuredOn} onChange={(event) => setMeasuredOn(event.target.value)} disabled={pending} />
+          </label>
         </div>
-        <details className="more-measurements">
-          <summary>Outras medidas ou outra data</summary>
-          <div className="patient-measurement-fields">
-            <label className="field">Altura (cm)<input name="height_cm" type="number" min="0.01" max="300" step="0.1" inputMode="decimal" aria-describedby={describedBy} disabled={pending} /></label>
-            <label className="field">Circunferência abdominal (cm)<input name="waist_cm" type="number" min="0.01" max="400" step="0.1" inputMode="decimal" aria-describedby={describedBy} disabled={pending} /></label>
-            <label className="field">Data da medição<input name="measured_on" type="date" max={today} defaultValue={today} aria-describedby={describedBy} disabled={pending} /></label>
-          </div>
-        </details>
-      </form>
-      <p className="module-footnote">O registro fica no seu histórico com a data informada e não muda seu plano de cuidado automaticamente.</p>
-    </section>
+      </details>
+      <button className="pv-button is-center" disabled={pending}>
+        {pending ? "Salvando…" : "Salvar"}
+      </button>
+      <p className="pv-muted">
+        Fica no seu histórico com a data informada e não muda seu plano de cuidado automaticamente.
+      </p>
+    </form>
   );
 }
+

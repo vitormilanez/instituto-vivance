@@ -34,7 +34,7 @@ export default async function FirstSteps({
     getOwnPatientIntake(tenantId),
   ]);
   return (
-    <PatientShell clinic={context.clinic} active="hoje">
+    <PatientShell clinic={context.clinic} active="hoje" title="Primeiros passos" heading="page">
       {intake && query.detalhes !== "1" ? (
         <div className="onboarding-workspace">
           <header className="onboarding-header">

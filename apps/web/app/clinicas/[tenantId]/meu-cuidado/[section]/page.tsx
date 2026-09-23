@@ -8,8 +8,12 @@ import { AccessError } from "@/modules/identity/service";
 import { InputError } from "@/lib/validation";
 import { findPatientSection } from "@/modules/workspace/navigation";
 import { PatientShell } from "@/components/patient-shell";
+import { PatientAlertSigns } from "@/components/patient/alert-signs";
+import { PatientMealQuick } from "@/components/patient/meal-quick";
+import { PatientMyCare } from "@/components/patient/my-care";
 import { PatientArea } from "@/components/patient-area";
 import { PatientHome } from "@/components/patient-home";
+import { clinicLocalDateTime, justSentLabel } from "@/modules/workspace/patient-home";
 import { patientRecentSent } from "@/modules/workspace/patient-sent";
 import { DevelopmentNotice } from "@/components/module-ui";
 import { listAppointments } from "@/modules/agenda/service";
@@ -23,7 +27,8 @@ import { PatientCheckIns } from "@/components/patient-check-ins";
 import { PatientMealLogs } from "@/components/patient-meal-logs";
 import { patientMeals } from "@/modules/meals/service";
 import { patientLongitudinal } from "@/modules/longitudinal/service";
-import { PatientLongitudinalWorkspace } from "@/components/longitudinal-workspace";
+import { PatientEvolution } from "@/components/patient/evolution";
+import { evolutionPeriod } from "@/modules/workspace/patient-evolution";
 import { PatientMeasurements } from "@/components/patient-measurements";
 import { patientMeasurementSummary } from "@/modules/measurements/service";
 import { patientDocuments } from "@/modules/documents/service";
@@ -42,7 +47,7 @@ export default async function PatientAreaPage({
   searchParams,
 }: {
   params: Promise<{ tenantId: string; section: string }>;
-  searchParams: Promise<{ pagina?: string; preparo?: string; medico?: string | string[]; inicio?: string; fim?: string; cursor?: string }>;
+  searchParams: Promise<{ periodo?: string; enviado?: string; pagina?: string; preparo?: string; medico?: string | string[]; inicio?: string; fim?: string; cursor?: string }>;
 }) {
   const { tenantId, section: slug } = await params;
   const section = findPatientSection(slug);
@@ -59,6 +64,7 @@ export default async function PatientAreaPage({
   const now = requestDate.getTime();
   const currentTime = requestDate.toISOString();
   const query = await searchParams;
+  const evolution = evolutionPeriod(query.periodo, clinicDate());
   // Tudo o que a página lê depende só do perfil e da seção: as leituras
   // rodam juntas. Em série, cada ida ao banco somava latência à anterior.
   const [
@@ -87,7 +93,7 @@ export default async function PatientAreaPage({
         })
       : null,
     // published
-    patient && ["plano", "hoje"].includes(slug)
+    patient && ["plano", "hoje", "cuidado"].includes(slug)
       ? patientPublications(
           tenantId,
           slug === "plano" ? query.pagina : undefined,
@@ -98,13 +104,11 @@ export default async function PatientAreaPage({
       ? patientCheckIns(tenantId, query.pagina)
       : null,
     // meals
-    patient && slug === "diario" ? patientMeals(tenantId) : null,
+    patient && ["diario", "refeicao"].includes(slug) ? patientMeals(tenantId) : null,
     // longitudinal
     patient && slug === "evolucao"
       ? patientLongitudinal(tenantId, {
-          from: query.inicio,
-          to: query.fim,
-          cursor: query.cursor,
+          from: evolution.from,
         }).catch((error) => {
           if (error instanceof InputError)
             redirect(`/clinicas/${tenantId}/meu-cuidado/evolucao`);
@@ -112,8 +116,8 @@ export default async function PatientAreaPage({
         })
       : null,
     // documents
-    patient && slug === "documentos"
-      ? patientDocuments(tenantId, query.pagina)
+    patient && ["documentos", "cuidado"].includes(slug)
+      ? patientDocuments(tenantId, slug === "documentos" ? query.pagina : undefined)
       : null,
     // messages
     slug === "conversas"
@@ -143,7 +147,7 @@ export default async function PatientAreaPage({
     ? patientPreparationRequirement(tenantId)
     : null,
     // latestMeasurement: na Home e no formulário de peso (Evolução)
-    patient && (slug === "hoje" || slug === "evolucao")
+    patient && ["hoje", "evolucao", "peso"].includes(slug)
     ? patientMeasurementSummary(tenantId)
     : null,
     // careRequests: o que a equipe pediu vira tarefa no "Hoje"
@@ -155,7 +159,7 @@ export default async function PatientAreaPage({
     ? patientRecentSent(tenantId).catch(() => null)
     : null,
     // appointments
-    slug === "consultas" || slug === "hoje"
+    ["consultas", "hoje", "cuidado"].includes(slug)
       ? listAppointments(
           tenantId,
           clinicDate(new Date(now - 30 * 86400000)),
@@ -167,49 +171,46 @@ export default async function PatientAreaPage({
   const unreadPublication =
     published?.publications.find((publication) => !publication.care_plan_receipts[0]) ??
     null;
+  const base = `/clinicas/${tenantId}/meu-cuidado`;
+  const firstName = patient?.display_name.split(/\s+/)[0] ?? null;
+  const lastWeight =
+    latestMeasurement?.measure_label === "Peso"
+      ? { value: Number(latestMeasurement.measure_value), reportedOn: latestMeasurement.reported_on }
+      : null;
+  const shellTitle =
+    section.group === "cuidado" && section.slug !== "cuidado" ? "Meu cuidado" : section.title;
   return (
-    <PatientShell clinic={clinic} active={section.slug}>
-      {patient ? (
-        <header className="patient-portal-header">
-          <span
-            className="patient-avatar patient-avatar-large"
-            aria-hidden="true"
-          >
-            {patient.display_name
-              .split(/\s+/)
-              .filter(Boolean)
-              .slice(0, 2)
-              .map((part) => part[0])
-              .join("")
-              .toUpperCase()}
-          </span>
-          <div>
-            <h1>
-              {section.slug === "hoje"
-                ? `Olá, ${patient.display_name.split(/\s+/)[0]}.`
-                : section.title}
-            </h1>
-            <p>
-              {section.slug === "hoje"
-                ? "Consultas e próximos passos do seu acompanhamento, em um só lugar."
-                : section.description}
-            </p>
-          </div>
-        </header>
-      ) : (
-        <div className="page-heading">
-          <div>
-            <h1>{section.title}</h1>
-            <p>{section.description}</p>
-          </div>
-        </div>
-      )}
+    <PatientShell
+      clinic={clinic}
+      active={section.slug}
+      title={shellTitle}
+      heading={section.slug === "hoje" ? "page" : "bar"}
+    >
       {!patient && (
-        <p className="notice">
+        <p className="pv-notice">
           A equipe ainda precisa vincular sua conta à sua ficha. Entre em
           contato com a clínica.
         </p>
       )}
+      {slug === "peso" && patient ? (
+        <PatientMeasurements tenant={tenantId} today={clinicDate()} base={base} last={lastWeight} />
+      ) : slug === "cuidado" && patient && published && appointments ? (
+        <PatientMyCare
+          base={base}
+          clinicId={tenantId}
+          today={clinicDate()}
+          currentTime={currentTime}
+          publications={published.publications}
+          appointments={appointments.appointments}
+          documents={documents?.documents ?? null}
+        />
+      ) : slug === "alerta" ? (
+        <PatientAlertSigns />
+      ) : slug === "refeicao" && meals?.patientId ? (
+        <PatientMealQuick tenantId={tenantId} patientId={meals.patientId} base={base} nowLocal={clinicLocalDateTime(requestDate)} />
+      ) : section.group === "cuidado" && section.slug !== "cuidado" ? (
+        <h2 className="pv-h2 pv-subtitle">{section.title}</h2>
+      ) : null}
       {slug === "relatorios" && reports ? (
         <PublishedReports initial={reports} />
       ) : slug === "conversas" && messages ? (
@@ -217,24 +218,7 @@ export default async function PatientAreaPage({
       ) : slug === "documentos" && documents ? (
         <PatientDocumentsWorkspace initial={documents} />
       ) : slug === "evolucao" && longitudinal ? (
-        <>
-          <PatientMeasurements
-            tenant={tenantId}
-            today={clinicDate()}
-            last={
-              latestMeasurement?.measure_label === "Peso"
-                ? {
-                    value: Number(latestMeasurement.measure_value),
-                    reportedOn: latestMeasurement.reported_on,
-                  }
-                : null
-            }
-          />
-          <PatientLongitudinalWorkspace
-            initial={longitudinal}
-            base={`/clinicas/${tenantId}/meu-cuidado`}
-          />
-        </>
+        <PatientEvolution data={longitudinal} base={base} period={evolution.key} />
       ) : slug === "diario" && checkIns && meals ? (
         <>
           <PatientMealLogs initial={meals} />
@@ -242,7 +226,7 @@ export default async function PatientAreaPage({
         </>
       ) : slug === "plano" && published ? (
         <PublishedPlans initial={published} />
-      ) : appointments ? (
+      ) : appointments && slug !== "cuidado" ? (
         section.slug === "consultas" ? (
           <section className="panel patient-appointments-panel">
             <div className="section-heading">
@@ -267,8 +251,11 @@ export default async function PatientAreaPage({
         ) : (
           <>
             <PatientHome
-              base={`/clinicas/${tenantId}/meu-cuidado`}
+              base={base}
               tenantId={tenantId}
+              now={requestDate}
+              justSent={justSentLabel(query.enviado)}
+              firstName={firstName}
               today={clinicDate()}
               appointments={appointments.appointments}
               currentTime={currentTime}
@@ -312,7 +299,7 @@ export default async function PatientAreaPage({
             )}
           </>
         )
-      ) : (
+      ) : ["peso", "alerta", "refeicao", "cuidado"].includes(section.slug) ? null : (
         <>
           {![
             "hoje",

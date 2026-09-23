@@ -239,7 +239,44 @@ export const patientSections = [
     group: "cuidado",
     description: "Sínteses que seu médico revisou e compartilhou com você.",
   },
+  // Tarefas de tela cheia, abertas pelo botão "Registrar" ou por atalhos. Não
+  // aparecem na navegação: têm começo, fim e um "voltar".
+  {
+    slug: "peso",
+    title: "Registrar peso",
+    group: "acao",
+    description: "Um campo, um toque.",
+  },
+  {
+    slug: "refeicao",
+    title: "Registrar refeição",
+    group: "acao",
+    description: "Foto e, se quiser, uma descrição.",
+  },
+  {
+    slug: "alerta",
+    title: "Sinais de alerta",
+    group: "acao",
+    description: "O que fazer se sentir algo forte ou diferente.",
+  },
 ] as const;
+
+// As quatro abas do paciente, na ordem da barra (o "Registrar" fica no meio).
+// Cada seção pertence a uma aba; as tarefas de tela cheia não pertencem a
+// nenhuma.
+export const patientTabs = [
+  { slug: "hoje", title: "Hoje", icon: "home" },
+  { slug: "evolucao", title: "Evolução", icon: "chart" },
+  { slug: "conversas", title: "Conversas", icon: "chat" },
+  { slug: "cuidado", title: "Meu cuidado", icon: "heart" },
+] as const;
+export type PatientTab = (typeof patientTabs)[number]["slug"];
+export function patientTabFor(slug: string): PatientTab | null {
+  const section = findPatientSection(slug);
+  if (!section || section.group === "acao") return null;
+  if (section.group === "cuidado") return "cuidado";
+  return section.group as PatientTab;
+}
 export type PatientSection = (typeof patientSections)[number];
 export function findPatientSection(slug: string) {
   return patientSections.find((item) => item.slug === slug);

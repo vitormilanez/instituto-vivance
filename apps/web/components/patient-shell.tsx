@@ -1,100 +1,130 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Figtree } from "next/font/google";
 import type { ClinicAccess } from "@/modules/identity/service";
-import { navLabel, patientSections } from "@/modules/workspace/navigation";
-import { Header } from "./header";
+import { patientTabFor, patientTabs } from "@/modules/workspace/navigation";
+import { logout } from "@/app/actions";
+import { Icon, Mark } from "./patient/icons";
+import { RegisterSheet, type RegisterItem } from "./patient/register-sheet";
+import "@/app/patient.css";
 
+const figtree = Figtree({ subsets: ["latin"], variable: "--font-figtree" });
+
+// O que o botão "Registrar" oferece, na ordem do dia a dia. O check-in, quando
+// há um esperando a pessoa, vem primeiro e em destaque.
+export function registerItems(base: string, checkInHref?: string | null): RegisterItem[] {
+  return [
+    ...(checkInHref
+      ? [{ href: checkInHref, title: "Check-in de hoje", hint: "Cerca de 1 minuto", icon: "clip" as const, primary: true }]
+      : []),
+    { href: `${base}/peso`, title: "Peso e medidas", hint: "Um campo, um toque", icon: "scale" },
+    { href: `${base}/refeicao`, title: "Refeição", hint: "Foto e, se quiser, uma descrição", icon: "food" },
+    { href: `${base}/documentos#enviar-documento`, title: "Exame ou documento", hint: "Foto ou PDF", icon: "file" },
+    { href: `${base}/conversas`, title: "Mensagem ao médico", hint: "Para dúvidas que podem esperar", icon: "chat" },
+  ];
+}
+
+// A moldura da área do paciente. Abas: barra de título com o atalho de
+// "Sentiu algo forte?", conteúdo e a barra inferior com o "Registrar" no meio
+// (no computador, a navegação vira coluna lateral). Tarefas de tela cheia
+// (registrar peso, refeição, sinais de alerta): só um "voltar" e o título.
 export function PatientShell({
   clinic,
   active,
+  title,
+  heading = "bar",
+  backHref,
+  checkInHref,
   children,
 }: {
   clinic: ClinicAccess;
   active: string;
+  title: string;
+  heading?: "bar" | "page";
+  backHref?: string;
+  checkInHref?: string | null;
   children: ReactNode;
 }) {
   const base = `/clinicas/${clinic.id}/meu-cuidado`;
-  const primarySections = patientSections.slice(0, 4);
-  // Desktop gets the full map of "Meu cuidado" up front, so orientações,
-  // documentos e relatórios não exigem entrar no hub primeiro para descobri-los.
-  const careSections = patientSections.filter(
-    (section) => section.group === "cuidado" && section.slug !== "cuidado",
-  );
-  const careSectionActive =
-    active === "cuidado" || careSections.some((section) => section.slug === active);
+  const tab = patientTabFor(active);
+  const items = registerItems(base, checkInHref);
+  const task = !tab;
+
   return (
-    <>
-      <Header
-        homeHref={`${base}/hoje`}
-        notificationsHref={`/clinicas/${clinic.id}/avisos`}
-      />
-      <div className="patient-shell-grid">
-        <aside className="patient-sidebar">
-          <div className="patient-sidebar-context">
-            <span>Seu cuidado com</span>
-            <strong>{clinic.name}</strong>
-          </div>
-          <nav aria-label="Navegação do paciente">
-            {primarySections.map((section) => (
-              <span key={section.slug} className="patient-sidebar-group">
-                <Link
-                  href={`${base}/${section.slug}`}
-                  aria-current={active === section.slug ? "page" : undefined}
-                  data-group-current={
-                    section.slug === "cuidado" && careSectionActive
-                      ? "true"
-                      : undefined
-                  }
-                >
-                  {section.title}
-                </Link>
-                {section.slug === "cuidado" && (
-                  <span className="patient-sidebar-subnav">
-                    {careSections.map((sub) => (
-                      <Link
-                        key={sub.slug}
-                        href={`${base}/${sub.slug}`}
-                        aria-current={active === sub.slug ? "page" : undefined}
-                      >
-                        {navLabel(sub)}
-                      </Link>
-                    ))}
-                  </span>
-                )}
+    <div className={`pv ${figtree.variable}${task ? " pv-is-task" : ""}`}>
+      <div className="pv-frame">
+        {!task && (
+          <aside className="pv-side" aria-label="Menu do paciente">
+            <div className="pv-side-brand">
+              <Mark size={40} />
+              <span>
+                <strong>Instituto Vivance</strong>
+                {clinic.name !== "Instituto Vivance" && <small>{clinic.name}</small>}
               </span>
-            ))}
-          </nav>
-          <Link
-            className="patient-profile-link"
-            href={`/clinicas/${clinic.id}/meu-perfil`}
-            aria-current={active === "perfil" ? "page" : undefined}
-          >
-            Meu perfil
-          </Link>
-        </aside>
-        <main id="conteudo" className="patient-workspace">
-          {children}
-        </main>
+            </div>
+            <RegisterSheet items={items} variant="side" />
+            <nav>
+              {patientTabs.map((item) => (
+                <Link
+                  key={item.slug}
+                  href={`${base}/${item.slug}`}
+                  aria-current={tab === item.slug ? "page" : undefined}
+                >
+                  <Icon name={item.icon} size={22} />
+                  {item.title}
+                </Link>
+              ))}
+            </nav>
+            <div className="pv-side-foot">
+              <Link href={`/clinicas/${clinic.id}/meu-perfil`}>Meu perfil</Link>
+              <form action={logout}>
+                <button type="submit" data-leave-clinic>Sair da conta</button>
+              </form>
+            </div>
+          </aside>
+        )}
+        <div className="pv-column">
+        {task ? (
+          <header className="pv-taskbar">
+            <Link className="pv-icon-button" href={backHref ?? `${base}/hoje`} aria-label="Voltar">
+              <Icon name="x" />
+            </Link>
+            {heading === "bar" ? <h1>{title}</h1> : <span className="pv-topbar-title">{title}</span>}
+          </header>
+        ) : (
+          <header className="pv-topbar">
+            <Link className="pv-topbar-home" href={`${base}/hoje`} aria-label="Instituto Vivance — início">
+              <Mark />
+            </Link>
+            {heading === "bar" ? <h1>{title}</h1> : <span className="pv-topbar-title">{title}</span>}
+            <Link className="pv-alert-pill" href={`${base}/alerta`}>
+              <span className="pv-alert-pill-icon"><Icon name="alert" size={18} /></span>
+              Sentiu algo forte?
+            </Link>
+          </header>
+        )}
+          <main id="conteudo" className="pv-main">
+            {children}
+          </main>
+        </div>
       </div>
-      <nav
-        className="patient-navigation patient-navigation-mobile"
-        aria-label="Navegação do paciente"
-      >
-        {primarySections.map((section) => (
-          <Link
-            key={section.slug}
-            href={`${base}/${section.slug}`}
-            aria-current={
-              active === section.slug ||
-              (section.slug === "cuidado" && careSectionActive)
-                ? "page"
-                : undefined
-            }
-          >
-            {section.title}
-          </Link>
-        ))}
-      </nav>
-    </>
+      {!task && (
+        <nav className="pv-tabbar" aria-label="Navegação do paciente">
+          {patientTabs.slice(0, 2).map((item) => (
+            <Link key={item.slug} className="pv-tab" href={`${base}/${item.slug}`} aria-current={tab === item.slug ? "page" : undefined}>
+              <Icon name={item.icon} />
+              <span>{item.title}</span>
+            </Link>
+          ))}
+          <RegisterSheet items={items} />
+          {patientTabs.slice(2).map((item) => (
+            <Link key={item.slug} className="pv-tab" href={`${base}/${item.slug}`} aria-current={tab === item.slug ? "page" : undefined}>
+              <Icon name={item.icon} />
+              <span>{item.title}</span>
+            </Link>
+          ))}
+        </nav>
+      )}
+    </div>
   );
 }

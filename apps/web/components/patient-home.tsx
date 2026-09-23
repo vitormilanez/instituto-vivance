@@ -3,39 +3,35 @@ import type { Appointment } from "@/modules/agenda/service";
 import { patientTodayTasks } from "@/modules/workspace/patient-today-tasks";
 import { patientNextAppointment } from "@/modules/workspace/patient-appointment";
 import {
+  appointmentWhen,
+  homeGreeting,
   patientFocus,
   quickLogs,
   sentLabels,
   sentWhen,
   type SentItem,
 } from "@/modules/workspace/patient-home";
-import { PatientRequiredPreparation } from "./return-preparation-workspace";
-import { sentenceCase } from "@/lib/format";
+import { Icon, type IconName } from "./patient/icons";
+import { StartPreparationButton } from "./patient/start-preparation";
 
-// Ícones de traço 1.6, 24px — a mesma família da barra do celular.
-const logIcons: Record<string, string> = {
-  measurements: "M4 20h16M6 20V9m6 11V4m6 16v-7",
-  meal: "M7 3v8a2 2 0 0 0 2 2v8M7 3v5M11 3v8a2 2 0 0 1-2 2M17 3c-1.7 0-3 2-3 5s1.3 4 3 4v9",
-  document: "M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6",
-  message: "M4 5h16v11H9l-5 4z",
+const logIcons: Record<string, IconName> = {
+  measurements: "scale",
+  meal: "food",
+  document: "file",
+  message: "chat",
 };
-function LogIcon({ id }: { id: string }) {
-  return (
-    <span className="phome-log-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="24" height="24">
-        <path d={logIcons[id]} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </span>
-  );
-}
 
-// A Home do paciente: uma ação em destaque, o resto da fila curto, atalhos
-// para registrar e a confirmação do que já foi enviado. Os outros destinos
-// continuam no menu — aqui não se repete a navegação.
+// A Home do paciente responde "o que eu faço agora?": uma ação em destaque,
+// registrar a um toque, a próxima consulta, a orientação publicada e a
+// confirmação do que já foi enviado. Nada de interpretação: só o que a pessoa
+// fez e o que o médico publicou.
 export function PatientHome({
   base,
   tenantId,
   today,
+  now,
+  justSent = null,
+  firstName,
   appointments,
   currentTime,
   latestPublication,
@@ -51,9 +47,12 @@ export function PatientHome({
   base: string;
   tenantId: string;
   today: string;
+  now: Date;
+  justSent?: string | null;
+  firstName: string | null;
   appointments: Appointment[];
   currentTime: string;
-  latestPublication: { title: string; revision: number } | null;
+  latestPublication: { title: string; revision: number; published_at?: string | null } | null;
   unreadPublication: { title: string; revision: number } | null;
   onboardingHref: string | null;
   pendingCheckInId: string | null;
@@ -92,36 +91,68 @@ export function PatientHome({
     consultationInProgress: next?.status === "in_progress",
     tasks,
   });
+  const firstTask = tasks[0];
+  const isCheckIn = focus.kind === "task" && firstTask?.id.startsWith("check-in-");
+  const isRequired = focus.kind === "task" && firstTask?.id === "required-preparation";
   const logs = quickLogs({ base, doctorName, latestMeasurement });
+  const greeting = homeGreeting(now, firstName);
+  const when = next ? appointmentWhen(next.starts_at, next.ends_at, today) : null;
 
   return (
-    <div className="phome">
-      <section
-        className={`phome-focus${focus.kind === "clear" ? " is-clear" : ""}`}
-        aria-labelledby="phome-focus-title"
-      >
-        <p className="phome-eyebrow">
-          {focus.kind === "clear" ? "Seu acompanhamento" : "Seu próximo passo"}
+    <div className="pv-stack">
+      {justSent && (
+        <p className="pv-status" role="status">
+          <Icon name="check" size={20} />
+          {justSent} ✓ · Guardado no seu histórico.
         </p>
-        <h2 id="phome-focus-title">{focus.title}</h2>
-        <p>{focus.detail}</p>
-        <Link className="button" href={focus.href}>
-          {focus.action}
-        </Link>
-      </section>
+      )}
+      <div className="pv-greeting">
+        <p>{greeting.date}</p>
+        <h1>{greeting.hello}</h1>
+      </div>
 
-      {requiredPreparation && (
-        <PatientRequiredPreparation
-          base={base}
-          tenantId={tenantId}
-          appointment={requiredPreparation}
-        />
+      {isCheckIn ? (
+        <section className="pv-hero" aria-labelledby="pv-focus-title">
+          <p className="pv-eyebrow">Agora · check-in</p>
+          <h2 id="pv-focus-title" className="pv-big">Como você está reagindo ao tratamento?</h2>
+          <p className="pv-lead">{focus.detail}</p>
+          <Link className="pv-button is-gold" href={focus.href}>
+            {focus.action}
+            <Icon name="arrow" size={22} />
+          </Link>
+        </section>
+      ) : focus.kind === "clear" ? (
+        <section className="pv-card" aria-labelledby="pv-focus-title">
+          <span className="pv-clear-icon" aria-hidden="true"><Icon name="check" /></span>
+          <h2 id="pv-focus-title" className="pv-big">Tudo em dia por hoje</h2>
+          <p className="pv-lead">Não há nada pendente com você agora. Se quiser, registre seu peso ou uma refeição.</p>
+        </section>
+      ) : (
+        <section className="pv-card pv-focus" aria-labelledby="pv-focus-title">
+          <p className="pv-eyebrow">
+            {focus.kind === "consultation"
+              ? "Agora"
+              : isRequired && requiredPreparation
+                ? `Pedido de ${requiredPreparation.doctorDisplayName}`
+                : "Seu próximo passo"}
+          </p>
+          <h2 id="pv-focus-title" className="pv-big">{focus.title}</h2>
+          <p className="pv-lead">{focus.detail}</p>
+          {isRequired ? (
+            <StartPreparationButton base={base} tenantId={tenantId} label={focus.action} />
+          ) : (
+            <Link className="pv-button" href={focus.href}>
+              {focus.action}
+              <Icon name="arrow" size={22} />
+            </Link>
+          )}
+        </section>
       )}
 
       {rest.length > 0 && (
-        <section className="phome-section" aria-labelledby="phome-rest-title">
-          <h2 id="phome-rest-title">Também para você</h2>
-          <ul className="phome-tasks">
+        <section className="pv-section" aria-labelledby="pv-rest-title">
+          <h2 id="pv-rest-title" className="pv-eyebrow">Também para você</h2>
+          <ul className="pv-tasks">
             {rest.map((task) => (
               <li key={task.id}>
                 <Link href={task.href}>
@@ -129,7 +160,7 @@ export function PatientHome({
                     <strong>{task.title}</strong>
                     <small>{task.detail}</small>
                   </span>
-                  <span className="phome-go" aria-hidden="true">›</span>
+                  <Icon name="chevR" size={20} />
                 </Link>
               </li>
             ))}
@@ -137,98 +168,73 @@ export function PatientHome({
         </section>
       )}
 
-      <section className="phome-section" aria-labelledby="phome-log-title">
-        <h2 id="phome-log-title">Registrar agora</h2>
-        <ul className="phome-logs">
+      <section className="pv-section" aria-labelledby="pv-log-title">
+        <h2 id="pv-log-title" className="pv-eyebrow">Registrar</h2>
+        <ul className="pv-quick">
           {logs.map((log) => (
             <li key={log.id}>
               <Link href={log.href}>
-                <LogIcon id={log.id} />
-                <strong>{log.title}</strong>
-                <small>{log.hint}</small>
+                <Icon name={logIcons[log.id]} />
+                <span>{log.title}</span>
               </Link>
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="phome-section phome-care" aria-labelledby="phome-care-title">
-        <h2 id="phome-care-title">Seu acompanhamento</h2>
-        <dl>
-          <div>
-            <dt>Próxima consulta</dt>
-            <dd>
-              {next ? (
-                <>
-                  <strong>
-                    {sentenceCase(
-                      new Date(next.starts_at).toLocaleDateString("pt-BR", {
-                        timeZone: "America/Sao_Paulo",
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                      }),
-                    )}
-                    {", "}
-                    {new Date(next.starts_at).toLocaleTimeString("pt-BR", {
-                      timeZone: "America/Sao_Paulo",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </strong>
-                  <span>
-                    {next.kind === "return" ? "Retorno" : "Consulta"} · {next.doctor_display_name}
-                  </span>
-                </>
-              ) : (
-                <span>Ainda não marcada. A clínica avisa quando agendar.</span>
-              )}
-            </dd>
-            <Link href={`${base}/consultas`}>Ver consultas</Link>
-          </div>
-          <div>
-            <dt>Orientações médicas</dt>
-            <dd>
-              {latestPublication ? (
-                <>
-                  <strong>{latestPublication.title}</strong>
-                  <span>
-                    {unreadPublication ? "Nova orientação para ler" : `Revisão ${latestPublication.revision}`}
-                  </span>
-                </>
-              ) : (
-                <span>Aparecem aqui quando o seu médico publicar.</span>
-              )}
-            </dd>
-            <Link href={`${base}/plano`}>Ver orientações</Link>
-          </div>
-        </dl>
+      <section className="pv-card" aria-labelledby="pv-next-title">
+        <h2 id="pv-next-title" className="pv-eyebrow">Próxima consulta</h2>
+        {next && when ? (
+          <Link className="pv-row-link" href={`${base}/cuidado#consultas`}>
+            <span className="pv-date-badge" aria-hidden="true">
+              <b>{when.day}</b>
+              <i>{when.month}</i>
+            </span>
+            <span>
+              <strong>{when.line}</strong>
+              <small>
+                {next.status === "in_progress" ? "Acontecendo agora · " : ""}
+                {next.doctor_display_name}
+              </small>
+            </span>
+            <Icon name="chevR" size={22} />
+          </Link>
+        ) : (
+          <p className="pv-lead">Ainda não marcada. A clínica avisa quando agendar.</p>
+        )}
       </section>
 
+      {latestPublication && (
+        <section className="pv-card" aria-labelledby="pv-plan-title">
+          <h2 id="pv-plan-title" className="pv-eyebrow">Orientação do seu médico</h2>
+          <Link className="pv-row-link" href={`${base}/cuidado#orientacoes`}>
+            <span>
+              <strong>{latestPublication.title}</strong>
+              <small>{unreadPublication ? "Nova · toque para ler" : `Revisão ${latestPublication.revision}`}</small>
+            </span>
+            <Icon name="chevR" size={22} />
+          </Link>
+        </section>
+      )}
+
       {sent && (
-        <section className="phome-section" aria-labelledby="phome-sent-title">
-          <h2 id="phome-sent-title">Seus últimos envios</h2>
+        <section className="pv-card" aria-labelledby="pv-sent-title">
+          <h2 id="pv-sent-title" className="pv-eyebrow">Seus últimos envios</h2>
           {sent.length ? (
-            <>
-              <ul className="phome-sent">
-                {sent.map((item) => (
-                  <li key={`${item.kind}-${item.key}`}>
-                    <span className="phome-sent-check" aria-hidden="true">✓</span>
-                    <span>
-                      <strong>{sentLabels[item.kind]}</strong>
-                      {item.detail ? <small>{item.detail}</small> : null}
-                    </span>
-                    <time dateTime={item.at}>Enviado {sentWhen(item.at, today)}</time>
-                  </li>
-                ))}
-              </ul>
-              <p className="phome-note">
-                Chegou para a sua equipe. Este não é um canal de urgência.
-              </p>
-            </>
+            <ul className="pv-list">
+              {sent.slice(0, 3).map((item) => (
+                <li key={`${item.kind}-${item.key}`}>
+                  <strong>{sentLabels[item.kind]}</strong>
+                  <time className="pv-sent-when" dateTime={item.at}>
+                    <Icon name="check" size={16} />
+                    Enviado {sentWhen(item.at, today)}
+                  </time>
+                </li>
+              ))}
+            </ul>
           ) : (
-            <p className="phome-note">
-              Quando você registrar algo, aparece aqui para você saber que chegou.
+            <p className="pv-lead">
+              Tudo o que você enviar aparece aqui, do jeito que enviou, com data e hora.
             </p>
           )}
         </section>

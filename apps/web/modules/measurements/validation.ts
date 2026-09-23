@@ -46,6 +46,10 @@ export function patientMeasurementInput(value: unknown) {
     measuredOn: reportedOn(body.measured_on),
     requestId: tenantId(String(body.client_request_id ?? "")),
   };
+  // Altura em metros (1,73) gravada como centímetros vira um dado errado no
+  // histórico. Abaixo de 50 cm, pedimos o valor em centímetros.
+  if (result.heightCm !== null && result.heightCm < 50)
+    throw new InputError("Altura: informe em centímetros, por exemplo 173.");
   if (result.weightKg === null && result.heightCm === null && result.waistCm === null)
     throw new InputError("Informe pelo menos uma medida.");
   return result;

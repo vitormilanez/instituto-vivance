@@ -61,7 +61,7 @@ function careRequestTask(
     href: {
       preparation: `${input.base}/preparo`,
       exams: onboarding,
-      measurements: `${input.base}/evolucao#atualizar-medidas`,
+      measurements: `${input.base}/peso`,
       goals: onboarding,
     }[request.kind]!,
   };
@@ -141,7 +141,7 @@ export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTa
       title: "Atualizar medidas",
       detail: "Registre peso, altura ou circunferência abdominal para manter seu histórico atualizado.",
       action: "Atualizar medidas",
-      href: `${input.base}/evolucao#atualizar-medidas`,
+      href: `${input.base}/peso`,
     });
 
   return tasks;

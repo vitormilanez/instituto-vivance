@@ -127,7 +127,7 @@ test("links onboarding points to a submitted onboarding destination, never the t
   );
   assert.equal(
     patientMeasurementSourceHref("/clinicas/tenant/meu-cuidado", true),
-    "/clinicas/tenant/meu-cuidado/evolucao#atualizar-medidas",
+    "/clinicas/tenant/meu-cuidado/peso",
   );
 });
 
