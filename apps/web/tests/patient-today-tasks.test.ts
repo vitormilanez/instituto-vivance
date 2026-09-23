@@ -15,7 +15,7 @@ test("patient today lists only unresolved actions in their expected order", () =
     }).map((task) => [task.id, task.href]),
     [
       ["check-in-check-in-1", `${base}/diario#check-in-check-in-1`],
-      ["preparation-preparation-1", `${base}/hoje?preparo=preparation-1#preparo-preparation-1`],
+      ["preparation-preparation-1", `${base}/preconsulta?preparo=preparation-1`],
       ["published-plan", `${base}/plano`],
       ["onboarding", "/clinicas/tenant/primeiros-passos"],
       ["measurements", `${base}/peso`],
@@ -86,7 +86,7 @@ test("o pedido do médico vira tarefa que abre direto o formulário", () => {
     "care-request-measurements",
   ]);
   assert.deepEqual(tasks.map((task) => task.href), [
-    `${base}/preparo`,
+    `${base}/preconsulta`,
     "/clinicas/tenant/primeiros-passos",
     "/clinicas/tenant/primeiros-passos",
     `${base}/peso`,

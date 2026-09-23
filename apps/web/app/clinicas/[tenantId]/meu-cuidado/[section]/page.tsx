@@ -12,10 +12,12 @@ import { PatientAlertSigns } from "@/components/patient/alert-signs";
 import { PatientMealQuick } from "@/components/patient/meal-quick";
 import { PatientMyCare } from "@/components/patient/my-care";
 import { CheckInFlow } from "@/components/patient/check-in-flow";
+import { PreparationFlow } from "@/components/patient/preparation-flow";
+import { preparationSummary } from "@/modules/workspace/preparation-summary";
 import { patientCheckInState } from "@/modules/daily-check-ins/service";
 import { PatientArea } from "@/components/patient-area";
 import { PatientHome } from "@/components/patient-home";
-import { clinicLocalDateTime, justSentLabel } from "@/modules/workspace/patient-home";
+import { clinicLocalDateTime, consultationLabel, justSentLabel } from "@/modules/workspace/patient-home";
 import { patientRecentSent } from "@/modules/workspace/patient-sent";
 import { DevelopmentNotice } from "@/components/module-ui";
 import { listAppointments } from "@/modules/agenda/service";
@@ -40,7 +42,6 @@ import { PatientMessagesWorkspace } from "@/components/messages-workspace";
 import { patientReportPublications } from "@/modules/reports/publication-service";
 import { PublishedReports } from "@/components/published-reports";
 import { patientPreparationPending, patientPreparationRequirement, patientReturnPreparations } from "@/modules/return-preparation/service";
-import { PatientReturnPreparationWorkspace } from "@/components/return-preparation-workspace";
 import { myPendingCareRequests } from "@/modules/care-requests/service";
 export const dynamic = "force-dynamic";
 
@@ -137,7 +138,7 @@ export default async function PatientAreaPage({
       ? patientReportPublications(tenantId, query.pagina)
       : null,
     // preparations
-    patient && slug === "hoje"
+    patient && slug === "preconsulta"
       ? patientReturnPreparations(tenantId, query.preparo ? undefined : query.pagina, query.preparo).catch((error) => {
           if (error instanceof InputError) redirect(`/clinicas/${tenantId}/meu-cuidado/hoje`);
           throw error;
@@ -162,7 +163,7 @@ export default async function PatientAreaPage({
     ? patientRecentSent(tenantId).catch(() => null)
     : null,
     // appointments
-    ["consultas", "hoje", "cuidado"].includes(slug)
+    ["consultas", "hoje", "cuidado", "preconsulta"].includes(slug)
       ? listAppointments(
           tenantId,
           clinicDate(new Date(now - 30 * 86400000)),
@@ -174,6 +175,21 @@ export default async function PatientAreaPage({
       ? patientCheckInState(tenantId).catch(() => null)
       : null,
   ]);
+  // Pré-consulta: a pedida pelo link ou a primeira que ainda espera a pessoa.
+  const preparationItem =
+    slug === "preconsulta"
+      ? (preparations?.preparations.find((item) => (query.preparo ? item.id === query.preparo : ["requested", "draft"].includes(item.status))) ?? null)
+      : null;
+  const lastConsultationDay =
+    appointments?.appointments
+      .filter((item) => item.status === "completed" && item.ends_at < currentTime)
+      .map((item) => clinicDate(new Date(item.ends_at)))
+      .sort()
+      .at(-1) ?? clinicDate(new Date(now - 30 * 86400000));
+  const preparationRows =
+    preparationItem && ["requested", "draft"].includes(preparationItem.status)
+      ? await preparationSummary(tenantId, lastConsultationDay).catch(() => [])
+      : [];
   const latestPublication = published?.publications[0] ?? null;
   const unreadPublication =
     published?.publications.find((publication) => !publication.care_plan_receipts[0]) ??
@@ -214,6 +230,27 @@ export default async function PatientAreaPage({
         />
       ) : slug === "alerta" ? (
         <PatientAlertSigns />
+      ) : slug === "preconsulta" && patient ? (
+        preparationItem && ["requested", "draft"].includes(preparationItem.status) ? (
+          <PreparationFlow
+            item={preparationItem}
+            tenantId={tenantId}
+            base={base}
+            summary={preparationRows}
+            whenLabel={consultationLabel(preparationItem.appointments.starts_at, clinicDate())}
+          />
+        ) : (
+          <div className="pv-card">
+            <p className="pv-big is-small">
+              {preparationItem ? "Esta pré-consulta já foi enviada" : "Nenhuma pré-consulta esperando você"}
+            </p>
+            <p className="pv-lead">
+              {preparationItem
+                ? "Suas respostas ficaram registradas do jeito que você escreveu."
+                : "Quando seu médico pedir, ela aparece em Hoje."}
+            </p>
+          </div>
+        )
       ) : slug === "checkin" && patient ? (
         checkIn ? (
           <CheckInFlow
@@ -248,7 +285,7 @@ export default async function PatientAreaPage({
         </>
       ) : slug === "plano" && published ? (
         <PublishedPlans initial={published} />
-      ) : appointments && slug !== "cuidado" ? (
+      ) : appointments && ["hoje", "consultas"].includes(slug) ? (
         section.slug === "consultas" ? (
           <section className="panel patient-appointments-panel">
             <div className="section-heading">
@@ -299,30 +336,9 @@ export default async function PatientAreaPage({
               careRequests={careRequests}
               sent={sent}
             />
-            {/* Na Home só aparece o preparo que ainda espera a pessoa (ou o que
-                ela abriu pelo link). O que já foi enviado sai daqui: está
-                confirmado em "Seus últimos envios". */}
-            {preparations &&
-              (preparations.focused ||
-                preparations.preparations.some((item) =>
-                  ["requested", "draft"].includes(item.status),
-                )) && (
-              <PatientReturnPreparationWorkspace
-                initial={
-                  preparations.focused
-                    ? preparations
-                    : {
-                        ...preparations,
-                        preparations: preparations.preparations.filter((item) =>
-                          ["requested", "draft"].includes(item.status),
-                        ),
-                      }
-                }
-              />
-            )}
           </>
         )
-      ) : ["peso", "alerta", "refeicao", "cuidado", "checkin"].includes(section.slug) ? null : (
+      ) : ["peso", "alerta", "refeicao", "cuidado", "checkin", "preconsulta"].includes(section.slug) ? null : (
         <>
           {![
             "hoje",

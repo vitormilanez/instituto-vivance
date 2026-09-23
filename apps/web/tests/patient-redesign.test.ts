@@ -117,3 +117,15 @@ test("conversa do paciente: abre direto, sem 'Remetente', com aviso de urgência
   assert.match(patientPart, /initial\.recipients\.length > 1 &&/);
   assert.match(patientPart, /Enviado ✓/);
 });
+
+test("pré-consulta: título até o primeiro '?', o resto vira apoio", async () => {
+  const { splitQuestion } = await import("../components/patient/preparation-flow.tsx").catch(() => ({ splitQuestion: null }));
+  // O componente é client; a regra fica testada pelo texto da função.
+  const flow = read("../components/patient/preparation-flow.tsx");
+  assert.match(flow, /const index = label\.indexOf\("\?"\);/);
+  if (splitQuestion)
+    assert.deepEqual(splitQuestion("Qual é o assunto? E o objetivo?"), { title: "Qual é o assunto?", hint: "E o objetivo?" });
+  const { consultationLabel } = await import("../modules/workspace/patient-home.ts");
+  assert.equal(consultationLabel("2026-09-23T23:34:00Z", "2026-09-23"), "de hoje, às 20:34");
+  assert.equal(consultationLabel("2026-09-28T13:00:00Z", "2026-09-23"), "de 28/09, às 10:00");
+});

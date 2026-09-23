@@ -262,3 +262,12 @@ export function clinicLocalDateTime(now: Date) {
   const hour = parts.hour === "24" ? "00" : parts.hour;
   return `${parts.year}-${parts.month}-${parts.day}T${hour}:${parts.minute}`;
 }
+
+// "de hoje, às 20:34" / "de amanhã, às 10:00" / "de 28/09, às 10:00".
+export function consultationLabel(startsAt: string, today: string) {
+  const start = new Date(startsAt);
+  const day = isoDay.format(start);
+  const tomorrow = isoDay.format(new Date(new Date(`${today}T12:00:00-03:00`).getTime() + 86400000));
+  const name = day === today ? "hoje" : day === tomorrow ? "amanhã" : dayMonth.format(start);
+  return `de ${name}, às ${clock.format(start)}`;
+}

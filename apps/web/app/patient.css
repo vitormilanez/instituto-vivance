@@ -1988,3 +1988,57 @@
 .pv-cups .is-full svg {
   fill: currentColor;
 }
+
+.pv-order {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--pv-gold);
+  color: var(--pv-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pv-chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pv-review {
+  margin: 0;
+  padding: 6px 18px;
+  list-style: none;
+}
+
+.pv-review li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--pv-line);
+}
+
+.pv-review li:last-child {
+  border-bottom: 0;
+}
+
+.pv-review li > span {
+  display: grid;
+  min-width: 0;
+}
+
+.pv-review small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--pv-muted);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.pv-review small.pv-missing {
+  color: var(--pv-gold-ink);
+  font-weight: 600;
+}

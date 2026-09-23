@@ -30,7 +30,7 @@ export function StartPreparationButton({
       const result = (await response.json()) as { id?: string; error?: string };
       if (!response.ok || !result.id)
         throw new Error(result.error ?? "Não foi possível abrir sua pré-consulta.");
-      router.push(`${base}/hoje?preparo=${result.id}#preparo-${result.id}`);
+      router.push(`${base}/preconsulta?preparo=${result.id}`);
     } catch (reason) {
       setError(
         reason instanceof Error && reason.name !== "TimeoutError"

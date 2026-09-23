@@ -140,10 +140,15 @@ test("envios do paciente: só da própria autoria, lidos com a sessão dele", ()
   assert.match(service, /\.eq\("sender_id", user\.id\)/);
 });
 
-test("pré-consulta obrigatória e preparo continuam montados na Home", () => {
+test("pré-consulta: a Home leva à tarefa de tela cheia, uma pergunta por vez", () => {
   assert.match(home, /<StartPreparationButton base=\{base\} tenantId=\{tenantId\}/);
+  assert.match(read("../components/patient/start-preparation.tsx"), /\/preconsulta\?preparo=\$\{result\.id\}/);
   assert.match(page, /onboarding\?\.status === "draft"/);
-  // Só o preparo que ainda espera a pessoa (ou o aberto pelo link) aparece.
+  // Só a pré-consulta que ainda espera a pessoa (ou a pedida pelo link) abre o fluxo.
   assert.match(page, /\["requested", "draft"\]\.includes\(item\.status\)/);
-  assert.match(page, /preparations\.focused/);
+  assert.match(page, /<PreparationFlow/);
+  const flow = read("../components/patient/preparation-flow.tsx");
+  assert.match(flow, /Primeiro, confira o que você já registrou/);
+  assert.match(flow, /Só você vê este rascunho até enviar\./);
+  assert.match(flow, /return-preparations\/\$\{item\.id\}\/draft/);
 });
