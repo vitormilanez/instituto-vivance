@@ -142,8 +142,8 @@ export default async function PatientAreaPage({
     patient && slug === "hoje"
     ? patientPreparationRequirement(tenantId)
     : null,
-    // latestMeasurement
-    patient && slug === "hoje"
+    // latestMeasurement: na Home e no formulário de peso (Evolução)
+    patient && (slug === "hoje" || slug === "evolucao")
     ? patientMeasurementSummary(tenantId)
     : null,
     // careRequests: o que a equipe pediu vira tarefa no "Hoje"
@@ -218,7 +218,18 @@ export default async function PatientAreaPage({
         <PatientDocumentsWorkspace initial={documents} />
       ) : slug === "evolucao" && longitudinal ? (
         <>
-          <PatientMeasurements tenant={tenantId} today={clinicDate()} />
+          <PatientMeasurements
+            tenant={tenantId}
+            today={clinicDate()}
+            last={
+              latestMeasurement?.measure_label === "Peso"
+                ? {
+                    value: Number(latestMeasurement.measure_value),
+                    reportedOn: latestMeasurement.reported_on,
+                  }
+                : null
+            }
+          />
           <PatientLongitudinalWorkspace
             initial={longitudinal}
             base={`/clinicas/${tenantId}/meu-cuidado`}

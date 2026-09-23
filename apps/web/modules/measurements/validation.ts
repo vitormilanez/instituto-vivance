@@ -35,11 +35,10 @@ export function patientMeasurementInput(value: unknown) {
     "client_request_id",
     "confirmed",
   ];
-  if (
-    Object.keys(body).some((key) => !allowed.includes(key)) ||
-    body.confirmed !== true
-  )
-    throw new InputError("Confirme que as medidas foram informadas por você.");
+  // A autoria vem da sessão da própria pessoa; "confirmed" ainda é aceito para
+  // não quebrar uma aba aberta com o formulário antigo, mas não é exigido.
+  if (Object.keys(body).some((key) => !allowed.includes(key)))
+    throw new InputError("Dados de medidas inválidos.");
   const result = {
     weightKg: optionalMeasure(body.weight_kg, "Peso", 500),
     heightCm: optionalMeasure(body.height_cm, "Altura", 300),
