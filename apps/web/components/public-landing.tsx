@@ -155,7 +155,7 @@ export function PublicLanding() {
         <div className="container header-inner">
           <a className="brand" href="#inicio" aria-label="Vivance — início">
             <Image
-              src="/landing/vivance-mark.png"
+              src="/brand/vivance-mark.png"
               width={44}
               height={44}
               alt=""
@@ -275,7 +275,7 @@ export function PublicLanding() {
               <div className="phone">
                 <div className="phone-header">
                   <Image
-                    src="/landing/vivance-mark.png"
+                    src="/brand/vivance-mark.png"
                     width={28}
                     height={28}
                     alt=""
@@ -1180,7 +1180,7 @@ export function PublicLanding() {
               aria-label="Vivance — voltar ao início"
             >
               <Image
-                src="/landing/vivance-mark.png"
+                src="/brand/vivance-mark.png"
                 width={40}
                 height={40}
                 alt=""
