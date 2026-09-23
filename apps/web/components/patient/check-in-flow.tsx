@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   adherenceLabels,
   checkInSteps,
@@ -32,6 +32,11 @@ const titles: Record<string, [string, string]> = {
   application: ["Registre sua aplicação", "Pedido pelo seu médico."],
   note: ["Quer contar mais alguma coisa ao seu médico?", "Opcional."],
 };
+
+// Enjoo e náusea aparecem como uma escolha no novo registro. A chave legada
+// "queasy" continua aceita e legível no histórico, sem reescrever respostas.
+const selectableEffects = effectKeys.filter((key) => key !== "queasy");
+const entryEffectLabel = (key: EffectKey) => key === "nausea" ? "Náusea ou enjoo" : effectLabels[key];
 
 const decimal = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const parseWeight = (text: string) => {
@@ -104,6 +109,9 @@ export function CheckInFlow({
   const steps = checkInSteps(applicationEnabled);
   const requestKey = useRef(crypto.randomUUID());
   const busy = useRef(false);
+  const initialView = useRef(true);
+  const stepHeading = useRef<HTMLHeadingElement>(null);
+  const doneHeading = useRef<HTMLHeadingElement>(null);
   const [index, setIndex] = useState(0);
   const [weight, setWeight] = useState(lastWeight ? decimal.format(lastWeight) : "");
   const [answers, setAnswers] = useState<CheckInAnswers>({ water_glasses: 0 });
@@ -117,6 +125,16 @@ export function CheckInFlow({
   const last = index === steps.length - 1;
   const set = (patch: Partial<CheckInAnswers>) => setAnswers((current) => ({ ...current, ...patch }));
   const doctor = doctorName ?? "seu médico";
+
+  useEffect(() => {
+    if (initialView.current) {
+      initialView.current = false;
+      return;
+    }
+    const heading = done ? doneHeading.current : stepHeading.current;
+    heading?.closest(".pv-checkin, .pv-done")?.scrollIntoView({ block: "start", behavior: "instant" });
+    heading?.focus({ preventScroll: true });
+  }, [done, index]);
 
   function payload(): CheckInAnswers {
     const result: CheckInAnswers = { ...answers };
@@ -179,12 +197,12 @@ export function CheckInFlow({
     return (
       <div className="pv-stack pv-done">
         <span className="pv-done-icon" aria-hidden="true"><Icon name="check" size={32} /></span>
-        <h2 className="pv-big" tabIndex={-1} ref={(node) => node?.focus()}>Pronto, obrigado!</h2>
+        <h2 className="pv-big" tabIndex={-1} ref={doneHeading}>Pronto, obrigado!</h2>
         <p className="pv-lead">Tudo registrado para {doctor}.</p>
         <p className="pv-sent-when"><Icon name="check" size={16} /> Enviado {done.at.replace(",", ",")}</p>
         {done.rows.length > 0 && (
-          <section className="pv-card" aria-labelledby="pv-done-rows">
-            <h3 id="pv-done-rows" className="pv-eyebrow">O que você enviou</h3>
+          <details className="pv-card pv-receipt">
+            <summary>Ver o que enviei</summary>
             <dl className="pv-summary">
               {done.rows.map((row) => (
                 <div key={row.label}>
@@ -193,9 +211,9 @@ export function CheckInFlow({
                 </div>
               ))}
             </dl>
-          </section>
+          </details>
         )}
-        <p className="pv-muted">Próximo check-in: {nextLabel === "hoje" ? "amanhã" : nextLabel}. A gente lembra você.</p>
+        <p className="pv-muted">Próximo check-in: {nextLabel === "hoje" ? "amanhã" : nextLabel}.</p>
         <Link className="pv-button is-center" href={`${base}/hoje`}>Voltar para o início</Link>
       </div>
     );
@@ -214,7 +232,7 @@ export function CheckInFlow({
         {index + 1} de {steps.length}
       </p>
       <div className="pv-stack pv-tight">
-        <h2 className="pv-big" id="pv-checkin-title">{title}</h2>
+        <h2 className="pv-big" id="pv-checkin-title" tabIndex={-1} ref={stepHeading}>{title}</h2>
         <p className="pv-lead">{step === "application" ? `Pedido por ${doctor}.` : subtitle}</p>
       </div>
 
@@ -255,7 +273,7 @@ export function CheckInFlow({
         {step === "effects" && (
           <div className="pv-stack">
             <div className="pv-chips">
-              {effectKeys.map((key) => {
+              {selectableEffects.map((key) => {
                 const selected = Boolean(answers.effects?.[key]);
                 return (
                   <button key={key} type="button" className="pv-chip" aria-pressed={selected} onClick={() => {
@@ -264,7 +282,7 @@ export function CheckInFlow({
                     else effects[key] = "mild";
                     set({ effects, no_effects: false });
                   }}>
-                    {selected && <Icon name="check" size={16} />} {effectLabels[key]}
+                    {selected && <Icon name="check" size={16} />} {entryEffectLabel(key)}
                   </button>
                 );
               })}
@@ -274,7 +292,7 @@ export function CheckInFlow({
             </div>
             {Object.entries(answers.effects ?? {}).map(([key, level]) => (
               <fieldset key={key} className="pv-fieldset">
-                <legend className="pv-scale-label">{effectLabels[key as EffectKey]}</legend>
+                <legend className="pv-scale-label">{entryEffectLabel(key as EffectKey)}</legend>
                 <div className="pv-segments">
                   {intensities.map((option) => (
                     <button key={option} type="button" aria-pressed={level === option} onClick={() => set({ effects: { ...(answers.effects ?? {}), [key]: option as Intensity } })}>
