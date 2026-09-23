@@ -2,14 +2,25 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { invitationDeliveryLabel } from "@/modules/onboarding/invitation-delivery";
 
 type Invitation = {
   id: string;
   displayName: string;
   status: string;
+  channel: string;
   expiresAt: string;
   delivery: { status: string };
 };
+const deliveryText = (invitation: Invitation) => {
+  const delivery = invitationDeliveryLabel({
+    channel: invitation.channel,
+    status: invitation.status,
+    deliveryStatus: invitation.delivery.status,
+  });
+  return delivery ? ` · ${delivery}` : "";
+};
+
 export function PatientInvitationList({
   tenantId,
   invitations,
@@ -67,9 +78,7 @@ export function PatientInvitationList({
               <strong>{invitation.displayName}</strong>
               <p>
                 {labels[invitation.status] ?? invitation.status}
-                {invitation.delivery.status === "failed"
-                  ? " · Falha no envio do e-mail"
-                  : ""}
+                {deliveryText(invitation)}
               </p>
               {invitation.status === "pending" && (
                 <small>

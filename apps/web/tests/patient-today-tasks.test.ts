@@ -65,3 +65,68 @@ test("patient today has no generic task after every tracked action is complete",
     [],
   );
 });
+
+test("o pedido do médico vira tarefa que abre direto o formulário", () => {
+  const base = "/clinicas/tenant/meu-cuidado";
+  const tasks = patientTodayTasks({
+    base,
+    onboardingHref: "/clinicas/tenant/primeiros-passos",
+    hasMeasurement: true,
+    careRequests: [
+      { kind: "preparation", requested_at: "2026-09-22T12:00:00Z" },
+      { kind: "exams", requested_at: "2026-09-22T12:00:00Z" },
+      { kind: "goals", requested_at: "2026-09-22T12:00:00Z" },
+      { kind: "measurements", requested_at: "2026-09-22T12:00:00Z" },
+    ],
+  });
+  assert.deepEqual(tasks.map((task) => task.id), [
+    "care-request-preparation",
+    "care-request-exams",
+    "care-request-goals",
+    "care-request-measurements",
+  ]);
+  assert.deepEqual(tasks.map((task) => task.href), [
+    `${base}/preparo`,
+    "/clinicas/tenant/primeiros-passos",
+    "/clinicas/tenant/primeiros-passos",
+    `${base}/evolucao#atualizar-medidas`,
+  ]);
+  // Cada tarefa diz de onde veio, com a data do pedido — nunca risco.
+  for (const task of tasks) {
+    assert.match(task.detail, /Pedido em 22\/09\./);
+    assert.doesNotMatch(task.detail, /urgente|risco|gravidade/i);
+  }
+});
+
+test("o pedido substitui o lembrete genérico da mesma pendência", () => {
+  const base = "/clinicas/tenant/meu-cuidado";
+  const tasks = patientTodayTasks({
+    base,
+    hasMeasurement: false,
+    preparationPending: { count: 1, first: { id: "preparation-1", status: "requested" } },
+    careRequests: [
+      { kind: "measurements", requested_at: "2026-09-22T12:00:00Z" },
+      { kind: "preparation", requested_at: "2026-09-22T12:00:00Z" },
+    ],
+  });
+  // A mesma pendência não aparece em dois vocabulários.
+  assert.deepEqual(tasks.map((task) => task.id), [
+    "care-request-measurements",
+    "care-request-preparation",
+  ]);
+});
+
+test("um tipo fora do contrato não inventa tarefa", () => {
+  assert.deepEqual(
+    patientTodayTasks({
+      base: "/clinicas/tenant/meu-cuidado",
+      hasMeasurement: true,
+      careRequests: [
+        { kind: "plan", requested_at: "2026-09-22T12:00:00Z" },
+        { kind: "encounter", requested_at: "2026-09-22T12:00:00Z" },
+      ],
+    }),
+    [],
+    "registros da clínica nunca viram tarefa do paciente",
+  );
+});

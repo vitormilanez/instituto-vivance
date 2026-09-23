@@ -373,9 +373,17 @@ export function OnboardingWorkspace({
                     ? "complete"
                     : ""
               }
+              // A etapa não é dita só por cor: leitor de tela ouve "etapa
+              // atual" e "concluída", e a concluída mostra um visto.
+              aria-current={index === progress - 1 ? "step" : undefined}
             >
-              <span>{index + 1}</span>
+              <span aria-hidden="true">
+                {index < progress - 1 ? "✓" : index + 1}
+              </span>
               {label}
+              {index < progress - 1 ? (
+                <small className="sr-only"> (concluída)</small>
+              ) : null}
             </li>
           ),
         )}

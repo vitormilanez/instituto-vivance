@@ -4,6 +4,7 @@ import { EncounterError, loadEncounter } from "@/modules/encounters/service";
 import { InputError } from "@/lib/validation";
 import { ClinicShell } from "@/components/clinic-shell";
 import { EncounterEditor } from "@/components/encounter-editor";
+import { stageFromSlug } from "@/modules/encounters/stages";
 import { getSubmittedPatientOnboarding } from "@/modules/onboarding/service";
 import { encounterPreparation } from "@/modules/return-preparation/service";
 import { getPatientIntake } from "@/modules/patient-intake/service";
@@ -16,6 +17,7 @@ export default async function EncounterPage({
   searchParams: Promise<{
     versoes_antes_de?: string;
     adendos_antes_de?: string;
+    etapa?: string;
   }>;
 }) {
   const { tenantId, encounterId } = await params;
@@ -46,6 +48,7 @@ export default async function EncounterPage({
         intake={intake}
         onboarding={onboarding}
         preparation={preparation}
+        initialStage={stageFromSlug(page.etapa)}
       />
     </ClinicShell>
   );

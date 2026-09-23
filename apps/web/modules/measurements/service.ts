@@ -44,15 +44,25 @@ export async function patientMeasurementSummary(id: string) {
     .eq("user_id", user.id)
     .maybeSingle();
   if (account.error || !account.data) failed(account.error?.code);
-  const measurement = await client
-    .from("patient_measurements")
-    .select("measure_label,measure_value,measure_unit,reported_on,submitted_at")
-    .eq("tenant_id", tenant)
-    .eq("patient_id", account.data.patient_id)
-    .order("reported_on", { ascending: false })
-    .order("submitted_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // Em acompanhamento de peso, o número que a pessoa quer ver é o peso. Sem
+  // peso registrado, vale a medida mais recente.
+  const latest = (metric?: string) => {
+    let query = client
+      .from("patient_measurements")
+      .select("measure_label,measure_value,measure_unit,reported_on,submitted_at")
+      .eq("tenant_id", tenant)
+      .eq("patient_id", account.data!.patient_id);
+    if (metric) query = query.eq("metric", metric);
+    return query
+      .order("reported_on", { ascending: false })
+      .order("submitted_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+  };
+  const weight = await latest("weight");
+  if (weight.error) failed(weight.error.code);
+  if (weight.data) return weight.data;
+  const measurement = await latest();
   if (measurement.error) failed(measurement.error.code);
   return measurement.data;
 }

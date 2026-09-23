@@ -683,6 +683,34 @@ export type Database = {
           },
         ];
       };
+      patient_item_reads: {
+        Row: {
+          tenant_id: string;
+          user_id: string;
+          item_kind: string;
+          item_id: string;
+          patient_id: string;
+          read_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "patient_item_reads_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "patient_item_reads_tenant_id_user_id_fkey";
+            columns: ["tenant_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
       care_messages: {
         Row: {
           client_request_id: string;
@@ -1651,6 +1679,14 @@ export type Database = {
           target_status: string;
         };
         Returns: number;
+      };
+      mark_patient_item_read: {
+        Args: {
+          target_tenant: string;
+          target_kind: string;
+          target_item: string;
+        };
+        Returns: undefined;
       };
       request_patient_care: {
         Args: {

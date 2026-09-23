@@ -4,6 +4,7 @@ import { Header } from "./header";
 import { ClinicNavMore } from "./clinic-nav-more";
 import { roleLabels, type ClinicAccess } from "@/modules/identity/service";
 import {
+  navLabel,
   staffModules,
   staffDockGroups as dockGroups,
   staffPrimaryKeys as primaryKeys,
@@ -61,7 +62,7 @@ export async function ClinicShell({
     .filter((module) => clinic.role !== "admin" || module.slug !== "processamentos")
     .map((module) => ({
       key: module.slug,
-      label: module.title,
+      label: navLabel(module),
       href: `${base}/${module.slug}`,
     }));
   const links = [

@@ -132,11 +132,11 @@ test("today omits clinical context when the focused appointment has no active ca
   assert.match(today, /\.eq\("professional_id", user\.id\)/);
   assert.match(today, /\.eq\("status", "active"\)/);
   assert.match(today, /if \(!relationship\.data\) return null/);
-  assert.match(
-    readFileSync(
-      new URL("../components/today-workspace.tsx", import.meta.url),
-      "utf8",
-    ),
-    /Sem vínculo de cuidado ativo com este paciente para o seu\s+acesso\./,
+  // Sem vínculo ativo, o bloco da consulta não recebe contexto nem recebidos.
+  const home = readFileSync(
+    new URL("../components/home-day.tsx", import.meta.url),
+    "utf8",
   );
+  assert.match(home, /context=\{link\.status === "active" \? contextFor\(appointment\.id\) : null\}/);
+  assert.match(home, /received=\{\s*link\.status === "active"\s*\? viewFor\(appointment\.id, appointment\.patient_id\)\s*: null\s*\}/);
 });

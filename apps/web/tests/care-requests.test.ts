@@ -151,7 +151,7 @@ test("o botão é irmão do link, o bilhete é opcional e a incerteza não mente
     "utf8",
   );
   const list = readFileSync(
-    new URL("../components/today-workspace.tsx", import.meta.url),
+    new URL("../components/context-card-list.tsx", import.meta.url),
     "utf8",
   );
   const route = readFileSync(

@@ -17,7 +17,7 @@ import { StaffMealLogs } from "@/components/staff-meal-logs";
 import { staffMeals } from "@/modules/meals/service";
 import { staffLongitudinal } from "@/modules/longitudinal/service";
 import { StaffLongitudinalWorkspace } from "@/components/longitudinal-workspace";
-import { staffDocuments } from "@/modules/documents/service";
+import { DocumentError, staffDocuments } from "@/modules/documents/service";
 import { StaffDocumentsWorkspace } from "@/components/documents-workspace";
 import {
   staffMessages,
@@ -168,7 +168,19 @@ export default async function ModulePage({
           </div>
         </div>
         <StaffDocumentsWorkspace
-          initial={await staffDocuments(tenantId, query.pagina)}
+          initial={
+            // Filtro por paciente vindo da URL. Um valor inválido ou de
+            // paciente sem vínculo ativo volta para a lista completa, sem erro.
+            await staffDocuments(
+              tenantId,
+              query.pagina,
+              typeof query.paciente === "string" ? query.paciente : undefined,
+            ).catch((error) => {
+              if (error instanceof DocumentError || error instanceof InputError)
+                return staffDocuments(tenantId, query.pagina);
+              throw error;
+            })
+          }
         />
       </ClinicShell>
     );

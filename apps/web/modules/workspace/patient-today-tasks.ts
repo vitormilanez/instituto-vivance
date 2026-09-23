@@ -17,12 +17,62 @@ export type PatientTodayTasksInput = {
   };
   unreadPlan?: { title: string; revision: number } | null;
   hasMeasurement: boolean;
+  // Pedidos abertos do médico. São pendências operacionais do paciente, nunca
+  // risco ou urgência.
+  careRequests?: { kind: string; requested_at: string }[];
 };
+
+const dayMonth = (value: string) =>
+  new Date(value).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "America/Sao_Paulo",
+  });
+
+// Cada pedido abre direto o formulário que o resolve.
+function careRequestTask(
+  input: PatientTodayTasksInput,
+  request: { kind: string; requested_at: string },
+): PatientTodayTask | null {
+  const asked = `Pedido em ${dayMonth(request.requested_at)}.`;
+  const onboarding = input.onboardingHref ?? `${input.base}/documentos`;
+  const detail = {
+    preparation: `Seu médico pediu o preenchimento da sua pré-consulta. ${asked}`,
+    exams: `Seu médico pediu exames ou documentos. ${asked}`,
+    measurements: `Seu médico pediu a atualização das suas medidas. ${asked}`,
+    goals: `Seu médico pediu sua resposta sobre metas e expectativas. ${asked}`,
+  }[request.kind];
+  if (!detail) return null;
+  return {
+    id: `care-request-${request.kind}`,
+    title: {
+      preparation: "Preencher a pré-consulta pedida",
+      exams: "Enviar exames ou documentos",
+      measurements: "Atualizar suas medidas",
+      goals: "Responder sobre metas e expectativas",
+    }[request.kind]!,
+    detail,
+    action: {
+      preparation: "Preencher agora",
+      exams: "Enviar exames",
+      measurements: "Atualizar medidas",
+      goals: "Responder",
+    }[request.kind]!,
+    href: {
+      preparation: `${input.base}/preparo`,
+      exams: onboarding,
+      measurements: `${input.base}/evolucao#atualizar-medidas`,
+      goals: onboarding,
+    }[request.kind]!,
+  };
+}
 
 // These are patient actions only. A submitted item awaiting medical review is
 // deliberately not presented as a task for the patient.
 export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTask[] {
   const tasks: PatientTodayTask[] = [];
+  const requests = input.careRequests ?? [];
+  const asked = new Set(requests.map((request) => request.kind));
 
   if (input.hasRequiredPreparation)
     tasks.push({
@@ -33,6 +83,12 @@ export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTa
       href: "#preconsulta-obrigatoria",
     });
 
+  // O pedido do médico vem cedo: é a única pendência com prazo implícito.
+  for (const request of requests) {
+    const task = careRequestTask(input, request);
+    if (task) tasks.push(task);
+  }
+
   if (input.pendingCheckInId)
     tasks.push({
       id: `check-in-${input.pendingCheckInId}`,
@@ -42,7 +98,7 @@ export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTa
       href: `${input.base}/diario#check-in-${input.pendingCheckInId}`,
     });
 
-  if (input.preparationPending?.first) {
+  if (input.preparationPending?.first && !asked.has("preparation")) {
     const isDraft = input.preparationPending.first.status === "draft";
     const remaining = input.preparationPending.count > 1
       ? ` Há mais ${input.preparationPending.count - 1} preparo${input.preparationPending.count === 2 ? "" : "s"} aguardando você.`
@@ -65,7 +121,9 @@ export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTa
       href: `${input.base}/plano`,
     });
 
-  if (input.onboardingHref)
+  // Exames e metas abrem no mesmo lugar que o cadastro. Com um pedido desses
+  // pendente, o convite genérico só repetiria o destino com outro texto.
+  if (input.onboardingHref && !asked.has("exams") && !asked.has("goals"))
     tasks.push({
       id: "onboarding",
       title: "Continuar seu cadastro",
@@ -74,7 +132,10 @@ export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTa
       href: input.onboardingHref,
     });
 
-  if (!input.hasMeasurement)
+  // Sem pedido do médico, vale o lembrete genérico. Com pedido, a tarefa do
+  // pedido já nomeia o mesmo formulário — repetir seria a mesma pendência em
+  // dois vocabulários.
+  if (!input.hasMeasurement && !asked.has("measurements"))
     tasks.push({
       id: "measurements",
       title: "Atualizar medidas",

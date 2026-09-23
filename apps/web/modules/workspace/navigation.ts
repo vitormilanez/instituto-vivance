@@ -98,6 +98,9 @@ export const staffModules = [
   {
     slug: "ia",
     title: "Central da IA",
+    // Área ainda sem conteúdo: o menu diz isso no próprio rótulo, em vez de
+    // apresentar como disponível (PRODUCT.md).
+    preview: true,
     description: "Apoio à organização das informações, com revisão humana.",
     action: "Gerar rascunho",
     tabs: ["Rascunhos", "Fontes", "Políticas", "Histórico"],
@@ -143,7 +146,9 @@ export const staffSecondaryGroups = [
 export function staffActions(base: string) {
   return [
     { title: "Pacientes", icon: "pacientes", text: "Busque e abra uma ficha.", href: `${base}/pacientes` },
-    { title: "Novo paciente", icon: "pacientes", text: "Comece pelo cadastro.", href: `${base}/pacientes#novo-paciente` },
+    // O caminho principal é o convite para o app: a pessoa preenche o próprio
+    // cadastro e os dados chegam ao médico. A ficha sem acesso fica logo abaixo.
+    { title: "Adicionar paciente", icon: "pacientes", text: "Convite para o app ou ficha.", href: `${base}/pacientes#convidar-paciente` },
     { title: "Agenda", icon: "agenda", text: "Horários e compromissos da equipe.", href: `${base}/agenda` },
     { title: "Atendimento", icon: "atendimento", text: "Registro e evolução das consultas.", href: `${base}/atendimentos` },
     { title: "Planos de cuidado", icon: "planos", text: "Orientações revisadas e publicadas.", href: `${base}/planos` },
@@ -204,6 +209,7 @@ export const patientSections = [
   {
     slug: "medicamentos",
     title: "Tratamento",
+    preview: true,
     group: "cuidado",
     description:
       "Aqui ficarão as informações do tratamento revisadas pelo médico.",
@@ -237,6 +243,12 @@ export const patientSections = [
 export type PatientSection = (typeof patientSections)[number];
 export function findPatientSection(slug: string) {
   return patientSections.find((item) => item.slug === slug);
+}
+
+// Rótulo de menu. Área em desenvolvimento leva "em breve" no próprio nome.
+export const previewSuffix = " · em breve";
+export function navLabel(item: { title: string } & { preview?: boolean }) {
+  return item.preview ? `${item.title}${previewSuffix}` : item.title;
 }
 
 export function selectedTab(

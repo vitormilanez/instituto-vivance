@@ -47,7 +47,7 @@ export function PatientMealLogs({ initial }: { initial: PatientMeals }) {
     } finally { busy.current = false; setPending(false); }
   }
 
-  return <section className="meal-log-workspace" aria-labelledby="meal-log-title">
+  return <section id="registrar-refeicao" className="meal-log-workspace" aria-labelledby="meal-log-title">
     <article className="panel meal-log-entry">
       <div className="section-heading"><div>
         <h2 id="meal-log-title">Registrar refeição</h2>

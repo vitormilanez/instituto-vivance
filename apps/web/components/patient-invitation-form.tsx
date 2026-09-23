@@ -113,12 +113,12 @@ export function PatientInvitationForm({
       aria-labelledby="patient-invitation-title"
     >
       <h2 id="patient-invitation-title">
-        {targetPatient ? "Enviar acolhimento ao paciente" : "Convidar paciente"}
+        {targetPatient ? "Enviar acolhimento ao paciente" : "Convidar para o app"}
       </h2>
       <p>
         {targetPatient
           ? "A pessoa confirma o acesso, revisa as três perguntas padrão e continua na mesma ficha."
-          : "A pessoa recebe o convite, confirma seu acesso e começa o cadastro já vinculada à clínica e ao médico responsável."}
+          : "Para quem vai usar o app. A pessoa recebe um link, cria o próprio acesso e preenche o cadastro — medidas, exames e pré-consulta chegam direto para você."}
       </p>
       <form onSubmit={submit}>
         <div className="field">

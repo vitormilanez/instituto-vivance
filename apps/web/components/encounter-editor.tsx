@@ -15,7 +15,10 @@ export function clinicalTime(value: string) {
     timeStyle: "short",
   });
 }
-type EncounterStage = "preparation" | "consultation" | "plan" | "closing";
+import {
+  stageSlugs,
+  type EncounterStage,
+} from "@/modules/encounters/stages";
 
 const stages: Array<{
   id: EncounterStage;
@@ -33,14 +36,16 @@ export function EncounterEditor({
   intake,
   onboarding,
   preparation,
+  initialStage = "preparation",
 }: {
+  initialStage?: EncounterStage;
   initial: EncounterDetail;
   intake?: StaffPatientIntake | null;
   onboarding?: OnboardingRecord | null;
   preparation?: EncounterPreparation;
 }) {
   const [detail, setDetail] = useState(initial);
-  const [stage, setStage] = useState<EncounterStage>("preparation");
+  const [stage, setStage] = useState<EncounterStage>(initialStage);
   const [reason, setReason] = useState(initial.encounter.reason);
   const [evolution, setEvolution] = useState(initial.encounter.evolution);
   const [addendumReason, setAddendumReason] = useState("");
@@ -93,6 +98,10 @@ export function EncounterEditor({
       return false;
     if (next !== "closing") setConfirming(false);
     setStage(next);
+    // Troca só o parâmetro, sem nova navegação nem recarga de dados.
+    const url = new URL(window.location.href);
+    url.searchParams.set("etapa", stageSlugs[next]);
+    window.history.replaceState(window.history.state, "", url);
     return true;
   }
   function planPublicationLabel(plan: EncounterDetail["linkedPlans"][number]) {
