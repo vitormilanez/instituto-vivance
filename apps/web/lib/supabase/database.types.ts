@@ -120,7 +120,7 @@ export type Database = {
           actor_user_id: string;
           meal_type: string;
           eaten_at: string;
-          description: string;
+          description: string | null;
           client_request_id: string;
           photo_document_id: string | null;
           created_at: string;
@@ -690,6 +690,50 @@ export type Database = {
             referencedColumns: ["tenant_id", "id", "conversation_id", "patient_id", "doctor_id"];
           },
         ];
+      };
+      patient_check_in_settings: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          frequency_days: number;
+          application_enabled: boolean;
+          updated_by: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      patient_daily_check_ins: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          actor_user_id: string;
+          client_request_id: string;
+          check_in_on: string;
+          submitted_at: string;
+          weight_kg: number | null;
+          feeling: number | null;
+          effects: Record<string, string>;
+          no_effects: boolean;
+          hunger: number | null;
+          satiety: number | null;
+          energy: number | null;
+          sleep: number | null;
+          water_glasses: number | null;
+          adherence: string | null;
+          adherence_reason: string | null;
+          application_on: string | null;
+          application_time: string | null;
+          application_site: string | null;
+          application_side: string | null;
+          note: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
       };
       patient_item_reads: {
         Row: {
@@ -1329,7 +1373,7 @@ export type Database = {
           request_key: string;
           type_text: string;
           happened_at: string;
-          note_text: string;
+          note_text: string | null;
           photo_document?: string | null;
         };
         Returns: string;
@@ -1689,6 +1733,23 @@ export type Database = {
           target_status: string;
         };
         Returns: number;
+      };
+      submit_daily_check_in: {
+        Args: {
+          target_tenant: string;
+          request_key: string;
+          answers: Record<string, unknown>;
+        };
+        Returns: string;
+      };
+      set_check_in_settings: {
+        Args: {
+          target_tenant: string;
+          target_patient: string;
+          frequency: number;
+          application: boolean;
+        };
+        Returns: undefined;
       };
       mark_patient_item_read: {
         Args: {

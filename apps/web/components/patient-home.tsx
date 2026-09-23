@@ -13,6 +13,7 @@ import {
 } from "@/modules/workspace/patient-home";
 import { Icon, type IconName } from "./patient/icons";
 import { StartPreparationButton } from "./patient/start-preparation";
+import type { PatientCheckInState } from "@/modules/daily-check-ins/service";
 
 const logIcons: Record<string, IconName> = {
   measurements: "scale",
@@ -31,6 +32,7 @@ export function PatientHome({
   today,
   now,
   justSent = null,
+  checkIn = null,
   firstName,
   appointments,
   currentTime,
@@ -49,6 +51,7 @@ export function PatientHome({
   today: string;
   now: Date;
   justSent?: string | null;
+  checkIn?: PatientCheckInState | null;
   firstName: string | null;
   appointments: Appointment[];
   currentTime: string;
@@ -92,7 +95,11 @@ export function PatientHome({
     tasks,
   });
   const firstTask = tasks[0];
-  const isCheckIn = focus.kind === "task" && firstTask?.id.startsWith("check-in-");
+  // O check-in diário é a ação do dia: vem antes de tudo, exceto consulta em
+  // andamento. Os pedidos continuam logo abaixo, em "Também para você".
+  const dailyDue = Boolean(checkIn?.due) && focus.kind !== "consultation";
+  const restTasks = dailyDue && focus.kind === "task" ? tasks : rest;
+  const isCheckIn = !dailyDue && focus.kind === "task" && firstTask?.id.startsWith("check-in-");
   const isRequired = focus.kind === "task" && firstTask?.id === "required-preparation";
   const logs = quickLogs({ base, doctorName, latestMeasurement });
   const greeting = homeGreeting(now, firstName);
@@ -111,7 +118,17 @@ export function PatientHome({
         <h1>{greeting.hello}</h1>
       </div>
 
-      {isCheckIn ? (
+      {dailyDue ? (
+        <section className="pv-hero" aria-labelledby="pv-focus-title">
+          <p className="pv-eyebrow">Agora · check-in de hoje</p>
+          <h2 id="pv-focus-title" className="pv-big">Como você está reagindo ao tratamento?</h2>
+          <p className="pv-lead">Com toques · cerca de 1 minuto</p>
+          <Link className="pv-button is-gold" href={`${base}/checkin`}>
+            Começar check-in
+            <Icon name="arrow" size={22} />
+          </Link>
+        </section>
+      ) : isCheckIn ? (
         <section className="pv-hero" aria-labelledby="pv-focus-title">
           <p className="pv-eyebrow">Agora · check-in</p>
           <h2 id="pv-focus-title" className="pv-big">Como você está reagindo ao tratamento?</h2>
@@ -125,7 +142,16 @@ export function PatientHome({
         <section className="pv-card" aria-labelledby="pv-focus-title">
           <span className="pv-clear-icon" aria-hidden="true"><Icon name="check" /></span>
           <h2 id="pv-focus-title" className="pv-big">Tudo em dia por hoje</h2>
-          <p className="pv-lead">Não há nada pendente com você agora. Se quiser, registre seu peso ou uma refeição.</p>
+          <p className="pv-lead">
+            {checkIn
+              ? `Próximo check-in: ${checkIn.nextLabel}.`
+              : "Não há nada pendente com você agora. Se quiser, registre seu peso ou uma refeição."}
+          </p>
+          {checkIn && checkIn.recentCount > 0 && (
+            <p className="pv-card-foot">
+              {checkIn.recentCount} {checkIn.recentCount === 1 ? "check-in" : "check-ins"} nas últimas 2 semanas
+            </p>
+          )}
         </section>
       ) : (
         <section className="pv-card pv-focus" aria-labelledby="pv-focus-title">
@@ -149,11 +175,18 @@ export function PatientHome({
         </section>
       )}
 
-      {rest.length > 0 && (
+      {restTasks.length > 0 && (
         <section className="pv-section" aria-labelledby="pv-rest-title">
           <h2 id="pv-rest-title" className="pv-eyebrow">Também para você</h2>
           <ul className="pv-tasks">
-            {rest.map((task) => (
+            {restTasks.map((task) =>
+              task.id === "required-preparation" ? (
+                <li key={task.id} className="pv-card pv-task-card">
+                  <strong>{task.title}</strong>
+                  <small className="pv-muted">{task.detail}</small>
+                  <StartPreparationButton base={base} tenantId={tenantId} label={task.action} />
+                </li>
+              ) : (
               <li key={task.id}>
                 <Link href={task.href}>
                   <span>
@@ -163,7 +196,8 @@ export function PatientHome({
                   <Icon name="chevR" size={20} />
                 </Link>
               </li>
-            ))}
+              ),
+            )}
           </ul>
         </section>
       )}

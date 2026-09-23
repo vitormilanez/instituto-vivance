@@ -3,6 +3,8 @@ import type { PatientLongitudinal } from "@/modules/longitudinal/service";
 import { evolutionView } from "@/modules/workspace/patient-evolution";
 import { Icon } from "./icons";
 import { WeightChart } from "./weight-chart";
+import { EffectsMap } from "./effects-map";
+import type { PatientCheckInState } from "@/modules/daily-check-ins/service";
 
 // Evolução: o peso em destaque, as outras medidas e a lista do que a pessoa
 // registrou. Sem metas, previsões ou cores de bom/ruim; com um registro só,
@@ -11,10 +13,12 @@ export function PatientEvolution({
   data,
   base,
   period,
+  checkIn = null,
 }: {
   data: PatientLongitudinal;
   base: string;
   period: string;
+  checkIn?: PatientCheckInState | null;
 }) {
   const view = evolutionView(data.measures);
   const periods = [
@@ -98,7 +102,11 @@ export function PatientEvolution({
 
       <section className="pv-card" aria-labelledby="pv-feel-title">
         <h2 id="pv-feel-title" className="pv-eyebrow">Como você se sentiu</h2>
-        <p className="pv-lead">Os efeitos que você marcar no check-in aparecem aqui, dia a dia.</p>
+        {checkIn ? (
+          <EffectsMap data={checkIn.effects} emptyText="Os efeitos que você marcar no check-in aparecem aqui, dia a dia." />
+        ) : (
+          <p className="pv-lead">Os efeitos que você marcar no check-in aparecem aqui, dia a dia.</p>
+        )}
       </section>
 
       {view.entries.length > 0 && (

@@ -13,6 +13,7 @@ export type ReceivedItemKind =
   | "documents"
   | "messages"
   | "checkins"
+  | "daily_checkins"
   | "measurements";
 
 export type ReceivedItem = {
@@ -37,6 +38,7 @@ export const receivedItemLabels: Record<ReceivedItemKind, string> = {
   documents: "Exame ou documento",
   messages: "Mensagem",
   checkins: "Check-in",
+  daily_checkins: "Check-in diário",
   measurements: "Medidas",
 };
 

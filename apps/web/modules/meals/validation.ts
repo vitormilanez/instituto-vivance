@@ -34,21 +34,24 @@ export function mealInput(value: unknown) {
     throw new InputError("Escolha o tipo de refeição.");
   if (typeof body.eaten_at !== "string" || Number.isNaN(Date.parse(body.eaten_at)))
     throw new InputError("Informe um horário válido.");
-  if (typeof body.description !== "string")
-    throw new InputError("Descreva sua refeição.");
-  // The report is persisted exactly as sent. Only the emptiness test normalises
-  // whitespace, and the 1–2.000 limit counts code points, like char_length.
-  const description = body.description;
-  if (
-    description.trim().length < 1 ||
-    [...description].length > 2000 ||
-    /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(description)
-  )
-    throw new InputError("Descreva a refeição em até 2.000 caracteres.");
   // The photo is optional; it is a document id already uploaded by this patient.
   const photo = body.photo_document_id ?? null;
   if (photo !== null && (typeof photo !== "string" || !uuid.test(photo)))
     throw new InputError("A foto da refeição é inválida.");
+  // With a photo, the description is optional. The report is persisted exactly
+  // as sent; only the emptiness test normalises whitespace, and the 1–2.000
+  // limit counts code points, like char_length.
+  const raw = body.description ?? null;
+  if (raw !== null && typeof raw !== "string")
+    throw new InputError("Descreva sua refeição.");
+  const description = raw === null || raw.trim().length === 0 ? null : raw;
+  if (description === null && photo === null)
+    throw new InputError("Tire uma foto ou descreva a refeição.");
+  if (
+    description !== null &&
+    ([...description].length > 2000 || /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(description))
+  )
+    throw new InputError("Descreva a refeição em até 2.000 caracteres.");
   return {
     requestKey: tenantId(String(body.request_key)),
     mealType: body.meal_type,

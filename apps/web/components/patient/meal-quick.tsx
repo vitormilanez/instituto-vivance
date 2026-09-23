@@ -90,8 +90,8 @@ export function PatientMealQuick({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy.current) return;
-    if (!description.trim()) {
-      setError("Conte em poucas palavras o que comeu, por exemplo: arroz, frango e salada.");
+    if (!description.trim() && !file) {
+      setError("Tire uma foto do prato ou conte em poucas palavras o que comeu.");
       return;
     }
     busy.current = true;
@@ -99,7 +99,7 @@ export function PatientMealQuick({
     const payload = {
       meal_type: kind,
       eaten_at: new Date(eatenAt || localDateTime(new Date())).toISOString(),
-      description: description.trim(),
+      description: description.trim() ? description : null,
     };
     const photoFingerprint = file ? `${file.name}:${file.size}:${file.lastModified}` : "";
     const fingerprint = JSON.stringify({ ...payload, photo: photoFingerprint });
@@ -218,7 +218,7 @@ export function PatientMealQuick({
       )}
 
       <label className="pv-field">
-        O que você comeu?
+        Quer descrever? {file ? "Opcional" : ""}
         <textarea
           name="description"
           maxLength={2000}
@@ -228,7 +228,7 @@ export function PatientMealQuick({
           onChange={(event) => setDescription(event.target.value)}
           disabled={disabled}
         />
-        <small>Poucas palavras bastam.</small>
+        <small>{file ? "Com a foto, o texto é opcional." : "Sem foto, conte em poucas palavras."}</small>
       </label>
 
       <button className="pv-button is-center" disabled={disabled}>

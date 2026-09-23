@@ -4749,3 +4749,96 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
   .phome-sent li { grid-template-columns: 28px minmax(0, 1fr); }
   .phome-sent time { grid-column: 2; }
 }
+
+/* Check-in do paciente, na leitura do médico. Intensidade escrita, sem cor
+   de risco. */
+.staff-check-ins {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.staff-check-in-settings {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.staff-check-in-settings label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 0;
+  font-weight: 500;
+}
+
+.staff-check-in-settings input {
+  width: auto;
+  min-height: 0;
+}
+
+.staff-check-in-settings button {
+  justify-self: start;
+}
+
+.staff-effects {
+  overflow-x: auto;
+}
+
+.staff-effects table {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.staff-effects th,
+.staff-effects td {
+  min-width: 34px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.staff-effects th[scope="row"] {
+  text-align: left;
+  white-space: nowrap;
+}
+
+.staff-check-in-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.staff-check-in-list li {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.staff-check-in-list dl {
+  display: grid;
+  grid-template-columns: minmax(120px, max-content) minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.staff-check-in-list dt {
+  color: var(--muted);
+}
+
+.staff-check-in-list dd {
+  margin: 0;
+}
+
+.staff-check-in-note {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

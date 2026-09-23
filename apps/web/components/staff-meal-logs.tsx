@@ -9,7 +9,7 @@ export function StaffMealLogs({ initial }: { initial: StaffMeals }) {
     <div className="section-heading"><div><h2 id="staff-meal-history-title">Refeições registradas</h2><p>Relatos originais dos pacientes com vínculo ativo; não são avaliação nutricional automática.</p></div></div>
     {initial.meals.length ? initial.meals.map((meal) => <article className="panel meal-log-item" key={meal.id}>
       <div><strong>{meal.patients?.display_name ?? "Paciente"} · {mealTypeLabels[meal.meal_type as keyof typeof mealTypeLabels] ?? "Refeição"}</strong><span>{clinicalTime(meal.eaten_at)}</span></div>
-      <p>{meal.description}</p>
+      {meal.description ? <p>{meal.description}</p> : <p className="quiet-label">Só a foto, sem descrição.</p>}
       {meal.photo_document_id && <figure className="meal-log-photo">
         <a href={`/api/v1/clinics/${initial.clinic.id}/documents/${meal.photo_document_id}/download`} target="_blank" rel="noreferrer">
           {/* Rota protegida: o mesmo vínculo de cuidado autoriza o download. */}

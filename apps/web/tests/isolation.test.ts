@@ -5237,3 +5237,138 @@ test("médico único: paciente novo e vínculo atribuído viram cuidado ativo; d
     await db.exec("rollback");
   }
 });
+
+test("check-in diário: relato do próprio paciente, idempotente, append-only e lido só pelo vínculo ativo", async () => {
+  await asUser("doctor", async () => {
+    await startClinical("2099-11-21T12:00:00Z", "2099-11-21T12:30:00Z");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3) on conflict do nothing",
+      [a, pa, users.patient.id],
+    );
+    await switchActor("patient");
+    const key = randomUUID();
+    const answers = {
+      weight_kg: 76.4,
+      feeling: 4,
+      effects: { nausea: "mild", tiredness: "strong" },
+      hunger: 2,
+      water_glasses: 6,
+      adherence: "partial",
+      adherence_reason: "side_effect",
+      note: "Enjoo depois da aplicação.",
+    };
+    // Nada de escrita direta: só pela função.
+    await denied(
+      "insert into public.patient_daily_check_ins(tenant_id,patient_id,actor_user_id,client_request_id,check_in_on) values($1,$2,$3,$4,current_date)",
+      [a, pa, users.patient.id, randomUUID()],
+    );
+    for (const invalid of [
+      { feeling: 6 },
+      { effects: { nausea: "extreme" } },
+      { effects: { diagnosis: "mild" } },
+      { effects: { nausea: "mild" }, no_effects: true },
+      { adherence: "yes", adherence_reason: "forgot" },
+      { water_glasses: 99 },
+      { note: "   " },
+      { score: 10 },
+      // Aplicação só quando o médico ativa.
+      { application_site: "abdomen" },
+    ])
+      await denied("select public.submit_daily_check_in($1,$2,$3::jsonb)", [a, randomUUID(), JSON.stringify(invalid)]);
+    const first = await db.query<{ id: string }>("select public.submit_daily_check_in($1,$2,$3::jsonb) id", [a, key, JSON.stringify(answers)]);
+    const replay = await db.query<{ id: string }>("select public.submit_daily_check_in($1,$2,$3::jsonb) id", [a, key, JSON.stringify(answers)]);
+    assert.equal(replay.rows[0].id, first.rows[0].id);
+    const stored = await db.query<{ note: string; effects: Record<string, string>; patient_id: string }>(
+      "select note,effects,patient_id from public.patient_daily_check_ins where id=$1",
+      [first.rows[0].id],
+    );
+    assert.equal(stored.rows[0].note, "Enjoo depois da aplicação.");
+    assert.deepEqual(stored.rows[0].effects, { nausea: "mild", tiredness: "strong" });
+    assert.equal(stored.rows[0].patient_id, pa);
+    // O peso do check-in entra na série de medidas, uma vez só.
+    assert.equal(
+      (await db.query("select id from public.patient_measurements where client_request_id=$1 and metric='weight'", [key])).rows.length,
+      1,
+    );
+    await denied("update public.patient_daily_check_ins set note='Forjado'");
+    await denied("delete from public.patient_daily_check_ins");
+    // Paciente não mexe na própria configuração.
+    await denied("select public.set_check_in_settings($1,$2,3::smallint,true)", [a, pa]);
+
+    await switchActor("nurse");
+    await denied("select public.set_check_in_settings($1,$2,3::smallint,true)", [a, pa]);
+    for (const role of ["admin", "other", "suspended", "outsider", "colleague"]) {
+      await switchActor(role);
+      assert.equal(
+        (await db.query("select id from public.patient_daily_check_ins")).rows.length,
+        0,
+        `${role} must not read daily check-ins`,
+      );
+    }
+    await switchActor("doctor");
+    assert.equal((await db.query("select id from public.patient_daily_check_ins where id=$1", [first.rows[0].id])).rows.length, 1);
+    // "Não visto" também vale para o check-in diário.
+    await db.query("select public.mark_patient_item_read($1,'daily_checkins',$2)", [a, first.rows[0].id]);
+    await denied("select public.mark_patient_item_read($1,'daily_checkins',$2)", [a, randomUUID()]);
+    await denied("select public.set_check_in_settings($1,$2,2::smallint,true)", [a, pa]);
+    await db.query("select public.set_check_in_settings($1,$2,3::smallint,true)", [a, pa]);
+    assert.deepEqual(
+      (await db.query("select frequency_days,application_enabled from public.patient_check_in_settings where tenant_id=$1 and patient_id=$2", [a, pa])).rows[0],
+      { frequency_days: 3, application_enabled: true },
+    );
+    // Com a aplicação ativada pelo médico, o paciente registra dia, hora e local.
+    await switchActor("patient");
+    await db.query("select public.submit_daily_check_in($1,$2,$3::jsonb)", [
+      a,
+      randomUUID(),
+      JSON.stringify({ application_site: "thigh", application_side: "left", application_time: "08:30", application_on: "2020-01-01" }),
+    ]);
+    assert.equal(
+      (await db.query("select id from public.patient_check_in_settings")).rows.length,
+      1,
+      "o paciente lê a própria configuração",
+    );
+    // Vínculo revogado: o médico deixa de ler na hora.
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=1 where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+      [a, pa, users.doctor.id],
+    );
+    await switchActor("doctor");
+    assert.equal((await db.query("select id from public.patient_daily_check_ins")).rows.length, 0);
+    await denied("select public.set_check_in_settings($1,$2,1::smallint,false)", [a, pa]);
+  });
+});
+
+test("refeição só com foto: sem texto exige foto; texto vazio continua recusado", async () => {
+  await asUser("doctor", async () => {
+    await startClinical("2099-12-21T12:00:00Z", "2099-12-21T12:30:00Z");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3) on conflict do nothing",
+      [a, pa, users.patient.id],
+    );
+    const photo = randomUUID();
+    await db.query(
+      `insert into public.patient_documents(
+         id,tenant_id,patient_id,uploaded_by,original_filename,storage_path,content_type,
+         byte_size,category,visibility,status,available_at)
+       values($1,$2,$3,$4,'prato.jpg',$5,'image/jpeg',1024,'clinical_document','shared','available',clock_timestamp())`,
+      [photo, a, pa, users.patient.id, `synthetic/${photo}.jpg`],
+    );
+    await switchActor("patient");
+    await denied("select public.record_patient_meal($1,$2,'lunch',clock_timestamp(),null::text)", [a, randomUUID()]);
+    await denied("select public.record_patient_meal($1,$2,'lunch',clock_timestamp(),'  ',$3)", [a, randomUUID(), photo]);
+    {
+      const meal = await db.query<{ id: string }>(
+        "select public.record_patient_meal($1,$2,'lunch',clock_timestamp() - interval '1 minute',null,$3) id",
+        [a, randomUUID(), photo],
+      );
+      assert.equal(
+        (await db.query<{ description: string | null }>("select description from public.patient_meal_logs where id=$1", [meal.rows[0].id])).rows[0].description,
+        null,
+      );
+    }
+  });
+});

@@ -11,6 +11,8 @@ import { PatientShell } from "@/components/patient-shell";
 import { PatientAlertSigns } from "@/components/patient/alert-signs";
 import { PatientMealQuick } from "@/components/patient/meal-quick";
 import { PatientMyCare } from "@/components/patient/my-care";
+import { CheckInFlow } from "@/components/patient/check-in-flow";
+import { patientCheckInState } from "@/modules/daily-check-ins/service";
 import { PatientArea } from "@/components/patient-area";
 import { PatientHome } from "@/components/patient-home";
 import { clinicLocalDateTime, justSentLabel } from "@/modules/workspace/patient-home";
@@ -83,6 +85,7 @@ export default async function PatientAreaPage({
     careRequests,
     sent,
     appointments,
+    checkIn,
   ] = await Promise.all([
     // onboarding
     patient && slug === "hoje"
@@ -147,7 +150,7 @@ export default async function PatientAreaPage({
     ? patientPreparationRequirement(tenantId)
     : null,
     // latestMeasurement: na Home e no formulário de peso (Evolução)
-    patient && ["hoje", "evolucao", "peso"].includes(slug)
+    patient && ["hoje", "evolucao", "peso", "checkin"].includes(slug)
     ? patientMeasurementSummary(tenantId)
     : null,
     // careRequests: o que a equipe pediu vira tarefa no "Hoje"
@@ -165,6 +168,10 @@ export default async function PatientAreaPage({
           clinicDate(new Date(now - 30 * 86400000)),
           clinicDate(new Date(now + 60 * 86400000)),
         )
+      : null,
+    // checkIn: estado do check-in diário (null se a tabela ainda não existe)
+    patient && (section.group !== "acao" || slug === "checkin")
+      ? patientCheckInState(tenantId).catch(() => null)
       : null,
   ]);
   const latestPublication = published?.publications[0] ?? null;
@@ -185,6 +192,7 @@ export default async function PatientAreaPage({
       active={section.slug}
       title={shellTitle}
       heading={section.slug === "hoje" ? "page" : "bar"}
+      checkInHref={checkIn?.due ? `${base}/checkin` : null}
     >
       {!patient && (
         <p className="pv-notice">
@@ -206,6 +214,20 @@ export default async function PatientAreaPage({
         />
       ) : slug === "alerta" ? (
         <PatientAlertSigns />
+      ) : slug === "checkin" && patient ? (
+        checkIn ? (
+          <CheckInFlow
+            tenantId={tenantId}
+            base={base}
+            today={clinicDate()}
+            doctorName={null}
+            lastWeight={lastWeight?.value ?? null}
+            applicationEnabled={checkIn.applicationEnabled}
+            nextLabel={checkIn.frequencyDays === 1 ? "amanhã" : `em ${checkIn.frequencyDays} dias`}
+          />
+        ) : (
+          <p className="pv-notice">O check-in ainda não está disponível. Tente de novo mais tarde.</p>
+        )
       ) : slug === "refeicao" && meals?.patientId ? (
         <PatientMealQuick tenantId={tenantId} patientId={meals.patientId} base={base} nowLocal={clinicLocalDateTime(requestDate)} />
       ) : section.group === "cuidado" && section.slug !== "cuidado" ? (
@@ -218,7 +240,7 @@ export default async function PatientAreaPage({
       ) : slug === "documentos" && documents ? (
         <PatientDocumentsWorkspace initial={documents} />
       ) : slug === "evolucao" && longitudinal ? (
-        <PatientEvolution data={longitudinal} base={base} period={evolution.key} />
+        <PatientEvolution data={longitudinal} base={base} period={evolution.key} checkIn={checkIn} />
       ) : slug === "diario" && checkIns && meals ? (
         <>
           <PatientMealLogs initial={meals} />
@@ -255,6 +277,7 @@ export default async function PatientAreaPage({
               tenantId={tenantId}
               now={requestDate}
               justSent={justSentLabel(query.enviado)}
+              checkIn={checkIn}
               firstName={firstName}
               today={clinicDate()}
               appointments={appointments.appointments}
@@ -299,7 +322,7 @@ export default async function PatientAreaPage({
             )}
           </>
         )
-      ) : ["peso", "alerta", "refeicao", "cuidado"].includes(section.slug) ? null : (
+      ) : ["peso", "alerta", "refeicao", "cuidado", "checkin"].includes(section.slug) ? null : (
         <>
           {![
             "hoje",

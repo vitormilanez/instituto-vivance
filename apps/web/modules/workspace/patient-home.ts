@@ -120,7 +120,7 @@ export function quickLogs(input: {
   ];
 }
 
-export type SentKind = "measurements" | "meal" | "document" | "checkin" | "preparation" | "message";
+export type SentKind = "measurements" | "meal" | "document" | "checkin" | "daily" | "preparation" | "message";
 
 export type SentItem = {
   kind: SentKind;
@@ -135,6 +135,7 @@ export const sentLabels: Record<SentKind, string> = {
   meal: "Refeição",
   document: "Exame ou documento",
   checkin: "Resposta ao check-in",
+  daily: "Check-in",
   preparation: "Pré-consulta",
   message: "Mensagem",
 };
