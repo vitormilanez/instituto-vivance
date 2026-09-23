@@ -65,6 +65,8 @@ export async function openWork(
           .select("id,patient_id,available_at,created_at")
           .eq("tenant_id", tenant)
           .eq("status", "available")
+          // Foto de refeição é parte do relato, não exame: fica fora.
+          .eq("attached_to", "documents")
           .in("patient_id", input.activePatientIds)
           .order("created_at", { ascending: false })
           .order("id")

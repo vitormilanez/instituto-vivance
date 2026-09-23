@@ -146,6 +146,8 @@ export async function receivedForPatients(
               .select("id,patient_id,at:available_at,uploaded_by")
               .eq("tenant_id", tenant)
               .eq("status", "available")
+              // Foto de refeição é parte do relato, não exame: fica fora.
+              .eq("attached_to", "documents")
               .in("patient_id", patientIds),
             "available_at",
           ),

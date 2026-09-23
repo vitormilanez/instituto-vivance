@@ -249,6 +249,8 @@ export async function patientCareContext(
       .eq("tenant_id", id)
       .eq("patient_id", patientId)
       .eq("status", "available")
+      // Foto de refeição é parte do relato, não exame: fica fora.
+      .eq("attached_to", "documents")
       .order("created_at", { ascending: false })
       .order("id")
       .limit(1),

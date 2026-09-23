@@ -128,7 +128,8 @@ export async function staffDocuments(
       "*,patients!patient_documents_tenant_id_patient_id_fkey(display_name)",
     )
     .eq("tenant_id", tenant)
-    .eq("status", "available");
+    .eq("status", "available")
+    .eq("attached_to", "documents");
   if (patient) documentQuery = documentQuery.eq("patient_id", patient);
   const [documents, relationships] = await Promise.all([
     documentQuery
@@ -217,6 +218,7 @@ export async function patientDocuments(id: string, pageInput?: string) {
       .select("*")
       .eq("tenant_id", tenant)
       .eq("status", "available")
+      .eq("attached_to", "documents")
       .order("created_at", { ascending: false })
       .order("id")
       .range((page - 1) * 20, page * 20),
