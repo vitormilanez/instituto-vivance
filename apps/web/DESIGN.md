@@ -21,26 +21,26 @@ colors:
   attention-surface: "#fff9eb"
 typography:
   headline:
-    fontFamily: "Arial, Helvetica, sans-serif"
+    fontFamily: "Geist, Arial, Helvetica, sans-serif"
     fontSize: "clamp(28px, 4vw, 35px)"
     fontWeight: 700
     lineHeight: 1.15
     letterSpacing: "-0.035em"
   title:
-    fontFamily: "Arial, Helvetica, sans-serif"
+    fontFamily: "Geist, Arial, Helvetica, sans-serif"
     fontSize: "20px"
     fontWeight: 700
     letterSpacing: "-0.02em"
   body:
-    fontFamily: "Arial, Helvetica, sans-serif"
+    fontFamily: "Geist, Arial, Helvetica, sans-serif"
     fontSize: "16px"
     fontWeight: 400
     lineHeight: 1.55
   navigation:
-    fontFamily: "Arial, Helvetica, sans-serif"
+    fontFamily: "Geist, Arial, Helvetica, sans-serif"
     fontSize: "14px"
   label:
-    fontFamily: "Arial, Helvetica, sans-serif"
+    fontFamily: "Geist, Arial, Helvetica, sans-serif"
     fontSize: "12px"
     fontWeight: 700
     letterSpacing: "0.1em"
@@ -86,7 +86,7 @@ components:
 
 Este guia descreve somente `apps/web`, a aplicação autenticada. Herda a identidade azul-marinho da VIVANCE e a aplica a telas operacionais claras, com estados explícitos e pouca decoração. O modo desta superfície é **Operate**: localizar uma área, entender sua disponibilidade e executar apenas as operações já conectadas.
 
-Os documentos `PRODUCT.md` e `DESIGN.md` da raiz descrevem o contexto e o protótipo anterior. Este guia registra o que esta aplicação implementa; não transforma exemplos daquele protótipo em dados ou capacidades da aplicação autenticada.
+`PRODUCT.md`, na raiz, descreve o contexto do produto. O `DESIGN.md` da raiz apenas aponta para este arquivo. Este guia é o sistema visual canônico da `apps/web` e não transforma exemplos do protótipo anterior em dados ou capacidades da aplicação autenticada.
 
 ## Colors
 
@@ -96,13 +96,13 @@ Ice identifica orientação e hover secundário. Quiet-surface distingue a lista
 
 ## Typography
 
-A fonte atualmente carregada é a pilha **Arial, Helvetica, sans-serif**. Geist não está carregada nesta aplicação. Novas telas devem acompanhar a fonte real até uma mudança explícita e verificada.
+A fonte carregada é **Geist**, por `next/font/google` em `app/layout.tsx`, exposta na variável `--font-geist-sans` e aplicada em `globals.css` como `font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif`. **Arial é apenas o fallback**: em execução o navegador resolve `Geist, "Geist Fallback", Arial, Helvetica, sans-serif` e baixa o `.woff2`. Novas telas usam Geist.
 
 Títulos de página usam headline; títulos de seção usam title. O corpo parte de body; navegação e textos auxiliares ficam entre 13 e 15 px. Estados vazios usam título de 19 px e descrição de 15 px. Rótulos de contexto podem usar caixa alta e espaçamento de label. Números de calendário e contadores usam algarismos tabulares.
 
 ## Layout
 
-A área da equipe tem menu lateral de 224 px e conteúdo flexível com largura máxima de 1380 px. O conteúdo recebe 36 px de espaço vertical e margem interna horizontal entre 20 e 48 px. O painel mantém **oito cartões de ações rápidas**, em quatro colunas, reduzidas para duas até 1150 px.
+A área da equipe tem menu lateral de 224 px e conteúdo flexível com largura máxima de 1380 px. O conteúdo recebe 36 px de espaço vertical e margem interna horizontal entre 20 e 48 px. A visão geral do administrador mantém **oito cartões de ações rápidas** (`staffActions`), em quatro colunas, reduzidas para duas até 1150 px. O `Hoje` do médico mostra **seis atalhos** (`staffShortcuts`), que são as mesmas ações menos Pacientes, Agenda e Mensagens — as três áreas que o menu já destaca. Os dois números são intencionais e cada um tem teste próprio.
 
 A área do paciente tem largura máxima de 1080 px. Sua navegação principal mantém **quatro entradas**: Hoje, Meu cuidado, Conversas e Evolução. Meu perfil fica separado, no contexto da clínica. O resumo usa duas colunas no desktop e uma até 760 px.
 
@@ -110,7 +110,7 @@ Calendário e conversas usam duas regiões adjacentes, empilhadas até 1050 px. 
 
 ## Elevation & Depth
 
-As superfícies são planas: fundos sólidos e bordas finas separam navegação, painéis e conteúdo. A implementação atual não usa sombras nem desfoque de vidro. Não introduzir esses efeitos como se já fossem parte desta superfície.
+As superfícies são predominantemente planas: fundos sólidos e bordas finas separam navegação, painéis e conteúdo. **Elevação existe e é discreta**, em três degraus recorrentes entre as 28 declarações de `box-shadow` do `globals.css`: `0 12px 32px rgba(3,19,45,.05)` para cabeçalho e blocos largos, `0 14px 36px rgba(3,19,45,.055)` para painéis de trabalho e `0 7px 18px` / `0 10px 28px` para elementos flutuantes e o dock do celular. **Desfoque de vidro existe em um único ponto:** `backdrop-filter: blur(18px) saturate(130%)` no painel do dock móvel. Usar esses degraus como estão; não criar novos níveis de sombra nem levar o vidro para cartões clínicos.
 
 ## Shapes
 
@@ -136,7 +136,7 @@ Continuam conectados os fluxos existentes de autenticação, cadastro e consulta
 ## Do's and Don'ts
 
 - **Do** manter português do Brasil, títulos concretos e estados compreensíveis sem depender de cor.
-- **Do** preservar oito ações rápidas na visão geral da equipe e quatro entradas principais do paciente.
+- **Do** preservar as oito ações rápidas na visão geral do administrador, os seis atalhos do `Hoje` do médico e as quatro entradas principais do paciente.
 - **Do** distinguir o link que permite conhecer uma área do botão que executaria uma operação ainda indisponível.
 - **Do** preservar foco visível, alvos de pelo menos 44 px de altura e navegação por teclado.
 - **Don't** preencher módulos novos com mocks clínicos, contadores fictícios, gráficos ou atividade simulada.

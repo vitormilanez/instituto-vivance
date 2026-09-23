@@ -64,9 +64,9 @@ test("os atalhos do Hoje não repetem o que o menu já destaca", () => {
   const hrefs = staffShortcuts(base).map((action) => action.href);
   for (const href of [`${base}/pacientes`, `${base}/agenda`, `${base}/mensagens`])
     assert.ok(!hrefs.includes(href), `${href} repete o destaque do menu`);
-  // O cadastro de um novo paciente continua a um toque, mesmo com
-  // "Pacientes" fora da lista.
-  assert.ok(hrefs.includes(`${base}/pacientes#novo-paciente`));
+  // Adicionar paciente continua a um toque, mesmo com "Pacientes" fora da
+  // lista — e abre no convite para o app, o caminho principal.
+  assert.ok(hrefs.includes(`${base}/pacientes#convidar-paciente`));
 });
 
 test("a visão do admin mantém as oito portas de entrada", () => {

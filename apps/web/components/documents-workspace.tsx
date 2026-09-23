@@ -379,6 +379,7 @@ export function StaffPatientDocumentsPanel({
 
 export function StaffDocumentsWorkspace({ initial }: { initial: StaffDocuments }) {
   const base = `/clinicas/${initial.clinic.id}/documentos`;
+  const filter = initial.patient ? `&paciente=${initial.patient}` : "";
   return (
     <>
       <details className="panel document-upload-panel">
@@ -389,6 +390,22 @@ export function StaffDocumentsWorkspace({ initial }: { initial: StaffDocuments }
         </p>
         <DocumentUploadForm tenant={initial.clinic.id} patients={initial.patients} />
       </details>
+      {initial.patients.length > 1 ? (
+        <form className="document-filter" method="get" action={base}>
+          <label htmlFor="document-patient">Paciente</label>
+          <select id="document-patient" name="paciente" defaultValue={initial.patient ?? ""}>
+            <option value="">Todos os pacientes</option>
+            {initial.patients.map((patient) => (
+              <option key={patient.id} value={patient.id}>
+                {patient.display_name}
+              </option>
+            ))}
+          </select>
+          <button type="submit" className="secondary">
+            Filtrar
+          </button>
+        </form>
+      ) : null}
       <section className="document-board">
         <div className="section-heading">
           <div>
@@ -406,8 +423,8 @@ export function StaffDocumentsWorkspace({ initial }: { initial: StaffDocuments }
         />
       </section>
       <nav className="agenda-actions" aria-label="Páginas de documentos">
-        {initial.page > 1 && <Link href={`${base}?pagina=${initial.page - 1}`}>Anterior</Link>}
-        {initial.hasNext && <Link href={`${base}?pagina=${initial.page + 1}`}>Próxima</Link>}
+        {initial.page > 1 && <Link href={`${base}?pagina=${initial.page - 1}${filter}`}>Anterior</Link>}
+        {initial.hasNext && <Link href={`${base}?pagina=${initial.page + 1}${filter}`}>Próxima</Link>}
       </nav>
       <p className="module-footnote">
         Este espaço não é um canal de urgência. O arquivo não é interpretado,
@@ -422,7 +439,9 @@ export function PatientDocumentsWorkspace({ initial }: { initial: PatientDocumen
   return (
     <>
       {initial.patientId ? (
-        <details className="panel document-upload-panel">
+        // Para o paciente, enviar é a ação principal desta página: o
+        // formulário já vem aberto, sem um clique a mais.
+        <details className="panel document-upload-panel" id="enviar-documento" open>
           <summary>Enviar exame, foto ou documento para a equipe</summary>
           <p>
             Aceita PDF, JPG e PNG de até {byteLimit()}. O arquivo fica privado,

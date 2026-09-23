@@ -39,9 +39,14 @@ test("patient header states an active link honestly even with no consultation or
     patientHeaderFacts(
       {
         relationshipId: "rel-1",
+preparation: null,
+        documents: { total: 0, latest_at: null },
+        measurements: { total: 0, latest_at: null },
+        intake: null,
         encounter: null,
         nextAppointment: null,
         publications: [],
+        requests: [],
       },
       "tenant-1",
     ),
@@ -62,6 +67,10 @@ test("patient header links to the real finalized encounter and published plan", 
     patientHeaderFacts(
       {
         relationshipId: "rel-1",
+preparation: null,
+        documents: { total: 0, latest_at: null },
+        measurements: { total: 0, latest_at: null },
+        intake: null,
         encounter: { id: "enc-1", finalized_at: "2026-09-10T12:00:00.000Z" },
         nextAppointment: null,
         publications: [
@@ -73,6 +82,7 @@ test("patient header links to the real finalized encounter and published plan", 
             published_at: "2026-09-01T00:00:00.000Z",
           },
         ],
+        requests: [],
       },
       "tenant-1",
     ),
@@ -92,6 +102,10 @@ test("patient header links to the next scheduled appointment", () => {
   const facts = patientHeaderFacts(
     {
       relationshipId: "rel-1",
+preparation: null,
+      documents: { total: 0, latest_at: null },
+      measurements: { total: 0, latest_at: null },
+      intake: null,
       encounter: null,
       nextAppointment: {
         id: "appointment-1",
@@ -99,6 +113,7 @@ test("patient header links to the next scheduled appointment", () => {
         status: "scheduled",
       },
       publications: [],
+      requests: [],
     },
     "tenant-1",
   );
@@ -117,11 +132,11 @@ test("today omits clinical context when the focused appointment has no active ca
   assert.match(today, /\.eq\("professional_id", user\.id\)/);
   assert.match(today, /\.eq\("status", "active"\)/);
   assert.match(today, /if \(!relationship\.data\) return null/);
-  assert.match(
-    readFileSync(
-      new URL("../components/today-workspace.tsx", import.meta.url),
-      "utf8",
-    ),
-    /Não há contexto clínico disponível para este vínculo/,
+  // Sem vínculo ativo, o bloco da consulta não recebe contexto nem recebidos.
+  const home = readFileSync(
+    new URL("../components/home-day.tsx", import.meta.url),
+    "utf8",
   );
+  assert.match(home, /context=\{link\.status === "active" \? contextFor\(appointment\.id\) : null\}/);
+  assert.match(home, /received=\{\s*link\.status === "active"\s*\? viewFor\(appointment\.id, appointment\.patient_id\)\s*: null\s*\}/);
 });

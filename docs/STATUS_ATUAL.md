@@ -33,6 +33,34 @@ Atualizado em 22/09/2026.
   status do check-in escapava do card e era recortado; o card do paciente passou
   a empilhar o cabeçalho como o card da equipe já fazia.
 - A Vercel serve o mesmo commit informado acima e o domínio público responde.
+- A migration `20260922190000_patient_care_requests.sql` (solicitação de
+  informação ao paciente) está aplicada no Supabase de desenvolvimento e os
+  objetos foram conferidos no destino. A versão `20260922190000` foi registrada
+  em `supabase_migrations.schema_migrations`, sem reaplicar o SQL. O smoke test
+  da RPC rodou ali dentro de uma transação revertida, sem resíduo, e confirmou
+  idempotência pela mesma chave, deduplicação por tipo, uma única pendência
+  aberta, histórico com a anterior cancelada e a nota preservada, e uma mensagem
+  com um aviso por pedido criado.
+- A entrega agora inclui a rota autenticada, o serviço, a validação do payload e
+  a ação “Solicitar” nos quatro cards que dependem de informação do paciente.
+- A migration `20260923120000_patient_item_reads.sql` (estado de "não visto"
+  por profissional) foi aplicada em 22/09/2026 no Supabase de desenvolvimento
+  com `db query --file`, a partir do Mac. Tabela `patient_item_reads` e função
+  `mark_patient_item_read(uuid,text,uuid)` conferidas no destino. O
+  `migration repair` falhou ("Cannot find project ref"); a versão
+  `20260923120000` foi registrada em `supabase_migrations.schema_migrations`
+  por `insert` direto, sem reaplicar o SQL, e conferida por `select`. Na Home,
+  com sessão real do médico, abrir um item novo reduziu "novos" de 2 para 1 —
+  isso deixou uma leitura real na conta de demonstração do médico (a
+  pré-consulta de 21/09 de Vitor Milanez), que não pode ser desfeita pela
+  aplicação.
+- MVP com um médico: a migration `20260923130000_single_doctor_care.sql` foi
+  aplicada e registrada no dev em 22/09/2026. Como a clínica tinha dois
+  médicos ativos, o membro "Médico QA Slice 7B.1" foi suspenso (reversível) e
+  o backfill foi rodado de novo. Resultado: Dr. Guilherme Martins com 20
+  vínculos ativos e nenhum aguardando aceite; os 12 `assigned` restantes são
+  do médico de QA suspenso e não dão acesso. Na Home, os 6 pacientes do dia
+  passaram de "Sem vínculo ativo" para "Nada recebido".
 - A aplicação preserva separação por clínica, papéis, vínculo de cuidado, RLS,
   versionamento, auditoria e ações clínicas explícitas conforme os testes.
 

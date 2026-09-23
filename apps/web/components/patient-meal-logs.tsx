@@ -157,7 +157,7 @@ export function PatientMealLogs({ initial }: { initial: PatientMeals }) {
   }
 
   return (
-    <section className="meal-log-workspace" aria-labelledby="meal-log-title">
+    <section id="registrar-refeicao" className="meal-log-workspace" aria-labelledby="meal-log-title">
       <article className="panel meal-log-entry">
         <div className="section-heading">
           <div>

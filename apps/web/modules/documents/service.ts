@@ -181,6 +181,7 @@ export async function staffDocuments(
     reviews,
     canReview: clinic.role === "doctor",
     patients,
+    patient,
     page,
     hasNext: (documents.data?.length ?? 0) > 20,
   };

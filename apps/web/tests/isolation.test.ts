@@ -11,7 +11,7 @@ const db = new PGlite({ extensions: { btree_gist } });
 const a = randomUUID(),
   b = randomUUID();
 const users = Object.fromEntries(
-  ["admin", "doctor", "nurse", "patient", "other", "suspended", "outsider"].map(
+  ["admin", "doctor", "nurse", "patient", "other", "suspended", "outsider", "colleague"].map(
     (role) => [role, { id: randomUUID(), session: randomUUID() }],
   ),
 );
@@ -63,7 +63,7 @@ before(async () => {
     [a, b],
   );
   for (const [name, u] of Object.entries(users)) {
-    if (name === "outsider") continue;
+    if (name === "outsider" || name === "colleague") continue;
     await db.query(
       "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,$3,$4,$5)",
       [
@@ -75,6 +75,13 @@ before(async () => {
       ],
     );
   }
+  // A clínica A tem dois médicos ativos: é o cenário de várias pessoas no
+  // cuidado, em que atribuição e aceite são explícitos. A regra do MVP (médico
+  // único = vínculo automático) tem teste próprio, numa clínica só dela.
+  await db.query(
+    "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,'doctor','active','Synthetic colleague')",
+    [a, users.colleague.id],
+  );
   await db.query(
     "insert into public.patients(id,tenant_id,display_name,created_by) values ($1,$2,'Synthetic A',$3),($4,$5,'Synthetic B',$6)",
     [pa, a, users.admin.id, pb, b, users.other.id],
@@ -1927,10 +1934,13 @@ test("unfiltered requests cannot leak other clinics", async () => {
       (await db.query("select * from public.tenants")).rows.length,
       1,
     );
-    assert.equal(
-      (await db.query("select * from public.memberships")).rows.length,
-      1,
-    );
+    // O médico enxerga os colegas médicos da própria clínica (o colega
+    // sintético), nunca membros de outra clínica.
+    const members = (
+      await db.query<{ tenant_id: string }>("select tenant_id from public.memberships")
+    ).rows;
+    assert.equal(members.length, 2);
+    assert.ok(members.every((row) => row.tenant_id === a));
   });
 });
 test("patient, suspended membership and no membership cannot read the directory", async () => {
@@ -2669,10 +2679,13 @@ const mealFunctionDefinition = async () =>
 test("a migration de correção leva um banco já migrado ao armazenamento literal", async () => {
   const folder = new URL("../../../supabase/migrations/", import.meta.url);
   const name = "20260922015500_patient_meal_literal_description.sql";
-  const photoName = "20260922114500_patient_meal_photo.sql";
+  const original = "20260921191924_patient_meal_logs.sql";
+  const photoName = "20260923140000_patient_meal_photo.sql";
   const files = readdirSync(folder).filter((file) => file.endsWith(".sql")).sort();
+  // A correção precisa ser posterior à migration original — não ser a última
+  // migration do repositório, que segue crescendo por outros motivos.
   assert.ok(
-    files.indexOf(name) > files.indexOf("20260921191924_patient_meal_logs.sql"),
+    files.indexOf(name) > files.indexOf(original),
     "a correção precisa ser posterior à migration original",
   );
   assert.ok(
@@ -4839,4 +4852,388 @@ test("pre-consultation snapshots custom questions and ordered priorities without
       [a, legacyRequest.rows[0].id],
     );
   });
+});
+
+async function careRequestFixture() {
+  await startClinical("2099-12-21T12:00:00Z", "2099-12-21T12:30:00Z");
+  await db.exec("reset role");
+  await db.query(
+    "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+    [a, pa, users.patient.id],
+  );
+  await switchActor("doctor");
+}
+
+const requestCare = (
+  kind: string,
+  requestKey = randomUUID(),
+  note = "",
+  replacePending = false,
+) =>
+  db.query<{ id: string }>(
+    "select public.request_patient_care($1,$2,$3,$4,$5,$6) id",
+    [a, pa, kind, note, requestKey, replacePending],
+  );
+
+test("a solicitação ao paciente é única por tipo, idempotente por chave e chega pela conversa", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const key = randomUUID();
+    const note = "Traga os exames do último mês.";
+    const first = (await requestCare("exams", key, note)).rows[0].id;
+    // Mesma chave: o mesmo clique devolve o mesmo pedido.
+    assert.equal((await requestCare("exams", key, note)).rows[0].id, first);
+    // Chave nova, mesmo tipo: continua sendo uma pendência, não duas.
+    assert.equal((await requestCare("exams")).rows[0].id, first);
+
+    const stored = await db.query<{
+      kind: string;
+      status: string;
+      note: string;
+      doctor_id: string;
+      completed_at: string | null;
+    }>(
+      "select kind,status,note,doctor_id,completed_at from public.patient_care_requests where tenant_id=$1 and patient_id=$2",
+      [a, pa],
+    );
+    assert.deepEqual(stored.rows, [
+      {
+        kind: "exams",
+        status: "requested",
+        note,
+        doctor_id: users.doctor.id,
+        completed_at: null,
+      },
+    ]);
+
+    // A entrega é a mensagem na conversa que já existe, com aviso no app.
+    const messages = await db.query<{
+      content: string;
+      sender_id: string;
+      client_request_id: string;
+    }>(
+      "select content,sender_id,client_request_id from public.care_messages where tenant_id=$1 and patient_id=$2",
+      [a, pa],
+    );
+    assert.equal(messages.rows.length, 1, "uma mensagem por solicitação criada");
+    assert.equal(messages.rows[0].sender_id, users.doctor.id);
+    assert.equal(messages.rows[0].client_request_id, key);
+    assert.match(
+      messages.rows[0].content,
+      /^Solicito o envio de exames ou documentos para preparar nossa próxima conversa\. Traga os exames do último mês\.$/,
+    );
+    // O aviso é do paciente: o médico não lê a caixa de entrada dele.
+    await switchActor("patient");
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.in_app_notifications where tenant_id=$1 and recipient_user_id=$2",
+          [a, users.patient.id],
+        )
+      ).rows[0].count,
+      1,
+      "o paciente recebe um aviso no app",
+    );
+    await switchActor("doctor");
+  });
+});
+
+test("só um reenvio explícito substitui a pendência, e o histórico permanece", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const first = (await requestCare("measurements", randomUUID(), "primeiro")).rows[0].id;
+    const second = (
+      await requestCare("measurements", randomUUID(), "segundo", true)
+    ).rows[0].id;
+    assert.notEqual(second, first);
+    const rows = await db.query<{
+      status: string;
+      note: string;
+      cancelled_at: string | null;
+    }>(
+      "select status,note,cancelled_at from public.patient_care_requests where tenant_id=$1 and patient_id=$2 order by note",
+      [a, pa],
+    );
+    // O pedido anterior fica registrado como cancelado, nunca apagado.
+    assert.deepEqual(
+      rows.rows.map((row) => [row.note, row.status, row.cancelled_at !== null]),
+      [
+        ["primeiro", "cancelled", true],
+        ["segundo", "requested", false],
+      ],
+    );
+  });
+});
+
+test("concluir o que foi pedido fecha a pendência sem apagar o pedido", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    await requestCare("measurements", randomUUID(), "Pese-se esta semana.");
+    // O paciente registra o que foi pedido: a pendência fecha sozinha.
+    await switchActor("patient");
+    await db.query(
+      "select public.submit_patient_measurements($1,72.4,null,null,current_date,$2,true)",
+      [a, randomUUID()],
+    );
+    await switchActor("doctor");
+    const row = await db.query<{ status: string; completed_at: string | null; note: string }>(
+      "select status,completed_at,note from public.patient_care_requests where tenant_id=$1 and patient_id=$2 and kind='measurements'",
+      [a, pa],
+    );
+    assert.equal(row.rows[0].status, "completed");
+    assert.ok(row.rows[0].completed_at, "a conclusão tem data");
+    assert.equal(row.rows[0].note, "Pese-se esta semana.", "o pedido continua legível");
+  });
+});
+
+test("o paciente lê o que foi pedido a ele e ninguém mais lê", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    await requestCare("goals", randomUUID(), "O que você espera deste acompanhamento?");
+    await switchActor("patient");
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.patient_care_requests where tenant_id=$1",
+          [a],
+        )
+      ).rows[0].count,
+      1,
+    );
+    // Outro médico, de outra clínica, não vê a solicitação deste vínculo.
+    await switchActor("other");
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.patient_care_requests where tenant_id=$1",
+          [a],
+        )
+      ).rows[0].count,
+      0,
+    );
+    await switchActor("doctor");
+  });
+});
+
+test("solicitar exige médico com vínculo ativo, e o registro é auditado", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const id = (await requestCare("preparation", randomUUID(), "")).rows[0].id;
+    // Enfermagem acompanha, mas não abre solicitação em nome do médico.
+    await switchActor("nurse");
+    await denied("select public.request_patient_care($1,$2,$3,$4,$5,$6)", [
+      a,
+      pa,
+      "preparation",
+      "",
+      randomUUID(),
+      false,
+    ]);
+    await switchActor("patient");
+    await denied("select public.request_patient_care($1,$2,$3,$4,$5,$6)", [
+      a,
+      pa,
+      "exams",
+      "",
+      randomUUID(),
+      false,
+    ]);
+    // Tipo fora do contrato não entra nem por RPC.
+    await switchActor("doctor");
+    await denied("select public.request_patient_care($1,$2,$3,$4,$5,$6)", [
+      a,
+      pa,
+      "prescription",
+      "",
+      randomUUID(),
+      false,
+    ]);
+    await db.exec("reset role");
+    const audited = await db.query<{ count: number }>(
+      "select count(*)::int count from public.audit_events where entity_type='patient_care_requests' and entity_id=$1",
+      [id],
+    );
+    assert.ok(audited.rows[0].count >= 1, "a solicitação entra na auditoria");
+  });
+});
+test("não visto é por profissional, idempotente e segue o vínculo de cuidado", async () => {
+  await asUser("doctor", async () => {
+    await startClinical("2100-02-01T12:00:00Z", "2100-02-01T12:30:00Z");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+      [a, pa, users.patient.id],
+    );
+    await switchActor("patient");
+    await db.query(
+      "select public.submit_patient_measurements($1,70.1,null,null,current_date,$2,true)",
+      [a, randomUUID()],
+    );
+    await switchActor("doctor");
+    const item = (
+      await db.query<{ id: string }>(
+        "select id from public.patient_measurements where tenant_id=$1 and patient_id=$2 limit 1",
+        [a, pa],
+      )
+    ).rows[0].id;
+
+    // Marcar duas vezes guarda uma linha só, com a data da primeira leitura.
+    await db.query("select public.mark_patient_item_read($1,'measurements',$2)", [a, item]);
+    const first = (
+      await db.query<{ read_at: string }>(
+        "select read_at from public.patient_item_reads where item_id=$1",
+        [item],
+      )
+    ).rows;
+    await db.query("select public.mark_patient_item_read($1,'measurements',$2)", [a, item]);
+    const second = (
+      await db.query<{ read_at: string }>(
+        "select read_at from public.patient_item_reads where item_id=$1",
+        [item],
+      )
+    ).rows;
+    assert.equal(first.length, 1);
+    assert.deepEqual(second, first);
+
+    // Id inventado, tipo errado e tipo desconhecido falham fechados.
+    await denied("select public.mark_patient_item_read($1,'measurements',$2)", [a, randomUUID()]);
+    await denied("select public.mark_patient_item_read($1,'documents',$2)", [a, item]);
+    await denied("select public.mark_patient_item_read($1,'qualquer',$2)", [a, item]);
+    // Outra clínica: o item não existe lá.
+    await denied("select public.mark_patient_item_read($1,'measurements',$2)", [b, item]);
+    // Ninguém forja autoria nem apaga a leitura.
+    await denied(
+      "insert into public.patient_item_reads(tenant_id,user_id,item_kind,item_id,patient_id) values($1,$2,'measurements',$3,$4)",
+      [a, users.nurse.id, item, pa],
+    );
+    await denied("update public.patient_item_reads set read_at=now()");
+    await denied("delete from public.patient_item_reads");
+
+    // A enfermagem sem vínculo não marca e não vê a leitura do médico.
+    await switchActor("nurse");
+    await denied("select public.mark_patient_item_read($1,'measurements',$2)", [a, item]);
+    assert.equal(
+      (await db.query("select 1 from public.patient_item_reads")).rows.length,
+      0,
+    );
+    // O paciente não lê cursores de ninguém.
+    await switchActor("patient");
+    await denied("select public.mark_patient_item_read($1,'measurements',$2)", [a, item]);
+    assert.equal(
+      (await db.query("select 1 from public.patient_item_reads")).rows.length,
+      0,
+    );
+
+    // Revogado o vínculo, a leitura some da vista do próprio médico.
+    await db.exec("reset role");
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=version where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+      [a, pa, users.doctor.id],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select 1 from public.patient_item_reads")).rows.length,
+      0,
+    );
+  });
+});
+
+// MVP: clínica com um único médico ativo. Tudo numa transação revertida, numa
+// clínica só deste teste, para não mudar o cenário de dois médicos acima.
+test("médico único: paciente novo e vínculo atribuído viram cuidado ativo; dois médicos não", async () => {
+  const c = randomUUID();
+  const solo = { id: randomUUID(), session: randomUUID() };
+  const owner = { id: randomUUID(), session: randomUUID() };
+  const second = { id: randomUUID(), session: randomUUID() };
+  const actAs = async (user: { id: string; session: string }) => {
+    await db.exec("set local role authenticated");
+    await db.query("select set_config('request.jwt.claims',$1,true)", [
+      JSON.stringify({ sub: user.id, session_id: user.session }),
+    ]);
+  };
+  const statusOf = async (patient: string, professional: string) =>
+    (
+      await db.query<{ status: string }>(
+        "select status from public.care_relationships where tenant_id=$1 and patient_id=$2 and professional_id=$3",
+        [c, patient, professional],
+      )
+    ).rows.map((row) => row.status);
+  await db.exec("begin");
+  try {
+    for (const user of [solo, owner, second]) {
+      await db.query("insert into auth.users(id) values ($1)", [user.id]);
+      await db.query("insert into auth.sessions(id,user_id) values ($1,$2)", [user.session, user.id]);
+    }
+    await db.query("insert into public.tenants(id,name) values ($1,'Clínica de um médico')", [c]);
+    await db.query(
+      "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,'doctor','active','Dr. Único'),($1,$3,'admin','active','Admin')",
+      [c, solo.id, owner.id],
+    );
+
+    // Ficha criada pela administração: sem vínculo durante a transação e com
+    // vínculo ativo ao médico único quando ela se completa.
+    await actAs(owner);
+    const created = (
+      await db.query<{ id: string }>(
+        "insert into public.patients(tenant_id,display_name) values ($1,'Paciente MVP') returning id",
+        [c],
+      )
+    ).rows[0].id;
+    await db.exec("set constraints all immediate");
+    await db.exec("reset role");
+    assert.deepEqual(await statusOf(created, solo.id), ["active"]);
+    await actAs(solo);
+    assert.equal(
+      (await db.query("select 1 from public.patients where id=$1", [created])).rows.length,
+      1,
+      "o médico único já lê a ficha",
+    );
+
+    // Revogar continua valendo; reatribuir ao médico único ativa na hora.
+    await actAs(owner);
+    await db.query(
+      "update public.care_relationships set status='revoked',expected_version=version where tenant_id=$1 and patient_id=$2",
+      [c, created],
+    );
+    await db.exec("reset role");
+    assert.deepEqual(await statusOf(created, solo.id), ["revoked"]);
+    await actAs(owner);
+    await db.query(
+      "update public.care_relationships set status='assigned',expected_version=version where tenant_id=$1 and patient_id=$2",
+      [c, created],
+    );
+    await db.exec("reset role");
+    assert.deepEqual(await statusOf(created, solo.id), ["active"]);
+
+    // Com um segundo médico ativo, nada é automático.
+    await db.query(
+      "insert into public.memberships(tenant_id,user_id,role,status,display_name) values($1,$2,'doctor','active','Dra. Segunda')",
+      [c, second.id],
+    );
+    await actAs(owner);
+    const later = (
+      await db.query<{ id: string }>(
+        "insert into public.patients(tenant_id,display_name) values ($1,'Paciente com dois médicos') returning id",
+        [c],
+      )
+    ).rows[0].id;
+    await db.exec("set constraints all immediate");
+    await db.exec("reset role");
+    assert.deepEqual(await statusOf(later, solo.id), []);
+    assert.deepEqual(await statusOf(later, second.id), []);
+    // Suspensa a segunda médica, o médico volta a ser único.
+    await db.query(
+      "update public.memberships set status='suspended' where tenant_id=$1 and user_id=$2",
+      [c, second.id],
+    );
+    assert.equal(
+      (await db.query<{ doctor: string }>("select private.sole_active_doctor($1) doctor", [c])).rows[0].doctor,
+      solo.id,
+    );
+    // A função não é chamável por quem está logado.
+    await actAs(solo);
+    await denied("select private.sole_active_doctor($1)", [c]);
+  } finally {
+    await db.exec("rollback");
+  }
 });

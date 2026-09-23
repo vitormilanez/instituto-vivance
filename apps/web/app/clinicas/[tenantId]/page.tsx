@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { listPatients } from "@/modules/patients/service";
-import { AccessError } from "@/modules/identity/service";
+import { AccessError, requireClinic } from "@/modules/identity/service";
 import { InputError } from "@/lib/validation";
 import { ClinicShell } from "@/components/clinic-shell";
 import { TodayWorkspace } from "@/components/today-workspace";
@@ -44,18 +44,32 @@ function ShortcutIcon({ name }: { name: string }) {
 
 export default async function Dashboard({
   params,
+  searchParams,
 }: {
   params: Promise<{ tenantId: string }>;
+  searchParams: Promise<{ consulta?: string | string[] }>;
 }) {
   const { tenantId } = await params;
-  const context = await listPatients(tenantId).catch((error) => {
+  // A consulta aberta na Home pode ser escolhida pela URL; qualquer valor que
+  // não seja uma consulta do dia cai na próxima, sem erro.
+  const { consulta } = await searchParams;
+  const focus = typeof consulta === "string" ? consulta : null;
+  const fail = (error: unknown): never => {
     if (error instanceof AccessError && error.status === 401) redirect("/");
     if (error instanceof AccessError || error instanceof InputError) notFound();
     throw error;
-  });
+  };
+  // Só o administrador vê a contagem de pacientes; para médico e enfermagem a
+  // lista não é usada, e ler 25 fichas com dois complementos custava três
+  // idas ao banco antes de a Home começar.
+  const access = await requireClinic(tenantId).catch(fail);
   const base = `/clinicas/${tenantId}`;
+  const context =
+    access.clinic.role === "admin"
+      ? await listPatients(tenantId).catch(fail)
+      : { clinic: access.clinic, count: 0, patients: [] as Awaited<ReturnType<typeof listPatients>>["patients"] };
   const today =
-    context.clinic.role !== "admin" ? await todayWorkspace(tenantId) : null;
+    context.clinic.role !== "admin" ? await todayWorkspace(tenantId, focus) : null;
 
   const shortcuts = (
     <section className="shortcuts-section" aria-labelledby="quick-actions">

@@ -169,8 +169,11 @@ export default async function Patients({
             />
           )}
           <section className="panel" id="novo-paciente">
-            <h2>Novo paciente</h2>
-            <p>Informe os dados básicos para abrir a ficha.</p>
+            <h2>Ficha sem acesso ao app</h2>
+            <p>
+              Para quem não vai usar o app agora. Você registra os dados
+              básicos por ela; depois, pela ficha, dá para enviar o convite.
+            </p>
             <PatientForm tenantId={tenantId} role={context.clinic.role} />
           </section>
         </aside>

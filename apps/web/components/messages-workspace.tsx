@@ -386,8 +386,9 @@ function ConversationWorkspace({
             <form className="conversation-composer" onSubmit={submit}>
               {error && <p role="alert">{error}</p>}
               {sendUncertain && (
-                <div className="conversation-recovery" role="alert">
-                  <p>Não foi possível confirmar o envio. Confira o histórico antes de tentar novamente.</p>
+                <div className="conversation-recovery">
+                  {/* Só o texto é anunciado; os botões não entram no alerta. */}
+                  <p role="alert">Não foi possível confirmar o envio. Confira o histórico antes de tentar novamente.</p>
                   <button type="button" onClick={() => router.refresh()}>
                     Atualizar conversa
                   </button>

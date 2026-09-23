@@ -9,6 +9,8 @@ import { InputError } from "@/lib/validation";
 import { findPatientSection } from "@/modules/workspace/navigation";
 import { PatientShell } from "@/components/patient-shell";
 import { PatientArea } from "@/components/patient-area";
+import { PatientHome } from "@/components/patient-home";
+import { patientRecentSent } from "@/modules/workspace/patient-sent";
 import { DevelopmentNotice } from "@/components/module-ui";
 import { listAppointments } from "@/modules/agenda/service";
 import { clinicDate } from "@/modules/agenda/validation";
@@ -32,6 +34,7 @@ import { patientReportPublications } from "@/modules/reports/publication-service
 import { PublishedReports } from "@/components/published-reports";
 import { patientPreparationPending, patientPreparationRequirement, patientReturnPreparations } from "@/modules/return-preparation/service";
 import { PatientReturnPreparationWorkspace } from "@/components/return-preparation-workspace";
+import { myPendingCareRequests } from "@/modules/care-requests/service";
 export const dynamic = "force-dynamic";
 
 export default async function PatientAreaPage({
@@ -52,37 +55,53 @@ export default async function PatientAreaPage({
       throw error;
     },
   );
-  const onboarding =
-    patient && slug === "hoje"
-      ? await getPatientOnboarding(tenantId).catch((error) => {
-          if (error instanceof OnboardingError && error.status === 404)
-            return null;
-          throw error;
-        })
-      : null;
   const requestDate = requestInstant();
   const now = requestDate.getTime();
   const currentTime = requestDate.toISOString();
   const query = await searchParams;
-  const published =
+  // Tudo o que a página lê depende só do perfil e da seção: as leituras
+  // rodam juntas. Em série, cada ida ao banco somava latência à anterior.
+  const [
+    onboarding,
+    published,
+    checkIns,
+    meals,
+    longitudinal,
+    documents,
+    messages,
+    reports,
+    preparations,
+    preparationPending,
+    requiredPreparation,
+    latestMeasurement,
+    careRequests,
+    sent,
+    appointments,
+  ] = await Promise.all([
+    // onboarding
+    patient && slug === "hoje"
+      ? getPatientOnboarding(tenantId).catch((error) => {
+          if (error instanceof OnboardingError && error.status === 404)
+            return null;
+          throw error;
+        })
+      : null,
+    // published
     patient && ["plano", "hoje"].includes(slug)
-      ? await patientPublications(
+      ? patientPublications(
           tenantId,
           slug === "plano" ? query.pagina : undefined,
         )
-      : null;
-  const latestPublication = published?.publications[0] ?? null;
-  const unreadPublication =
-    published?.publications.find((publication) => !publication.care_plan_receipts[0]) ??
-    null;
-  const checkIns =
+      : null,
+    // checkIns
     patient && ["diario", "hoje"].includes(slug)
-      ? await patientCheckIns(tenantId, query.pagina)
-      : null;
-  const meals = patient && slug === "diario" ? await patientMeals(tenantId) : null;
-  const longitudinal =
+      ? patientCheckIns(tenantId, query.pagina)
+      : null,
+    // meals
+    patient && slug === "diario" ? patientMeals(tenantId) : null,
+    // longitudinal
     patient && slug === "evolucao"
-      ? await patientLongitudinal(tenantId, {
+      ? patientLongitudinal(tenantId, {
           from: query.inicio,
           to: query.fim,
           cursor: query.cursor,
@@ -91,47 +110,63 @@ export default async function PatientAreaPage({
             redirect(`/clinicas/${tenantId}/meu-cuidado/evolucao`);
           throw error;
         })
-      : null;
-  const documents =
+      : null,
+    // documents
     patient && slug === "documentos"
-      ? await patientDocuments(tenantId, query.pagina)
-      : null;
-  const messages =
+      ? patientDocuments(tenantId, query.pagina)
+      : null,
+    // messages
     slug === "conversas"
-      ? await patientMessages(tenantId, query.medico, query.pagina).catch(
+      ? patientMessages(tenantId, query.medico, query.pagina).catch(
           (error) => {
             if (error instanceof InputError)
               redirect(`/clinicas/${tenantId}/meu-cuidado/conversas`);
             throw error;
           },
         )
-      : null;
-  const reports =
+      : null,
+    // reports
     patient && slug === "relatorios"
-      ? await patientReportPublications(tenantId, query.pagina)
-      : null;
-  const preparations =
+      ? patientReportPublications(tenantId, query.pagina)
+      : null,
+    // preparations
     patient && slug === "hoje"
-      ? await patientReturnPreparations(tenantId, query.preparo ? undefined : query.pagina, query.preparo).catch((error) => {
+      ? patientReturnPreparations(tenantId, query.preparo ? undefined : query.pagina, query.preparo).catch((error) => {
           if (error instanceof InputError) redirect(`/clinicas/${tenantId}/meu-cuidado/hoje`);
           throw error;
         })
-      : null;
-  const preparationPending = patient && slug === "hoje" ? await patientPreparationPending(tenantId) : undefined;
-  const requiredPreparation = patient && slug === "hoje"
-    ? await patientPreparationRequirement(tenantId)
-    : null;
-  const latestMeasurement = patient && slug === "hoje"
-    ? await patientMeasurementSummary(tenantId)
-    : null;
-  const appointments =
+      : null,
+    // preparationPending
+    patient && slug === "hoje" ? patientPreparationPending(tenantId) : undefined,
+    // requiredPreparation
+    patient && slug === "hoje"
+    ? patientPreparationRequirement(tenantId)
+    : null,
+    // latestMeasurement
+    patient && slug === "hoje"
+    ? patientMeasurementSummary(tenantId)
+    : null,
+    // careRequests: o que a equipe pediu vira tarefa no "Hoje"
+    patient && slug === "hoje"
+    ? myPendingCareRequests(tenantId)
+    : [],
+    // sent: o que a pessoa já enviou; falha vira ausência da seção
+    patient && slug === "hoje"
+    ? patientRecentSent(tenantId).catch(() => null)
+    : null,
+    // appointments
     slug === "consultas" || slug === "hoje"
-      ? await listAppointments(
+      ? listAppointments(
           tenantId,
           clinicDate(new Date(now - 30 * 86400000)),
           clinicDate(new Date(now + 60 * 86400000)),
         )
-      : null;
+      : null,
+  ]);
+  const latestPublication = published?.publications[0] ?? null;
+  const unreadPublication =
+    published?.publications.find((publication) => !publication.care_plan_receipts[0]) ??
+    null;
   return (
     <PatientShell clinic={clinic} active={section.slug}>
       {patient ? (
@@ -220,10 +255,10 @@ export default async function PatientAreaPage({
           </section>
         ) : (
           <>
-            <PatientArea
-              section={section}
+            <PatientHome
               base={`/clinicas/${tenantId}/meu-cuidado`}
               tenantId={tenantId}
+              today={clinicDate()}
               appointments={appointments.appointments}
               currentTime={currentTime}
               latestPublication={latestPublication}
@@ -237,15 +272,32 @@ export default async function PatientAreaPage({
                 checkIns?.checkIns.find((item) => item.status === "pending")?.id ??
                 null
               }
-              pendingReturnPreparationId={
-                preparationPending?.first?.id ?? null
-              }
               preparationPending={preparationPending}
               requiredPreparation={requiredPreparation}
               latestMeasurement={latestMeasurement}
+              careRequests={careRequests}
+              sent={sent}
             />
-            {preparations && preparations.preparations.length > 0 && (
-              <PatientReturnPreparationWorkspace initial={preparations} />
+            {/* Na Home só aparece o preparo que ainda espera a pessoa (ou o que
+                ela abriu pelo link). O que já foi enviado sai daqui: está
+                confirmado em "Seus últimos envios". */}
+            {preparations &&
+              (preparations.focused ||
+                preparations.preparations.some((item) =>
+                  ["requested", "draft"].includes(item.status),
+                )) && (
+              <PatientReturnPreparationWorkspace
+                initial={
+                  preparations.focused
+                    ? preparations
+                    : {
+                        ...preparations,
+                        preparations: preparations.preparations.filter((item) =>
+                          ["requested", "draft"].includes(item.status),
+                        ),
+                      }
+                }
+              />
             )}
           </>
         )
@@ -264,8 +316,6 @@ export default async function PatientAreaPage({
           <PatientArea
             section={section}
             base={`/clinicas/${tenantId}/meu-cuidado`}
-            tenantId={tenantId}
-            currentTime={currentTime}
           />
         </>
       )}

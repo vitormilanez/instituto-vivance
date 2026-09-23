@@ -14,6 +14,7 @@
   --attention: #8a5b09;
   --attention-border: #e6c77a;
   --attention-surface: #fff9eb;
+  --context-muted: #4c5d78;
 }
 
 /* Return preparation extends the incumbent operational surface: one linked
@@ -1645,32 +1646,14 @@ button.calendar-day[aria-pressed="true"] {
   outline-color: #ced8e8;
   outline-offset: -3px;
 }
-.patient-overview {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-}
-.patient-overview .section-heading {
-  flex-wrap: wrap;
-}
-.patient-overview .module-empty {
-  min-height: 230px;
-  padding: 28px 0;
-  align-items: flex-start;
-  text-align: left;
-}
+
 .text-action {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
   font-size: 14px;
 }
-.patient-shortcuts {
-  margin-top: 36px;
-}
-.patient-shortcuts .quick-actions {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
+
 .care-directory {
   list-style: none;
   margin: 0;
@@ -1843,9 +1826,7 @@ button.calendar-day[aria-pressed="true"] {
   .patient-workspace {
     padding: 20px;
   }
-  .patient-overview {
-    grid-template-columns: 1fr;
-  }
+
   .patient-navigation {
     gap: 0;
     padding: 4px;
@@ -1855,9 +1836,7 @@ button.calendar-day[aria-pressed="true"] {
     font-size: 12px;
     padding: 10px 3px;
   }
-  .patient-shortcuts .quick-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+
   .published-report-facts {
     grid-template-columns: 1fr;
   }
@@ -2703,109 +2682,7 @@ button.calendar-day[aria-pressed="true"] {
   margin-top: 3px;
   font-size: 13px;
 }
-.patient-next-appointment {
-  display: flex;
-  flex-direction: column;
-  min-height: 330px;
-  padding: 26px;
-  border-radius: 16px;
-  background: var(--blue-soft);
-  box-shadow: 0 14px 36px rgba(3, 19, 45, 0.045);
-}
-.patient-card-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.patient-card-heading h2 {
-  margin: 0;
-}
-.patient-appointment-content {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  justify-content: center;
-  padding: 28px 0;
-}
-.patient-appointment-content > strong {
-  color: #334d71;
-  font-size: 14px;
-}
-.patient-appointment-time {
-  margin-top: 3px;
-  color: var(--blue);
-  font-size: clamp(34px, 5vw, 48px);
-  font-weight: 720;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.04em;
-}
-.patient-appointment-content p {
-  margin: 4px 0 0;
-  font-size: 14px;
-}
-.patient-appointment-empty {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  justify-content: center;
-  padding: 28px 0;
-}
-.patient-appointment-empty h3,
-.patient-appointment-empty p {
-  margin: 0;
-}
-.patient-appointment-empty p {
-  margin-top: 7px;
-}
-.patient-next-step {
-  margin-bottom: 24px;
-  border-color: #c7d9ef;
-  background: linear-gradient(135deg, #ffffff, #edf5ff);
-}
-.patient-next-step h2 {
-  max-width: 26ch;
-  margin: 5px 0 6px;
-}
-.patient-next-step p {
-  max-width: 62ch;
-  margin: 0 0 18px;
-  color: var(--muted);
-}
-.patient-followup-card {
-  display: flex;
-  flex-direction: column;
-  min-height: 330px;
-}
-.patient-last-appointment {
-  padding: 24px 0;
-}
-.patient-last-appointment span,
-.patient-last-appointment strong {
-  display: block;
-}
-.patient-last-appointment span {
-  color: #61718a;
-  font-size: 12px;
-  font-weight: 650;
-}
-.patient-last-appointment strong {
-  margin-top: 5px;
-  font-size: 18px;
-}
-.patient-last-appointment p {
-  margin: 4px 0 0;
-  font-size: 13px;
-}
-.patient-followup-note {
-  margin-top: auto;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-}
-.patient-followup-note p {
-  margin: 5px 0 0;
-  font-size: 13px;
-}
+
 .patient-appointments-panel .section-heading p {
   margin: 4px 0 0;
   font-size: 14px;
@@ -3021,13 +2898,7 @@ button.calendar-day[aria-pressed="true"] {
   .patient-portal-clinic {
     display: none;
   }
-  .patient-next-appointment,
-  .patient-followup-card {
-    min-height: 0;
-  }
-  .patient-shortcuts .quick-actions {
-    grid-template-columns: 1fr;
-  }
+
   .topbar .brand > div {
     display: none;
   }
@@ -3084,99 +2955,31 @@ button.calendar-day[aria-pressed="true"] {
 .publication-confirm { display:flex; align-items:flex-start; gap:.65rem; margin:1rem 0; }
 .publication-confirm input { width:auto; flex:0 0 auto; margin-top:.25rem; }
 .published-plan + .published-plan { margin-top:24px; }
-/* Compact header, docs: title + date + one CTA — no stat clutter. */
-.today-page-heading { margin-bottom: 24px; }
-.today-page-heading h1 { font-size: clamp(24px, 2.4vw, 28px); }
-.today-page-heading p { color: var(--muted); font-size: 14px; }
 
-/* First fold: próxima consulta (left) beside Para revisar (right); the
-   day's timeline is a separate, full-width section below both — never a
-   third column competing for the same row. */
-.today-workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.36fr);
-  grid-template-areas: "next attention" "schedule schedule";
-  gap: 20px;
-  margin-bottom: 32px;
-  align-items: start;
-}
-.today-workspace .panel { margin: 0; border-radius: 16px; }
-.today-next { grid-area: next; overflow: hidden; padding: 0!important; }
-.today-attention { grid-area: attention; }
-.today-schedule { grid-area: schedule; }
-.today-next > h2, .today-attention h2, .today-schedule h2 { margin:0; color:#405c7e; font-size:12px; font-weight:750; letter-spacing:.1em; text-transform:uppercase; }
-.today-next > h2 { padding:24px 24px 0; }
-/* Light, human card — a patient you are about to see, not an alert. A thin
-   navy top border keeps just enough priority to read as "the one that
-   matters right now" beside the queue, without a heavy dark fill. */
-.today-next-summary { padding:24px; background:#fff; border-top:3px solid var(--navy); }
-.today-next-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
-.today-next-heading h2 { margin:0; color:var(--blue); font-size:12px; font-weight:750; letter-spacing:.1em; text-transform:uppercase; }
-.today-patient { display:flex; align-items:center; gap:14px; margin:18px 0 16px; }
-.today-patient h3 { margin:0; color:var(--ink); font-size:clamp(21px,2.4vw,26px); font-weight:650; letter-spacing:-.03em; }
-.today-patient p { margin:4px 0 0; color:var(--muted); }
-.today-next-summary .patient-avatar-xl { border:1px solid var(--border); }
-.today-consultation-meta { display:flex; gap:10px 20px; flex-wrap:wrap; padding:12px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); color:var(--muted); font-size:13px; }
-.today-consultation-meta strong { color:var(--ink); font-variant-numeric:tabular-nums; }
-.today-consultation-when { display:grid; gap:3px; min-width:min(100%,230px); }
-.today-consultation-when > span { color:var(--blue); font-weight:700; }
-.today-consultation-doctor { align-self:end; color:var(--muted); }
-.today-consultation-mode { align-self:end; color:var(--muted); }
-/* "Contexto para esta consulta" is a quiet list of links now, not a grid
-   of bordered cards — same links, less visual weight next to the queue. */
-.today-context { margin:0; padding:18px 24px 22px; border-top:1px solid var(--border); }
-.today-context > h3 { margin:0; font-size:15px; letter-spacing:-.01em; color:#405c7e; }
-.today-context > p { max-width:62ch; margin:4px 0 14px; color:#60708a; font-size:13px; }
-.care-context-links { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:10px; }
-.care-context-links > a, .care-context-links > div { display:flex; flex-direction:column; gap:6px; min-height:120px; padding:15px; border:1px solid #e0e8f1; border-radius:12px; background:#fff; min-width:0; text-decoration:none; transition:border-color .15s ease, background-color .15s ease; }
-.care-context-links > a:hover { border-color:#9bc7bc; background:#f7fbfa; }
-.care-context-links strong { font-size:13px; color:var(--navy); }
-.care-context-links span { font-size:12px; line-height:1.45; color:#61718a; }
-.care-context-links a > span:last-child { margin-top:auto; padding-top:5px; color:var(--positive); font-weight:700; }
-.care-context-links > .care-context-plan { background:#f4faf8; border-color:#d6e9e3; }
-.care-context-links > .care-context-future { background:#fafbfd; }
-.today-primary-action { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; margin-top:18px; padding:0; border:0; background:transparent; }
-.today-primary-action > span { max-width:34ch; color:var(--muted); font-size:12px; line-height:1.5; }
-/* Para revisar: one consistent row style for every kind of pending item —
-   a small kicker label, name, one-line detail, one action — so the queue
-   scans as a single list instead of a mix of cards and plain rows. */
-.today-attention > p { margin:8px 0 0; font-size:13px; line-height:1.5; color:#60708a; }
-.today-attention ul { list-style:none; padding:0; margin:14px 0 0; }
-.today-attention li { padding:14px 0; border-top:1px solid #e5ebf2; }
-.today-attention li:first-child { border-top:0; padding-top:12px; }
-.today-attention li strong { font-size:14px; }
-.today-attention li p { font-size:13px; line-height:1.45; margin:4px 0 8px; color:#60708a; }
-.today-attention li a { color:var(--blue); font-size:13px; font-weight:700; text-underline-offset:3px; }
-.today-pending-label { display:block; margin:0 0 5px; color:#205ca8; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
-/* Discrete color-by-kind, never by risk/urgency — same four calm hues,
-   whatever the item's actual content says. */
-.today-pending-label::before { content:""; display:inline-block; width:6px; height:6px; margin-right:6px; border-radius:50%; background:currentColor; vertical-align:middle; }
-.today-pending-label[data-kind="cadastro"] { color:var(--blue); }
-.today-pending-label[data-kind="preparo"] { color:#6b4fa8; }
-.today-pending-label[data-kind="checkin"] { color:#0a7ea4; }
-.today-pending-label[data-kind="rascunho"] { color:#52607a; }
-.today-attention .empty { padding:20px 0 4px; text-align:left; }
-/* A row per appointment — time, who, what and its state — the same shape
-   as the reference agenda, with the patient's own initials standing in for
-   the old decorative timeline dot. */
-.today-timeline { list-style:none; padding:0; margin:14px 0 0; }
-.today-timeline li { display:grid; grid-template-columns:52px auto minmax(0,1fr) auto; gap:12px; align-items:center; min-height:60px; padding:10px; border-top:1px solid #eef1f6; }
-.today-timeline li:first-child { border-top:0; }
-.today-timeline time { color:#243d5b; font-size:14px; font-weight:750; font-variant-numeric:tabular-nums; }
-.today-timeline p { margin:2px 0 0; font-size:13px; color:#60708a; }
-.today-timeline .is-next { background:var(--blue-soft); border-radius:12px; border-top-color:transparent; }
-.today-timeline .is-next + li { border-top-color:transparent; }
-.today-timeline a { color:var(--navy); }
+/* "Contexto para esta consulta": um card por informação, sempre na mesma ordem,
+   inclusive quando falta. Cada card é um alvo único, focável e acionável. */
+.context-cards { display: grid; gap: 8px; list-style: none; padding: 0; margin: 0; }
+.context-cards > li { min-width: 0; }
+.context-cards > li > a { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 2px 16px; min-height: 44px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); text-decoration: none; transition: border-color .15s ease, background-color .15s ease; }
+.context-cards > li > a:hover { border-color: #b7c8de; background: var(--blue-soft); }
+.context-cards strong { font-size: 13px; color: var(--navy); }
+.context-cards .context-state { grid-column: 1; max-width: 52ch; font-size: 12px; line-height: 1.45; color: var(--context-muted); overflow-wrap: anywhere; }
+.context-cards .context-action { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--blue); font-size: 12px; font-weight: 700; white-space: nowrap; }
+/* Pedido ao paciente: botão próprio, abaixo do link que abre o registro —
+   alvos irmãos, nunca um controle dentro do outro. A ação nomeia o objeto, e o
+   convite ao bilhete fica mais discreto que ela. */
+.context-request { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; padding: 0 2px; }
+.context-request .field { flex: 1 1 240px; min-width: 0; margin: 0; }
+.context-request-state { margin: 0; font-size: 12px; font-weight: 700; color: var(--context-muted); }
+.context-request-note { display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0; background: none; color: var(--blue); font-size: 12px; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.context-request-note:hover { background: none; color: var(--navy-soft); }
+.context-cards > li > a.is-pending .context-state { color: var(--ink); }
+
 .appointment-row { scroll-margin-top:110px; }
 .calendar-schedule .appointment-row.is-next { background:var(--blue-soft); border-radius:12px; }
 .schedule-caption { font-size:14px; color:#486c64; }
 .staff-mobile-dock { display:none; }
-@media (max-width:1100px) {
-  .today-workspace {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "next" "attention" "schedule";
-  }
-}
+
 /* Sidebar and mobile dock switch together with the two-column dashboard
    fold below, so there is no in-between width where a squeezed sidebar and
    a single-column layout fight for the same space. */
@@ -3194,19 +2997,7 @@ button.calendar-day[aria-pressed="true"] {
   .staff-mobile-dock > a[aria-current="page"] { background:var(--navy); color:white; }
   .staff-mobile-dock details > div { position:absolute; bottom:76px; left:0; right:0; padding:14px; background:white; border:1px solid var(--border); border-radius:16px; box-shadow:0 10px 28px #03132d20; max-height:65dvh; overflow:auto; text-align:left; }
   .staff-mobile-dock details a { display:block; padding:12px; color:var(--navy); }
-  .today-workspace .panel { padding:20px; }
-  .today-next { padding:0!important; }
-  .today-next-summary { padding:22px 20px; }
-  .today-context { padding:22px 20px; }
-  .today-next > h2 { padding:22px 20px 0; }
-  .today-next-heading { align-items:flex-start; }
-  .today-patient h3 { font-size:23px; }
-  .care-context-links { grid-template-columns:1fr 1fr; }
 
-  /* time · avatar · who, with the "Próxima" badge under the name — the
-     row keeps all three tracks instead of wrapping the name into 52px. */
-  .today-timeline li { grid-template-columns:52px 40px minmax(0,1fr); gap:4px 12px; }
-  .today-timeline .badge { grid-column:3; justify-self:start; }
 }
 @media (max-width:650px) {
   .calendar-workspace { display:flex; flex-direction:column; }
@@ -3551,6 +3342,11 @@ button.calendar-day[aria-pressed="true"] {
 .conversation-message { border-radius:14px; box-shadow:0 3px 10px rgba(3,19,45,.035); }
 .conversation-message.outgoing { background:#0d5c50; color:#fff; }
 .conversation-message.outgoing small { color:#d8f0e9; }
+/* A regra global `p { color: var(--muted) }` (linha 888) vence a cor herdada do
+   balão e deixava o corpo da mensagem enviada em 1,05:1 sobre #0d5c50. O
+   `small` já estava escopado; o parágrafo não estava. Mantenha os dois juntos
+   para que uma futura mudança de fundo não reintroduza o defeito. */
+.conversation-message.outgoing p { color: inherit; }
 .conversation-composer { margin-top:18px; padding:16px; border:1px solid #dbe6ef; border-radius:14px; background:#f9fbfd; }
 .conversation-composer textarea { border-color:#b9c9da; background:#fff; }
 
@@ -3569,7 +3365,7 @@ button.calendar-day[aria-pressed="true"] {
 
 /* Task-first refinement for the physician workspace: "Mais ferramentas"
    sits below the day's priorities, visually quieter so it never competes
-   with próxima consulta / Para revisar / a agenda. Its own dedicated
+   with the day's consultations. Its own dedicated
    .more-tools-* classes (rather than reusing .quick-action) keep this
    free to evolve without touching the admin "Ações rápidas" grid. */
 .quick-actions-section-secondary {
@@ -3675,38 +3471,6 @@ a.more-tools-card:hover {
   font-size:13px;
   text-align:right;
 }
-.care-context-links-compact {
-  display: flex;
-  flex-direction: column;
-  grid-template-columns: none;
-}
-.care-context-links-compact > a,
-.care-context-links-compact > div {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0 8px;
-  min-height: 0;
-  padding: 11px 0;
-  border: 0;
-  border-top: 1px solid #e9eef4;
-  border-radius: 0;
-  background: transparent;
-}
-.care-context-links-compact > a:first-child,
-.care-context-links-compact > div:first-child {
-  border-top: 0;
-}
-.care-context-links-compact span {
-  font-size: 12px;
-}
-.care-context-links-compact a > span:last-child {
-  margin-top: 0;
-  padding-top: 0;
-}
-.care-context-links-compact a > span:last-child::after {
-  content: " →";
-}
 .patient-directory-grid {
   grid-template-columns: minmax(0, 1fr) minmax(320px, 370px);
   gap: 28px;
@@ -3749,6 +3513,15 @@ a.more-tools-card:hover {
 }
 .patient-record-section-heading {
   align-items: flex-start;
+  /* O selo de acolhimento tem rótulo longo ("Pronto para a primeira consulta")
+     e `width: fit-content`, então não encolhe. Sem quebra de linha ele
+     empurrava o cabeçalho para 353 px num viewport de 320 px, contrariando o
+     requisito de não haver rolagem horizontal a partir de 320 px. Com wrap, o
+     selo desce para a própria linha quando não cabe, sem mudar o desktop. */
+  flex-wrap: wrap;
+}
+.patient-record-section-heading > div {
+  min-width: 0;
 }
 .patient-record-section-heading p {
   margin: 6px 0 0;
@@ -3792,123 +3565,7 @@ a.more-tools-card:hover {
 .patient-portal-header {
   grid-template-columns: auto minmax(0, 1fr);
 }
-.patient-next-step {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 24px;
-  padding: 26px 28px;
-  border-color: #c7d9ef;
-  background: var(--blue-soft);
-}
-.patient-next-step h2 {
-  max-width: 34ch;
-  margin: 0;
-}
-.patient-next-step p {
-  margin: 7px 0 0;
-}
-.patient-next-step .button {
-  min-width: 168px;
-  box-shadow: 0 9px 22px rgba(3, 19, 45, 0.14);
-  text-align: center;
-}
-.patient-pending-tasks {
-  margin-bottom: 24px;
-  border-color: var(--attention-border);
-  background: var(--attention-surface);
-}
-.patient-pending-tasks .section-heading {
-  align-items: flex-start;
-}
-.patient-pending-tasks .section-heading h2,
-.patient-pending-tasks .section-heading p {
-  margin: 0;
-}
-.patient-pending-tasks .section-heading p {
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 14px;
-}
-.patient-pending-task-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin: 18px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.patient-pending-task-list a {
-  display: flex;
-  flex-direction: column;
-  min-height: 124px;
-  padding: 16px;
-  border: 1px solid var(--attention-border);
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--ink);
-  text-decoration: none;
-}
-.patient-pending-task-list a:hover {
-  border-color: var(--attention);
-}
-.patient-pending-task-list a > span:not(.action-state) {
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 13px;
-}
-.patient-pending-task-list .action-state {
-  margin-top: auto;
-  padding-top: 10px;
-  color: var(--attention);
-  font-size: 13px;
-  font-weight: 700;
-}
-.patient-overview {
-  grid-template-columns: minmax(0, 1.16fr) minmax(280px, 0.84fr);
-  gap: 24px;
-}
-.patient-next-appointment,
-.patient-followup-card {
-  min-height: 310px;
-}
-.patient-next-appointment.is-empty,
-.patient-followup-card.is-empty {
-  min-height: 250px;
-}
-.patient-shortcuts-heading {
-  align-items: end;
-  margin-bottom: 16px;
-}
-.patient-shortcuts-heading h2,
-.patient-shortcuts-heading p {
-  margin: 0;
-}
-.patient-shortcuts-heading p {
-  max-width: 62ch;
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 14px;
-}
-.patient-shortcuts .quick-actions {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-.patient-shortcuts .quick-action {
-  min-height: 134px;
-  padding: 16px;
-  transition:
-    transform 160ms ease-out,
-    border-color 160ms ease-out,
-    background-color 160ms ease-out;
-}
-.patient-shortcuts a.quick-action:hover {
-  transform: translateY(-2px);
-}
-.patient-shortcuts .quick-action.unavailable {
-  border-style: dashed;
-  box-shadow: none;
-}
+
 .patient-care-tabs-hint {
   display: none;
   margin: -12px 0 20px;
@@ -3919,15 +3576,10 @@ a.more-tools-card:hover {
   .patient-directory-grid {
     grid-template-columns: minmax(0, 1fr);
   }
-  .patient-shortcuts .quick-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+
 }
 @media (max-width: 1100px) {
-  .today-schedule,
-  .today-attention {
-    order: initial;
-  }
+
   .more-tools-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3939,20 +3591,7 @@ a.more-tools-card:hover {
   .patient-record-secondary {
     grid-template-columns: minmax(0, 1fr);
   }
-  .patient-next-step {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 18px;
-    padding: 22px;
-  }
-  .patient-next-step .button {
-    width: 100%;
-  }
-  .patient-pending-task-list {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .patient-overview {
-    grid-template-columns: minmax(0, 1fr);
-  }
+
   .patient-care-tabs-hint {
     display: block;
   }
@@ -3998,12 +3637,7 @@ a.more-tools-card:hover {
     margin-top:6px;
     text-align:left;
   }
-  .patient-shortcuts .quick-actions {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .patient-shortcuts .quick-action {
-    min-height: 112px;
-  }
+
 }
 
 /* Patient invitations and first-care onboarding */
@@ -4268,6 +3902,37 @@ a.more-tools-card:hover {
 }
 .onboarding-upload input[type="file"] {
   min-height: 44px;
+  max-width: 100%;
+}
+/* Exames do cadastro: um estado factual do conjunto e um card por arquivo, com
+   nome original, tipo, tamanho, estado e erro próprios. Cada arquivo é
+   removível e reenviável sozinho; nada aqui rola na horizontal a 320px. */
+.exam-state { margin: 0; font-size: 14px; font-weight: 700; color: var(--navy); }
+.exam-hint { margin: 0; max-width: 62ch; font-size: 12px; line-height: 1.5; color: var(--context-muted); }
+.exam-rejected { padding: 12px 14px; border: 1px solid var(--attention-border); border-radius: 12px; background: var(--attention-surface); }
+.exam-rejected > p { margin: 0; font-size: 13px; font-weight: 700; color: var(--attention); }
+.exam-rejected > ul { display: grid; gap: 6px; margin: 8px 0 12px; padding: 0; list-style: none; }
+.exam-rejected > ul > li { display: grid; gap: 2px; min-width: 0; font-size: 12px; color: var(--ink); }
+.exam-rejected > ul > li > strong { overflow-wrap: anywhere; }
+.exam-rejected > ul > li > span { color: var(--context-muted); }
+.exam-selection { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+/* Uma linha por arquivo, separada por fio — não um card dentro do painel. */
+.exam-selection > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; min-width: 0; padding: 12px 0; border-top: 1px solid var(--border); }
+.exam-selection > li:first-child { border-top: 0; padding-top: 0; }
+.exam-selection .exam-file { display: grid; grid-column: 1; min-width: 0; }
+.exam-selection .exam-file > strong { font-size: 13px; color: var(--navy); overflow-wrap: anywhere; }
+.exam-selection .exam-file > span { font-size: 12px; color: var(--context-muted); }
+.exam-selection .exam-file-state { grid-column: 2; grid-row: 1; align-self: start; font-size: 12px; font-weight: 700; white-space: nowrap; color: var(--context-muted); }
+.exam-selection > li[data-state="sent"] .exam-file-state { color: var(--positive); }
+.exam-selection > li[data-state="failed"] .exam-file-state { color: var(--attention); }
+.exam-selection .exam-file-error { grid-column: 1 / -1; margin: 0; font-size: 12px; line-height: 1.5; color: var(--attention); overflow-wrap: anywhere; }
+.exam-selection .exam-file-actions { display: flex; flex-wrap: wrap; grid-column: 1 / -1; gap: 8px; margin-top: 4px; }
+.exam-sent { margin: 0; font-size: 12px; color: var(--context-muted); }
+/* Em telas estreitas o estado do arquivo desce para a própria linha, em vez de
+   disputar a largura com um nome de arquivo longo. */
+@media (max-width: 650px) {
+  .exam-selection > li { grid-template-columns: minmax(0, 1fr); }
+  .exam-selection .exam-file-state { grid-column: 1; grid-row: auto; }
 }
 .onboarding-review {
   display: grid;
@@ -4574,83 +4239,14 @@ button.calendar-day[aria-pressed="true"] {
 
 /* Cabeçalho da página: título + contexto, sem ação duplicada. */
 .page-heading h1 { letter-spacing: -0.03em; }
-.today-page-heading { margin-bottom: 20px; }
-.today-page-heading h1 { font-size: clamp(26px, 2.6vw, 32px); }
-.today-date::first-letter { text-transform: uppercase; }
 
-/* Títulos de seção do "Hoje": sentence case, peso real de título. */
-.today-next-heading h2,
-.today-attention h2,
-.today-schedule h2 {
-  margin: 0;
-  color: var(--ink);
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  text-transform: none;
-}
-.today-next-summary { border-top: 0; padding: 24px 28px; }
-.today-next { border-top: 3px solid var(--navy) !important; }
-.today-patient { margin: 20px 0 18px; }
-.today-patient h3 { font-size: clamp(22px, 2.2vw, 26px); font-weight: 700; }
-.today-consultation-meta { align-items: baseline; font-size: 14px; }
-.today-consultation-when strong { font-size: 15px; }
-.today-primary-action { justify-content: flex-end; margin-top: 20px; }
-.today-primary-action > span { margin-right: auto; font-size: 13px; }
-.today-context { padding: 20px 28px 24px; background: var(--canvas); }
-.today-context > h3 { color: var(--ink); font-size: 15px; }
-.today-context > p { color: var(--muted); }
-
-/* Pendências: rótulo de tipo discreto, título, detalhe, ação. */
-.today-attention { display: flex; flex-direction: column; }
-.today-attention > p { color: var(--muted); }
-.today-attention li strong { display: block; color: var(--ink); font-size: 15px; }
-.today-attention li p { color: var(--muted); }
-.today-pending-label {
-  font-size: 12px;
-  font-weight: 650;
-  letter-spacing: 0;
-  text-transform: none;
-}
-.today-attention li a,
-.today-attention-more {
-  color: var(--blue);
-  font-size: 14px;
-  font-weight: 650;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-}
-.today-attention-more {
-  align-self: flex-start;
-  margin-top: 8px;
-  padding-top: 14px;
-}
-.today-attention .quiet-label {
-  min-width: 26px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--blue-soft);
-  color: var(--blue);
-  font-size: 13px;
-  font-weight: 700;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Consultas do dia. */
-.today-schedule .section-heading a,
+/* Link de ação no título de uma seção. */
 .section-heading > a {
   color: var(--blue);
   font-size: 14px;
   font-weight: 650;
   text-underline-offset: 3px;
 }
-.today-timeline li { padding: 12px 14px; }
-.today-timeline a { text-decoration: none; }
-.today-timeline a:hover strong { text-decoration: underline; text-underline-offset: 3px; }
-.today-timeline strong { font-size: 15px; }
-.today-timeline p { color: var(--muted); }
 
 /* Atalhos: lista leve, sem monogramas nem cartões repetidos. */
 .quick-actions-section-secondary {
@@ -4689,12 +4285,9 @@ button.calendar-day[aria-pressed="true"] {
 .more-tools-link:hover { border-color: #b7c8de; background: var(--blue-soft); }
 
 /* Uma só cor de link em listas e contextos. */
-.patient-list .row-action,
-.care-context-links a > span:last-child { color: var(--blue); }
+.patient-list .row-action { color: var(--blue); }
 .patient-list > li > a { padding: 14px 8px; }
-.patient-list > li > a:hover,
-.care-context-links > a:hover { background: var(--blue-soft); border-color: #b7c8de; }
-.care-context-links > .care-context-plan { background: var(--surface); border-color: var(--border); }
+.patient-list > li > a:hover { background: var(--blue-soft); border-color: #b7c8de; }
 
 /* Pacientes: o atalho do topo só existe quando o formulário fica abaixo. */
 @media (min-width: 1151px) {
@@ -4762,11 +4355,6 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
   background: var(--canvas);
 }
 
-@media (max-width: 1100px) {
-  .today-next-summary { padding: 22px 20px; }
-  .today-context { padding: 20px; }
-  .today-primary-action > span { margin-right: 0; }
-}
 @media (max-width: 650px) {
   .more-tools-list { grid-template-columns: minmax(0, 1fr); }
   .topbar-route-context strong { font-size: 15px; }
@@ -4821,7 +4409,7 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
   .patient-check-in > .section-heading p { margin-top: 4px; }
 }
 @media (max-width: 650px) {
-  .today-primary-action .button { width: 100%; text-align: center; }
+
   .appointment-actions button:not(.quiet) { flex: 1 1 100%; }
   .appointment-actions button.quiet { flex: 0 0 auto; }
   .staff-mobile-dock details > div { bottom: calc(72px + env(safe-area-inset-bottom)); }
@@ -4844,19 +4432,6 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
   overflow-wrap: anywhere;
 }
 .workspace-identity .workspace-avatar { margin-top: 2px; }
-
-/* Próxima consulta: horário e ação ficam juntos, sem faixa vazia entre
-   a linha de contexto e o botão. */
-.today-consultation-when { min-width: 0; }
-.today-consultation-meta { gap: 6px 18px; padding: 12px 0 0; border-bottom: 0; }
-.today-primary-action {
-  justify-content: flex-start;
-  align-items: center;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-}
-.today-primary-action > span { order: 2; margin-right: 0; max-width: 40ch; }
 
 /* Em telas largas cabe a lista inteira: "Mais" abre e o próprio rótulo sai
    da frente (o componente cuida do estado; aqui só o visual). */
@@ -4918,14 +4493,15 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
 /* ------------------------------------------------------------------
    Agenda no celular: o calendário é um seletor de dia, não a tela toda.
    Compacta a grade para a lista de consultas caber na primeira rolagem,
-   e devolve "Atualizar agenda" ao peso de ação secundária.
+   e devolve "Atualizar agenda" ao peso de ação secundária. Compacto, mas
+   nunca abaixo de 44px de alvo: o dia é o toque central no celular.
    ------------------------------------------------------------------ */
 @media (max-width: 650px) {
   .agenda-view-controls { gap: 8px; }
   .agenda-view-controls button:last-child {
     justify-self: start;
     width: auto;
-    min-height: 36px;
+    min-height: 44px;
     padding: 6px 2px;
     border-color: transparent;
     background: transparent;
@@ -4937,28 +4513,24 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
   .calendar-month { padding: 14px 12px 16px; }
   .calendar-toolbar { margin-bottom: 10px; }
   .calendar-toolbar h2 { font-size: 16px; }
-  .calendar-toolbar button { width: 40px; min-height: 40px; padding: 8px; }
+  .calendar-toolbar button { width: 44px; min-height: 44px; padding: 8px; }
   .calendar-weekday { padding: 4px 0; font-size: 11px; }
   button.calendar-day {
-    height: 40px;
-    min-height: 40px;
+    height: 44px;
+    min-height: 44px;
     gap: 2px;
     font-size: 15px;
   }
-  .calendar-today { margin-top: 12px; min-height: 42px; }
+  .calendar-today { margin-top: 12px; min-height: 44px; }
   .calendar-schedule { padding: 18px 16px 20px; }
   .calendar-schedule > h2 { font-size: 18px; }
 }
 
 /* ------------------------------------------------------------------
-   Atalhos entre a próxima consulta e a agenda do dia.
+   Atalhos no fim da Home, depois do dia.
    Cartões compactos com ícone: são portas para outras áreas, não
-   conteúdo — por isso pesam menos que os painéis em volta.
+   conteúdo — por isso pesam menos que a consulta aberta.
    ------------------------------------------------------------------ */
-.today-workspace { grid-template-areas: "next attention"; margin-bottom: 24px; }
-.today-schedule-wrap { margin-bottom: 32px; }
-.today-schedule-wrap .today-schedule { margin: 0; border-radius: 16px; }
-
 .shortcuts-section { margin: 0 0 24px; }
 .shortcuts-section h2 {
   margin: 0 0 12px;
@@ -5000,10 +4572,7 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
   color: var(--surface);
 }
 
-@media (max-width: 1100px) {
-  .today-workspace { grid-template-areas: "next" "attention"; }
-}
-/* No celular os atalhos ficam entre a consulta e a agenda do dia, então
+/* No celular os atalhos ficam no fim da Home, depois do dia, então
    viram pares compactos: ícone e nome, sem a linha de apoio. */
 @media (max-width: 650px) {
   .shortcuts-section .more-tools-list {
@@ -5025,10 +4594,193 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
     font-size: 13px;
     line-height: 1.25;
     padding-right: 4px;
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
   }
+}
+/* Abaixo de 400px duas colunas não cabem "Acompanhamento" inteiro: uma coluna
+   só, em vez de partir a palavra no meio ("Acompanhamen / to"). */
+@media (max-width: 400px) {
+  .shortcuts-section .more-tools-list { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Atalho de texto sugerido: é uma ação, não um campo — não estica na
    largura do formulário. */
 .prompt-suggestion { justify-self: start; }
+
+/* Home do médico — direção A: o dia como eixo.
+   A consulta aberta é o único cartão; as outras linhas são texto numa coluna
+   de horários ligada por um trilho. Hierarquia por forma e tamanho, nunca por
+   cor de prioridade: o azul é ação, o navy é estrutura, o status é escrito. */
+.home { display: grid; gap: 24px; max-width: 920px; }
+.home-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 20px; }
+.home-head h1 { margin: 0; font-size: clamp(24px, 2.4vw, 28px); letter-spacing: -.03em; }
+.home-head p { margin: 4px 0 0; color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.home-agenda-link { display: inline-flex; align-items: center; min-height: 44px; color: var(--blue); font-size: 14px; font-weight: 700; text-underline-offset: 3px; }
+
+.home-timeline { list-style: none; margin: 0; padding: 0; }
+.home-row { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 0 16px; scroll-margin-top: 110px; }
+.home-clock { padding-top: 16px; color: #243d5b; font-size: 14px; font-weight: 750; font-variant-numeric: tabular-nums; text-align: right; }
+.home-row > .home-row-link,
+.home-row > .home-consultation { border-left: 1px solid var(--border); }
+.home-row-link { display: flex; align-items: center; justify-content: space-between; gap: 6px 16px; min-height: 56px; padding: 10px 14px 10px 18px; color: var(--navy); text-decoration: none; transition: background-color .15s ease; }
+.home-row-link:hover { background: var(--blue-soft); }
+.home-row-who { display: grid; gap: 2px; min-width: 0; }
+.home-row-who strong { font-size: 15px; font-weight: 650; }
+.home-row-who span { color: var(--context-muted); font-size: 13px; }
+.home-row-summary { color: var(--context-muted); font-size: 13px; white-space: nowrap; }
+.home-row.is-muted .home-row-who strong { color: var(--muted); font-weight: 550; }
+.home-row.is-open .home-clock { color: var(--navy); }
+
+.home-earlier { display: block; }
+.home-earlier > details > summary { display: flex; align-items: center; min-height: 44px; margin-left: 72px; padding: 0 18px; border-left: 1px solid var(--border); color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; list-style: none; }
+.home-earlier > details > summary::-webkit-details-marker { display: none; }
+.home-earlier > details > summary::before { content: "›"; display: inline-block; width: 14px; margin-right: 6px; transition: transform .15s ease; }
+.home-earlier > details[open] > summary::before { transform: rotate(90deg); }
+
+.home-consultation { position: relative; margin: 6px 0 14px; padding: 22px 24px 24px 28px; border: 1px solid var(--border); border-top: 3px solid var(--navy); border-radius: 16px; background: var(--surface); }
+.home-row > .home-consultation { border-left: 1px solid var(--border); }
+.home-eyebrow { margin: 0; color: var(--blue); font-size: 12px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+.home-consultation-head h2 { margin: 6px 0 0; color: var(--ink); font-size: clamp(21px, 2.4vw, 26px); font-weight: 650; letter-spacing: -.03em; }
+.home-consultation-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+.home-consultation-meta strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.home-status { color: var(--ink); font-weight: 650; }
+.home-consultation-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin-top: 16px; }
+.home-back { display: inline-flex; align-items: center; min-height: 44px; color: var(--blue); font-size: 13px; font-weight: 700; text-underline-offset: 3px; }
+.home-draft { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+.home-draft a { display: inline-flex; align-items: center; min-height: 44px; color: var(--blue); font-weight: 700; }
+
+.home-care-link { display: grid; gap: 12px; justify-items: start; margin-top: 20px; padding: 16px; border-radius: 12px; background: #f0f4fa; }
+.home-care-link > p { max-width: 60ch; margin: 0; color: var(--ink); font-size: 14px; line-height: 1.5; }
+.home-accept { width: 100%; margin: 0; }
+
+.home-received,
+.home-context { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); }
+.home-received > h3,
+.home-context > h3 { margin: 0 0 10px; color: #405c7e; font-size: 15px; letter-spacing: -.01em; }
+.home-context > p { max-width: 62ch; margin: -4px 0 12px; color: var(--context-muted); font-size: 13px; }
+.home-received-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.home-received-list a { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 4px 16px; min-height: 44px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--navy); text-decoration: none; transition: border-color .15s ease, background-color .15s ease; }
+.home-received-list a:hover { border-color: #b7c8de; background: var(--blue-soft); }
+.home-received-list strong { font-size: 13px; }
+.home-received-list time { color: var(--context-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.home-received-open { color: var(--blue); font-size: 12px; font-weight: 700; }
+.home-received-more { margin-top: 6px; }
+.home-received-more > summary { display: inline-flex; align-items: center; min-height: 44px; color: var(--blue); font-size: 13px; font-weight: 700; cursor: pointer; }
+.home-received-more > .home-received-list { margin-top: 4px; }
+.home-received-empty { margin: 0; color: var(--context-muted); font-size: 13px; }
+.home-received-error { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-top: 8px; padding: 10px 14px; border-radius: 12px; background: #f0f4fa; }
+.home-received-error p { margin: 0; color: var(--ink); font-size: 13px; }
+
+.home-future > .home-consultation { margin: 0; }
+.home-empty { margin: 0; border-radius: 16px; }
+.home-section { padding: 20px 24px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.home-section > h2 { margin: 0 0 8px; color: var(--ink); font-size: 16px; letter-spacing: -.01em; }
+.home-section-note { margin: 8px 0 0; color: var(--context-muted); font-size: 13px; }
+.home-plain-list { margin: 0; padding: 0; list-style: none; }
+.home-plain-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; min-height: 56px; padding: 8px 0; border-top: 1px solid #eef1f6; }
+.home-plain-list li:first-child { border-top: 0; }
+.home-plain-list li > span { display: grid; gap: 2px; }
+.home-plain-list li > span > span { color: var(--context-muted); font-size: 13px; }
+.home-plain-list a { display: inline-flex; align-items: center; min-height: 44px; color: var(--blue); font-size: 13px; font-weight: 700; }
+.home-between > details > summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; min-height: 44px; cursor: pointer; list-style: none; }
+.home-between > details > summary::-webkit-details-marker { display: none; }
+.home-between > details > summary::before { content: "›"; align-self: center; display: inline-block; width: 12px; color: var(--muted); transition: transform .15s ease; }
+.home-between > details[open] > summary::before { transform: rotate(90deg); }
+.home-between h2 { margin: 0; color: var(--ink); font-size: 16px; letter-spacing: -.01em; }
+.home-between summary > span { color: var(--context-muted); font-size: 13px; }
+.home-between-list { margin: 12px 0 0; padding: 0; list-style: none; }
+.home-between-list > li { padding: 14px 0; border-top: 1px solid #eef1f6; }
+.home-between-who { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; margin-bottom: 8px; }
+.home-between-who strong { font-size: 15px; }
+.home-between-who a { display: inline-flex; align-items: center; min-height: 44px; color: var(--blue); font-size: 13px; font-weight: 700; }
+
+.home-sticky { display: none; }
+@media (max-width: 650px) {
+  .home { gap: 20px; }
+  .home-row { grid-template-columns: 44px minmax(0, 1fr); gap: 0 10px; }
+  .home-clock { font-size: 13px; }
+  .home-row-link { flex-direction: column; align-items: flex-start; padding: 10px 10px 10px 14px; }
+  .home-row-summary { white-space: normal; }
+  .home-earlier > details > summary { margin-left: 54px; padding: 0 14px; }
+  .home-consultation { padding: 18px 16px 20px 18px; }
+  .home-received-list a { grid-template-columns: minmax(0, 1fr) auto; }
+  .home-received-open { display: none; }
+  .home-section { padding: 16px; }
+  .home-sticky { display: block; position: fixed; z-index: 35; top: 72px; left: 0; right: 0; padding: 12px 16px; background: var(--navy); color: #fff; font-size: 14px; font-weight: 650; text-decoration: none; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; transform: translateY(-120%); visibility: hidden; transition: transform .2s ease, visibility .2s; }
+  .home-sticky[data-visible="true"] { transform: none; visibility: visible; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-sticky, .home-earlier summary::before, .home-between summary::before { transition: none; }
+}
+.home-section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.home-section-head h2 { margin: 0; color: var(--ink); font-size: 16px; letter-spacing: -.01em; }
+.home-section-head > span { color: var(--context-muted); font-size: 13px; }
+.home-work .home-plain-list { margin-top: 8px; }
+/* "Novo" é estado de leitura desta pessoa: um ponto navy discreto antes do
+   tipo, nunca cor de prioridade. */
+.home-unseen-dot { display: inline-block; width: 7px; height: 7px; margin: 0 7px 1px 0; border-radius: 50%; background: var(--navy); vertical-align: middle; }
+.home-received-list li.is-unseen strong { color: var(--ink); }
+/* Filtro de documentos por paciente: um campo e um botão, sem JS. */
+.document-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; margin: 0 0 16px; }
+.document-filter label { flex-basis: 100%; color: var(--ink); font-size: 14px; font-weight: 650; }
+.document-filter select { min-height: 44px; min-width: min(100%, 280px); padding: 8px 12px; border: 1px solid var(--input-border, #98a9bf); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+.document-filter button { min-height: 44px; }
+
+/* Home do paciente — uma ação em destaque, atalhos para registrar e a
+   confirmação do que foi enviado. Pensada primeiro para o celular e para
+   quem não tem paciência com tela: alvos grandes, texto de 16px, uma coluna. */
+.phome { display: grid; gap: 20px; max-width: 760px; }
+.phome h2 { margin: 0; color: var(--ink); letter-spacing: -.01em; }
+.phome-eyebrow { margin: 0 0 6px; color: var(--blue); font-size: 12px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+.phome-focus { padding: 24px; border: 1px solid #c7d9ef; border-radius: 20px; background: var(--blue-soft); }
+.phome-focus h2 { font-size: clamp(21px, 3vw, 25px); line-height: 1.25; }
+.phome-focus > p:not(.phome-eyebrow) { max-width: 52ch; margin: 8px 0 18px; color: var(--ink); font-size: 16px; line-height: 1.5; }
+.phome-focus .button { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 12px 24px; font-size: 16px; }
+.phome-focus.is-clear { border-color: var(--border); background: var(--surface); }
+.phome-focus.is-clear .button { background: var(--surface); color: var(--navy); border: 1px solid var(--navy); }
+
+.phome-section > h2 { margin-bottom: 10px; font-size: 17px; }
+.phome-tasks { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.phome-tasks a { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--navy); text-decoration: none; }
+.phome-tasks a:hover { border-color: #b7c8de; background: var(--blue-soft); }
+.phome-tasks a > span:first-child { display: grid; gap: 3px; min-width: 0; }
+.phome-tasks strong { font-size: 16px; }
+.phome-tasks small { color: var(--context-muted); font-size: 14px; line-height: 1.4; }
+.phome-go { color: var(--blue); font-size: 24px; line-height: 1; }
+
+.phome-logs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.phome-logs a { display: grid; align-content: start; gap: 4px; height: 100%; min-height: 118px; padding: 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); color: var(--navy); text-decoration: none; transition: border-color .15s ease, background-color .15s ease; }
+.phome-logs a:hover { border-color: #b7c8de; background: var(--blue-soft); }
+.phome-logs strong { margin-top: 6px; font-size: 16px; line-height: 1.3; }
+.phome-logs small { color: var(--context-muted); font-size: 13px; line-height: 1.4; }
+.phome-log-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--blue-soft); color: var(--blue); }
+
+.phome-care dl { display: grid; gap: 0; margin: 0; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.phome-care dl > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 16px; padding: 14px 16px; }
+.phome-care dl > div + div { border-top: 1px solid var(--border); }
+.phome-care dt { grid-column: 1; color: var(--context-muted); font-size: 13px; font-weight: 650; }
+.phome-care dd { grid-column: 1; display: grid; gap: 2px; margin: 0; }
+.phome-care dd strong { color: var(--ink); font-size: 16px; }
+.phome-care dd span { color: var(--context-muted); font-size: 14px; }
+.phome-care dl a { grid-column: 2; grid-row: 1 / span 2; display: inline-flex; align-items: center; min-height: 44px; color: var(--blue); font-size: 14px; font-weight: 700; }
+
+.phome-sent { display: grid; margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.phome-sent li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; min-height: 56px; padding: 10px 16px; }
+.phome-sent li + li { border-top: 1px solid #eef1f6; }
+.phome-sent-check { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #e6f2ee; color: var(--positive); font-size: 13px; font-weight: 800; }
+.phome-sent li > span:nth-child(2) { display: grid; gap: 2px; min-width: 0; }
+.phome-sent strong { font-size: 15px; }
+.phome-sent small { color: var(--context-muted); font-size: 13px; overflow-wrap: anywhere; }
+.phome-sent time { color: var(--context-muted); font-size: 13px; white-space: nowrap; }
+.phome-note { margin: 8px 0 0; color: var(--context-muted); font-size: 13px; }
+
+#registrar-refeicao, #enviar-documento, #atualizar-medidas { scroll-margin-top: 96px; }
+
+@media (max-width: 520px) {
+  .phome { gap: 18px; }
+  .phome-focus { padding: 20px; }
+  .phome-focus .button { width: 100%; }
+  .phome-logs a { min-height: 128px; padding: 14px; }
+  .phome-sent li { grid-template-columns: 28px minmax(0, 1fr); }
+  .phome-sent time { grid-column: 2; }
+}

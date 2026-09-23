@@ -37,6 +37,10 @@ const area = readFileSync(
   new URL("../components/patient-area.tsx", import.meta.url),
   "utf8",
 );
+const homeLogs = readFileSync(
+  new URL("../modules/workspace/patient-home.ts", import.meta.url),
+  "utf8",
+);
 const css = readFileSync(
   new URL("../app/globals.css", import.meta.url),
   "utf8",
@@ -50,7 +54,7 @@ const migration = readFileSync(
 );
 const photoMigration = readFileSync(
   new URL(
-    "../../../supabase/migrations/20260922114500_patient_meal_photo.sql",
+    "../../../supabase/migrations/20260923140000_patient_meal_photo.sql",
     import.meta.url,
   ),
   "utf8",
@@ -61,12 +65,12 @@ const documentsService = readFileSync(
 );
 
 test("o diário alimentar entra na jornada existente sem criar uma nona ação rápida", () => {
-  assert.match(area, /Meu diário/);
-  assert.match(area, /Registre refeições e como você está/);
-  // A jornada do paciente continua com as mesmas oito portas de entrada.
-  assert.equal(area.match(/available: (?:true|false)/g)?.length, 8);
+  // O diário continua no menu e ganhou um atalho direto na Home do paciente,
+  // que abre o formulário de refeição sem passos no meio.
+  assert.match(area, /module-tabs/);
+  assert.match(homeLogs, /diario#registrar-refeicao/);
   // O diário é montado dentro de "Meu diário", a seção que já existia.
-  assert.match(patientPage, /slug === "diario" \? await patientMeals\(tenantId\)/);
+  assert.match(patientPage, /slug === "diario" \? patientMeals\(tenantId\)/);
   assert.match(patientPage, /<PatientMealLogs initial=\{meals\} \/>/);
   assert.match(patientPage, /checkIns && meals/);
   // A equipe lê os relatos dentro do Acompanhamento, sem aba nova.
@@ -139,10 +143,13 @@ test("a migration mantém o diário append-only, idempotente, literal e restrito
 test("a correção do relato literal alcança bancos onde a migration antiga já rodou", () => {
   const folder = new URL("../../../supabase/migrations/", import.meta.url);
   const name = "20260922015500_patient_meal_literal_description.sql";
+  const original = "20260921191924_patient_meal_logs.sql";
   const files = readdirSync(folder).filter((file) => file.endsWith(".sql")).sort();
+  // Posterior à migration original é o que importa; ser a última do repositório
+  // não é requisito, porque outras migrations entram depois dela.
   assert.ok(
-    files.indexOf(name) > files.indexOf("20260921191924_patient_meal_logs.sql"),
-    "a correção precisa vir depois da migration original",
+    files.indexOf(name) > files.indexOf(original),
+    "a correção precisa ser posterior à migration original",
   );
   const followUp = readFileSync(new URL(name, folder), "utf8");
   // Recria o CHECK pelo nome e substitui a função; nada de btrim no caminho.
