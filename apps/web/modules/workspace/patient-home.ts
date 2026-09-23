@@ -240,6 +240,7 @@ const justSentLabels: Record<string, string> = {
   peso: "Peso enviado",
   medidas: "Medidas enviadas",
   refeicao: "Refeição enviada",
+  lembrete: "Lembrete ativado",
 };
 export function justSentLabel(value: string | string[] | undefined): string | null {
   return typeof value === "string" && Object.hasOwn(justSentLabels, value)

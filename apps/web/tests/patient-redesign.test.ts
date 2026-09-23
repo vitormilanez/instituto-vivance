@@ -129,3 +129,23 @@ test("pré-consulta: título até o primeiro '?', o resto vira apoio", async () 
   assert.equal(consultationLabel("2026-09-23T23:34:00Z", "2026-09-23"), "de hoje, às 20:34");
   assert.equal(consultationLabel("2026-09-28T13:00:00Z", "2026-09-23"), "de 28/09, às 10:00");
 });
+
+test("lembretes: horários de 15 em 15 minutos, texto sem saúde e agendador protegido", async () => {
+  const { reminderInput, reminderLabel, reminderMessage, subscriptionInput } = await import("../modules/reminders/model.ts");
+  assert.deepEqual(reminderInput({ enabled: true, time: "09:00" }), { enabled: true, time: "09:00" });
+  for (const bad of [{ enabled: true, time: "05:45" }, { enabled: true, time: "09:10" }, { enabled: "sim" }, { enabled: true, time: "22:00" }])
+    assert.throws(() => reminderInput(bad));
+  assert.equal(reminderLabel({ reminder_enabled: true, reminder_time: "20:00:00" }, 3), "A cada 3 dias às 20:00 · notificação");
+  assert.equal(reminderLabel(null, 1), "Desligado");
+  assert.doesNotMatch(`${reminderMessage.title} ${reminderMessage.body}`, /peso|remédio|medicamento|tratamento|dose|efeito/i);
+  assert.throws(() => subscriptionInput({ endpoint: "http://x", keys: { p256dh: "a".repeat(40), auth: "b".repeat(16) } }));
+  const cron = read("../app/api/v1/cron/reminders/route.ts");
+  assert.match(cron, /timingSafeEqual/);
+  assert.match(cron, /secret\.length < 32/);
+  assert.doesNotMatch(cron, /SERVICE_ROLE|sb_secret/);
+  const page = read("../app/clinicas/[tenantId]/meu-cuidado/[section]/page.tsx");
+  assert.match(page, /reminder === undefined\)\s*redirect\(`\/clinicas\/\$\{tenantId\}\/meu-cuidado\/boas-vindas`\)/);
+  // A permissão de notificação só é pedida depois da escolha do horário.
+  const welcome = read("../components/patient/welcome-flow.tsx");
+  assert.ok(welcome.indexOf("await save(enabled)") < welcome.indexOf("subscribeThisDevice(tenantId)"));
+});

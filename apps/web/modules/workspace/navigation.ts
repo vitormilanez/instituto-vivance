@@ -242,6 +242,18 @@ export const patientSections = [
   // Tarefas de tela cheia, abertas pelo botão "Registrar" ou por atalhos. Não
   // aparecem na navegação: têm começo, fim e um "voltar".
   {
+    slug: "boas-vindas",
+    title: "Boas-vindas",
+    group: "acao",
+    description: "O combinado do seu acompanhamento.",
+  },
+  {
+    slug: "lembretes",
+    title: "Lembretes",
+    group: "acao",
+    description: "Quando lembrar você do check-in.",
+  },
+  {
     slug: "preconsulta",
     title: "Pré-consulta",
     group: "acao",

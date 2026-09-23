@@ -29,6 +29,7 @@ export function PatientMyCare({
   publications,
   appointments,
   documents,
+  reminderLabel = null,
 }: {
   base: string;
   clinicId: string;
@@ -37,6 +38,7 @@ export function PatientMyCare({
   publications: Publication[];
   appointments: Appointment[];
   documents: DocumentRow[] | null;
+  reminderLabel?: string | null;
 }) {
   const upcoming = appointments
     .filter((item) => ["scheduled", "in_progress"].includes(item.status) && item.ends_at >= currentTime)
@@ -131,6 +133,22 @@ export function PatientMyCare({
           )}
         </div>
       </section>
+
+      {reminderLabel && (
+        <section className="pv-section" aria-labelledby="pv-care-reminders">
+          <h2 id="pv-care-reminders" className="pv-h2">Lembretes</h2>
+          <div className="pv-card pv-card-list">
+            <Link className="pv-row-link" href={`${base}/lembretes`}>
+              <Icon name="bell" size={22} />
+              <span>
+                <strong>Check-in</strong>
+                <small>{reminderLabel}</small>
+              </span>
+              <span className="pv-link-text">Alterar</span>
+            </Link>
+          </div>
+        </section>
+      )}
 
       <section className="pv-section" aria-labelledby="pv-care-more">
         <h2 id="pv-care-more" className="pv-h2">Mais</h2>

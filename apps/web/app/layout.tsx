@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: "VIVANCE — Cuidado contínuo",
   description: "Acesso à área de cuidado Vivance.",
   robots: { index: false, follow: false },
+  manifest: "/manifest.webmanifest",
+  icons: { apple: "/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Vivance", statusBarStyle: "default" },
 };
 export default function RootLayout({
   children,

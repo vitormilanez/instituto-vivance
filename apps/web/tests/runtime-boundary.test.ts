@@ -33,7 +33,18 @@ test("native runtime does not import the Cloudflare prototype or demonstration p
   ).dependencies;
   assert.equal(dependencies.vinext, undefined);
   assert.equal(dependencies.wrangler, undefined);
-  assert.deepEqual(readdirSync(join(root, "public")).sort(), ["brand"]);
+  // Só a marca, os ícones do app instalado e o service worker dos lembretes.
+  assert.deepEqual(readdirSync(join(root, "public")).sort(), [
+    "apple-touch-icon.png",
+    "brand",
+    "icon-192.png",
+    "icon-512.png",
+    "manifest.webmanifest",
+    "sw.js",
+  ]);
+  const worker = readFileSync(join(root, "public/sw.js"), "utf8");
+  // O service worker não guarda páginas nem dados em cache.
+  assert.doesNotMatch(worker, /caches\.|cache\.put|addEventListener\("fetch"/);
 });
 
 test("staff invitations fail closed without a production first-access redirect", () => {

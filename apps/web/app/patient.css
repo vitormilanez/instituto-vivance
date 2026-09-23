@@ -2042,3 +2042,133 @@
   color: var(--pv-gold-ink);
   font-weight: 600;
 }
+
+/* ---- Primeiro acesso ---- */
+
+.pv-welcome {
+  display: grid;
+  justify-items: start;
+  gap: 18px;
+  padding: 32px 22px;
+  border-radius: 28px;
+}
+
+.pv-welcome-dark {
+  background: var(--pv-ink);
+  color: #fff;
+}
+
+.pv-welcome-dark h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.pv-welcome-dark p {
+  margin: 0;
+  color: var(--pv-hero-sub);
+  font-size: 17px;
+}
+
+.pv-welcome .pv-button {
+  width: 100%;
+}
+
+.pv-promise {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pv-promise li {
+  display: flex;
+  gap: 14px;
+}
+
+.pv-promise li > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--pv-gold-soft);
+  color: var(--pv-gold-ink);
+  font-weight: 700;
+}
+
+.pv-promise strong {
+  display: block;
+  font-size: 17px;
+}
+
+.pv-promise small {
+  color: var(--pv-muted);
+  font-size: 15px;
+}
+
+.pv-time-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.pv-time {
+  display: grid;
+  gap: 2px;
+  min-height: 72px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--pv-line);
+  border-radius: 18px;
+  background: var(--pv-surface);
+  color: var(--pv-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pv-time strong {
+  font-size: 22px;
+}
+
+.pv-time small {
+  color: var(--pv-muted);
+}
+
+.pv-time:hover {
+  background: var(--pv-surface);
+}
+
+.pv-time[aria-pressed="true"],
+.pv-time[aria-pressed="true"]:hover {
+  border-color: var(--pv-ink);
+  background: var(--pv-ink);
+  color: #fff;
+}
+
+.pv-time[aria-pressed="true"] small {
+  color: var(--pv-hero-sub);
+}
+
+.pv-steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 22px;
+  font-size: 17px;
+}
+
+.pv-link-text {
+  flex: none;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.pv-row-link > svg:first-child {
+  flex: none;
+  color: var(--pv-gold-ink);
+}

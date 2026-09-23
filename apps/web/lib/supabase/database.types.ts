@@ -735,6 +735,21 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      patient_reminder_preferences: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          user_id: string;
+          patient_id: string;
+          reminder_enabled: boolean;
+          reminder_time: string;
+          onboarded_at: string | null;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       patient_item_reads: {
         Row: {
           tenant_id: string;
@@ -1749,6 +1764,26 @@ export type Database = {
           frequency: number;
           application: boolean;
         };
+        Returns: undefined;
+      };
+      save_reminder_preference: {
+        Args: { target_tenant: string; enabled: boolean; at_time: string };
+        Returns: undefined;
+      };
+      save_push_subscription: {
+        Args: { target_tenant: string; push_endpoint: string; push_p256dh: string; push_auth: string };
+        Returns: undefined;
+      };
+      delete_push_subscription: {
+        Args: { push_endpoint: string };
+        Returns: undefined;
+      };
+      claim_due_reminders: {
+        Args: { cron_secret: string };
+        Returns: { tenant_id: string; endpoint: string; p256dh: string; auth_secret: string }[];
+      };
+      drop_push_subscription: {
+        Args: { cron_secret: string; push_endpoint: string };
         Returns: undefined;
       };
       mark_patient_item_read: {

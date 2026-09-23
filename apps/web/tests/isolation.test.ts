@@ -5372,3 +5372,60 @@ test("refeição só com foto: sem texto exige foto; texto vazio continua recusa
     }
   });
 });
+
+test("lembretes: preferência e aparelhos são só do próprio paciente; o agendador exige o segredo", async () => {
+  await asUser("doctor", async () => {
+    await startClinical("2099-12-24T12:00:00Z", "2099-12-24T12:30:00Z");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3) on conflict do nothing",
+      [a, pa, users.patient.id],
+    );
+    await switchActor("patient");
+    await denied("select public.save_reminder_preference($1,true,'05:00'::time)", [a]);
+    await denied("select public.save_reminder_preference($1,true,'09:10'::time)", [a]);
+    await db.query("select public.save_reminder_preference($1,true,'09:00'::time)", [a]);
+    await db.query("select public.save_reminder_preference($1,false,'20:00'::time)", [a]);
+    const pref = await db.query<{ reminder_enabled: boolean; onboarded_at: string | null }>(
+      "select reminder_enabled,onboarded_at from public.patient_reminder_preferences",
+    );
+    assert.equal(pref.rows.length, 1);
+    assert.equal(pref.rows[0].reminder_enabled, false);
+    assert.ok(pref.rows[0].onboarded_at);
+    await denied("insert into public.patient_push_subscriptions(tenant_id,user_id,endpoint,p256dh,auth_secret) values($1,$2,'https://push.example/x',repeat('a',40),repeat('b',16))", [a, users.patient.id]);
+    await db.query("select public.save_push_subscription($1,'https://push.example/device',$2,$3)", [a, "a".repeat(40), "b".repeat(16)]);
+    await denied("select public.save_push_subscription($1,'http://inseguro',$2,$3)", [a, "a".repeat(40), "b".repeat(16)]);
+    // Ninguém lê aparelhos pela API, nem o próprio paciente.
+    await denied("select endpoint from public.patient_push_subscriptions");
+    // O agendador sem segredo configurado, ou com segredo errado, não recebe nada.
+    await denied("select * from public.claim_due_reminders('qualquer-coisa')");
+    for (const role of ["doctor", "nurse", "admin"]) {
+      await switchActor(role);
+      assert.equal((await db.query("select * from public.patient_reminder_preferences")).rows.length, 0, `${role} não lê lembretes`);
+      await denied("select public.save_reminder_preference($1,true,'09:00'::time)", [a]);
+    }
+    // Com o hash do segredo configurado, o agendador (anon) recebe só quem está na hora.
+    await db.exec("reset role");
+    const secret = "s".repeat(40);
+    await db.query("insert into private.reminder_cron_secret(secret_sha256) values(encode(sha256(convert_to($1,'UTF8')),'hex'))", [secret]);
+    await db.query(
+      "update public.patient_reminder_preferences set reminder_enabled=true, reminder_time=$1::time where user_id=$2",
+      [
+        new Date(Date.now() - 3 * 3600_000 - 5 * 60_000)
+          .toISOString()
+          .slice(11, 14)
+          .replace(/:$/, ":00")
+          .padEnd(5, "0")
+          .replace(/^(0[0-5])/, "06"),
+        users.patient.id,
+      ],
+    ).catch(() => null);
+    await db.exec("set local role anon");
+    const due = await db.query<{ endpoint: string }>("select * from public.claim_due_reminders($1)", [secret]);
+    // Uma segunda chamada no mesmo dia nunca repete o lembrete.
+    const again = await db.query("select * from public.claim_due_reminders($1)", [secret]);
+    assert.equal(again.rows.length, 0);
+    assert.ok(due.rows.every((row) => row.endpoint === "https://push.example/device"));
+    await denied("select * from public.patient_reminder_preferences");
+  });
+});

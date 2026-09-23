@@ -86,9 +86,13 @@ export function PatientShell({
         <div className="pv-column">
         {task ? (
           <header className="pv-taskbar">
-            <Link className="pv-icon-button" href={backHref ?? `${base}/hoje`} aria-label="Voltar">
-              <Icon name="x" />
-            </Link>
+            {backHref === "" ? (
+              <Mark />
+            ) : (
+              <Link className="pv-icon-button" href={backHref ?? `${base}/hoje`} aria-label="Voltar">
+                <Icon name="x" />
+              </Link>
+            )}
             {heading === "bar" ? <h1>{title}</h1> : <span className="pv-topbar-title">{title}</span>}
           </header>
         ) : (

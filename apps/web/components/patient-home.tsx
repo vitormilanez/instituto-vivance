@@ -110,7 +110,7 @@ export function PatientHome({
       {justSent && (
         <p className="pv-status" role="status">
           <Icon name="check" size={20} />
-          {justSent} ✓ · Guardado no seu histórico.
+          {justSent === "Lembrete ativado" ? `${justSent} ✓` : `${justSent} ✓ · Guardado no seu histórico.`}
         </p>
       )}
       <div className="pv-greeting">

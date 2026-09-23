@@ -12,6 +12,9 @@ import { PatientAlertSigns } from "@/components/patient/alert-signs";
 import { PatientMealQuick } from "@/components/patient/meal-quick";
 import { PatientMyCare } from "@/components/patient/my-care";
 import { CheckInFlow } from "@/components/patient/check-in-flow";
+import { WelcomeFlow } from "@/components/patient/welcome-flow";
+import { myReminderPreference } from "@/modules/reminders/service";
+import { reminderLabel } from "@/modules/reminders/model";
 import { PreparationFlow } from "@/components/patient/preparation-flow";
 import { preparationSummary } from "@/modules/workspace/preparation-summary";
 import { patientCheckInState } from "@/modules/daily-check-ins/service";
@@ -87,6 +90,7 @@ export default async function PatientAreaPage({
     sent,
     appointments,
     checkIn,
+    reminder,
   ] = await Promise.all([
     // onboarding
     patient && slug === "hoje"
@@ -171,10 +175,17 @@ export default async function PatientAreaPage({
         )
       : null,
     // checkIn: estado do check-in diário (null se a tabela ainda não existe)
-    patient && (section.group !== "acao" || slug === "checkin")
+    patient && (section.group !== "acao" || ["checkin", "boas-vindas", "lembretes"].includes(slug))
       ? patientCheckInState(tenantId).catch(() => null)
       : null,
+    // reminder: null = recurso indisponível; undefined = ainda sem boas-vindas
+    patient && ["hoje", "cuidado", "boas-vindas", "lembretes"].includes(slug)
+      ? myReminderPreference(tenantId).catch(() => null)
+      : null,
   ]);
+  // Primeiro acesso: antes da Home, as boas-vindas (uma vez só).
+  if (slug === "hoje" && patient && reminder === undefined)
+    redirect(`/clinicas/${tenantId}/meu-cuidado/boas-vindas`);
   // Pré-consulta: a pedida pelo link ou a primeira que ainda espera a pessoa.
   const preparationItem =
     slug === "preconsulta"
@@ -208,6 +219,7 @@ export default async function PatientAreaPage({
       active={section.slug}
       title={shellTitle}
       heading={section.slug === "hoje" ? "page" : "bar"}
+      backHref={slug === "boas-vindas" ? "" : slug === "lembretes" ? `${base}/cuidado` : undefined}
       checkInHref={checkIn?.due ? `${base}/checkin` : null}
     >
       {!patient && (
@@ -227,9 +239,20 @@ export default async function PatientAreaPage({
           publications={published.publications}
           appointments={appointments.appointments}
           documents={documents?.documents ?? null}
+          reminderLabel={reminder === null ? null : reminderLabel(reminder ?? null, checkIn?.frequencyDays ?? 1)}
         />
       ) : slug === "alerta" ? (
         <PatientAlertSigns />
+      ) : (slug === "boas-vindas" || slug === "lembretes") && patient ? (
+        <WelcomeFlow
+          tenantId={tenantId}
+          base={base}
+          firstName={firstName}
+          doctorName={null}
+          frequencyDays={checkIn?.frequencyDays ?? 1}
+          initialTime={reminder?.reminder_time?.slice(0, 5) ?? "09:00"}
+          mode={slug === "boas-vindas" ? "welcome" : "reminder"}
+        />
       ) : slug === "preconsulta" && patient ? (
         preparationItem && ["requested", "draft"].includes(preparationItem.status) ? (
           <PreparationFlow
@@ -338,7 +361,7 @@ export default async function PatientAreaPage({
             />
           </>
         )
-      ) : ["peso", "alerta", "refeicao", "cuidado", "checkin", "preconsulta"].includes(section.slug) ? null : (
+      ) : ["peso", "alerta", "refeicao", "cuidado", "checkin", "preconsulta", "boas-vindas", "lembretes"].includes(section.slug) ? null : (
         <>
           {![
             "hoje",
