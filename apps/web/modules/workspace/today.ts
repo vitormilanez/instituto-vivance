@@ -7,6 +7,7 @@ import { requestInstant } from "@/lib/request-time";
 import { openConsultationId } from "./home-view";
 import { openWork } from "./open-work";
 import type { OpenWorkItem } from "./open-work-items";
+import type { ReceivedItem } from "./received-items";
 import {
   allReceivedKinds,
   myCareLinks,
@@ -78,31 +79,9 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
   const activeIds = links
     .filter((link) => link.status === "active")
     .map((link) => link.patientId);
-  // Recebidos de todos os pacientes com vínculo ativo, numa leitura só: os do
-  // dia aparecem nas linhas, os demais em "Entre consultas". Se o corte não
-  // puder ser lido, todos os tipos contam como indisponíveis — nunca zero.
-  let cutoffs = new Map<string, string | null>();
-  let received: Awaited<ReturnType<typeof receivedForPatients>>;
-  try {
-    cutoffs = await receivedCutoffs(id, activeIds);
-    received = await receivedForPatients(id, cutoffs);
-  } catch {
-    received = { byPatient: new Map(), failed: [...allReceivedKinds] };
-  }
   const todayPatients = new Set(
     agenda.appointments.map((item) => item.patient_id),
   );
-  // Trabalho em aberto do profissional. Uma falha aqui não derruba a Home: a
-  // seção diz que não carregou e oferece tentar de novo.
-  let work: OpenWorkItem[] | null;
-  try {
-    work = await openWork(id, {
-      activePatientIds: activeIds,
-      names: new Map(links.map((link) => [link.patientId, link.name])),
-    });
-  } catch {
-    work = null;
-  }
   // Contexto só de quem aparece aberto: a consulta aberta e, se for de outro
   // dia, a próxima. Cada bloco usa o contexto do PRÓPRIO paciente — nunca o
   // de outra linha.
@@ -110,14 +89,41 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
     (item, index, list): item is NonNullable<typeof item> =>
       Boolean(item) && list.findIndex((other) => other?.id === item?.id) === index,
   );
-  const contexts = new Map(
-    await Promise.all(
+  // As três leituras abaixo não dependem uma da outra: rodam juntas. Cada
+  // uma tem ida e volta ao banco em sequência; em série, somavam a latência.
+  const [receivedResult, work, contextPairs] = await Promise.all([
+    // Recebidos de todos os pacientes com vínculo ativo, numa leitura só: os
+    // do dia aparecem nas linhas, os demais em "Entre consultas". Se o corte
+    // não puder ser lido, todos os tipos contam como indisponíveis — nunca zero.
+    (async () => {
+      try {
+        const cutoffs = await receivedCutoffs(id, activeIds);
+        return { cutoffs, received: await receivedForPatients(id, cutoffs) };
+      } catch {
+        return {
+          cutoffs: new Map<string, string | null>(),
+          received: {
+            byPatient: new Map<string, ReceivedItem[]>(),
+            failed: [...allReceivedKinds],
+          },
+        };
+      }
+    })(),
+    // Trabalho em aberto do profissional. Uma falha aqui não derruba a Home: a
+    // seção diz que não carregou e oferece tentar de novo.
+    openWork(id, {
+      activePatientIds: activeIds,
+      names: new Map(links.map((link) => [link.patientId, link.name])),
+    }).catch((): OpenWorkItem[] | null => null),
+    Promise.all(
       shown.map(
         async (item) =>
           [item.id, await patientCareContext(id, item.patient_id)] as const,
       ),
     ),
-  );
+  ]);
+  const { cutoffs, received } = receivedResult;
+  const contexts = new Map(contextPairs);
   const context = open ? (contexts.get(open.id) ?? null) : null;
   return {
     ...agenda,

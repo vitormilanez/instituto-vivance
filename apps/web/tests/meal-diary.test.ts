@@ -59,7 +59,7 @@ test("o diário alimentar entra na jornada existente sem criar uma nona ação r
   assert.match(area, /module-tabs/);
   assert.match(homeLogs, /diario#registrar-refeicao/);
   // O diário é montado dentro de "Meu diário", a seção que já existia.
-  assert.match(patientPage, /slug === "diario" \? await patientMeals\(tenantId\)/);
+  assert.match(patientPage, /slug === "diario" \? patientMeals\(tenantId\)/);
   assert.match(patientPage, /<PatientMealLogs initial=\{meals\} \/>/);
   assert.match(patientPage, /checkIns && meals/);
   // A equipe lê os relatos dentro do Acompanhamento, sem aba nova.
