@@ -2937,3 +2937,400 @@
 .vivance-landing .history-filters button {
   min-height: 44px;
 }
+
+/* Future-facing nutrition and health-connection previews. */
+.vivance-landing .future-meal-section {
+  background: #fffdf9;
+}
+.vivance-landing .future-feature-grid,
+.vivance-landing .future-signals-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: clamp(42px, 7vw, 92px);
+  align-items: center;
+}
+.vivance-landing .future-feature-copy h2 {
+  max-width: 490px;
+  margin-top: 18px;
+  font-size: 43px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+.vivance-landing .future-feature-copy .section-lead {
+  max-width: 490px;
+}
+.vivance-landing .future-eyebrow {
+  color: var(--gold-dark);
+}
+.vivance-landing .future-feature-detail {
+  max-width: 480px;
+  margin-top: 18px;
+  font-size: 14px;
+  line-height: 1.85;
+}
+.vivance-landing .future-status {
+  display: inline-flex;
+  margin-top: 24px;
+  padding: 7px 12px;
+  border: 1px solid #decda9;
+  border-radius: 999px;
+  color: var(--gold-dark);
+  background: #fffaf0;
+  font-size: 11px;
+  font-weight: 650;
+}
+.vivance-landing .meal-preview {
+  position: relative;
+  min-width: 0;
+  padding: 16px 0 40px 16px;
+}
+.vivance-landing .meal-photo-frame {
+  position: relative;
+  min-height: 380px;
+  overflow: hidden;
+  border-radius: 28px;
+  background: #e9e0d3;
+  box-shadow: 0 19px 42px #0a1a3315;
+}
+.vivance-landing .meal-photo-frame img,
+.vivance-landing .signals-device-image img {
+  object-fit: cover;
+}
+.vivance-landing .meal-photo-frame img {
+  object-position: center;
+}
+.vivance-landing .meal-photo-frame:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    145deg,
+    #0a1a3318 5%,
+    transparent 44%,
+    #0a1a3329 100%
+  );
+  pointer-events: none;
+}
+.vivance-landing .meal-photo-label {
+  position: absolute;
+  z-index: 1;
+  padding: 6px 10px;
+  border: 1px solid #ffffffa8;
+  border-radius: 999px;
+  background: #fffdf9e8;
+  color: var(--navy);
+  box-shadow: 0 5px 18px #0a1a3320;
+  font-size: 10px;
+  font-weight: 700;
+}
+.vivance-landing .meal-label-vegetais {
+  top: 14%;
+  right: 6%;
+}
+.vivance-landing .meal-label-proteina {
+  top: 60%;
+  left: 22%;
+}
+.vivance-landing .meal-label-carboidrato {
+  top: 20%;
+  left: 37%;
+}
+.vivance-landing .meal-compare-card {
+  position: absolute;
+  z-index: 2;
+  right: -10px;
+  bottom: 0;
+  width: min(82%, 340px);
+  padding: 20px;
+  border: 1px solid #e8dcc4;
+  border-radius: 20px;
+  background: #fffdf9;
+  box-shadow: 0 14px 30px #0a1a3315;
+}
+.vivance-landing .meal-compare-heading span,
+.vivance-landing .signals-showcase-topline span:first-child {
+  display: block;
+  color: var(--gold-dark);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+}
+.vivance-landing .meal-compare-heading strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+.vivance-landing .meal-compare-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+}
+.vivance-landing .meal-compare-row span {
+  color: var(--muted);
+}
+.vivance-landing .meal-compare-row strong {
+  color: var(--gold-dark);
+  font-weight: 650;
+  text-align: right;
+}
+.vivance-landing .meal-compare-card p {
+  margin-top: 13px;
+  font-size: 10px;
+  line-height: 1.65;
+}
+.vivance-landing .future-signals-section {
+  overflow: hidden;
+  background: var(--navy);
+}
+.vivance-landing .future-signals-copy {
+  color: white;
+}
+.vivance-landing .future-signals-copy .future-eyebrow {
+  color: #e6c985;
+}
+.vivance-landing .future-signals-copy h2 {
+  max-width: 540px;
+}
+.vivance-landing .future-signals-copy .section-lead,
+.vivance-landing .future-signals-copy .future-feature-detail {
+  color: #d6ddea;
+}
+.vivance-landing .signals-showcase {
+  position: relative;
+  min-height: 425px;
+  padding: 25px;
+  border: 1px solid #ffffff22;
+  border-radius: 29px;
+  background: linear-gradient(145deg, #1d3351, #0a1a33 72%);
+  box-shadow:
+    inset 0 1px #ffffff12,
+    0 18px 44px #06102244;
+}
+.vivance-landing .signals-showcase-topline {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.vivance-landing .signals-showcase-topline span:last-child {
+  padding: 5px 9px;
+  border: 1px solid #ffffff30;
+  border-radius: 999px;
+  color: #d6ddea;
+  font-size: 10px;
+}
+.vivance-landing .signals-device-image {
+  position: absolute;
+  top: 66px;
+  right: 25px;
+  width: min(50%, 250px);
+  height: 208px;
+  overflow: hidden;
+  border: 1px solid #ffffff29;
+  border-radius: 22px;
+  background: #d6c29a;
+}
+.vivance-landing .signals-device-image img {
+  object-position: center;
+}
+.vivance-landing .signals-connection-flow {
+  position: absolute;
+  top: 106px;
+  left: 25px;
+  display: grid;
+  gap: 8px;
+  width: 132px;
+}
+.vivance-landing .signals-connection-flow span,
+.vivance-landing .signals-connection-flow strong {
+  padding: 8px 10px;
+  border: 1px solid #ffffff24;
+  border-radius: 10px;
+  font-size: 10px;
+  line-height: 1.3;
+}
+.vivance-landing .signals-connection-flow span {
+  color: #d6ddea;
+  background: #ffffff08;
+}
+.vivance-landing .signals-connection-flow strong {
+  color: #0a1a33;
+  background: #e0c482;
+  text-align: center;
+  font-weight: 700;
+}
+.vivance-landing .signals-connection-flow i {
+  display: flex;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: 18px;
+  border: 1px solid #e0c48280;
+  border-radius: 50%;
+  background: #0a1a33;
+  color: #e0c482;
+}
+.vivance-landing .signals-connection-flow i:before,
+.vivance-landing .signals-connection-flow i:after {
+  content: "";
+  position: absolute;
+  left: 28px;
+  width: 1px;
+  height: 8px;
+  background: #e0c48280;
+}
+.vivance-landing .signals-connection-flow i:before {
+  margin-top: -9px;
+}
+.vivance-landing .signals-connection-flow i:after {
+  margin-top: 19px;
+}
+.vivance-landing .signals-connection-flow svg {
+  width: 11px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+.vivance-landing .signals-metric-grid {
+  position: absolute;
+  z-index: 1;
+  bottom: 25px;
+  left: 25px;
+  right: 25px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+}
+.vivance-landing .signals-metric-grid > div {
+  min-width: 0;
+  padding: 14px 12px;
+  border: 1px solid #ffffff20;
+  border-radius: 16px;
+  background: #ffffff0c;
+}
+.vivance-landing .signals-metric-grid span,
+.vivance-landing .signals-metric-grid small {
+  display: block;
+  color: #bfcad9;
+  font-size: 10px;
+}
+.vivance-landing .signals-metric-grid strong {
+  display: block;
+  margin-top: 6px;
+  color: white;
+  font-size: 13px;
+  line-height: 1.2;
+}
+.vivance-landing .signals-metric-grid svg {
+  display: block;
+  width: 84px;
+  max-width: 100%;
+  height: 22px;
+  margin-top: 9px;
+  overflow: visible;
+}
+.vivance-landing .signals-metric-grid polyline {
+  fill: none;
+  stroke: #e0c482;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.25;
+}
+.vivance-landing .signals-metric-grid rect {
+  fill: #e0c482;
+}
+.vivance-landing .signals-metric-grid > div:last-child rect:nth-of-type(n + 4) {
+  fill: #ffffff28;
+}
+.vivance-landing .signals-metric-grid small {
+  margin-top: 4px;
+  color: #e0c482;
+  font-size: 9px;
+}
+.vivance-landing .signals-compatibility-note {
+  max-width: 480px;
+  margin-top: 20px;
+  color: #aebdd0;
+  font-size: 11px;
+  line-height: 1.7;
+}
+@media (max-width: 760px) {
+  .vivance-landing .future-feature-grid,
+  .vivance-landing .future-signals-grid {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+  .vivance-landing .future-feature-copy h2 {
+    font-size: 34px;
+    line-height: 1.16;
+  }
+  .vivance-landing .meal-preview {
+    padding: 0;
+  }
+  .vivance-landing .meal-photo-frame {
+    min-height: 0;
+    aspect-ratio: 3 / 2;
+    border-radius: 23px;
+  }
+  .vivance-landing .meal-compare-card {
+    position: relative;
+    right: auto;
+    width: calc(100% - 16px);
+    margin: -16px 0 0 auto;
+    padding: 17px;
+  }
+  .vivance-landing .future-signals-grid {
+    gap: 39px;
+  }
+  .vivance-landing .signals-showcase {
+    min-height: 395px;
+    padding: 19px;
+    border-radius: 24px;
+  }
+  .vivance-landing .signals-device-image {
+    top: 58px;
+    right: 19px;
+    width: min(53%, 220px);
+    height: 204px;
+  }
+  .vivance-landing .signals-connection-flow {
+    top: 93px;
+    left: 19px;
+  }
+  .vivance-landing .signals-metric-grid {
+    right: 19px;
+    bottom: 19px;
+    left: 19px;
+  }
+}
+@media (max-width: 380px) {
+  .vivance-landing .future-feature-copy h2 {
+    font-size: 30px;
+  }
+  .vivance-landing .meal-photo-label {
+    padding: 5px 7px;
+    font-size: 9px;
+  }
+  .vivance-landing .meal-label-carboidrato {
+    left: 31%;
+  }
+  .vivance-landing .signals-metric-grid > div {
+    padding: 11px 8px;
+  }
+  .vivance-landing .signals-metric-grid strong {
+    font-size: 12px;
+  }
+}
+
+.vivance-landing .signals-showcase-topline > span:first-child {
+  color: #e6c985;
+}

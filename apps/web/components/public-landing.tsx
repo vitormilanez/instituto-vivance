@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { LandingFutureFeatures } from "./landing-future-features";
 
 const energyLabels = ["Muito baixa", "Baixa", "Moderada", "Boa", "Muito boa"];
 
@@ -644,6 +645,8 @@ export function PublicLanding() {
           </div>
         </section>
 
+        <LandingFutureFeatures />
+
         <section
           className="section doctor-section"
           id="seu-medico"
@@ -1108,6 +1111,21 @@ export function PublicLanding() {
                   revisado. A equipe acompanha as informações conforme a rotina
                   e os horários combinados com você. As conversas não são um
                   canal de pronto atendimento nem de monitoramento 24 horas.
+                </p>
+              </details>
+              <details>
+                <summary>
+                  Quando a comparação do prato e as conexões de saúde estarão
+                  disponíveis?
+                  <svg className="icon" aria-hidden="true">
+                    <use href="#plus" />
+                  </svg>
+                </summary>
+                <p>
+                  Hoje, o Vivance já permite registrar refeições com foto. A
+                  checagem automática do prato e as conexões com apps de saúde
+                  estão planejadas para uma próxima etapa e serão apresentadas
+                  quando estiverem disponíveis.
                 </p>
               </details>
               <details>
