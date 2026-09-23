@@ -131,7 +131,7 @@ export function FirstAccess() {
         </Link>
       </p>
       <p>
-        <Link href="/" prefetch={false}>
+        <Link href="/login" prefetch={false}>
           Voltar ao login
         </Link>
       </p>

@@ -82,7 +82,7 @@ export function PatientInvitationClaim({ token }: { token: string }) {
         </p>
       ) : null}
       <p>
-        <Link href="/">Já tenho conta: entrar para revisar convite</Link>
+        <Link href="/login">Já tenho conta: entrar para revisar convite</Link>
       </p>
     </section>
   );

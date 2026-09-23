@@ -20,7 +20,7 @@ export default async function PlansPage({
   const { tenantId } = await params;
   const data = await listPlans(tenantId, (await searchParams).pagina).catch(
     (e) => {
-      if (e instanceof AccessError && e.status === 401) redirect("/");
+      if (e instanceof AccessError && e.status === 401) redirect("/login");
       if (e instanceof AccessError || e instanceof InputError) notFound();
       throw e;
     },

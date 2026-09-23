@@ -48,7 +48,7 @@ export default async function ModulePage({
   const area = findStaffModule(slug);
   if (!area) notFound();
   const { clinic } = await requireClinic(tenantId).catch((error) => {
-    if (error instanceof AccessError && error.status === 401) redirect("/");
+    if (error instanceof AccessError && error.status === 401) redirect("/login");
     if (error instanceof AccessError) notFound();
     throw error;
   });

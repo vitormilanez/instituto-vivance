@@ -4,6 +4,7 @@ import { supabaseConfig } from "./lib/supabase/config";
 import type { Database } from "./lib/supabase/database.types";
 
 export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname === "/") return NextResponse.next({ request });
   let response = NextResponse.next({ request });
   const { url, key } = supabaseConfig();
   const supabase = createServerClient<Database>(url, key, {

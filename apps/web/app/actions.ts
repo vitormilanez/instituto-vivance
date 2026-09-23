@@ -44,7 +44,7 @@ export async function logout() {
   const { error } = await client.auth.signOut({ scope: "local" });
   if (error)
     throw new Error("Não foi possível encerrar a sessão. Tente novamente.");
-  redirect("/");
+  redirect("/login");
 }
 
 export async function savePatient(

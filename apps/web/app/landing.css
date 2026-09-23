@@ -1,0 +1,3336 @@
+/* Landing styles are explicitly limited to the public-page wrapper. */
+.vivance-landing,
+.vivance-landing * {
+  box-sizing: border-box;
+}
+
+.vivance-landing button,
+.vivance-landing input {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+}
+
+@font-face {
+  font-family: "Vivance Figtree";
+  src: url("/brand/figtree-400.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+}
+.vivance-landing {
+  color-scheme: light;
+  --ink: #0a1a33;
+  --navy: #0a1a33;
+  --gold: #c8a15a;
+  --gold-dark: #7a5a1e;
+  --gold-light: #f6eedc;
+  --cream: #f7f4ef;
+  --muted: #4b5567;
+  --line: #e6e1d8;
+  --white: #fff;
+  --green: #356957;
+}
+.vivance-landing * {
+  box-sizing: border-box;
+}
+.vivance-landing {
+  scroll-behavior: smooth;
+  scroll-padding-top: 28px;
+}
+.vivance-landing {
+  margin: 0;
+  background: var(--cream);
+  color: var(--ink);
+  font:
+    400 16px/1.6 "Vivance Figtree",
+    Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.vivance-landing h1,
+.vivance-landing h2,
+.vivance-landing h3,
+.vivance-landing p {
+  margin: 0;
+}
+.vivance-landing h1,
+.vivance-landing h2,
+.vivance-landing h3 {
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+.vivance-landing h1,
+.vivance-landing h2 {
+  font-weight: 700;
+}
+.vivance-landing h3 {
+  font-weight: 650;
+}
+.vivance-landing p {
+  color: var(--muted);
+}
+.vivance-landing a {
+  text-decoration: none;
+  color: inherit;
+}
+.vivance-landing button,
+.vivance-landing input {
+  font: inherit;
+}
+.vivance-landing button {
+  cursor: pointer;
+}
+.vivance-landing a,
+.vivance-landing button,
+.vivance-landing summary {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.vivance-landing a:focus-visible,
+.vivance-landing button:focus-visible,
+.vivance-landing summary:focus-visible {
+  outline: 3px solid var(--gold-dark);
+  outline-offset: 5px;
+}
+.vivance-landing button {
+  color: inherit;
+}
+.vivance-landing a,
+.vivance-landing button,
+.vivance-landing summary {
+  transition:
+    background 0.18s,
+    color 0.18s,
+    border-color 0.18s,
+    box-shadow 0.18s;
+}
+.vivance-landing [hidden] {
+  display: none !important;
+}
+.vivance-landing ::selection {
+  background: #ecd6ac;
+  color: var(--navy);
+}
+.vivance-landing .container {
+  padding: 0;
+  max-width: none;
+  width: min(1184px, calc(100% - 96px));
+  margin-inline: auto;
+}
+.vivance-landing .icon-library {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+.vivance-landing .icon {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.vivance-landing .skip-link {
+  position: fixed;
+  top: -100px;
+  left: 20px;
+  padding: 12px 20px;
+  background: var(--navy);
+  color: white;
+  z-index: 100;
+}
+.vivance-landing .skip-link:focus {
+  top: 12px;
+}
+.vivance-landing .eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--gold-dark);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.vivance-landing .eyebrow-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--gold);
+  border-radius: 50%;
+}
+.vivance-landing .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 56px;
+  padding: 15px 22px;
+  background: var(--navy);
+  color: white;
+  border: 1px solid var(--navy);
+  border-radius: 18px;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+.vivance-landing .button:hover {
+  background: #1c3556;
+  border-color: #1c3556;
+  box-shadow: 0 6px 18px #0a1a3312;
+}
+.vivance-landing .button .icon {
+  width: 19px;
+  height: 19px;
+}
+.vivance-landing .button-small {
+  min-height: 46px;
+  padding: 12px 20px;
+  font-size: 14px;
+  gap: 19px;
+  border-radius: 14px;
+}
+.vivance-landing .button-gold {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--navy);
+}
+.vivance-landing .button-gold:hover {
+  background: #d7b574;
+  border-color: #d7b574;
+}
+.vivance-landing .text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 650;
+}
+.vivance-landing .text-link:hover {
+  color: var(--gold-dark);
+}
+.vivance-landing .text-link .icon {
+  width: 18px;
+  height: 18px;
+}
+.vivance-landing .feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: var(--gold-light);
+  color: var(--gold-dark);
+  flex-shrink: 0;
+}
+.vivance-landing .sample-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  font-size: 10px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+.vivance-landing .mini-heading {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  font-weight: 700;
+  color: var(--muted);
+}
+.vivance-landing .site-header {
+  background: #fffcf7;
+  border-bottom: 1px solid var(--line);
+}
+.vivance-landing .header-inner {
+  height: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.vivance-landing .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.vivance-landing .brand img {
+  display: block;
+  border-radius: 12px;
+}
+.vivance-landing .brand strong {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  display: block;
+  line-height: 1.2;
+}
+.vivance-landing .brand small {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.vivance-landing .desktop-nav {
+  display: flex;
+  gap: 33px;
+  margin-left: auto;
+  margin-right: 26px;
+}
+.vivance-landing .desktop-nav a {
+  font-size: 14px;
+  color: var(--muted);
+  padding-block: 13px;
+}
+.vivance-landing .desktop-nav a:hover {
+  color: var(--gold-dark);
+}
+.vivance-landing .header-actions {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+.vivance-landing .menu-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 11px;
+  background: white;
+}
+.vivance-landing .menu-toggle span {
+  display: block;
+  width: 20px;
+  height: 1.5px;
+  background: var(--ink);
+  margin: 5px 0;
+}
+.vivance-landing .menu-toggle[aria-expanded="true"] span:first-child {
+  transform: translateY(3.25px) rotate(45deg);
+}
+.vivance-landing .menu-toggle[aria-expanded="true"] span:last-child {
+  transform: translateY(-3.25px) rotate(-45deg);
+}
+.vivance-landing .mobile-nav {
+  padding: 14px 24px 20px;
+  border-top: 1px solid var(--line);
+}
+.vivance-landing .mobile-nav a {
+  display: block;
+  padding-block: 12px;
+  font-size: 14px;
+}
+.vivance-landing .hero {
+  background: var(--cream);
+  overflow: hidden;
+}
+.vivance-landing .hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 68px;
+  align-items: center;
+  padding-top: 65px;
+  padding-bottom: 49px;
+}
+.vivance-landing .hero h1 {
+  font-size: 72px;
+  line-height: 1.035;
+  letter-spacing: -0.045em;
+  margin: 24px 0;
+}
+.vivance-landing .hero h1 span {
+  color: var(--gold-dark);
+}
+.vivance-landing .hero-description {
+  max-width: 440px;
+  font-size: 17px;
+  line-height: 1.85;
+}
+.vivance-landing .hero-description strong {
+  font-weight: 500;
+  color: var(--ink);
+}
+.vivance-landing .hero-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 29px;
+}
+.vivance-landing .hero-actions > .button {
+  font-size: 14px;
+  padding-inline: 20px;
+  gap: 17px;
+}
+.vivance-landing .hero-actions > .text-link {
+  font-size: 13px;
+}
+.vivance-landing .hero-note {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 31px;
+}
+.vivance-landing .note-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-dark);
+  border: 1px solid #d8c9ad;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.vivance-landing .note-icon .icon {
+  width: 18px;
+  height: 18px;
+}
+.vivance-landing .hero-note p {
+  font-size: 12px;
+  line-height: 1.8;
+}
+.vivance-landing .hero-note strong {
+  font-weight: 400;
+}
+.vivance-landing .hero-visual {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0 0;
+  min-width: 0;
+}
+.vivance-landing .orbit {
+  position: absolute;
+  z-index: 0;
+  border: 1px solid #e7dfd1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.vivance-landing .orbit-one {
+  width: 500px;
+  height: 500px;
+  top: 98px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.vivance-landing .orbit-two {
+  width: 596px;
+  height: 596px;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.vivance-landing .phone {
+  width: 355px;
+  max-width: 100%;
+  border: 7px solid var(--navy);
+  border-radius: 39px;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 24px 45px -22px #0a1a3330;
+  background: var(--cream);
+}
+.vivance-landing .phone-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 18px 14px;
+  background: white;
+  border-bottom: 1px solid var(--line);
+}
+.vivance-landing .phone-header img {
+  border-radius: 8px;
+}
+.vivance-landing .phone-header strong {
+  font-size: 17px;
+  font-weight: 700;
+}
+.vivance-landing .phone-header .sample-pill {
+  margin-left: auto;
+  font-size: 9px;
+  padding: 4px 8px;
+}
+.vivance-landing .phone-body {
+  padding: 17px 17px 14px;
+}
+.vivance-landing .phone-date {
+  font-size: 11px;
+}
+.vivance-landing .phone-body > h2 {
+  font-size: 24px;
+  letter-spacing: -0.025em;
+  margin-top: 4px;
+  margin-bottom: 17px;
+}
+.vivance-landing .phone-checkin {
+  background: var(--navy);
+  border-radius: 23px;
+  color: white;
+  padding: 19px;
+}
+.vivance-landing .card-eyebrow {
+  color: #e3c88f;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.085em;
+}
+.vivance-landing .phone-checkin h3 {
+  font-size: 24px;
+  line-height: 1.16;
+  letter-spacing: -0.025em;
+  margin-top: 10px;
+  font-weight: 650;
+}
+.vivance-landing .phone-checkin > p:not(.card-eyebrow) {
+  color: #d5dbe6;
+  font-size: 12px;
+  line-height: 1.65;
+  margin-top: 10px;
+}
+.vivance-landing .phone-checkin .button {
+  min-height: 44px;
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 12px 13px;
+  border-radius: 13px;
+  gap: 10px;
+}
+.vivance-landing .phone-checkin .button > .icon {
+  width: 16px;
+  height: 16px;
+}
+.vivance-landing .phone-body > .mini-heading {
+  margin-top: 19px;
+  margin-bottom: 9px;
+  font-size: 9px;
+}
+.vivance-landing .phone-shortcuts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.vivance-landing .phone-shortcuts a {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 69px;
+  padding: 12px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 650;
+}
+.vivance-landing .phone-shortcuts a:hover {
+  border-color: var(--gold);
+  background: #fffcf5;
+}
+.vivance-landing .phone-shortcuts .icon {
+  color: var(--gold-dark);
+  width: 19px;
+  height: 19px;
+}
+.vivance-landing .phone-appointment {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  background: white;
+  border-radius: 16px;
+  margin-top: 12px;
+}
+.vivance-landing .date-square {
+  width: 31px;
+  height: 37px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--gold-light);
+  color: var(--gold-dark);
+  border-radius: 10px;
+}
+.vivance-landing .date-square .icon {
+  width: 17px;
+  height: 17px;
+}
+.vivance-landing .phone-appointment strong {
+  display: block;
+  font-size: 11px;
+}
+.vivance-landing .phone-appointment span {
+  font-size: 9px;
+  display: block;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.vivance-landing .phone-appointment > .icon {
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+}
+.vivance-landing .phone-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  background: white;
+  padding: 11px 6px 13px;
+  gap: 2px;
+  border-top: 1px solid var(--line);
+}
+.vivance-landing .phone-nav > a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 8px;
+  font-weight: 500;
+  position: relative;
+  padding-top: 6px;
+}
+.vivance-landing .phone-nav .icon {
+  width: 18px;
+  height: 18px;
+}
+.vivance-landing .phone-nav .selected {
+  color: var(--navy);
+  font-weight: 700;
+}
+.vivance-landing .phone-nav .selected:before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 7px;
+  right: 7px;
+  height: 3px;
+  background: var(--gold);
+  border-radius: 5px;
+}
+.vivance-landing .phone-nav > .register-shortcut {
+  padding-top: 0;
+  margin-top: -16px;
+  font-weight: 650;
+  color: var(--navy);
+}
+.vivance-landing .plus-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--navy);
+  color: var(--gold);
+  width: 39px;
+  height: 39px;
+  border-radius: 13px;
+  box-shadow: 0 5px 12px #0a1a3322;
+}
+.vivance-landing .phone-nav a:hover {
+  color: var(--gold-dark);
+}
+.vivance-landing .floating-label {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: #fff;
+  border: 1px solid #ebe6dc;
+  box-shadow: 0 10px 28px #0a1a330a;
+  border-radius: 18px;
+  padding: 14px 17px;
+}
+.vivance-landing .floating-label strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 650;
+}
+.vivance-landing .floating-label div > span {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.vivance-landing .label-doctor {
+  top: 34px;
+  right: -18px;
+}
+.vivance-landing .doctor-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--gold-dark);
+  background: var(--gold-light);
+}
+.vivance-landing .doctor-avatar .icon {
+  width: 19px;
+  height: 19px;
+}
+.vivance-landing .label-history {
+  left: -16px;
+  bottom: 99px;
+}
+.vivance-landing .history-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 33px;
+  height: 33px;
+  border-radius: 50%;
+  background: #edf4ef;
+  color: var(--green);
+}
+.vivance-landing .history-icon .icon {
+  width: 17px;
+  height: 17px;
+}
+.vivance-landing .demo-caption {
+  position: relative;
+  font-size: 10px;
+  margin-top: 17px;
+  color: var(--muted);
+}
+.vivance-landing .value-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  border-top: 1px solid var(--line);
+  padding-block: 25px;
+}
+.vivance-landing .value-strip > span {
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  font-weight: 650;
+  color: #6a645b;
+}
+.vivance-landing .value-strip > div {
+  display: flex;
+  gap: 31px;
+}
+.vivance-landing .value-strip > div > span {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.vivance-landing .value-strip .icon {
+  width: 19px;
+  height: 19px;
+  color: var(--gold-dark);
+}
+.vivance-landing .section {
+  padding-block: 88px;
+}
+.vivance-landing .section-heading {
+  display: block;
+  margin-bottom: 37px;
+}
+.vivance-landing .section-heading h2,
+.vivance-landing .feature-copy h2,
+.vivance-landing .faq-grid h2 {
+  font-size: 43px;
+  line-height: 1.15;
+  margin-top: 18px;
+  letter-spacing: -0.035em;
+}
+.vivance-landing .section-heading h2 span,
+.vivance-landing .feature-copy h2 span,
+.vivance-landing .faq-grid h2 span {
+  color: var(--gold-dark);
+}
+.vivance-landing .centered {
+  text-align: center;
+  max-width: 730px;
+  margin-inline: auto;
+}
+.vivance-landing .centered .eyebrow {
+  justify-content: center;
+}
+.vivance-landing .centered > p:last-child {
+  font-size: 16px;
+  line-height: 1.8;
+  max-width: 580px;
+  margin: 20px auto 0;
+}
+.vivance-landing .overview-section {
+  background: #fffdf9;
+}
+.vivance-landing .benefit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 23px;
+}
+.vivance-landing .benefit-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: var(--cream);
+  border: 1px solid #ece7dd;
+  border-radius: 25px;
+  padding: 29px 26px;
+  transition:
+    box-shadow 0.18s,
+    border-color 0.18s;
+}
+.vivance-landing .benefit-card:hover {
+  border-color: #c8ae81;
+  box-shadow: 0 8px 24px #0a1a3307;
+}
+.vivance-landing .benefit-card .feature-icon {
+  background: #efe5d2;
+}
+.vivance-landing .benefit-card h3 {
+  font-size: 21px;
+  margin-top: 21px;
+  letter-spacing: -0.02em;
+}
+.vivance-landing .benefit-card p {
+  font-size: 14px;
+  line-height: 1.85;
+  margin-top: 14px;
+  flex: 1;
+}
+.vivance-landing .card-link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 650;
+  margin-top: 23px;
+  min-height: 28px;
+}
+.vivance-landing .card-link .icon {
+  width: 16px;
+  height: 16px;
+}
+.vivance-landing .feature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 86px;
+  align-items: center;
+}
+.vivance-landing .section-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: var(--gold-light);
+  border: 1px solid #e9dcc1;
+  border-radius: 50%;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.vivance-landing .section-lead {
+  font-size: 16px;
+  line-height: 1.9;
+  margin-top: 22px;
+  max-width: 490px;
+}
+.vivance-landing .checkin-topics {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 23px;
+}
+.vivance-landing .checkin-topics > span {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #fffaf3;
+  color: #594b36;
+}
+.vivance-landing .checkin-topics .icon {
+  width: 15px;
+  height: 15px;
+  color: var(--gold-dark);
+}
+.vivance-landing .feature-list {
+  list-style: none;
+  margin: 26px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 13px;
+}
+.vivance-landing .feature-list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--muted);
+  font-size: 14px;
+}
+.vivance-landing .feature-list .icon {
+  width: 17px;
+  height: 17px;
+  color: var(--gold-dark);
+  margin-top: 3px;
+}
+.vivance-landing .feature-copy > .text-link {
+  margin-top: 24px;
+}
+.vivance-landing .checkin-demo {
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: white;
+  overflow: hidden;
+  box-shadow: 0 15px 35px #0a1a3305;
+}
+.vivance-landing .demo-topline {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 24px;
+}
+.vivance-landing .demo-topline > .sample-pill {
+  font-size: 11px;
+}
+.vivance-landing .demo-topline > span:last-child {
+  font-size: 11px;
+  color: var(--muted);
+}
+.vivance-landing .energy-question {
+  margin: 0 14px;
+  background: var(--navy);
+  border-radius: 24px;
+  padding: 28px 27px;
+  color: white;
+}
+.vivance-landing .energy-icon {
+  width: 43px;
+  height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  background: #ffffff0e;
+  border-radius: 14px;
+  margin-bottom: 22px;
+}
+.vivance-landing .energy-question h3 {
+  font-size: 29px;
+  line-height: 1.2;
+  margin-top: 13px;
+}
+.vivance-landing .energy-question > p:not(.card-eyebrow) {
+  color: #d5dbe6;
+  font-size: 14px;
+  line-height: 1.75;
+  max-width: 300px;
+  margin-top: 13px;
+}
+.vivance-landing .energy-options {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 27px;
+}
+.vivance-landing .energy-options button {
+  height: 54px;
+  min-width: 44px;
+  border: 1px solid #586279;
+  border-radius: 14px;
+  background: transparent;
+  color: #fff;
+  font-size: 19px;
+  font-weight: 650;
+}
+.vivance-landing .energy-options button[aria-pressed="true"] {
+  background: var(--gold);
+  color: var(--navy);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px #c8a15a20;
+}
+.vivance-landing .energy-options button:hover {
+  border-color: #e3c88f;
+  background: #ffffff14;
+}
+.vivance-landing .energy-options button[aria-pressed="true"]:hover {
+  background: #d7b574;
+}
+.vivance-landing .energy-options button:focus-visible {
+  outline-color: #e3c88f;
+}
+.vivance-landing .energy-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  color: #d5dbe6;
+  font-size: 11px;
+}
+.vivance-landing .demo-result {
+  font-size: 13px;
+  margin-top: 25px;
+  border-top: 1px solid #ffffff20;
+  padding-top: 18px;
+  color: #d5dbe6;
+}
+.vivance-landing .demo-result strong {
+  color: #e3c88f;
+  font-weight: 600;
+}
+.vivance-landing .checkin-demo-footer {
+  display: flex;
+  gap: 10px;
+  padding: 20px 25px;
+  align-items: center;
+}
+.vivance-landing .checkin-demo-footer > .icon {
+  width: 17px;
+  height: 17px;
+  color: #7a6d58;
+}
+.vivance-landing .checkin-demo-footer p {
+  font-size: 11px;
+  line-height: 1.7;
+}
+.vivance-landing .doctor-section {
+  background: #fffdf9;
+}
+.vivance-landing .doctor-grid {
+  gap: 86px;
+}
+.vivance-landing .conversation-demo {
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 27px;
+  box-shadow: 0 15px 35px #0a1a3305;
+  overflow: hidden;
+}
+.vivance-landing .conversation-header {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.vivance-landing .doctor-avatar.large {
+  width: 43px;
+  height: 43px;
+}
+.vivance-landing .conversation-header strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 650;
+}
+.vivance-landing .conversation-header span:not(.doctor-avatar) {
+  font-size: 11px;
+  color: var(--muted);
+  display: block;
+  margin-top: 5px;
+}
+.vivance-landing .conversation-header > .icon {
+  margin-left: auto;
+  width: 21px;
+  height: 21px;
+  color: var(--gold-dark);
+}
+.vivance-landing .conversation-body {
+  padding: 24px;
+  background: #f9f7f3;
+  display: flex;
+  flex-direction: column;
+  gap: 19px;
+}
+.vivance-landing .conversation-date {
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 650;
+  margin-bottom: 2px;
+}
+.vivance-landing .bubble {
+  max-width: 91%;
+  border-radius: 19px;
+  padding: 18px;
+  font-size: 14px;
+  line-height: 1.75;
+}
+.vivance-landing .bubble-patient {
+  align-self: flex-end;
+  background: var(--navy);
+  border-bottom-right-radius: 5px;
+}
+.vivance-landing .bubble-patient p {
+  color: white;
+}
+.vivance-landing .bubble > span:last-child {
+  font-size: 10px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-top: 11px;
+  color: #d5dbe6;
+}
+.vivance-landing .bubble > span .icon {
+  width: 13px;
+  height: 13px;
+}
+.vivance-landing .bubble-doctor {
+  background: white;
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 5px;
+}
+.vivance-landing .bubble-author {
+  color: var(--gold-dark);
+  font-weight: 650;
+  font-size: 11px;
+  display: block;
+  margin-bottom: 7px;
+}
+.vivance-landing .bubble-doctor > span:last-child {
+  color: var(--muted);
+}
+.vivance-landing .published-note {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  margin-top: 4px;
+  background: #f3ead8;
+  border: 1px solid #e8dbc1;
+  border-radius: 17px;
+  padding: 17px 15px;
+}
+.vivance-landing .published-note .feature-icon {
+  width: 35px;
+  height: 35px;
+  border-radius: 11px;
+  background: #ffffff90;
+}
+.vivance-landing .published-note .icon {
+  width: 18px;
+  height: 18px;
+}
+.vivance-landing .published-note div > span {
+  font-size: 8px;
+  letter-spacing: 0.07em;
+  display: block;
+  color: var(--gold-dark);
+  font-weight: 700;
+}
+.vivance-landing .published-note strong {
+  font-size: 14px;
+  display: block;
+  margin-top: 5px;
+}
+.vivance-landing .published-note p {
+  font-size: 10px;
+  margin-top: 4px;
+}
+.vivance-landing .conversation-footnote {
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.6;
+  padding: 15px 22px;
+}
+.vivance-landing .detail-item {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+  margin-top: 26px;
+}
+.vivance-landing .detail-item .feature-icon {
+  width: 39px;
+  height: 39px;
+  border-radius: 13px;
+}
+.vivance-landing .detail-item .icon {
+  width: 19px;
+  height: 19px;
+}
+.vivance-landing .detail-item h3 {
+  font-size: 17px;
+  margin-top: 2px;
+  letter-spacing: -0.015em;
+}
+.vivance-landing .detail-item p {
+  font-size: 14px;
+  line-height: 1.85;
+  margin-top: 7px;
+  max-width: 390px;
+}
+.vivance-landing .care-note {
+  display: flex;
+  gap: 9px;
+  font-size: 11px;
+  line-height: 1.75;
+  margin-top: 25px;
+}
+.vivance-landing .care-note > .icon {
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+  color: var(--gold-dark);
+}
+.vivance-landing .history-section {
+  background: #f1ece3;
+}
+.vivance-landing .split-heading {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 75px;
+  align-items: end;
+}
+.vivance-landing .split-heading > p {
+  font-size: 15px;
+  line-height: 1.85;
+  max-width: 375px;
+  justify-self: end;
+}
+.vivance-landing .history-workspace {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 0;
+  border: 1px solid #e1dbd0;
+  border-radius: 28px;
+  background: #fffdf9;
+  overflow: hidden;
+  box-shadow: 0 10px 30px #0a1a3303;
+}
+.vivance-landing .history-overview {
+  padding: 29px 32px;
+  border-right: 1px solid var(--line);
+  min-width: 0;
+}
+.vivance-landing .workspace-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+.vivance-landing .workspace-header h3 {
+  font-size: 19px;
+  letter-spacing: -0.025em;
+  line-height: 1.3;
+  margin-top: 9px;
+}
+.vivance-landing .workspace-header .sample-pill {
+  font-size: 9px;
+}
+.vivance-landing .history-filters {
+  display: flex;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #f0ece5;
+  width: max-content;
+  margin-top: 24px;
+}
+.vivance-landing .history-filters button {
+  border: 0;
+  min-width: 86px;
+  min-height: 40px;
+  background: transparent;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 9px 15px;
+}
+.vivance-landing .history-filters button[aria-pressed="true"] {
+  background: var(--navy);
+  color: white;
+}
+.vivance-landing .history-filters button:hover {
+  background: #e8ddc9;
+}
+.vivance-landing .history-filters button[aria-pressed="true"]:hover {
+  background: #1c3556;
+}
+.vivance-landing .chart-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 24px;
+  gap: 16px;
+}
+.vivance-landing .chart-heading > div > span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.vivance-landing .chart-heading strong {
+  display: block;
+  font-size: 40px;
+  letter-spacing: -0.04em;
+  line-height: 1.25;
+  font-weight: 650;
+}
+.vivance-landing .chart-heading strong small {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.vivance-landing .chart-heading > p {
+  font-size: 10px;
+  padding-bottom: 7px;
+  max-width: 135px;
+  text-align: right;
+}
+.vivance-landing .weight-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 22px;
+  overflow: visible;
+}
+.vivance-landing .chart-grid path {
+  stroke: #e8e2d7;
+  stroke-width: 1;
+  fill: none;
+}
+.vivance-landing .chart-axis text {
+  font-family: Figtree, Arial, sans-serif;
+  fill: #626976;
+  font-size: 11px;
+}
+.vivance-landing .weight-chart polyline {
+  stroke: var(--navy);
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.vivance-landing .weight-chart circle {
+  fill: #fffdf9;
+  stroke: var(--navy);
+  stroke-width: 2;
+}
+.vivance-landing .weight-chart circle:last-child {
+  fill: var(--gold);
+}
+.vivance-landing .chart-caption {
+  font-size: 11px;
+  margin-top: 10px;
+}
+.vivance-landing .history-measures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 19px;
+  margin-top: 25px;
+  padding-top: 21px;
+  border-top: 1px solid var(--line);
+}
+.vivance-landing .history-measures > div:first-child {
+  border-right: 1px solid var(--line);
+  padding-right: 15px;
+}
+.vivance-landing .history-measures span {
+  display: block;
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.vivance-landing .history-measures span:last-child {
+  font-size: 9px;
+  margin-top: 5px;
+}
+.vivance-landing .history-measures strong {
+  font-size: 24px;
+  line-height: 1.4;
+  letter-spacing: -0.03em;
+  display: block;
+}
+.vivance-landing .history-measures small {
+  font-size: 13px;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+.vivance-landing .history-timeline {
+  padding: 32px 34px;
+  display: flex;
+  flex-direction: column;
+}
+.vivance-landing .history-timeline ol {
+  list-style: none;
+  padding: 0;
+  margin: 28px 0;
+  display: grid;
+  gap: 27px;
+}
+.vivance-landing .history-timeline li {
+  position: relative;
+  display: flex;
+  gap: 15px;
+}
+.vivance-landing .history-timeline li:not(:last-child):after {
+  content: "";
+  position: absolute;
+  top: 40px;
+  bottom: -25px;
+  left: 18px;
+  width: 1px;
+  background: #e2d6bf;
+}
+.vivance-landing .timeline-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 37px;
+  height: 37px;
+  border: 1px solid #e9dfca;
+  background: var(--gold-light);
+  color: var(--gold-dark);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.vivance-landing .timeline-icon > .icon {
+  width: 17px;
+  height: 17px;
+}
+.vivance-landing .history-timeline li div > span {
+  font-size: 9px;
+  letter-spacing: 0.065em;
+  color: #7b6748;
+  font-weight: 650;
+  display: block;
+}
+.vivance-landing .history-timeline li strong {
+  display: block;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 650;
+  margin-top: 4px;
+}
+.vivance-landing .history-timeline li p {
+  font-size: 12px;
+  margin-top: 4px;
+  line-height: 1.7;
+}
+.vivance-landing .timeline-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  line-height: 1.7;
+  border-top: 1px solid var(--line);
+  padding-top: 19px;
+  margin-top: auto;
+}
+.vivance-landing .timeline-note > .icon {
+  width: 20px;
+  height: 20px;
+  color: var(--gold-dark);
+}
+.vivance-landing .history-benefits {
+  display: flex;
+  justify-content: center;
+  gap: 34px;
+  margin-top: 26px;
+  flex-wrap: wrap;
+}
+.vivance-landing .history-benefits > span {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+.vivance-landing .history-benefits .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--gold-dark);
+}
+.vivance-landing .journey-section {
+  background: #fffdf9;
+}
+.vivance-landing .journey-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 39px;
+  margin-top: 46px;
+}
+.vivance-landing .journey-grid article {
+  position: relative;
+  padding-top: 27px;
+  border-top: 1px solid #d9c9ac;
+}
+.vivance-landing .journey-grid article:before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  position: absolute;
+  right: 0;
+  top: -3.5px;
+}
+.vivance-landing .step-number {
+  font-size: 24px;
+  letter-spacing: -0.05em;
+  color: var(--gold-dark);
+  font-weight: 500;
+}
+.vivance-landing .journey-grid h3 {
+  font-size: 21px;
+  margin-top: 19px;
+}
+.vivance-landing .journey-grid p {
+  font-size: 14px;
+  line-height: 1.85;
+  margin-top: 13px;
+}
+.vivance-landing .journey-grid article > span:last-child {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 11px;
+  margin-top: 20px;
+  padding: 5px 12px;
+  color: #756346;
+}
+.vivance-landing .human-section {
+  background: #eee7da;
+  padding-block: 42px;
+}
+.vivance-landing .human-inner {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  max-width: 1050px;
+}
+.vivance-landing .human-icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-dark);
+  background: #fffaf0;
+  border: 1px solid #e0d0b1;
+  flex-shrink: 0;
+  border-radius: 22px;
+}
+.vivance-landing .human-icon .icon {
+  width: 31px;
+  height: 31px;
+}
+.vivance-landing .human-inner .eyebrow {
+  font-size: 9px;
+}
+.vivance-landing .human-inner h2 {
+  font-size: 25px;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+  margin-top: 11px;
+}
+.vivance-landing .human-inner p:last-child {
+  font-size: 13px;
+  line-height: 1.9;
+  margin-top: 13px;
+  max-width: 850px;
+}
+.vivance-landing .faq-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.55fr;
+  gap: 80px;
+}
+.vivance-landing .faq-grid h2 {
+  font-size: 39px;
+}
+.vivance-landing .faq-grid > div > p:last-child {
+  font-size: 15px;
+  line-height: 1.9;
+  margin-top: 24px;
+}
+.vivance-landing .faq-list {
+  display: grid;
+  gap: 11px;
+}
+.vivance-landing .faq-list details {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.vivance-landing .faq-list summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 68px;
+  padding: 20px 23px;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+  cursor: pointer;
+}
+.vivance-landing .faq-list summary::-webkit-details-marker {
+  display: none;
+}
+.vivance-landing .faq-list summary > .icon {
+  width: 18px;
+  height: 18px;
+  color: var(--gold-dark);
+}
+.vivance-landing .faq-list summary:hover {
+  background: #fffbf4;
+}
+.vivance-landing .faq-list summary:focus-visible {
+  outline-offset: -4px;
+  border-radius: 18px;
+}
+.vivance-landing .faq-list details[open] summary > .icon {
+  transform: rotate(45deg);
+}
+.vivance-landing .faq-list details > p {
+  font-size: 13px;
+  line-height: 1.9;
+  padding: 0 23px 23px;
+}
+.vivance-landing .closing-section {
+  background: var(--navy);
+  padding-block: 63px;
+  color: white;
+}
+.vivance-landing .closing-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 42px;
+}
+.vivance-landing .closing-inner .eyebrow {
+  color: #e3c88f;
+  font-size: 10px;
+}
+.vivance-landing .closing-inner h2 {
+  font-size: 38px;
+  line-height: 1.2;
+  margin-top: 17px;
+}
+.vivance-landing .closing-inner h2 > span {
+  color: #e3c88f;
+}
+.vivance-landing .closing-inner p:last-child {
+  font-size: 14px;
+  color: #d5dbe6;
+  margin-top: 21px;
+}
+.vivance-landing .closing-action {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+.vivance-landing .closing-action .button {
+  min-width: 242px;
+  gap: 38px;
+}
+.vivance-landing .closing-action > span {
+  font-size: 10px;
+  color: #d5dbe6;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.vivance-landing .closing-action > span .icon {
+  width: 13px;
+  height: 13px;
+}
+.vivance-landing .site-footer {
+  background: #fffdf9;
+  padding-top: 37px;
+}
+.vivance-landing .footer-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding-bottom: 28px;
+}
+.vivance-landing .footer-main .brand strong {
+  font-size: 17px;
+}
+.vivance-landing .footer-main .brand small {
+  font-size: 9px;
+}
+.vivance-landing .footer-main p {
+  font-size: 12px;
+}
+.vivance-landing .footer-main > a:last-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  min-height: 44px;
+}
+.vivance-landing .footer-main > a:last-child:hover {
+  color: var(--gold-dark);
+}
+.vivance-landing .footer-main > a:last-child .icon {
+  height: 17px;
+  width: 17px;
+}
+.vivance-landing .footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 10px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  padding-block: 21px;
+}
+@media (min-width: 1450px) {
+  .vivance-landing .hero-grid {
+    padding-top: 80px;
+    padding-bottom: 65px;
+  }
+}
+@media (max-width: 1100px) {
+  .vivance-landing .container {
+    width: calc(100% - 64px);
+  }
+  .vivance-landing .desktop-nav {
+    gap: 25px;
+    margin-right: 10px;
+  }
+  .vivance-landing .hero-grid {
+    gap: 40px;
+  }
+  .vivance-landing .hero h1 {
+    font-size: 63px;
+  }
+  .vivance-landing .hero-description {
+    font-size: 16px;
+  }
+  .vivance-landing .hero-note p {
+    font-size: 11px;
+  }
+  .vivance-landing .label-doctor {
+    right: -15px;
+  }
+  .vivance-landing .label-history {
+    left: -19px;
+  }
+  .vivance-landing .floating-label {
+    padding: 12px 14px;
+  }
+  .vivance-landing .floating-label strong {
+    font-size: 11px;
+  }
+  .vivance-landing .floating-label div > span {
+    font-size: 9px;
+  }
+  .vivance-landing .value-strip {
+    gap: 20px;
+  }
+  .vivance-landing .value-strip > span {
+    font-size: 9px;
+  }
+  .vivance-landing .value-strip > div {
+    gap: 20px;
+  }
+  .vivance-landing .value-strip > div > span {
+    font-size: 11px;
+  }
+  .vivance-landing .section-heading h2,
+  .vivance-landing .feature-copy h2 {
+    font-size: 37px;
+  }
+  .vivance-landing .feature-grid {
+    gap: 50px;
+  }
+  .vivance-landing .benefit-card {
+    padding: 25px 23px;
+  }
+  .vivance-landing .benefit-card h3 {
+    font-size: 20px;
+  }
+  .vivance-landing .benefit-card p {
+    font-size: 13px;
+  }
+  .vivance-landing .split-heading {
+    gap: 40px;
+  }
+  .vivance-landing .split-heading > p {
+    font-size: 14px;
+  }
+  .vivance-landing .history-overview {
+    padding: 25px;
+  }
+  .vivance-landing .history-timeline {
+    padding: 27px;
+  }
+  .vivance-landing .workspace-header h3 {
+    font-size: 17px;
+  }
+  .vivance-landing .history-benefits {
+    gap: 21px;
+  }
+  .vivance-landing .faq-grid {
+    gap: 50px;
+  }
+  .vivance-landing .closing-inner h2 {
+    font-size: 33px;
+  }
+  .vivance-landing .energy-question {
+    padding: 25px 23px;
+  }
+  .vivance-landing .energy-options {
+    gap: 7px;
+  }
+  .vivance-landing .demo-topline {
+    padding: 20px;
+  }
+  .vivance-landing .demo-topline > .sample-pill {
+    font-size: 10px;
+  }
+  .vivance-landing .demo-topline > span:last-child {
+    font-size: 10px;
+  }
+}
+@media (max-width: 900px) {
+  .vivance-landing .container {
+    width: calc(100% - 48px);
+  }
+  .vivance-landing .desktop-nav {
+    gap: 18px;
+  }
+  .vivance-landing .desktop-nav a {
+    font-size: 12px;
+  }
+  .vivance-landing .header-inner {
+    gap: 20px;
+  }
+  .vivance-landing .button-small {
+    font-size: 12px;
+    gap: 11px;
+    padding-inline: 16px;
+  }
+  .vivance-landing .brand strong {
+    font-size: 18px;
+  }
+  .vivance-landing .brand small {
+    font-size: 9px;
+  }
+  .vivance-landing .hero-grid {
+    gap: 26px;
+    padding-top: 48px;
+  }
+  .vivance-landing .hero h1 {
+    font-size: 55px;
+  }
+  .vivance-landing .hero-description {
+    font-size: 15px;
+  }
+  .vivance-landing .hero-copy > .eyebrow {
+    font-size: 9px;
+  }
+  .vivance-landing .hero-actions > .button {
+    font-size: 13px;
+    gap: 11px;
+  }
+  .vivance-landing .phone {
+    width: 324px;
+  }
+  .vivance-landing .phone-body {
+    padding: 15px;
+  }
+  .vivance-landing .phone-checkin {
+    padding: 18px;
+  }
+  .vivance-landing .phone-checkin h3 {
+    font-size: 23px;
+  }
+  .vivance-landing .phone-header {
+    padding: 17px 15px 13px;
+  }
+  .vivance-landing .label-doctor {
+    top: 20px;
+    right: -5px;
+  }
+  .vivance-landing .label-history {
+    left: -10px;
+    bottom: 80px;
+  }
+  .vivance-landing .floating-label {
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 15px;
+  }
+  .vivance-landing .floating-label strong {
+    font-size: 10px;
+  }
+  .vivance-landing .floating-label div > span {
+    font-size: 8px;
+  }
+  .vivance-landing .floating-label .doctor-avatar {
+    width: 29px;
+    height: 29px;
+  }
+  .vivance-landing .value-strip {
+    flex-direction: column;
+    gap: 18px;
+  }
+  .vivance-landing .value-strip > div {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .vivance-landing .section {
+    padding-block: 68px;
+  }
+  .vivance-landing .benefit-grid {
+    gap: 16px;
+  }
+  .vivance-landing .benefit-card {
+    padding: 22px 19px;
+    border-radius: 23px;
+  }
+  .vivance-landing .benefit-card h3 {
+    font-size: 18px;
+  }
+  .vivance-landing .benefit-card p {
+    font-size: 13px;
+  }
+  .vivance-landing .card-link {
+    font-size: 11px;
+  }
+  .vivance-landing .section-heading h2,
+  .vivance-landing .feature-copy h2 {
+    font-size: 34px;
+  }
+  .vivance-landing .feature-grid {
+    gap: 32px;
+  }
+  .vivance-landing .section-lead {
+    font-size: 14px;
+  }
+  .vivance-landing .feature-list li {
+    font-size: 13px;
+  }
+  .vivance-landing .checkin-topics {
+    gap: 7px;
+  }
+  .vivance-landing .checkin-topics > span {
+    font-size: 11px;
+    padding: 7px 10px;
+  }
+  .vivance-landing .demo-topline {
+    padding: 18px 15px;
+    flex-wrap: wrap;
+  }
+  .vivance-landing .energy-question {
+    margin-inline: 10px;
+    padding: 22px 18px;
+  }
+  .vivance-landing .energy-question h3 {
+    font-size: 25px;
+  }
+  .vivance-landing .energy-question .card-eyebrow {
+    font-size: 9px;
+  }
+  .vivance-landing .energy-options button {
+    font-size: 17px;
+    min-width: 0;
+    height: 46px;
+    border-radius: 11px;
+  }
+  .vivance-landing .energy-options {
+    gap: 6px;
+  }
+  .vivance-landing .energy-question > p:not(.card-eyebrow) {
+    font-size: 13px;
+  }
+  .vivance-landing .checkin-demo-footer {
+    padding: 17px 20px;
+  }
+  .vivance-landing .checkin-demo-footer p {
+    font-size: 10px;
+  }
+  .vivance-landing .conversation-header {
+    padding: 19px 17px;
+    gap: 9px;
+  }
+  .vivance-landing .conversation-header strong {
+    font-size: 13px;
+  }
+  .vivance-landing .conversation-header span:not(.doctor-avatar) {
+    font-size: 10px;
+  }
+  .vivance-landing .conversation-header > .icon {
+    display: none;
+  }
+  .vivance-landing .conversation-body {
+    padding: 19px 16px;
+  }
+  .vivance-landing .bubble {
+    font-size: 13px;
+    padding: 15px;
+  }
+  .vivance-landing .bubble > span:last-child {
+    font-size: 8px;
+  }
+  .vivance-landing .published-note {
+    padding: 14px 11px;
+    gap: 9px;
+  }
+  .vivance-landing .published-note strong {
+    font-size: 12px;
+  }
+  .vivance-landing .published-note p {
+    font-size: 9px;
+  }
+  .vivance-landing .published-note div > span {
+    font-size: 7px;
+  }
+  .vivance-landing .detail-item {
+    gap: 12px;
+    margin-top: 22px;
+  }
+  .vivance-landing .detail-item h3 {
+    font-size: 16px;
+  }
+  .vivance-landing .detail-item p {
+    font-size: 13px;
+  }
+  .vivance-landing .split-heading {
+    gap: 26px;
+  }
+  .vivance-landing .split-heading > p {
+    font-size: 13px;
+  }
+  .vivance-landing .history-workspace {
+    grid-template-columns: 1.1fr 1fr;
+  }
+  .vivance-landing .history-overview {
+    padding: 24px 20px;
+  }
+  .vivance-landing .history-timeline {
+    padding: 26px 22px;
+  }
+  .vivance-landing .workspace-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .vivance-landing .workspace-header h3 {
+    font-size: 17px;
+  }
+  .vivance-landing .chart-heading {
+    align-items: center;
+  }
+  .vivance-landing .chart-heading > p {
+    font-size: 9px;
+  }
+  .vivance-landing .history-timeline ol {
+    gap: 26px;
+  }
+  .vivance-landing .history-timeline li {
+    gap: 11px;
+  }
+  .vivance-landing .history-timeline li strong {
+    font-size: 14px;
+  }
+  .vivance-landing .history-timeline li p {
+    font-size: 11px;
+  }
+  .vivance-landing .history-timeline li div > span {
+    font-size: 8px;
+  }
+  .vivance-landing .history-benefits > span {
+    font-size: 10px;
+  }
+  .vivance-landing .journey-grid {
+    gap: 27px;
+  }
+  .vivance-landing .journey-grid h3 {
+    font-size: 19px;
+  }
+  .vivance-landing .journey-grid p {
+    font-size: 13px;
+  }
+  .vivance-landing .faq-grid {
+    gap: 30px;
+  }
+  .vivance-landing .faq-grid h2 {
+    font-size: 34px;
+  }
+  .vivance-landing .closing-inner h2 {
+    font-size: 30px;
+  }
+  .vivance-landing .closing-action .button {
+    min-width: 220px;
+    font-size: 14px;
+    gap: 25px;
+  }
+  .vivance-landing .closing-action > span {
+    font-size: 9px;
+  }
+}
+@media (max-width: 760px) {
+  .vivance-landing .container {
+    width: calc(100% - 40px);
+  }
+  .vivance-landing .header-inner {
+    height: 79px;
+    gap: 14px;
+  }
+  .vivance-landing .brand {
+    gap: 9px;
+  }
+  .vivance-landing .brand img {
+    width: 37px;
+    height: 37px;
+    border-radius: 10px;
+  }
+  .vivance-landing .brand strong {
+    font-size: 17px;
+  }
+  .vivance-landing .brand small {
+    font-size: 8px;
+  }
+  .vivance-landing .desktop-nav {
+    display: none;
+  }
+  .vivance-landing .menu-toggle {
+    display: block;
+  }
+  .vivance-landing .button-small {
+    min-height: 44px;
+    padding: 11px 13px;
+    border-radius: 13px;
+    font-size: 11px;
+    gap: 8px;
+  }
+  .vivance-landing .button-small .icon {
+    width: 15px;
+    height: 15px;
+  }
+  .vivance-landing .header-actions {
+    gap: 8px;
+  }
+  .vivance-landing .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 35px;
+    padding-top: 40px;
+    padding-bottom: 27px;
+  }
+  .vivance-landing .hero h1 {
+    font-size: clamp(48px, 9vw, 68px);
+    line-height: 1.03;
+    margin: 20px 0 22px;
+  }
+  .vivance-landing .hero h1 br:first-child {
+    display: none;
+  }
+  .vivance-landing .hero-description {
+    font-size: 16px;
+    max-width: 550px;
+  }
+  .vivance-landing .hero-copy > .eyebrow {
+    font-size: 9px;
+  }
+  .vivance-landing .hero-actions {
+    gap: 13px;
+    margin-top: 24px;
+  }
+  .vivance-landing .hero-actions > .button {
+    font-size: 14px;
+    padding: 15px 18px;
+  }
+  .vivance-landing .hero-actions > .text-link {
+    font-size: 13px;
+  }
+  .vivance-landing .hero-note {
+    margin-top: 23px;
+  }
+  .vivance-landing .hero-note p {
+    font-size: 11px;
+  }
+  .vivance-landing .hero-visual {
+    width: 100%;
+    max-width: 460px;
+    justify-self: center;
+    padding-top: 15px;
+  }
+  .vivance-landing .phone {
+    width: 346px;
+  }
+  .vivance-landing .phone-header {
+    padding: 18px 16px 14px;
+  }
+  .vivance-landing .phone-body {
+    padding: 17px;
+  }
+  .vivance-landing .phone-checkin {
+    padding: 20px;
+  }
+  .vivance-landing .phone-checkin h3 {
+    font-size: 25px;
+  }
+  .vivance-landing .phone-checkin > p:not(.card-eyebrow) {
+    font-size: 13px;
+  }
+  .vivance-landing .phone-checkin .button {
+    font-size: 13px;
+    min-height: 46px;
+  }
+  .vivance-landing .phone-shortcuts a {
+    font-size: 12px;
+    min-height: 76px;
+  }
+  .vivance-landing .phone-body > .mini-heading {
+    font-size: 9px;
+  }
+  .vivance-landing .phone-appointment strong {
+    font-size: 11px;
+  }
+  .vivance-landing .phone-appointment span {
+    font-size: 9px;
+  }
+  .vivance-landing .phone-nav > a {
+    font-size: 9px;
+  }
+  .vivance-landing .floating-label {
+    padding: 11px 13px;
+    border-radius: 16px;
+  }
+  .vivance-landing .label-doctor {
+    top: 24px;
+    right: -4px;
+  }
+  .vivance-landing .label-doctor strong {
+    font-size: 11px;
+  }
+  .vivance-landing .label-doctor div > span {
+    font-size: 9px;
+  }
+  .vivance-landing .label-history {
+    bottom: 102px;
+    left: -4px;
+  }
+  .vivance-landing .label-history strong {
+    font-size: 11px;
+  }
+  .vivance-landing .label-history div > span {
+    font-size: 9px;
+  }
+  .vivance-landing .orbit-one {
+    width: 420px;
+    height: 420px;
+    top: 120px;
+  }
+  .vivance-landing .orbit-two {
+    width: 510px;
+    height: 510px;
+    top: 75px;
+  }
+  .vivance-landing .demo-caption {
+    font-size: 10px;
+    margin-top: 18px;
+  }
+  .vivance-landing .value-strip {
+    padding-block: 23px;
+    gap: 16px;
+  }
+  .vivance-landing .value-strip > span {
+    font-size: 8px;
+  }
+  .vivance-landing .value-strip > div {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px 18px;
+  }
+  .vivance-landing .value-strip > div > span {
+    font-size: 11px;
+  }
+  .vivance-landing .value-strip .icon {
+    height: 16px;
+    width: 16px;
+  }
+  .vivance-landing .section {
+    padding-block: 57px;
+  }
+  .vivance-landing .section-heading {
+    margin-bottom: 30px;
+  }
+  .vivance-landing .section-heading h2,
+  .vivance-landing .feature-copy h2 {
+    font-size: 34px;
+    line-height: 1.16;
+  }
+  .vivance-landing .eyebrow {
+    font-size: 10px;
+  }
+  .vivance-landing .centered > p:last-child {
+    font-size: 15px;
+    max-width: 480px;
+    margin-top: 17px;
+  }
+  .vivance-landing .benefit-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  .vivance-landing .benefit-card {
+    padding: 26px;
+    border-radius: 24px;
+  }
+  .vivance-landing .benefit-card h3 {
+    font-size: 22px;
+    margin-top: 19px;
+  }
+  .vivance-landing .benefit-card p {
+    font-size: 15px;
+    line-height: 1.85;
+    margin-top: 12px;
+  }
+  .vivance-landing .card-link {
+    font-size: 14px;
+    margin-top: 19px;
+  }
+  .vivance-landing .benefit-card .feature-icon {
+    height: 44px;
+    width: 44px;
+    border-radius: 14px;
+  }
+  .vivance-landing .feature-grid {
+    grid-template-columns: 1fr;
+    gap: 31px;
+  }
+  .vivance-landing .section-lead {
+    font-size: 16px;
+    max-width: none;
+    line-height: 1.85;
+    margin-top: 18px;
+  }
+  .vivance-landing .checkin-topics {
+    gap: 8px;
+  }
+  .vivance-landing .checkin-topics > span {
+    font-size: 12px;
+    padding: 8px 11px;
+  }
+  .vivance-landing .feature-list {
+    gap: 12px;
+    margin-top: 23px;
+  }
+  .vivance-landing .feature-list li {
+    font-size: 14px;
+  }
+  .vivance-landing .feature-copy > .text-link {
+    margin-top: 19px;
+  }
+  .vivance-landing .checkin-demo {
+    max-width: 460px;
+    width: 100%;
+    justify-self: center;
+  }
+  .vivance-landing .demo-topline {
+    padding: 20px;
+  }
+  .vivance-landing .demo-topline > .sample-pill {
+    font-size: 11px;
+  }
+  .vivance-landing .demo-topline > span:last-child {
+    font-size: 10px;
+  }
+  .vivance-landing .energy-question {
+    padding: 26px 22px;
+    margin-inline: 12px;
+  }
+  .vivance-landing .energy-question h3 {
+    font-size: 29px;
+  }
+  .vivance-landing .energy-question .card-eyebrow {
+    font-size: 10px;
+  }
+  .vivance-landing .energy-question > p:not(.card-eyebrow) {
+    font-size: 14px;
+  }
+  .vivance-landing .energy-options {
+    gap: 8px;
+  }
+  .vivance-landing .energy-options button {
+    min-height: 48px;
+    height: 48px;
+    font-size: 19px;
+  }
+  .vivance-landing .checkin-demo-footer {
+    padding: 20px;
+  }
+  .vivance-landing .checkin-demo-footer p {
+    font-size: 11px;
+  }
+  .vivance-landing .doctor-grid {
+    gap: 32px;
+  }
+  .vivance-landing .doctor-grid .feature-copy {
+    grid-row: 1;
+  }
+  .vivance-landing .detail-item {
+    gap: 13px;
+    margin-top: 25px;
+  }
+  .vivance-landing .detail-item h3 {
+    font-size: 17px;
+  }
+  .vivance-landing .detail-item p {
+    font-size: 14px;
+    max-width: none;
+  }
+  .vivance-landing .care-note {
+    font-size: 12px;
+  }
+  .vivance-landing .conversation-demo {
+    max-width: 460px;
+    width: 100%;
+    justify-self: center;
+  }
+  .vivance-landing .conversation-header {
+    padding: 22px 20px;
+    gap: 12px;
+  }
+  .vivance-landing .conversation-header strong {
+    font-size: 14px;
+  }
+  .vivance-landing .conversation-header span:not(.doctor-avatar) {
+    font-size: 11px;
+  }
+  .vivance-landing .conversation-body {
+    padding: 22px 19px;
+  }
+  .vivance-landing .bubble {
+    font-size: 14px;
+    padding: 17px;
+  }
+  .vivance-landing .bubble > span:last-child {
+    font-size: 10px;
+  }
+  .vivance-landing .published-note {
+    padding: 17px 14px;
+    gap: 12px;
+  }
+  .vivance-landing .published-note div > span {
+    font-size: 8px;
+  }
+  .vivance-landing .published-note strong {
+    font-size: 14px;
+  }
+  .vivance-landing .published-note p {
+    font-size: 10px;
+  }
+  .vivance-landing .conversation-footnote {
+    font-size: 11px;
+  }
+  .vivance-landing .split-heading {
+    grid-template-columns: 1fr;
+    gap: 19px;
+  }
+  .vivance-landing .split-heading > p {
+    justify-self: start;
+    max-width: none;
+    font-size: 15px;
+  }
+  .vivance-landing .history-workspace {
+    grid-template-columns: 1fr;
+    border-radius: 25px;
+  }
+  .vivance-landing .history-overview {
+    padding: 24px 22px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .vivance-landing .workspace-header {
+    gap: 12px;
+  }
+  .vivance-landing .workspace-header h3 {
+    font-size: 20px;
+  }
+  .vivance-landing .workspace-header > .sample-pill {
+    font-size: 10px;
+  }
+  .vivance-landing .history-filters button {
+    min-height: 44px;
+    min-width: 97px;
+    font-size: 13px;
+  }
+  .vivance-landing .chart-heading {
+    margin-top: 22px;
+    align-items: flex-end;
+  }
+  .vivance-landing .chart-heading strong {
+    font-size: 39px;
+  }
+  .vivance-landing .chart-heading > p {
+    font-size: 10px;
+    max-width: 122px;
+  }
+  .vivance-landing .chart-caption {
+    font-size: 11px;
+    line-height: 1.75;
+  }
+  .vivance-landing .history-measures {
+    gap: 16px;
+    margin-top: 22px;
+  }
+  .vivance-landing .history-measures span {
+    font-size: 11px;
+  }
+  .vivance-landing .history-measures span:last-child {
+    font-size: 10px;
+  }
+  .vivance-landing .history-timeline {
+    padding: 29px 24px;
+  }
+  .vivance-landing .history-timeline li div > span {
+    font-size: 10px;
+  }
+  .vivance-landing .history-timeline li strong {
+    font-size: 16px;
+  }
+  .vivance-landing .history-timeline li p {
+    font-size: 13px;
+  }
+  .vivance-landing .history-timeline li {
+    gap: 14px;
+  }
+  .vivance-landing .history-timeline ol {
+    gap: 26px;
+  }
+  .vivance-landing .timeline-note {
+    font-size: 12px;
+  }
+  .vivance-landing .history-benefits {
+    justify-content: flex-start;
+    gap: 13px;
+    margin-top: 23px;
+  }
+  .vivance-landing .history-benefits > span {
+    font-size: 13px;
+    width: 100%;
+  }
+  .vivance-landing .journey-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    margin-top: 33px;
+  }
+  .vivance-landing .journey-grid article {
+    padding-top: 22px;
+  }
+  .vivance-landing .journey-grid h3 {
+    font-size: 23px;
+    margin-top: 14px;
+  }
+  .vivance-landing .journey-grid p {
+    font-size: 15px;
+    margin-top: 12px;
+  }
+  .vivance-landing .journey-grid article > span:last-child {
+    font-size: 12px;
+    margin-top: 16px;
+  }
+  .vivance-landing .human-section {
+    padding-block: 36px;
+  }
+  .vivance-landing .human-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 23px;
+  }
+  .vivance-landing .human-icon {
+    width: 51px;
+    height: 51px;
+    border-radius: 17px;
+  }
+  .vivance-landing .human-icon .icon {
+    height: 24px;
+    width: 24px;
+  }
+  .vivance-landing .human-inner h2 {
+    font-size: 27px;
+  }
+  .vivance-landing .human-inner p:last-child {
+    font-size: 14px;
+  }
+  .vivance-landing .human-inner .eyebrow {
+    font-size: 9px;
+  }
+  .vivance-landing .faq-grid {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  .vivance-landing .faq-grid h2 {
+    font-size: 34px;
+  }
+  .vivance-landing .faq-grid h2 br {
+    display: none;
+  }
+  .vivance-landing .faq-grid > div > p:last-child {
+    font-size: 14px;
+    margin-top: 15px;
+  }
+  .vivance-landing .faq-grid > div > p:last-child br {
+    display: none;
+  }
+  .vivance-landing .faq-list summary {
+    font-size: 14px;
+    min-height: 68px;
+    padding: 19px 20px;
+  }
+  .vivance-landing .faq-list details > p {
+    font-size: 14px;
+    padding: 0 20px 21px;
+  }
+  .vivance-landing .closing-section {
+    padding-block: 47px;
+  }
+  .vivance-landing .closing-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 29px;
+  }
+  .vivance-landing .closing-inner h2 {
+    font-size: 33px;
+  }
+  .vivance-landing .closing-inner p:last-child {
+    font-size: 14px;
+  }
+  .vivance-landing .closing-inner .eyebrow {
+    font-size: 9px;
+  }
+  .vivance-landing .closing-action {
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .vivance-landing .closing-action .button {
+    min-width: 230px;
+    font-size: 15px;
+  }
+  .vivance-landing .closing-action > span {
+    font-size: 10px;
+  }
+  .vivance-landing .footer-main {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 21px;
+  }
+  .vivance-landing .footer-main p {
+    grid-column: 1/3;
+    grid-row: 2;
+    font-size: 12px;
+  }
+  .vivance-landing .footer-main > a:last-child {
+    font-size: 11px;
+    gap: 5px;
+  }
+  .vivance-landing .footer-bottom {
+    flex-direction: column;
+    gap: 7px;
+    font-size: 10px;
+  }
+}
+@media (max-width: 380px) {
+  .vivance-landing .container {
+    width: calc(100% - 32px);
+  }
+  .vivance-landing .header-inner {
+    gap: 8px;
+  }
+  .vivance-landing .brand {
+    gap: 8px;
+  }
+  .vivance-landing .brand strong {
+    font-size: 15px;
+  }
+  .vivance-landing .brand small {
+    font-size: 7px;
+  }
+  .vivance-landing .brand img {
+    height: 32px;
+    width: 32px;
+  }
+  .vivance-landing .button-small {
+    font-size: 10px;
+    padding-inline: 10px;
+    gap: 6px;
+  }
+  .vivance-landing .button-small .icon {
+    width: 14px;
+    height: 14px;
+  }
+  .vivance-landing .header-actions {
+    gap: 6px;
+  }
+  .vivance-landing .hero h1 {
+    font-size: 46px;
+  }
+  .vivance-landing .hero-description {
+    font-size: 15px;
+  }
+  .vivance-landing .hero-copy > .eyebrow {
+    font-size: 8px;
+  }
+  .vivance-landing .hero-actions > .button {
+    font-size: 13px;
+    gap: 13px;
+  }
+  .vivance-landing .hero-note p {
+    font-size: 10px;
+  }
+  .vivance-landing .phone {
+    border-width: 6px;
+    border-radius: 33px;
+  }
+  .vivance-landing .phone-body {
+    padding: 15px;
+  }
+  .vivance-landing .phone-checkin {
+    padding: 17px;
+  }
+  .vivance-landing .phone-checkin h3 {
+    font-size: 23px;
+  }
+  .vivance-landing .phone-checkin .button {
+    font-size: 12px;
+  }
+  .vivance-landing .phone-shortcuts a {
+    font-size: 11px;
+    padding: 11px;
+  }
+  .vivance-landing .phone-appointment {
+    gap: 8px;
+    padding: 10px;
+  }
+  .vivance-landing .phone-appointment strong {
+    font-size: 10px;
+  }
+  .vivance-landing .phone-appointment span {
+    font-size: 8px;
+  }
+  .vivance-landing .phone-nav > a {
+    font-size: 8px;
+    min-width: 42px;
+  }
+  .vivance-landing .floating-label.label-doctor {
+    right: -3px;
+    top: 21px;
+    padding: 10px 11px;
+  }
+  .vivance-landing .floating-label.label-history {
+    left: -3px;
+    bottom: 92px;
+    padding: 10px 12px;
+  }
+  .vivance-landing .floating-label strong {
+    font-size: 10px;
+  }
+  .vivance-landing .floating-label div > span {
+    font-size: 8px;
+  }
+  .vivance-landing .floating-label .doctor-avatar {
+    width: 26px;
+    height: 26px;
+  }
+  .vivance-landing .floating-label .history-icon {
+    width: 27px;
+    height: 27px;
+  }
+  .vivance-landing .section-heading h2,
+  .vivance-landing .feature-copy h2,
+  .vivance-landing .faq-grid h2 {
+    font-size: 30px;
+  }
+  .vivance-landing .benefit-card {
+    padding: 24px 21px;
+  }
+  .vivance-landing .demo-topline {
+    padding: 18px 16px;
+    gap: 8px;
+  }
+  .vivance-landing .demo-topline > .sample-pill {
+    font-size: 10px;
+  }
+  .vivance-landing .demo-topline > span:last-child {
+    font-size: 9px;
+  }
+  .vivance-landing .energy-question {
+    padding: 23px 17px;
+    margin-inline: 10px;
+  }
+  .vivance-landing .energy-question h3 {
+    font-size: 26px;
+  }
+  .vivance-landing .energy-options {
+    gap: 6px;
+  }
+  .vivance-landing .energy-options button {
+    height: 44px;
+    min-height: 44px;
+    border-radius: 11px;
+  }
+  .vivance-landing .energy-scale {
+    font-size: 10px;
+  }
+  .vivance-landing .checkin-demo-footer {
+    padding: 17px;
+  }
+  .vivance-landing .conversation-header {
+    gap: 10px;
+    padding: 20px 17px;
+  }
+  .vivance-landing .conversation-header strong {
+    font-size: 13px;
+  }
+  .vivance-landing .conversation-header span:not(.doctor-avatar) {
+    font-size: 10px;
+  }
+  .vivance-landing .conversation-body {
+    padding: 20px 15px;
+  }
+  .vivance-landing .bubble > span:last-child {
+    font-size: 9px;
+  }
+  .vivance-landing .published-note {
+    padding: 14px 12px;
+    gap: 10px;
+  }
+  .vivance-landing .published-note strong {
+    font-size: 13px;
+  }
+  .vivance-landing .published-note p {
+    font-size: 9px;
+  }
+  .vivance-landing .history-overview {
+    padding: 24px 18px;
+  }
+  .vivance-landing .workspace-header h3 {
+    font-size: 18px;
+  }
+  .vivance-landing .chart-caption {
+    font-size: 10px;
+  }
+  .vivance-landing .history-timeline {
+    padding: 27px 20px;
+  }
+  .vivance-landing .closing-inner h2 {
+    font-size: 29px;
+  }
+  .vivance-landing .footer-main {
+    gap: 18px 10px;
+  }
+  .vivance-landing .footer-main > a:last-child {
+    font-size: 10px;
+  }
+  .vivance-landing .footer-main .brand strong {
+    font-size: 15px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vivance-landing {
+    scroll-behavior: auto;
+  }
+  .vivance-landing *,
+  .vivance-landing *::before,
+  .vivance-landing *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Keep the first action and the complete product preview visible together. */
+@media (min-width: 761px) {
+  .vivance-landing .hero-grid {
+    padding-top: 40px;
+    padding-bottom: 35px;
+  }
+  .vivance-landing .hero h1 {
+    font-size: 64px;
+  }
+  .vivance-landing .phone-body {
+    padding: 14px 17px;
+  }
+  .vivance-landing .phone-body > h2 {
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+  .vivance-landing .phone-checkin {
+    padding: 16px 18px;
+  }
+  .vivance-landing .phone-checkin h3 {
+    font-size: 23px;
+    margin-top: 8px;
+  }
+  .vivance-landing .phone-checkin > p:not(.card-eyebrow) {
+    margin-top: 8px;
+    font-size: 12px;
+  }
+  .vivance-landing .phone-checkin .button {
+    margin-top: 12px;
+  }
+  .vivance-landing .phone-body > .mini-heading {
+    margin-top: 14px;
+    margin-bottom: 8px;
+  }
+  .vivance-landing .phone-shortcuts a {
+    min-height: 60px;
+    padding: 10px;
+    gap: 7px;
+  }
+  .vivance-landing .phone-appointment {
+    margin-top: 10px;
+    padding: 10px;
+  }
+  .vivance-landing .phone-nav {
+    padding-top: 8px;
+    padding-bottom: 9px;
+  }
+  .vivance-landing .phone-nav .selected:before {
+    top: -9px;
+  }
+}
+@media (min-width: 761px) and (max-width: 900px) {
+  .vivance-landing .hero h1 {
+    font-size: 54px;
+  }
+}
+
+@media (max-width: 760px) {
+  .vivance-landing .header-actions .login-context {
+    display: none;
+  }
+}
+@media (max-width: 380px) {
+  .vivance-landing .energy-question {
+    padding-inline: 13px;
+    margin-inline: 8px;
+  }
+  .vivance-landing .energy-options {
+    gap: 5px;
+  }
+}
+.vivance-landing .history-filters button {
+  min-height: 44px;
+}
+
+/* Future-facing nutrition and health-connection previews. */
+.vivance-landing .future-meal-section {
+  background: #fffdf9;
+}
+.vivance-landing .future-feature-grid,
+.vivance-landing .future-signals-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: clamp(42px, 7vw, 92px);
+  align-items: center;
+}
+.vivance-landing .future-feature-copy h2 {
+  max-width: 490px;
+  margin-top: 18px;
+  font-size: 43px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+.vivance-landing .future-feature-copy .section-lead {
+  max-width: 490px;
+}
+.vivance-landing .future-eyebrow {
+  color: var(--gold-dark);
+}
+.vivance-landing .future-feature-detail {
+  max-width: 480px;
+  margin-top: 18px;
+  font-size: 14px;
+  line-height: 1.85;
+}
+.vivance-landing .future-status {
+  display: inline-flex;
+  margin-top: 24px;
+  padding: 7px 12px;
+  border: 1px solid #decda9;
+  border-radius: 999px;
+  color: var(--gold-dark);
+  background: #fffaf0;
+  font-size: 11px;
+  font-weight: 650;
+}
+.vivance-landing .meal-preview {
+  position: relative;
+  min-width: 0;
+  padding: 16px 0 40px 16px;
+}
+.vivance-landing .meal-photo-frame {
+  position: relative;
+  min-height: 380px;
+  overflow: hidden;
+  border-radius: 28px;
+  background: #e9e0d3;
+  box-shadow: 0 19px 42px #0a1a3315;
+}
+.vivance-landing .meal-photo-frame img,
+.vivance-landing .signals-device-image img {
+  object-fit: cover;
+}
+.vivance-landing .meal-photo-frame img {
+  object-position: center;
+}
+.vivance-landing .meal-photo-frame:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    145deg,
+    #0a1a3318 5%,
+    transparent 44%,
+    #0a1a3329 100%
+  );
+  pointer-events: none;
+}
+.vivance-landing .meal-photo-label {
+  position: absolute;
+  z-index: 1;
+  padding: 6px 10px;
+  border: 1px solid #ffffffa8;
+  border-radius: 999px;
+  background: #fffdf9e8;
+  color: var(--navy);
+  box-shadow: 0 5px 18px #0a1a3320;
+  font-size: 10px;
+  font-weight: 700;
+}
+.vivance-landing .meal-label-vegetais {
+  top: 14%;
+  right: 6%;
+}
+.vivance-landing .meal-label-proteina {
+  top: 60%;
+  left: 22%;
+}
+.vivance-landing .meal-label-carboidrato {
+  top: 20%;
+  left: 37%;
+}
+.vivance-landing .meal-compare-card {
+  position: absolute;
+  z-index: 2;
+  right: -10px;
+  bottom: 0;
+  width: min(82%, 340px);
+  padding: 20px;
+  border: 1px solid #e8dcc4;
+  border-radius: 20px;
+  background: #fffdf9;
+  box-shadow: 0 14px 30px #0a1a3315;
+}
+.vivance-landing .meal-compare-heading span,
+.vivance-landing .signals-showcase-topline span:first-child {
+  display: block;
+  color: var(--gold-dark);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+}
+.vivance-landing .meal-compare-heading strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+.vivance-landing .meal-compare-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+}
+.vivance-landing .meal-compare-row span {
+  color: var(--muted);
+}
+.vivance-landing .meal-compare-row strong {
+  color: var(--gold-dark);
+  font-weight: 650;
+  text-align: right;
+}
+.vivance-landing .meal-compare-card p {
+  margin-top: 13px;
+  font-size: 10px;
+  line-height: 1.65;
+}
+.vivance-landing .future-signals-section {
+  overflow: hidden;
+  background: var(--navy);
+}
+.vivance-landing .future-signals-copy {
+  color: white;
+}
+.vivance-landing .future-signals-copy .future-eyebrow {
+  color: #e6c985;
+}
+.vivance-landing .future-signals-copy h2 {
+  max-width: 540px;
+}
+.vivance-landing .future-signals-copy .section-lead,
+.vivance-landing .future-signals-copy .future-feature-detail {
+  color: #d6ddea;
+}
+.vivance-landing .signals-showcase {
+  position: relative;
+  min-height: 425px;
+  padding: 25px;
+  border: 1px solid #ffffff22;
+  border-radius: 29px;
+  background: linear-gradient(145deg, #1d3351, #0a1a33 72%);
+  box-shadow:
+    inset 0 1px #ffffff12,
+    0 18px 44px #06102244;
+}
+.vivance-landing .signals-showcase-topline {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.vivance-landing .signals-showcase-topline span:last-child {
+  padding: 5px 9px;
+  border: 1px solid #ffffff30;
+  border-radius: 999px;
+  color: #d6ddea;
+  font-size: 10px;
+}
+.vivance-landing .signals-device-image {
+  position: absolute;
+  top: 66px;
+  right: 25px;
+  width: min(50%, 250px);
+  height: 208px;
+  overflow: hidden;
+  border: 1px solid #ffffff29;
+  border-radius: 22px;
+  background: #d6c29a;
+}
+.vivance-landing .signals-device-image img {
+  object-position: center;
+}
+.vivance-landing .signals-connection-flow {
+  position: absolute;
+  top: 106px;
+  left: 25px;
+  display: grid;
+  gap: 8px;
+  width: 132px;
+}
+.vivance-landing .signals-connection-flow span,
+.vivance-landing .signals-connection-flow strong {
+  padding: 8px 10px;
+  border: 1px solid #ffffff24;
+  border-radius: 10px;
+  font-size: 10px;
+  line-height: 1.3;
+}
+.vivance-landing .signals-connection-flow span {
+  color: #d6ddea;
+  background: #ffffff08;
+}
+.vivance-landing .signals-connection-flow strong {
+  color: #0a1a33;
+  background: #e0c482;
+  text-align: center;
+  font-weight: 700;
+}
+.vivance-landing .signals-connection-flow i {
+  display: flex;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: 18px;
+  border: 1px solid #e0c48280;
+  border-radius: 50%;
+  background: #0a1a33;
+  color: #e0c482;
+}
+.vivance-landing .signals-connection-flow i:before,
+.vivance-landing .signals-connection-flow i:after {
+  content: "";
+  position: absolute;
+  left: 28px;
+  width: 1px;
+  height: 8px;
+  background: #e0c48280;
+}
+.vivance-landing .signals-connection-flow i:before {
+  margin-top: -9px;
+}
+.vivance-landing .signals-connection-flow i:after {
+  margin-top: 19px;
+}
+.vivance-landing .signals-connection-flow svg {
+  width: 11px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+.vivance-landing .signals-metric-grid {
+  position: absolute;
+  z-index: 1;
+  bottom: 25px;
+  left: 25px;
+  right: 25px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+}
+.vivance-landing .signals-metric-grid > div {
+  min-width: 0;
+  padding: 14px 12px;
+  border: 1px solid #ffffff20;
+  border-radius: 16px;
+  background: #ffffff0c;
+}
+.vivance-landing .signals-metric-grid span,
+.vivance-landing .signals-metric-grid small {
+  display: block;
+  color: #bfcad9;
+  font-size: 10px;
+}
+.vivance-landing .signals-metric-grid strong {
+  display: block;
+  margin-top: 6px;
+  color: white;
+  font-size: 13px;
+  line-height: 1.2;
+}
+.vivance-landing .signals-metric-grid svg {
+  display: block;
+  width: 84px;
+  max-width: 100%;
+  height: 22px;
+  margin-top: 9px;
+  overflow: visible;
+}
+.vivance-landing .signals-metric-grid polyline {
+  fill: none;
+  stroke: #e0c482;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.25;
+}
+.vivance-landing .signals-metric-grid rect {
+  fill: #e0c482;
+}
+.vivance-landing .signals-metric-grid > div:last-child rect:nth-of-type(n + 4) {
+  fill: #ffffff28;
+}
+.vivance-landing .signals-metric-grid small {
+  margin-top: 4px;
+  color: #e0c482;
+  font-size: 9px;
+}
+.vivance-landing .signals-compatibility-note {
+  max-width: 480px;
+  margin-top: 20px;
+  color: #aebdd0;
+  font-size: 11px;
+  line-height: 1.7;
+}
+@media (max-width: 760px) {
+  .vivance-landing .future-feature-grid,
+  .vivance-landing .future-signals-grid {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+  .vivance-landing .future-feature-copy h2 {
+    font-size: 34px;
+    line-height: 1.16;
+  }
+  .vivance-landing .meal-preview {
+    padding: 0;
+  }
+  .vivance-landing .meal-photo-frame {
+    min-height: 0;
+    aspect-ratio: 3 / 2;
+    border-radius: 23px;
+  }
+  .vivance-landing .meal-compare-card {
+    position: relative;
+    right: auto;
+    width: calc(100% - 16px);
+    margin: -16px 0 0 auto;
+    padding: 17px;
+  }
+  .vivance-landing .future-signals-grid {
+    gap: 39px;
+  }
+  .vivance-landing .signals-showcase {
+    min-height: 395px;
+    padding: 19px;
+    border-radius: 24px;
+  }
+  .vivance-landing .signals-device-image {
+    top: 58px;
+    right: 19px;
+    width: min(53%, 220px);
+    height: 204px;
+  }
+  .vivance-landing .signals-connection-flow {
+    top: 93px;
+    left: 19px;
+  }
+  .vivance-landing .signals-metric-grid {
+    right: 19px;
+    bottom: 19px;
+    left: 19px;
+  }
+}
+@media (max-width: 380px) {
+  .vivance-landing .future-feature-copy h2 {
+    font-size: 30px;
+  }
+  .vivance-landing .meal-photo-label {
+    padding: 5px 7px;
+    font-size: 9px;
+  }
+  .vivance-landing .meal-label-carboidrato {
+    left: 31%;
+  }
+  .vivance-landing .signals-metric-grid > div {
+    padding: 11px 8px;
+  }
+  .vivance-landing .signals-metric-grid strong {
+    font-size: 12px;
+  }
+}
+
+.vivance-landing .signals-showcase-topline > span:first-child {
+  color: #e6c985;
+}

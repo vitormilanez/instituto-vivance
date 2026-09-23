@@ -22,7 +22,7 @@ export default async function FirstSteps({
   const { tenantId } = await params;
   const query = await searchParams;
   const context = await requireClinic(tenantId, ["patient"]).catch((error) => {
-    if (error instanceof AccessError && error.status === 401) redirect("/");
+    if (error instanceof AccessError && error.status === 401) redirect("/login");
     if (error instanceof AccessError || error instanceof InputError) notFound();
     throw error;
   });

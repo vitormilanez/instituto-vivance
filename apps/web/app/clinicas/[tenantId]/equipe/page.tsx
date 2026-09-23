@@ -19,7 +19,7 @@ export default async function TeamPage({
 }) {
   const { tenantId } = await params;
   const context = await loadTeamWorkspace(tenantId).catch((error) => {
-    if (error instanceof AccessError && error.status === 401) redirect("/");
+    if (error instanceof AccessError && error.status === 401) redirect("/login");
     if (error instanceof AccessError || error instanceof InputError) notFound();
     throw error;
   });

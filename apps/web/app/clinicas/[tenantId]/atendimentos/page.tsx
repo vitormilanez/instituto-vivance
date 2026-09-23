@@ -12,7 +12,7 @@ export default async function EncountersPage({
 }) {
   const { tenantId } = await params;
   const access = await requireClinic(tenantId).catch((e) => {
-    if (e instanceof AccessError && e.status === 401) redirect("/");
+    if (e instanceof AccessError && e.status === 401) redirect("/login");
     if (e instanceof AccessError) notFound();
     throw e;
   });
