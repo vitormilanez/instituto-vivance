@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PatientReturnPreparations } from "@/modules/return-preparation/service";
 import { preparationTopics } from "@/modules/return-preparation/questionnaire";
 import { Icon } from "./icons";
@@ -48,18 +48,33 @@ export function PreparationFlow({
 }) {
   const questions = item.questionnaire.questions as { id: string; label: string }[];
   const busy = useRef(false);
+  const initialView = useRef(true);
+  const stepHeading = useRef<HTMLHeadingElement>(null);
+  const sentHeading = useRef<HTMLHeadingElement>(null);
   const [answers, setAnswers] = useState<Record<string, string>>(answerRecord(item.draft?.answers));
   const [priorities, setPriorities] = useState<string[]>(item.draft?.priorities ?? []);
   const [version, setVersion] = useState(item.draft?.version ?? 0);
   const [savedAt, setSavedAt] = useState<string | null>(item.draft ? "antes" : null);
+  const [dirty, setDirty] = useState(false);
   const firstOpen = questions.findIndex((question) => !answers[question.id]?.trim());
   const [step, setStep] = useState(summary.length ? 0 : Math.max(1, firstOpen + 1));
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState<string | null>(null);
-  const total = questions.length + 3; // resumo + perguntas + prioridades + revisão
+  const firstStep = summary.length ? 0 : 1;
+  const total = questions.length + 3 - firstStep; // resumo, se houver + perguntas + prioridades + revisão
   const answered = questions.filter((question) => answers[question.id]?.trim()).length;
   const complete = answered === questions.length;
+
+  useEffect(() => {
+    if (initialView.current) {
+      initialView.current = false;
+      return;
+    }
+    const heading = sent ? sentHeading.current : stepHeading.current;
+    heading?.closest(".pv-checkin, .pv-done")?.scrollIntoView({ block: "start", behavior: "instant" });
+    heading?.focus({ preventScroll: true });
+  }, [sent, step]);
 
   const body = () => ({
     version,
@@ -82,7 +97,7 @@ export function PreparationFlow({
   async function go(next: number) {
     if (busy.current) return;
     // Salva o rascunho ao avançar, só se algo foi escrito.
-    if (step >= 1 && step <= questions.length + 1 && (answered > 0 || priorities.length)) {
+    if (step >= 1 && step <= questions.length + 1 && (dirty || answered > 0 || priorities.length)) {
       busy.current = true;
       setPending(true);
       setError("");
@@ -90,6 +105,7 @@ export function PreparationFlow({
         const result = await call(`/api/v1/clinics/${tenantId}/return-preparations/${item.id}/draft`, "PUT", body());
         setVersion(result.version!);
         setSavedAt("agora");
+        setDirty(false);
       } catch (reason) {
         setError(reason instanceof Error ? reason.message : "Não foi possível salvar o rascunho.");
         busy.current = false;
@@ -129,7 +145,7 @@ export function PreparationFlow({
     return (
       <div className="pv-stack pv-done">
         <span className="pv-done-icon" aria-hidden="true"><Icon name="check" size={32} /></span>
-        <h2 className="pv-big" tabIndex={-1} ref={(node) => node?.focus()}>Pré-consulta enviada</h2>
+        <h2 className="pv-big" tabIndex={-1} ref={sentHeading}>Pré-consulta enviada</h2>
         <p className="pv-lead">Suas respostas ficaram registradas para a consulta {whenLabel}, do jeito que você escreveu.</p>
         <p className="pv-sent-when"><Icon name="check" size={16} /> Enviado {sent}</p>
         <Link className="pv-button is-center" href={`${base}/hoje`}>Voltar para o início</Link>
@@ -143,18 +159,18 @@ export function PreparationFlow({
     <div className="pv-checkin">
       <div className="pv-progress" aria-hidden="true">
         {Array.from({ length: total }, (_, position) => (
-          <span key={position} className={position <= step ? "is-done" : undefined} />
+          <span key={position} className={position <= step - firstStep ? "is-done" : undefined} />
         ))}
       </div>
       <p className="pv-muted pv-progress-label">
         Pré-consulta · consulta {whenLabel}
-        {savedAt ? " · rascunho salvo" : ""}
+        {dirty ? " · alterações ainda não salvas" : savedAt ? " · rascunho salvo" : ""}
       </p>
 
       {step === 0 && (
         <>
           <div className="pv-stack pv-tight">
-            <h2 className="pv-big">Primeiro, confira o que você já registrou</h2>
+            <h2 className="pv-big" tabIndex={-1} ref={stepHeading}>Primeiro, confira o que você já registrou</h2>
             <p className="pv-lead">Desde a última consulta. Assim você não precisa escrever tudo de novo.</p>
           </div>
           <div className="pv-card">
@@ -177,16 +193,19 @@ export function PreparationFlow({
         <>
           <div className="pv-stack pv-tight">
             <p className="pv-eyebrow">Pergunta {step} de {questions.length}</p>
-            <h2 className="pv-big" id="pv-prep-question">{text.title}</h2>
+            <h2 className="pv-big pv-prep-question" id="pv-prep-question" tabIndex={-1} ref={stepHeading}>{text.title}</h2>
             {text.hint && <p className="pv-lead">{text.hint}</p>}
           </div>
           <label className="pv-field">
             <span className="pv-visually-hidden">{text.title}</span>
             <textarea
-              rows={6}
+              rows={5}
               maxLength={4000}
               value={answers[question.id] ?? ""}
-              onChange={(event) => setAnswers({ ...answers, [question.id]: event.target.value })}
+              onChange={(event) => {
+                setAnswers({ ...answers, [question.id]: event.target.value });
+                setDirty(true);
+              }}
               disabled={pending}
             />
             <small>
@@ -202,7 +221,7 @@ export function PreparationFlow({
         <>
           <div className="pv-stack pv-tight">
             <p className="pv-eyebrow">Opcional</p>
-            <h2 className="pv-big">O que você quer priorizar na conversa?</h2>
+            <h2 className="pv-big" tabIndex={-1} ref={stepHeading}>O que você quer priorizar na conversa?</h2>
             <p className="pv-lead">Toque em até 3, na ordem de importância.</p>
           </div>
           <div className="pv-chips">
@@ -215,9 +234,10 @@ export function PreparationFlow({
                   className="pv-chip"
                   aria-pressed={order >= 0}
                   disabled={pending || (order < 0 && priorities.length >= 3)}
-                  onClick={() =>
-                    setPriorities(order >= 0 ? priorities.filter((id) => id !== topic.id) : [...priorities, topic.id])
-                  }
+                  onClick={() => {
+                    setPriorities(order >= 0 ? priorities.filter((id) => id !== topic.id) : [...priorities, topic.id]);
+                    setDirty(true);
+                  }}
                 >
                   {order >= 0 && <span className="pv-order">{order + 1}</span>}
                   {topic.label}
@@ -231,7 +251,7 @@ export function PreparationFlow({
       {step === questions.length + 2 && (
         <>
           <div className="pv-stack pv-tight">
-            <h2 className="pv-big">Revise e envie</h2>
+            <h2 className="pv-big" tabIndex={-1} ref={stepHeading}>Revise e envie</h2>
             <p className="pv-lead">Só você vê este rascunho até enviar.</p>
           </div>
           <ul className="pv-card pv-review">
@@ -267,7 +287,7 @@ export function PreparationFlow({
       {error && <p className="pv-form-error" role="alert">{error}</p>}
 
       <div className="pv-checkin-actions">
-        {step > 0 ? (
+        {step > firstStep ? (
           <button type="button" className="pv-link" onClick={() => setStep(step - 1)} disabled={pending}>Voltar</button>
         ) : (
           <Link className="pv-link" href={`${base}/hoje`}>Agora não</Link>

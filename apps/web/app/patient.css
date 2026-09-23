@@ -14,8 +14,8 @@
   --pv-gold-soft: #f6eedc;
   --pv-gold-light: #e3c88f;
   --pv-hero-sub: #d5dbe6;
-  --pv-shadow: 0 6px 24px rgba(10, 26, 51, 0.07);
-  --pv-radius: 24px;
+  --pv-shadow: 0 2px 10px rgba(10, 26, 51, 0.035);
+  --pv-radius: 20px;
   min-height: 100vh;
   background: var(--pv-canvas);
   color: var(--pv-ink);
@@ -102,7 +102,7 @@
   box-sizing: border-box;
 }
 
-.pv a {
+.pv :where(a) {
   color: inherit;
 }
 
@@ -402,6 +402,7 @@
   display: grid;
   gap: 12px;
   padding: 18px;
+  border: 1px solid var(--pv-line);
   border-radius: var(--pv-radius);
   background: var(--pv-surface);
   box-shadow: var(--pv-shadow);
@@ -436,10 +437,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 56px;
-  padding: 0 18px;
+  min-height: 52px;
+  padding: 12px 18px;
   border: 0;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--pv-ink);
   color: #fff;
   font: inherit;
@@ -615,7 +616,7 @@
 
 .pv-greeting h1 {
   margin: 2px 0 0;
-  font-size: 30px;
+  font-size: 28px;
   line-height: 1.15;
   letter-spacing: -0.01em;
 }
@@ -1670,7 +1671,18 @@
 
 .pv-checkin {
   display: grid;
-  gap: 20px;
+  gap: 16px;
+  scroll-margin-block-start: 80px;
+}
+
+.pv-checkin .pv-big {
+  font-size: 24px;
+  line-height: 1.3;
+}
+
+.pv-checkin .pv-prep-question {
+  font-size: 22px;
+  line-height: 1.35;
 }
 
 .pv-progress {
@@ -1696,8 +1708,8 @@
 
 .pv-checkin-body {
   display: grid;
+  align-content: start;
   gap: 16px;
-  min-height: 200px;
 }
 
 .pv-checkin-actions {
@@ -1752,6 +1764,8 @@
 .pv-chips {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
   gap: 8px;
 }
 
@@ -1760,9 +1774,9 @@
   align-items: center;
   gap: 6px;
   min-height: 44px;
-  padding: 0 16px;
+  padding: 10px 14px;
   border: 1.5px solid var(--pv-line);
-  border-radius: 999px;
+  border-radius: 14px;
   background: var(--pv-surface);
   color: var(--pv-ink);
   font: inherit;
@@ -1860,15 +1874,40 @@
 
 .pv-done {
   justify-items: start;
+  gap: 16px;
+  scroll-margin-block-start: 80px;
+}
+
+.pv-done > * {
+  margin: 0;
+}
+
+.pv-receipt {
+  display: block;
+}
+
+.pv-receipt summary {
+  min-height: 44px;
+  align-content: center;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pv-receipt[open] summary {
+  margin-bottom: 8px;
+}
+
+.pv-receipt .pv-summary {
+  font-size: 15px;
 }
 
 .pv-done-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
   background: var(--pv-ink);
   color: var(--pv-gold);
 }
