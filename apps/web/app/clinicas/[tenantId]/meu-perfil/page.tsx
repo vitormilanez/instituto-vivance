@@ -20,7 +20,7 @@ export default async function MyProfile({
     },
   );
   return (
-    <PatientShell clinic={clinic} active="perfil">
+    <PatientShell clinic={clinic} active="perfil" title="Meu perfil" heading="page" backHref={`/clinicas/${clinic.id}/meu-cuidado/cuidado`}>
       <div className="page-heading">
         <div>
           <h1>Meu perfil</h1>

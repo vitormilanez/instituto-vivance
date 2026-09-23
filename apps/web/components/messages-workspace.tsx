@@ -247,6 +247,183 @@ function ConversationWorkspace({
     }
   }
 
+  // Área do paciente: um chat comum. Com um só médico (o MVP), a conversa
+  // abre direto, sem lista de destinatários; balões compactos, hora pequena e
+  // o aviso de urgência fixo, com atalho para Sinais de alerta.
+  if (!isStaffConversation) {
+    const lastOwn = [...initial.messages].reverse().find((message) => message.sender_id === initial.userId);
+    const dayOf = (at: string) =>
+      new Date(at).toLocaleDateString("pt-BR", { day: "numeric", month: "long", timeZone: "America/Sao_Paulo" });
+    const rows = initial.messages.map((message, index) => ({
+      message,
+      day: dayOf(message.sent_at),
+      showDay: index === 0 || dayOf(initial.messages[index - 1].sent_at) !== dayOf(message.sent_at),
+    }));
+    return (
+      <div className="pv-chat">
+        {initial.recipients.length > 1 && (
+          <nav className="pv-chat-recipients" aria-label={directoryTitle}>
+            {initial.recipients.map((recipient) => (
+              <Link
+                key={recipient.id}
+                href={conversationHref(base, recipientParam, recipient.id)}
+                aria-current={selected?.doctorId === recipient.id ? "page" : undefined}
+              >
+                {recipient.displayName}
+                {recipient.hasUnread && <span className="pv-dot" aria-label="Nova mensagem" />}
+              </Link>
+            ))}
+          </nav>
+        )}
+        {selected ? (
+          <>
+            <header className="pv-chat-head">
+              <span className="pv-avatar" aria-hidden="true">
+                {selected.displayName
+                  .replace(/^(Dra?\.)\s+/i, "")
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((part) => part[0])
+                  .join("")
+                  .toUpperCase()}
+              </span>
+              <span>
+                <strong>{selected.displayName}</strong>
+                <small>Mensagens sem pressa · sem anexos</small>
+              </span>
+            </header>
+            <p className="pv-chat-urgent">
+              Não é canal de urgência.{" "}
+              <Link href={`/clinicas/${initial.clinic.id}/meu-cuidado/alerta`}>Veja o que fazer</Link>
+            </p>
+            {initial.page > 1 || initial.hasNext ? (
+              <nav className="pv-chat-pages" aria-label="Páginas de mensagens">
+                {initial.hasNext && (
+                  <Link href={conversationHref(base, recipientParam, selected.doctorId, initial.page + 1)}>
+                    Mensagens anteriores
+                  </Link>
+                )}
+                {initial.page > 1 && (
+                  <Link href={conversationHref(base, recipientParam, selected.doctorId, initial.page - 1)}>
+                    Mais recentes
+                  </Link>
+                )}
+              </nav>
+            ) : null}
+            {initial.messages.length ? (
+              <ol className="pv-chat-list" aria-live="polite">
+                {rows.map(({ message, day, showDay }) => {
+                  const own = message.sender_id === initial.userId;
+                  return (
+                    <li key={message.id} className={own ? "is-own" : undefined}>
+                      {showDay && <p className="pv-chat-day">{day}</p>}
+                      <div className="pv-bubble">
+                        <span className="pv-visually-hidden">{own ? "Você:" : `${selected.displayName}:`}</span>
+                        <p>{message.content}</p>
+                        {message.reference &&
+                          (message.reference.available ? (
+                            <a className="pv-bubble-ref" href={message.reference.href}>
+                              {message.reference.label}
+                            </a>
+                          ) : (
+                            <span className="pv-bubble-ref">{message.reference.label}</span>
+                          ))}
+                        <time dateTime={message.sent_at}>
+                          {new Date(message.sent_at).toLocaleTimeString("pt-BR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            timeZone: "America/Sao_Paulo",
+                          })}
+                          {own && message.id === lastOwn?.id ? " · Enviado ✓" : ""}
+                        </time>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            ) : (
+              <div className="pv-card pv-chat-empty">
+                <h2 className="pv-h2">Escreva para {selected.displayName}</h2>
+                <p className="pv-lead">Para dúvidas que podem esperar. As respostas aparecem aqui.</p>
+              </div>
+            )}
+            <form className="pv-composer" onSubmit={submit}>
+              {error && <p className="pv-form-error" role="alert">{error}</p>}
+              {sendUncertain && (
+                <div className="pv-inline">
+                  <button type="button" className="pv-link" onClick={() => router.refresh()}>
+                    Atualizar conversa
+                  </button>
+                  <button type="button" className="pv-link" onClick={() => setSendUncertain(false)}>
+                    Tentar novamente
+                  </button>
+                </div>
+              )}
+              {notice && <p className="pv-visually-hidden" role="status">{notice}</p>}
+              {initial.references.length > 0 && (
+                <details className="pv-more">
+                  <summary>Citar um documento ou orientação</summary>
+                  <label className="pv-field">
+                    <span className="pv-visually-hidden">Referência compartilhada</span>
+                    <select
+                      value={activeReference ? selectedReference : ""}
+                      disabled={pending}
+                      onChange={(event) => {
+                        setSelectedReference(event.target.value);
+                        requestKey.current = null;
+                      }}
+                    >
+                      <option value="">Nenhum</option>
+                      {initial.references.map((reference) => (
+                        <option key={`${reference.type}:${reference.id}`} value={`${reference.type}:${reference.id}`}>
+                          {reference.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </details>
+              )}
+              <div className="pv-composer-row">
+                <label className="pv-visually-hidden" htmlFor="direct-message">
+                  Mensagem para {selected.displayName}
+                </label>
+                <textarea
+                  id="direct-message"
+                  name="content"
+                  ref={composer}
+                  rows={1}
+                  maxLength={4000}
+                  required
+                  disabled={pending}
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  placeholder="Escreva sua mensagem"
+                />
+                <button
+                  className="pv-send"
+                  aria-label={pending ? "Enviando" : "Enviar mensagem"}
+                  disabled={pending || sendUncertain || !draft.trim()}
+                >
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="m22 2-7 20-4-9-9-4z" />
+                    <path d="M22 2 11 13" />
+                  </svg>
+                </button>
+              </div>
+              {draft.length > 3500 && <small className="pv-muted">{draft.length}/4.000 caracteres</small>}
+            </form>
+          </>
+        ) : (
+          <div className="pv-card">
+            <h2 className="pv-h2">Nenhuma conversa disponível</h2>
+            <p className="pv-lead">{emptyDirectory}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="conversation-workspace">
       <section className="conversation-directory" aria-label={directoryTitle}>

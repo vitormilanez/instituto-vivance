@@ -1,0 +1,16 @@
+{
+  "name": "Instituto Vivance",
+  "short_name": "Vivance",
+  "description": "Seu acompanhamento entre as consultas.",
+  "lang": "pt-BR",
+  "start_url": "/clinicas",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f4ef",
+  "theme_color": "#0a1a33",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

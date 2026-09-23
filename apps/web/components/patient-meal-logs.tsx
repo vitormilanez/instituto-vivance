@@ -340,7 +340,7 @@ export function PatientMealLogs({ initial }: { initial: PatientMeals }) {
                 </strong>
                 <span>{clinicalTime(meal.eaten_at)}</span>
               </div>
-              <p>{meal.description}</p>
+              {meal.description ? <p>{meal.description}</p> : <p className="quiet-label">Só a foto, sem descrição.</p>}
               {meal.photo_document_id && (
                 <a
                   className="meal-log-photo"

@@ -22,7 +22,7 @@ export async function patientRecentSent(id: string): Promise<SentItem[] | null> 
     .maybeSingle();
   if (account.error || !account.data) return null;
   const patient = account.data.patient_id;
-  const [measurements, meals, documents, checkIns, preparations, messages] =
+  const [measurements, meals, documents, checkIns, preparations, messages, daily] =
     await Promise.all([
       client
         .from("patient_measurements")
@@ -77,6 +77,13 @@ export async function patientRecentSent(id: string): Promise<SentItem[] | null> 
         .eq("sender_id", user.id)
         .order("sent_at", { ascending: false })
         .limit(perKind),
+      client
+        .from("patient_daily_check_ins")
+        .select("client_request_id,submitted_at")
+        .eq("tenant_id", tenant)
+        .eq("actor_user_id", user.id)
+        .order("submitted_at", { ascending: false })
+        .limit(perKind),
     ]);
   if (
     measurements.error ||
@@ -89,6 +96,11 @@ export async function patientRecentSent(id: string): Promise<SentItem[] | null> 
     return null;
 
   const items: SentItem[] = [];
+  // Check-in diário: tabela nova pode ainda não existir; aí o tipo só some.
+  const dailyRows = daily.error ? [] : (daily.data ?? []);
+  const dailyKeys = new Set(dailyRows.map((row) => row.client_request_id));
+  for (const row of dailyRows)
+    items.push({ kind: "daily", key: row.client_request_id, at: row.submitted_at, detail: null });
   // Medidas do mesmo envio viram uma linha: "Peso 72,4 kg · Cintura 91 cm".
   const grouped = new Map<string, { at: string; parts: string[] }>();
   for (const row of measurements.data ?? []) {
@@ -99,7 +111,7 @@ export async function patientRecentSent(id: string): Promise<SentItem[] | null> 
     grouped.set(row.client_request_id, group);
   }
   for (const [key, group] of grouped)
-    items.push({ kind: "measurements", key, at: group.at, detail: group.parts.join(" · ") });
+    if (!dailyKeys.has(key)) items.push({ kind: "measurements", key, at: group.at, detail: group.parts.join(" · ") });
   for (const row of meals.data ?? [])
     items.push({
       kind: "meal",

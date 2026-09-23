@@ -24,6 +24,7 @@ type ClockRow = {
   uploaded_by?: string | null;
   sender_id?: string | null;
   actor_user_id?: string | null;
+  client_request_id?: string | null;
 };
 
 function hrefFor(
@@ -42,6 +43,8 @@ function hrefFor(
       return `${record}?aba=Evolu%C3%A7%C3%A3o`;
     case "checkins":
       return `${base}/acompanhamento#check-in-${id}`;
+    case "daily_checkins":
+      return `${record}?aba=Evolu%C3%A7%C3%A3o#staff-check-ins-title`;
     case "messages":
       return `${base}/mensagens?paciente=${patientId}`;
   }
@@ -127,7 +130,7 @@ export async function receivedForPatients(
   ) => (bound ? query.gte(column, bound) : query);
   const skipped = Promise.resolve({ data: null, error: new Error("skipped") });
 
-  const [preparations, documents, messages, checkIns, measurements] =
+  const [preparations, documents, messages, checkIns, measurements, dailyCheckIns] =
     await Promise.all([
       since(
         client
@@ -181,12 +184,27 @@ export async function receivedForPatients(
         : since(
             client
               .from("patient_measurements")
-              .select("id,patient_id,at:submitted_at,actor_user_id")
+              .select("id,patient_id,at:submitted_at,actor_user_id,client_request_id")
+              .eq("tenant_id", tenant)
+              .in("patient_id", patientIds),
+            "submitted_at",
+          ),
+      accountsFailed
+        ? skipped
+        : since(
+            client
+              .from("patient_daily_check_ins")
+              .select("id,patient_id,at:submitted_at,actor_user_id,client_request_id")
               .eq("tenant_id", tenant)
               .in("patient_id", patientIds),
             "submitted_at",
           ),
     ]);
+  // O peso dado no check-in também vira medida (mesma chave). Na lista, conta
+  // uma vez só: como check-in.
+  const dailyKeys = new Set(
+    ((dailyCheckIns.data as ClockRow[] | null) ?? []).map((row) => row.client_request_id),
+  );
 
   const base = `/clinicas/${tenant}`;
   const rows: ReceivedRow[] = [];
@@ -233,8 +251,20 @@ export async function receivedForPatients(
   consider(
     "measurements",
     measurements,
-    (row) => row.actor_user_id === userByPatient.get(row.patient_id),
+    (row) =>
+      row.actor_user_id === userByPatient.get(row.patient_id) &&
+      !dailyKeys.has(row.client_request_id ?? null),
   );
+  // Tabela nova ainda ausente no banco: o tipo some, sem marcar falha.
+  const dailyMissing = ["42P01", "PGRST205"].includes(
+    (dailyCheckIns.error as { code?: string } | null)?.code ?? "",
+  );
+  if (!dailyMissing)
+    consider(
+      "daily_checkins",
+      dailyCheckIns,
+      (row) => row.actor_user_id === userByPatient.get(row.patient_id),
+    );
   // O que este profissional já abriu. Leitura é por pessoa: a RLS só devolve
   // as linhas do próprio usuário, e o filtro explícito diz a mesma coisa. Se a
   // leitura falhar, nenhum item vira "novo" nem "visto" — fica sem marcação.
@@ -261,6 +291,7 @@ export const allReceivedKinds: ReceivedItemKind[] = [
   "documents",
   "messages",
   "checkins",
+  "daily_checkins",
   "measurements",
 ];
 

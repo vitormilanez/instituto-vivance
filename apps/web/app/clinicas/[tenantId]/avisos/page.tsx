@@ -41,7 +41,7 @@ export default async function NoticesPage({
     </>
   );
   return initial.clinic.role === "patient" ? (
-    <PatientShell clinic={initial.clinic} active="avisos">
+    <PatientShell clinic={initial.clinic} active="avisos" title="Avisos" heading="page" backHref={`/clinicas/${initial.clinic.id}/meu-cuidado/hoje`}>
       {content}
     </PatientShell>
   ) : (

@@ -12,6 +12,8 @@ import { patientCareContext } from "@/modules/workspace/today";
 import { patientHeaderFacts } from "@/modules/workspace/patient-header-facts";
 import { PatientCareLinks } from "@/components/today-workspace";
 import { StaffLongitudinalWorkspace } from "@/components/longitudinal-workspace";
+import { StaffCheckInsPanel } from "@/components/staff-check-ins";
+import { staffCheckIns } from "@/modules/daily-check-ins/service";
 import { CheckInError } from "@/modules/check-ins/service";
 import { staffLongitudinal } from "@/modules/longitudinal/service";
 import { DocumentError, staffDocuments } from "@/modules/documents/service";
@@ -74,6 +76,10 @@ export default async function Patient({
             redirect(`${recordBase}?aba=Evolu%C3%A7%C3%A3o`);
           throw error;
         })
+      : null;
+  const checkIns =
+    clinicalArea && active === "Evolução"
+      ? await staffCheckIns(tenantId, patientId).catch(() => null)
       : null;
   const documents =
     clinicalArea && active === "Documentos"
@@ -287,6 +293,15 @@ export default async function Patient({
           backLabel="Voltar à visão geral do paciente"
         />
       ) : active === "Evolução" && longitudinal ? (
+        <>
+        {checkIns && (
+          <StaffCheckInsPanel
+            data={checkIns}
+            tenantId={tenantId}
+            patientId={patientId}
+            canEdit={context.clinic.role === "doctor"}
+          />
+        )}
         <StaffLongitudinalWorkspace
           initial={longitudinal}
           base={recordBase}
@@ -295,6 +310,7 @@ export default async function Patient({
           backHref={`${recordBase}?aba=Linha%20do%20tempo`}
           backLabel="Abrir linha do tempo do paciente"
         />
+        </>
       ) : null}
       {active === "Visão geral" && (
         <div className="patient-record-secondary">

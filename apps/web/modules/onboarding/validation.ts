@@ -113,7 +113,12 @@ export function onboardingPatchInput(value: unknown) {
     const measures = object(body.measurements, "Medidas inválidas.");
     exact(measures, ["weightKg", "heightCm", "waistCm", "measuredOn"], "As medidas contêm campos não permitidos.");
     if ("weightKg" in measures) result.weight_kg = optionalNumber(measures.weightKg, 500, "Peso inválido.");
-    if ("heightCm" in measures) result.height_cm = optionalNumber(measures.heightCm, 300, "Altura inválida.");
+    if ("heightCm" in measures) {
+      result.height_cm = optionalNumber(measures.heightCm, 300, "Altura inválida.");
+      // Altura em metros (1,73) gravaria 1,73 cm no histórico.
+      if (typeof result.height_cm === "number" && result.height_cm < 50)
+        throw new InputError("Altura: informe em centímetros, por exemplo 173.");
+    }
     if ("waistCm" in measures) result.waist_cm = optionalNumber(measures.waistCm, 400, "Circunferência inválida.");
     if ("measuredOn" in measures) result.measured_on = date(measures.measuredOn, "Data das medidas inválida.");
   }

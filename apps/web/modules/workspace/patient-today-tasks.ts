@@ -59,9 +59,9 @@ function careRequestTask(
       goals: "Responder",
     }[request.kind]!,
     href: {
-      preparation: `${input.base}/preparo`,
+      preparation: `${input.base}/preconsulta`,
       exams: onboarding,
-      measurements: `${input.base}/evolucao#atualizar-medidas`,
+      measurements: `${input.base}/peso`,
       goals: onboarding,
     }[request.kind]!,
   };
@@ -108,7 +108,7 @@ export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTa
       title: isDraft ? "Continuar sua pré-consulta" : "Responder sua pré-consulta",
       detail: `${isDraft ? "Seu rascunho foi salvo; complete quando puder." : "Seu médico enviou um roteiro curto para a próxima conversa."}${remaining}`,
       action: isDraft ? "Continuar preparo" : "Responder preparo",
-      href: `${input.base}/hoje?preparo=${input.preparationPending.first.id}#preparo-${input.preparationPending.first.id}`,
+      href: `${input.base}/preconsulta?preparo=${input.preparationPending.first.id}`,
     });
   }
 
@@ -141,7 +141,7 @@ export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTa
       title: "Atualizar medidas",
       detail: "Registre peso, altura ou circunferência abdominal para manter seu histórico atualizado.",
       action: "Atualizar medidas",
-      href: `${input.base}/evolucao#atualizar-medidas`,
+      href: `${input.base}/peso`,
     });
 
   return tasks;

@@ -65,7 +65,7 @@ export function checkInSourceHref(base: string, patient: boolean, sourceId: stri
 }
 
 export function patientMeasurementSourceHref(base: string, patient: boolean) {
-  if (patient) return `${base}/evolucao#atualizar-medidas`;
+  if (patient) return `${base}/peso`;
   return "#measures-title";
 }
 

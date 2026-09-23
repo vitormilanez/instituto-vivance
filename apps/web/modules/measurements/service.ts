@@ -28,6 +28,8 @@ export async function submitPatientMeasurements(id: string, input: unknown) {
     waist_cm: value.waistCm,
     measured_on: value.measuredOn,
     request_id: value.requestId,
+    // Só a conta de paciente logada chega aqui (requireClinic "patient"), e o
+    // banco grava auth.uid() como autor: o envio é o próprio relato.
     confirmed: true,
   });
   if (result.error) failed(result.error.code);

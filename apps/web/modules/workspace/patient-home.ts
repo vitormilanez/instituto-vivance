@@ -57,7 +57,7 @@ export function patientFocus(input: {
       detail:
         "Não há nada pendente com você agora. Se quiser, registre como está a sua semana abaixo.",
       action: "Registrar peso",
-      href: `${input.base}/evolucao#atualizar-medidas`,
+      href: `${input.base}/peso`,
     },
     rest: [],
   };
@@ -97,13 +97,13 @@ export function quickLogs(input: {
       hint: last
         ? `Último: ${last.measure_label.toLowerCase()} ${friendlyNumber(last.measure_value)} ${last.measure_unit} em ${shortDate(last.reported_on)}`
         : "Leva menos de um minuto",
-      href: `${input.base}/evolucao#atualizar-medidas`,
+      href: `${input.base}/peso`,
     },
     {
       id: "meal",
       title: "Refeição",
       hint: "O que você comeu, do seu jeito",
-      href: `${input.base}/diario#registrar-refeicao`,
+      href: `${input.base}/refeicao`,
     },
     {
       id: "document",
@@ -113,14 +113,14 @@ export function quickLogs(input: {
     },
     {
       id: "message",
-      title: input.doctorName ? `Mensagem para ${input.doctorName}` : "Mensagem para o seu médico",
+      title: "Mensagem ao médico",
       hint: "Para dúvidas que podem esperar a resposta",
       href: `${input.base}/conversas`,
     },
   ];
 }
 
-export type SentKind = "measurements" | "meal" | "document" | "checkin" | "preparation" | "message";
+export type SentKind = "measurements" | "meal" | "document" | "checkin" | "daily" | "preparation" | "message";
 
 export type SentItem = {
   kind: SentKind;
@@ -135,6 +135,7 @@ export const sentLabels: Record<SentKind, string> = {
   meal: "Refeição",
   document: "Exame ou documento",
   checkin: "Resposta ao check-in",
+  daily: "Check-in",
   preparation: "Pré-consulta",
   message: "Mensagem",
 };
@@ -180,4 +181,94 @@ export function sentWhen(at: string, today: string): string {
   return isoDay.format(instant) === today
     ? `hoje, ${clock.format(instant)}`
     : dayMonth.format(instant);
+}
+
+// Saudação do topo da Home: a data por extenso curta e "Bom dia/Boa tarde/Boa
+// noite" pela hora de Brasília.
+const weekdayDate = new Intl.DateTimeFormat("pt-BR", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  timeZone: "America/Sao_Paulo",
+});
+const hourOf = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  hour12: false,
+  timeZone: "America/Sao_Paulo",
+});
+
+export function homeGreeting(now: Date, firstName: string | null) {
+  const hour = Number(hourOf.format(now)) % 24;
+  const hello = hour < 5 ? "Boa noite" : hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+  const date = weekdayDate.format(now).replace("-feira", "");
+  return {
+    date: date.charAt(0).toUpperCase() + date.slice(1),
+    hello: firstName ? `${hello}, ${firstName}.` : `${hello}.`,
+  };
+}
+
+const monthShort = new Intl.DateTimeFormat("pt-BR", { month: "short", timeZone: "America/Sao_Paulo" });
+const dayNumber = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", timeZone: "America/Sao_Paulo" });
+const weekdayShort = new Intl.DateTimeFormat("pt-BR", { weekday: "long", timeZone: "America/Sao_Paulo" });
+
+// A consulta como a pessoa lê: selo com dia e mês e uma linha "Hoje, 20:34 –
+// 21:04" (ou "Amanhã", ou o dia da semana, ou a data).
+export function appointmentWhen(startsAt: string, endsAt: string, today: string) {
+  const start = new Date(startsAt);
+  const end = new Date(endsAt);
+  const day = isoDay.format(start);
+  const tomorrow = isoDay.format(new Date(new Date(`${today}T12:00:00-03:00`).getTime() + 86400000));
+  const label =
+    day === today
+      ? "Hoje"
+      : day === tomorrow
+        ? "Amanhã"
+        : (() => {
+            const name = weekdayShort.format(start).replace("-feira", "");
+            return `${name.charAt(0).toUpperCase()}${name.slice(1)}, ${dayMonth.format(start)}`;
+          })();
+  return {
+    day: dayNumber.format(start),
+    month: monthShort.format(start).replace(".", ""),
+    line: `${label}, ${clock.format(start)} – ${clock.format(end)}`,
+  };
+}
+
+// Confirmação que a Home mostra ao voltar de um registro (?enviado=peso).
+// Só valores conhecidos: o texto nunca vem da URL.
+const justSentLabels: Record<string, string> = {
+  peso: "Peso enviado",
+  medidas: "Medidas enviadas",
+  refeicao: "Refeição enviada",
+  lembrete: "Lembrete ativado",
+};
+export function justSentLabel(value: string | string[] | undefined): string | null {
+  return typeof value === "string" && Object.hasOwn(justSentLabels, value)
+    ? justSentLabels[value]
+    : null;
+}
+
+// "AAAA-MM-DDTHH:MM" no horário de Brasília, para campos datetime-local.
+const localParts = new Intl.DateTimeFormat("en-CA", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZone: "America/Sao_Paulo",
+});
+export function clinicLocalDateTime(now: Date) {
+  const parts = Object.fromEntries(localParts.formatToParts(now).map((part) => [part.type, part.value]));
+  const hour = parts.hour === "24" ? "00" : parts.hour;
+  return `${parts.year}-${parts.month}-${parts.day}T${hour}:${parts.minute}`;
+}
+
+// "de hoje, às 20:34" / "de amanhã, às 10:00" / "de 28/09, às 10:00".
+export function consultationLabel(startsAt: string, today: string) {
+  const start = new Date(startsAt);
+  const day = isoDay.format(start);
+  const tomorrow = isoDay.format(new Date(new Date(`${today}T12:00:00-03:00`).getTime() + 86400000));
+  const name = day === today ? "hoje" : day === tomorrow ? "amanhã" : dayMonth.format(start);
+  return `de ${name}, às ${clock.format(start)}`;
 }

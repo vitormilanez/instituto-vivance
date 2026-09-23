@@ -527,6 +527,15 @@ export function OnboardingWorkspace({
                   type="number"
                   min="30"
                   max="300"
+                  aria-describedby="height-hint"
+                  onBlur={() => {
+                    // 1,73 é altura em metros: guardamos 173 cm.
+                    const height = draft.measurements.heightCm;
+                    if (height && height > 0 && height < 3)
+                      update({
+                        measurements: { ...draft.measurements, heightCm: Math.round(height * 100) },
+                      });
+                  }}
                   value={numberValue(draft.measurements.heightCm)}
                   onChange={(event) =>
                     update({
@@ -540,6 +549,7 @@ export function OnboardingWorkspace({
                     })
                   }
                 />
+                <small id="height-hint">Em centímetros, por exemplo 173.</small>
               </div>
               <div className="field">
                 <label htmlFor="waist">Cintura (cm)</label>

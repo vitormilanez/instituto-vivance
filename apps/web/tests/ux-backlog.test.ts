@@ -35,7 +35,9 @@ test("áreas sem conteúdo dizem 'em breve' no menu e continuam alcançáveis", 
   assert.equal(navLabel(treatment), "Tratamento · em breve");
   assert.equal(navLabel(staffModules.find((item) => item.slug === "agenda")!), "Agenda");
   assert.match(read("../components/clinic-shell.tsx"), /label: navLabel\(module\)/);
-  assert.match(read("../components/patient-shell.tsx"), /\{navLabel\(sub\)\}/);
+  // Na área do paciente, o que ainda não existe fica fora da navegação: as
+  // quatro abas são as que já funcionam.
+  assert.doesNotMatch(read("../modules/workspace/navigation.ts").split("export const patientTabs")[1], /medicamentos/);
 });
 
 test("meu perfil não promete o que já existe", () => {
