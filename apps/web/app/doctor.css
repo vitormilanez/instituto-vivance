@@ -1,0 +1,785 @@
+/* Doctor workspace: the Claude reference's quiet canvas and compact hierarchy.
+   Every override lives inside this role-specific shell. */
+.dv {
+  --dv-ink: #0a1a33;
+  --dv-muted: #5b6478;
+  --dv-line: #e7e3dc;
+  --dv-canvas: #f7f5f1;
+  --ink: var(--dv-ink);
+  --muted: var(--dv-muted);
+  --navy: var(--dv-ink);
+  --blue: #294775;
+  --border: var(--dv-line);
+  --canvas: var(--dv-canvas);
+  --blue-soft: #f0f3f7;
+  --gold: #c8a15a;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  color: var(--dv-ink);
+  background: var(--dv-canvas);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.dv *,
+.dv *::before,
+.dv *::after {
+  box-sizing: border-box;
+}
+.dv a {
+  color: var(--blue);
+}
+.dv button,
+.dv .button {
+  min-height: 44px;
+  border-radius: 9px;
+  font-size: 14px;
+  padding: 10px 16px;
+}
+.dv .button:not(.secondary) {
+  color: white;
+}
+.dv .secondary {
+  color: var(--dv-ink);
+  background: white;
+  border-color: var(--dv-line);
+}
+.dv input,
+.dv select,
+.dv textarea {
+  font: inherit;
+  border-color: #d7d4cd;
+  border-radius: 9px;
+  color: var(--dv-ink);
+  background: white;
+}
+.dv input,
+.dv select {
+  min-height: 44px;
+}
+.dv textarea {
+  line-height: 1.6;
+}
+.dv h1 {
+  font-size: clamp(24px, 2.3vw, 30px);
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+.dv h2 {
+  font-size: 17px;
+  line-height: 1.35;
+}
+.dv h3 {
+  font-size: 15px;
+}
+.dv p {
+  color: var(--dv-muted);
+}
+.dv .panel {
+  border: 1px solid var(--dv-line);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: none;
+}
+.dv .page-heading {
+  margin-bottom: 24px;
+  gap: 16px;
+}
+.dv .page-heading h1 {
+  margin-bottom: 8px;
+}
+.dv .page-heading p {
+  font-size: 14px;
+  max-width: 68ch;
+}
+.dv .eyebrow {
+  color: #815d20;
+  font-size: 11px;
+  letter-spacing: 0.09em;
+}
+.dv .dv-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 14px 20px;
+  border-right: 1px solid var(--dv-line);
+  background: white;
+}
+.dv .dv-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 10px 28px;
+  text-decoration: none;
+  color: var(--dv-ink);
+  min-width: 0;
+}
+.dv .dv-brand strong {
+  font-size: 17px;
+}
+.dv .dv-brand small {
+  display: block;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.dv .dv-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  color: var(--gold);
+  background: var(--dv-ink);
+  font-size: 23px;
+  font-weight: 400;
+}
+.dv .dv-primary-nav {
+  display: grid;
+  gap: 6px;
+}
+.dv .dv-primary-nav a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 9px;
+  text-decoration: none;
+  color: var(--dv-ink);
+  font-weight: 550;
+}
+.dv .dv-primary-nav a:hover {
+  background: var(--dv-canvas);
+}
+.dv .dv-primary-nav a[aria-current="page"] {
+  background: var(--dv-ink);
+  color: white;
+}
+.dv .dv-primary-nav a[aria-current="page"] svg {
+  color: var(--gold);
+}
+.dv .dv-tools {
+  margin: 28px 0 36px;
+  border-top: 1px solid var(--dv-line);
+  padding-top: 16px;
+}
+.dv .dv-tools summary {
+  cursor: pointer;
+  color: var(--dv-muted);
+  padding: 10px 14px;
+  font-size: 12px;
+}
+.dv .dv-tools nav,
+.dv .dv-mobile-tools nav {
+  display: grid;
+  gap: 2px;
+  padding-top: 8px;
+}
+.dv .dv-tools a,
+.dv .dv-mobile-tools nav a {
+  display: block;
+  padding: 10px 14px;
+  min-height: 44px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--dv-muted);
+}
+.dv .dv-tools a:hover,
+.dv .dv-tools a[aria-current="page"],
+.dv .dv-mobile-tools a:hover,
+.dv .dv-mobile-tools a[aria-current="page"] {
+  background: var(--dv-canvas);
+  color: var(--dv-ink);
+}
+.dv .dv-account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding: 14px 8px 8px;
+  border-top: 1px solid var(--dv-line);
+}
+.dv .dv-account > div {
+  min-width: 0;
+}
+.dv .dv-account strong {
+  display: block;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.dv .dv-account small {
+  display: block;
+  font-size: 11px;
+}
+.dv .dv-avatar {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f6eedc;
+  color: #815d20;
+  flex-shrink: 0;
+  font-weight: 650;
+  font-size: 13px;
+}
+.dv .dv-account-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  gap: 8px;
+  font-size: 11px;
+}
+.dv .dv-account-actions button,
+.dv .dv-mobile-tools button {
+  background: transparent;
+  color: var(--dv-muted);
+  padding: 8px;
+  font-size: 12px;
+}
+.dv .dv-workspace {
+  min-width: 0;
+}
+.dv .dv-topbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 72px;
+  padding: 0 32px;
+  background: white;
+  border-bottom: 1px solid var(--dv-line);
+}
+.dv .dv-location {
+  font-weight: 650;
+  font-size: 15px;
+  margin-right: auto;
+}
+.dv .dv-global-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 12px;
+  width: min(350px, 40%);
+  border: 1px solid var(--dv-line);
+  border-radius: 9px;
+  background: #fbfaf8;
+}
+.dv .dv-global-search svg {
+  flex-shrink: 0;
+  width: 16px;
+  color: var(--dv-muted);
+}
+.dv .dv-global-search input {
+  padding: 8px 0;
+  border: 0;
+  min-width: 0;
+  width: 100%;
+  outline-offset: 0;
+  background: transparent;
+  font-size: 12px;
+}
+.dv .dv-global-search button {
+  font-size: 11px;
+  padding: 8px;
+  background: transparent;
+  color: var(--dv-muted);
+}
+.dv .dv-notifications {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  min-height: 44px;
+  color: var(--dv-muted);
+  font-size: 12px;
+}
+.dv .dv-notifications b {
+  border-radius: 20px;
+  background: #eef1f5;
+  color: var(--dv-ink);
+  font-size: 10px;
+  padding: 2px 6px;
+}
+.dv .dv-main {
+  min-width: 0;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 28px 32px 48px;
+}
+.dv .dv-mobile-tools,
+.dv .dv-mobile-nav {
+  display: none;
+}
+.dv .more-tools-list {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+.dv .more-tools-link {
+  background: transparent;
+  border-color: var(--dv-line);
+}
+.dv .calendar-workspace,
+.dv .conversation-workspace {
+  border-color: var(--dv-line);
+  background: white;
+  border-radius: 16px;
+}
+.dv .quick-actions-section-secondary {
+  margin-top: 28px;
+}
+.dv .context-cards {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.dv .context-cards > li {
+  border: 1px solid var(--dv-line);
+  border-radius: 10px;
+  background: white;
+  overflow: hidden;
+}
+.dv .context-cards > li > a {
+  grid-template-columns: 1fr;
+  min-height: 106px;
+  border: 0;
+  border-radius: 0;
+  padding: 14px;
+  gap: 4px;
+}
+.dv .context-cards .context-action {
+  grid-column: 1;
+  grid-row: auto;
+  margin-top: 4px;
+  font-size: 11px;
+}
+.dv .context-cards .context-state {
+  color: var(--dv-muted);
+}
+.dv .context-request-disclosure {
+  padding: 0 14px;
+  border-top: 1px solid var(--dv-line);
+  background: #fcfbf8;
+}
+.dv .context-request-disclosure > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--dv-muted);
+  cursor: pointer;
+}
+.dv .context-request-disclosure > summary::before {
+  content: "+";
+  font-size: 15px;
+}
+.dv .context-request-disclosure[open] > summary::before {
+  content: "−";
+}
+.dv .context-request-disclosure .context-request {
+  margin: 0 0 12px;
+}
+.dv .context-request-note {
+  color: var(--blue);
+  background: transparent;
+  padding: 6px 0;
+  font-size: 11px;
+}
+.dv .context-request .secondary {
+  font-size: 12px;
+}
+.dv .doctor-home .shortcuts-section {
+  padding: 24px;
+  border: 1px solid var(--dv-line);
+  border-radius: 14px;
+}
+.dv .doctor-home .shortcuts-section .more-tools-list {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.dv .doctor-home .home-sticky {
+  top: 0;
+}
+.dv .doctor-home .doctor-shortcuts > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 650;
+}
+.dv .doctor-home .doctor-shortcuts > summary::after {
+  content: "+";
+  font-size: 20px;
+  color: var(--dv-muted);
+}
+.dv .doctor-home .doctor-shortcuts[open] > summary::after {
+  content: "−";
+}
+.dv .doctor-home .doctor-shortcuts > .more-tools-list {
+  margin-top: 16px;
+}
+.dv .dv-review-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.dv .dv-review-heading h1 {
+  margin: 6px 0 8px;
+}
+.dv .dv-review-heading p {
+  margin: 0;
+}
+.dv .dv-review-heading > a {
+  flex-shrink: 0;
+}
+.dv .dv-review-toolbar {
+  padding: 18px 20px;
+  border: 1px solid var(--dv-line);
+  border-radius: 14px;
+  background: white;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.dv .dv-review-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--dv-canvas);
+}
+.dv .dv-review-status button {
+  color: var(--dv-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  font-size: 12px;
+  padding: 8px 12px;
+}
+.dv .dv-review-status button[aria-pressed="true"] {
+  background: white;
+  border-color: var(--dv-line);
+  color: var(--dv-ink);
+  box-shadow: 0 1px 3px #0a1a3308;
+}
+.dv .dv-review-filters {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  max-width: 520px;
+}
+.dv .dv-review-filters > div {
+  flex: 1;
+  min-width: 0;
+}
+.dv .dv-review-filters label {
+  font-size: 11px;
+  color: var(--dv-muted);
+  margin-bottom: 4px;
+  display: block;
+}
+.dv .dv-review-filters input,
+.dv .dv-review-filters select {
+  width: 100%;
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+.dv .dv-review-summary {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-top: 24px;
+  font-size: 12px;
+}
+.dv .dv-review-summary p {
+  margin-bottom: 6px;
+  color: var(--dv-ink);
+  font-weight: 600;
+}
+.dv .dv-review-summary span,
+.dv .dv-review-context {
+  color: var(--dv-muted);
+  font-size: 12px;
+}
+.dv .dv-review-context {
+  margin-bottom: 20px;
+}
+.dv .dv-review-groups {
+  display: grid;
+  gap: 16px;
+}
+.dv .dv-review-patient {
+  border: 1px solid var(--dv-line);
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.dv .dv-review-patient header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--dv-line);
+}
+.dv .dv-review-patient header h2 {
+  font-size: 15px;
+  margin: 0 0 2px;
+  overflow-wrap: anywhere;
+}
+.dv .dv-review-patient header p {
+  font-size: 12px;
+  margin: 0;
+}
+.dv .dv-review-patient header > a {
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: 12px;
+  padding: 10px 0;
+}
+.dv .dv-review-patient ul {
+  margin: 0;
+  padding: 0 22px;
+  list-style: none;
+}
+.dv .dv-review-patient li {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--dv-line);
+}
+.dv .dv-review-patient li:last-child {
+  border: 0;
+}
+.dv .dv-review-patient li > div {
+  margin-right: auto;
+  min-width: 0;
+}
+.dv .dv-review-patient li strong {
+  display: block;
+  font-size: 13px;
+}
+.dv .dv-review-patient time {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--dv-muted);
+}
+.dv .dv-read-state {
+  color: var(--dv-muted);
+  font-size: 11px;
+}
+.dv .dv-read-new {
+  background: #f8f0df;
+  color: #78551a;
+  border: 1px solid #ead7ac;
+  border-radius: 20px;
+  padding: 3px 8px;
+}
+.dv .dv-review-patient li > a {
+  padding: 10px 0 10px 8px;
+  font-size: 12px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+.dv .dv-review-empty {
+  padding: 48px 24px;
+  text-align: center;
+}
+.dv .dv-review-empty p {
+  max-width: 60ch;
+  margin: 0 auto 20px;
+}
+@media (max-width: 1199px) {
+  .dv .dv-main {
+    padding: 24px;
+  }
+  .dv .dv-topbar {
+    padding-inline: 24px;
+  }
+  .dv .dv-review-heading {
+    align-items: start;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .dv .doctor-home .shortcuts-section .more-tools-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 959px) {
+  .dv {
+    display: block;
+  }
+  .dv .dv-sidebar {
+    display: none;
+  }
+  .dv .dv-topbar {
+    height: 64px;
+    padding-inline: 20px;
+    gap: 16px;
+  }
+  .dv .dv-global-search {
+    display: none;
+  }
+  .dv .dv-mobile-tools {
+    display: block;
+  }
+  .dv .dv-mobile-tools summary {
+    cursor: pointer;
+    padding: 12px 4px;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .dv .dv-mobile-tools nav {
+    position: absolute;
+    top: 64px;
+    right: 16px;
+    z-index: 40;
+    min-width: 230px;
+    max-height: calc(100dvh - 150px);
+    overflow-y: auto;
+    background: white;
+    border: 1px solid var(--dv-line);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 12px 35px #0a1a331a;
+  }
+  .dv .dv-mobile-nav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    position: fixed;
+    z-index: 35;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-top: 1px solid var(--dv-line);
+    background: white;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+  .dv .dv-mobile-nav a {
+    color: var(--dv-muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    border-radius: 8px;
+    min-height: 48px;
+    font-size: 10px;
+  }
+  .dv .dv-mobile-nav a[aria-current="page"] {
+    background: #f6f0e4;
+    color: #73511b;
+    font-weight: 650;
+  }
+  .dv .dv-main {
+    padding: 24px 20px calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (max-width: 599px) {
+  .dv {
+    font-size: 14px;
+  }
+  .dv .dv-main {
+    padding-inline: 16px;
+  }
+  .dv .dv-topbar {
+    padding-inline: 16px;
+  }
+  .dv .panel {
+    padding: 20px;
+  }
+  .dv h1 {
+    font-size: 26px;
+  }
+  .dv .dv-notifications > span {
+    display: none;
+  }
+  .dv .dv-review-toolbar {
+    padding: 14px;
+    gap: 16px;
+  }
+  .dv .dv-review-filters {
+    width: 100%;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+  }
+  .dv .dv-review-filters > div {
+    flex-basis: 100%;
+  }
+  .dv .dv-review-status {
+    width: 100%;
+  }
+  .dv .dv-review-status button {
+    flex: 1;
+    padding-inline: 8px;
+  }
+  .dv .dv-review-summary {
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 8px;
+  }
+  .dv .dv-review-heading > a {
+    font-size: 12px;
+  }
+  .dv .dv-review-patient header {
+    padding: 16px;
+    gap: 10px;
+  }
+  .dv .dv-review-patient ul {
+    padding-inline: 16px;
+  }
+  .dv .dv-review-patient li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 12px;
+  }
+  .dv .dv-review-patient li > div {
+    grid-column: 1 / -1;
+  }
+  .dv .dv-read-state {
+    justify-self: start;
+  }
+  .dv .dv-review-patient li > a {
+    justify-self: end;
+  }
+  .dv .doctor-home .shortcuts-section {
+    padding: 16px;
+  }
+  .dv .doctor-home .shortcuts-section .more-tools-list {
+    grid-template-columns: 1fr;
+  }
+  .dv .context-cards {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dv *,
+  .dv *::before,
+  .dv *::after {
+    scroll-behavior: auto;
+    transition: none;
+  }
+}
+@media (min-width: 375px) and (max-width: 599px) {
+  .dv .doctor-home .context-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dv .doctor-home .context-cards > li > a {
+    padding: 12px;
+  }
+  .dv .doctor-home .context-request-disclosure {
+    padding-inline: 12px;
+  }
+}

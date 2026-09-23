@@ -65,7 +65,7 @@ test("today preserves the focused patient when opening the record and documents"
   // Home passa a identidade do paciente aberto para a ação de solicitar.
   assert.match(
     workspace,
-    /<ContextCardList\s+cards=\{cards\}\s+base=\{base\}\s+patientId=\{appointment\.patient_id\}\s*\/>/,
+    /<ContextCardList\s+cards=\{cards\}\s+compactRequests=\{compact\}\s+base=\{base\}\s+patientId=\{appointment\.patient_id\}\s*\/>/,
   );
 });
 

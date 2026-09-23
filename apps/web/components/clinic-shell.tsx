@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Header } from "./header";
+import { DoctorShell } from "./doctor-shell";
 import { ClinicNavMore } from "./clinic-nav-more";
 import { roleLabels, type ClinicAccess } from "@/modules/identity/service";
 import {
@@ -49,6 +50,7 @@ export async function ClinicShell({
   clinic: ClinicAccess;
   active:
     | "home"
+    | "review"
     | "patients"
     | "team"
     | "audit"
@@ -58,8 +60,21 @@ export async function ClinicShell({
 }) {
   const base = `/clinicas/${clinic.id}`;
   const notificationCount = await unreadInAppNotificationCount(clinic.id);
+  if (clinic.role === "doctor") {
+    return (
+      <DoctorShell
+        clinic={clinic}
+        active={active}
+        notificationCount={notificationCount}
+      >
+        {children}
+      </DoctorShell>
+    );
+  }
   const moduleLinks = staffModules
-    .filter((module) => clinic.role !== "admin" || module.slug !== "processamentos")
+    .filter(
+      (module) => clinic.role !== "admin" || module.slug !== "processamentos",
+    )
     .map((module) => ({
       key: module.slug,
       label: navLabel(module),

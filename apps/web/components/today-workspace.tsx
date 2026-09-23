@@ -16,10 +16,19 @@ export function TodayWorkspace({
   base,
   data,
   shortcuts,
+  doctorView = false,
 }: {
   base: string;
   data: Awaited<ReturnType<typeof todayWorkspace>>;
   shortcuts?: ReactNode;
+  doctorView?: boolean;
 }) {
-  return <HomeDay base={base} data={data} shortcuts={shortcuts} />;
+  return (
+    <HomeDay
+      base={base}
+      data={data}
+      shortcuts={shortcuts}
+      doctorView={doctorView}
+    />
+  );
 }

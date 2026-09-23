@@ -1,0 +1,293 @@
+/* Home do médico: agenda e atualizações usam dados reais. Cor organiza leitura,
+   sem comunicar prioridade ou avaliação clínica. */
+.dv .doctor-home {
+  max-width: none;
+  gap: 28px;
+  color: var(--dv-ink);
+}
+.dv .doctor-home-head {
+  align-items: end;
+  padding-bottom: 4px;
+}
+.dv .doctor-home-kicker {
+  margin: 0 0 6px;
+  color: #7a5a1e;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.dv .doctor-home-head h1,
+.dv .doctor-home h2 {
+  color: var(--dv-ink);
+}
+.dv .doctor-home-head h1 {
+  font-size: clamp(27px, 2.6vw, 34px);
+  font-weight: 700;
+}
+.dv .doctor-home-head p:not(.doctor-home-kicker) {
+  color: var(--dv-muted);
+}
+.dv .doctor-home .home-agenda-link {
+  color: #7a5a1e;
+}
+
+.dv .doctor-home-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.9fr);
+  gap: 22px;
+  align-items: start;
+}
+.dv .doctor-home-aside {
+  display: grid;
+  gap: 16px;
+}
+.dv .doctor-home-schedule,
+.dv .doctor-home-focus-empty {
+  border: 1px solid var(--dv-line);
+  border-radius: 16px;
+  background: #fff;
+}
+.dv .doctor-home-schedule {
+  overflow: hidden;
+}
+.dv .doctor-home-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--dv-line);
+}
+.dv .doctor-home-section-head h2 {
+  margin: 0;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+}
+.dv .doctor-home-counts {
+  display: flex;
+  gap: 14px;
+  margin: 0;
+}
+.dv .doctor-home-counts div {
+  display: grid;
+  gap: 1px;
+}
+.dv .doctor-home-counts dt {
+  color: var(--dv-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.dv .doctor-home-counts dd {
+  margin: 0;
+  color: var(--dv-ink);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.dv .doctor-home-schedule > .home-timeline {
+  padding: 6px 8px 12px;
+}
+.dv .doctor-home-schedule .home-row > .home-row-link {
+  border-color: var(--dv-line);
+}
+.dv .doctor-home-schedule .home-clock {
+  color: var(--dv-muted);
+}
+.dv .doctor-home-schedule .home-row-link {
+  border-radius: 9px;
+  color: var(--dv-ink);
+}
+.dv .doctor-home-schedule .home-row-link:hover {
+  background: #fbf6ec;
+}
+.dv .doctor-home-schedule .home-row.is-open .home-row-link {
+  background: #f6eedc;
+}
+.dv .doctor-home-schedule .home-row-who span,
+.dv .doctor-home-schedule .home-row-summary {
+  color: var(--dv-muted);
+}
+.dv .doctor-home-schedule .home-earlier > details > summary {
+  border-color: var(--dv-line);
+  color: var(--dv-muted);
+}
+
+.dv .doctor-home-focus .home-consultation {
+  margin: 0;
+  border-color: var(--dv-line);
+  border-top-color: var(--dv-ink);
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(10, 26, 51, 0.06);
+}
+.dv .doctor-home-focus .home-eyebrow {
+  color: #7a5a1e;
+}
+.dv .doctor-home-focus .home-consultation-head h2,
+.dv .doctor-home-focus .home-consultation-meta strong {
+  color: var(--dv-ink);
+}
+.dv .doctor-home-focus .home-consultation-meta,
+.dv .doctor-home-focus .home-context > p {
+  color: var(--dv-muted);
+}
+.dv .doctor-home-focus .home-care-link {
+  background: #fbf6ec;
+}
+.dv .doctor-home-focus .home-received,
+.dv .doctor-home-focus .home-context {
+  border-color: var(--dv-line);
+}
+
+.dv .doctor-review {
+  padding: 16px 18px;
+  border: 1px solid var(--dv-line);
+  border-radius: 14px;
+  background: #fff;
+}
+.dv .doctor-review-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dv .doctor-review-head h2 {
+  margin: 0;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+.dv .doctor-review-head > a {
+  color: #7a5a1e;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.dv .doctor-review-head > a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.dv .doctor-review ul {
+  display: grid;
+  gap: 0;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.dv .doctor-review li {
+  display: grid;
+  gap: 2px;
+  padding: 10px 0;
+  border-top: 1px solid var(--dv-line);
+}
+.dv .doctor-review li > a {
+  color: var(--dv-ink);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.dv .doctor-review li > a:hover {
+  color: #7a5a1e;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.dv .doctor-review li > span,
+.dv .doctor-review-empty,
+.dv .doctor-review-failure {
+  color: var(--dv-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.dv .doctor-review-empty {
+  margin: 12px 0 0;
+}
+.dv .doctor-review-failure {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--dv-line);
+}
+
+.dv .doctor-home-empty {
+  padding: 28px 22px;
+  color: var(--dv-muted);
+}
+.dv .doctor-home-empty p {
+  margin: 0 0 8px;
+}
+.dv .doctor-home-empty a {
+  color: #7a5a1e;
+  font-size: 14px;
+  font-weight: 700;
+}
+.dv .doctor-home-focus-empty {
+  padding: 26px;
+}
+.dv .doctor-home-focus-empty h2 {
+  margin: 0;
+  font-size: 21px;
+  letter-spacing: -0.025em;
+}
+.dv .doctor-home-focus-empty > p:not(.doctor-home-kicker) {
+  max-width: 38ch;
+  margin: 8px 0 18px;
+  color: var(--dv-muted);
+  line-height: 1.5;
+}
+
+.dv .doctor-home .home-section {
+  border-color: var(--dv-line);
+  background: #fff;
+}
+.dv .doctor-home .home-work {
+  border-left: 3px solid #c8a15a;
+}
+.dv .doctor-home .home-between summary > span,
+.dv .doctor-home .home-section-note,
+.dv .doctor-home .home-section-head > span {
+  color: var(--dv-muted);
+}
+.dv .doctor-home .home-plain-list li,
+.dv .doctor-home .home-between-list > li {
+  border-color: var(--dv-line);
+}
+.dv .doctor-home .home-plain-list a,
+.dv .doctor-home .home-between-who a {
+  color: #7a5a1e;
+}
+.dv .doctor-home .shortcuts-section {
+  border-color: var(--dv-line);
+  background: #fff;
+}
+.dv .doctor-home .shortcuts-section h2 {
+  color: var(--dv-ink);
+}
+.dv .doctor-home .shortcuts-section .more-tools-link {
+  border-color: var(--dv-line);
+}
+.dv .doctor-home .shortcuts-section .more-tools-link:hover {
+  background: #fbf6ec;
+}
+
+@media (max-width: 959px) {
+  .dv .doctor-home-overview {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 650px) {
+  .dv .doctor-home-head {
+    align-items: start;
+  }
+  .dv .doctor-home-counts {
+    width: 100%;
+  }
+  .dv .doctor-home-section-head {
+    align-items: start;
+    padding: 18px 16px 14px;
+  }
+  .dv .doctor-home-schedule > .home-timeline {
+    padding-inline: 4px;
+  }
+  .dv .doctor-home-focus .home-consultation {
+    padding: 18px 16px 20px;
+  }
+}

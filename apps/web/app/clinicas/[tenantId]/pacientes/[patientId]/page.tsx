@@ -6,7 +6,7 @@ import { getPatient } from "@/modules/patients/service";
 import { AccessError } from "@/modules/identity/service";
 import { InputError } from "@/lib/validation";
 import { ClinicShell } from "@/components/clinic-shell";
-import { ModuleTabs } from "@/components/module-ui";
+import { PatientRecordHeader } from "@/components/patient-record-header";
 import { selectedTab } from "@/modules/workspace/navigation";
 import { patientCareContext } from "@/modules/workspace/today";
 import { patientHeaderFacts } from "@/modules/workspace/patient-header-facts";
@@ -18,7 +18,10 @@ import { CheckInError } from "@/modules/check-ins/service";
 import { staffLongitudinal } from "@/modules/longitudinal/service";
 import { DocumentError, staffDocuments } from "@/modules/documents/service";
 import { StaffPatientDocumentsPanel } from "@/components/documents-workspace";
-import { canInvitePatientToIntake, getPatientIntake } from "@/modules/patient-intake/service";
+import {
+  canInvitePatientToIntake,
+  getPatientIntake,
+} from "@/modules/patient-intake/service";
 import { PatientIntakePanel } from "@/components/patient-intake-panel";
 import { PatientInvitationForm } from "@/components/patient-invitation-form";
 export const dynamic = "force-dynamic";
@@ -40,7 +43,8 @@ export default async function Patient({
   const { tenantId, patientId } = await params;
   const query = await searchParams;
   const context = await getPatient(tenantId, patientId).catch((error) => {
-    if (error instanceof AccessError && error.status === 401) redirect("/login");
+    if (error instanceof AccessError && error.status === 401)
+      redirect("/login");
     if (error instanceof AccessError || error instanceof InputError) notFound();
     throw error;
   });
@@ -61,10 +65,29 @@ export default async function Patient({
       ? patientCareContext(tenantId, patientId)
       : Promise.resolve(null),
   ]);
-  const canInviteToIntake = intake && !intake.awaitingPatient && context.clinic.role === "doctor"
-    ? await canInvitePatientToIntake(tenantId, patientId)
-    : false;
+  const canInviteToIntake =
+    intake && !intake.awaitingPatient && context.clinic.role === "doctor"
+      ? await canInvitePatientToIntake(tenantId, patientId)
+      : false;
   const headerFacts = patientHeaderFacts(care, tenantId);
+  const doctorView = context.clinic.role === "doctor";
+  const careOverview = care ? (
+    <section className="panel patient-record-care">
+      <div className="section-heading patient-record-section-heading">
+        <div>
+          <h2>Visão do cuidado</h2>
+          <p>Registros disponíveis para orientar a próxima conversa.</p>
+        </div>
+      </div>
+      <PatientCareLinks
+        compactRequests={doctorView}
+        base={`/clinicas/${tenantId}`}
+        patientId={patientId}
+        context={care}
+        recordBase={recordBase}
+      />
+    </section>
+  ) : null;
   const longitudinal =
     clinicalArea && ["Linha do tempo", "Evolução"].includes(active)
       ? await staffLongitudinal(tenantId, patientId, {
@@ -93,265 +116,216 @@ export default async function Patient({
       : null;
   return (
     <ClinicShell clinic={context.clinic} active="patients">
-      <Link className="back-link" href={`/clinicas/${tenantId}/pacientes`}>
-        Voltar aos pacientes
-      </Link>
-      <header className="clinical-patient-header patient-record-header">
-        <span className="patient-avatar patient-avatar-xl" aria-hidden="true">
-          {p.display_name
-            .split(/\s+/)
-            .filter(Boolean)
-            .slice(0, 2)
-            .map((part) => part[0])
-            .join("")
-            .toUpperCase()}
-        </span>
-        <div className="clinical-patient-title">
-          <h1>{p.display_name}</h1>
-          <p>Contexto do paciente · {context.clinic.name}</p>
-          <p>
-            {p.birth_date
-              ? `Nascimento: ${p.birth_date.split("-").reverse().join("/")}`
-              : "Nascimento não informado"}
-          </p>
-          {(headerFacts || onboarding) && (
-            <div className="patient-record-badges">
-              {headerFacts && (
-                <span className="badge">{headerFacts.relationshipLabel}</span>
-              )}
-              {onboarding && (
-                <span className="badge appointment-status completed">
-                  Cadastro inicial enviado
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-        {headerFacts ? null : (
-          <span className="appointment-status scheduled">
-            Cadastro disponível
-          </span>
-        )}
-        {clinicalArea && (
-          <nav
-            className="patient-record-actions"
-            aria-label="Ações deste paciente"
-          >
-            <Link href={`/clinicas/${tenantId}/agenda`}>Ver agenda</Link>
-            <Link href={`/clinicas/${tenantId}/atendimentos`}>Atendimentos</Link>
-            <Link href={`/clinicas/${tenantId}/planos`}>Planos de cuidado</Link>
-          </nav>
-        )}
-      </header>
-      {headerFacts && (
-        <dl
-          className="encounter-context-strip patient-record-facts"
-          aria-label="Contexto de cuidado do paciente"
-        >
-          <div>
-            <dt>Vínculo</dt>
-            <dd>{headerFacts.relationshipLabel}</dd>
-          </div>
-          <div>
-            <dt>Última consulta</dt>
-            <dd>
-              {headerFacts.encounterHref ? (
-                <Link href={headerFacts.encounterHref}>
-                  {headerFacts.encounterLabel}
-                </Link>
-              ) : (
-                "Nenhum registro finalizado"
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt>Plano de cuidado</dt>
-            <dd>
-              {headerFacts.planHref ? (
-                <Link href={headerFacts.planHref}>{headerFacts.planLabel}</Link>
-              ) : (
-                "Nenhum plano publicado"
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt>Próxima consulta</dt>
-            <dd>
-              {headerFacts.nextAppointmentHref ? (
-                <Link href={headerFacts.nextAppointmentHref}>
-                  {headerFacts.nextAppointmentLabel}
-                </Link>
-              ) : (
-                "Nenhuma consulta agendada"
-              )}
-            </dd>
-          </div>
-        </dl>
-      )}
-      <ModuleTabs tabs={tabs} active={active} base={recordBase} />
-      {active === "Visão geral" ? (
-        <>
-          {intake && (
-            <>
-              <PatientIntakePanel
-                key={`${tenantId}:${patientId}:${intake.record.id}`}
-                tenantId={tenantId}
-                patientId={patientId}
-                initial={intake.record}
-                canEdit={context.clinic.role === "doctor" && !intake.awaitingPatient}
-                awaitingPatient={intake.awaitingPatient}
-                focusOnLoad={query.acolhimento === "novo"}
-              />
-              {canInviteToIntake ? (
-                <details className="panel patient-record-invitation">
-                  <summary>Enviar para o paciente continuar</summary>
-                  <PatientInvitationForm
+      <div className={doctorView ? "dv-record" : undefined}>
+        <Link className="back-link" href={`/clinicas/${tenantId}/pacientes`}>
+          Voltar aos pacientes
+        </Link>
+        <PatientRecordHeader
+          patient={p}
+          clinicName={context.clinic.name}
+          tenantId={tenantId}
+          headerFacts={headerFacts}
+          hasOnboarding={Boolean(onboarding)}
+          clinicalArea={clinicalArea}
+          tabs={tabs}
+          activeTab={active}
+          recordBase={recordBase}
+        />
+        {active === "Visão geral" ? (
+          <>
+            {doctorView && careOverview}
+            {intake &&
+              (doctorView ? (
+                <details
+                  className="panel dv-record-disclosure"
+                  open={query.acolhimento === "novo"}
+                >
+                  <summary>Acolhimento e história inicial</summary>
+                  <PatientIntakePanel
+                    key={`${tenantId}:${patientId}:${intake.record.id}`}
                     tenantId={tenantId}
-                    role="doctor"
-                    targetPatient={{ id: patientId, displayName: p.display_name }}
+                    patientId={patientId}
+                    initial={intake.record}
+                    canEdit={context.clinic.role === "doctor" && !intake.awaitingPatient}
+                    awaitingPatient={intake.awaitingPatient}
+                    focusOnLoad={query.acolhimento === "novo"}
+                  />
+                  {canInviteToIntake ? (
+                    <details className="patient-record-invitation">
+                      <summary>Enviar para o paciente continuar</summary>
+                      <PatientInvitationForm
+                        tenantId={tenantId}
+                        role="doctor"
+                        targetPatient={{
+                          id: patientId,
+                          displayName: p.display_name,
+                        }}
+                      />
+                    </details>
+                  ) : null}
+                </details>
+              ) : (
+                <>
+                  <PatientIntakePanel
+                    key={`${tenantId}:${patientId}:${intake.record.id}`}
+                    tenantId={tenantId}
+                    patientId={patientId}
+                    initial={intake.record}
+                    canEdit={
+                      context.clinic.role === "doctor" &&
+                      !intake.awaitingPatient
+                    }
+                    awaitingPatient={intake.awaitingPatient}
+                    focusOnLoad={query.acolhimento === "novo"}
+                  />
+                  {canInviteToIntake ? (
+                    <details className="panel patient-record-invitation">
+                      <summary>Enviar para o paciente continuar</summary>
+                      <PatientInvitationForm
+                        tenantId={tenantId}
+                        role="doctor"
+                        targetPatient={{
+                          id: patientId,
+                          displayName: p.display_name,
+                        }}
+                      />
+                    </details>
+                  ) : null}
+                </>
+              ))}
+            {onboarding &&
+              (doctorView ? (
+                <details className="panel dv-record-disclosure">
+                  <summary>Cadastro enviado pelo paciente</summary>
+                  <OnboardingSummary
+                    record={onboarding}
+                    documentsHref={`${recordBase}?aba=Documentos`}
                   />
                 </details>
-              ) : null}
-            </>
-          )}
-          {onboarding && (
-            <OnboardingSummary
-              record={onboarding}
-              documentsHref={`${recordBase}?aba=Documentos`}
-            />
-          )}
-          {care && (
-            <section className="panel patient-record-care">
-              <div className="section-heading patient-record-section-heading">
+              ) : (
+                <OnboardingSummary
+                  record={onboarding}
+                  documentsHref={`${recordBase}?aba=Documentos`}
+                />
+              ))}
+            {!doctorView && careOverview}
+            <section className="panel">
+              <h2>Dados do paciente</h2>
+              <dl className="patient-facts">
                 <div>
-                  <h2>Visão do cuidado</h2>
-                  <p>Registros disponíveis para orientar a próxima conversa.</p>
+                  <dt>Nome completo</dt>
+                  <dd>{p.display_name}</dd>
                 </div>
-              </div>
-              <PatientCareLinks
-                base={`/clinicas/${tenantId}`}
-                patientId={patientId}
-                context={care}
-                recordBase={recordBase}
-              />
+                <div>
+                  <dt>Data de nascimento</dt>
+                  <dd>
+                    {p.birth_date
+                      ? p.birth_date.split("-").reverse().join("/")
+                      : "Não informada"}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Cadastrado em</dt>
+                  <dd>
+                    {new Date(p.created_at).toLocaleDateString("pt-BR", {
+                      timeZone: "America/Sao_Paulo",
+                    })}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Última atualização</dt>
+                  <dd>
+                    {new Date(p.updated_at).toLocaleString("pt-BR", {
+                      timeZone: "America/Sao_Paulo",
+                    })}
+                  </dd>
+                </div>
+              </dl>
             </section>
-          )}
+          </>
+        ) : !clinicalArea ? (
           <section className="panel">
-            <h2>Dados do paciente</h2>
-            <dl className="patient-facts">
-              <div>
-                <dt>Nome completo</dt>
-                <dd>{p.display_name}</dd>
-              </div>
-              <div>
-                <dt>Data de nascimento</dt>
-                <dd>
-                  {p.birth_date
-                    ? p.birth_date.split("-").reverse().join("/")
-                    : "Não informada"}
-                </dd>
-              </div>
-              <div>
-                <dt>Cadastrado em</dt>
-                <dd>
-                  {new Date(p.created_at).toLocaleDateString("pt-BR", {
-                    timeZone: "America/Sao_Paulo",
-                  })}
-                </dd>
-              </div>
-              <div>
-                <dt>Última atualização</dt>
-                <dd>
-                  {new Date(p.updated_at).toLocaleString("pt-BR", {
-                    timeZone: "America/Sao_Paulo",
-                  })}
-                </dd>
-              </div>
-            </dl>
-          </section>
-        </>
-      ) : !clinicalArea ? (
-        <section className="panel">
-          <h2>Acesso clínico restrito</h2>
-          <p>
-            O perfil administrativo pode organizar vínculos, mas não acessa
-            documentos, relatos, medidas ou histórico clínico.
-          </p>
-        </section>
-      ) : active === "Documentos" && documents ? (
-        <StaffPatientDocumentsPanel
-          initial={documents}
-          base={`${recordBase}?aba=Documentos`}
-        />
-      ) : active === "Linha do tempo" && longitudinal ? (
-        <StaffLongitudinalWorkspace
-          initial={longitudinal}
-          base={recordBase}
-          showPatientPicker={false}
-          showMeasures={false}
-          backHref={`${recordBase}?aba=Visão%20geral`}
-          backLabel="Voltar à visão geral do paciente"
-        />
-      ) : active === "Evolução" && longitudinal ? (
-        <>
-        {checkIns && (
-          <StaffCheckInsPanel
-            data={checkIns}
-            tenantId={tenantId}
-            patientId={patientId}
-            canEdit={context.clinic.role === "doctor"}
-          />
-        )}
-        <StaffLongitudinalWorkspace
-          initial={longitudinal}
-          base={recordBase}
-          showPatientPicker={false}
-          showTimeline={false}
-          backHref={`${recordBase}?aba=Linha%20do%20tempo`}
-          backLabel="Abrir linha do tempo do paciente"
-        />
-        </>
-      ) : null}
-      {active === "Visão geral" && (
-        <div className="patient-record-secondary">
-          <section className="panel future-care">
-            <h2>Equipe de cuidado</h2>
-            {context.clinic.role === "admin" ? (
-              <>
-                <p>
-                  Atribua ou revise os profissionais responsáveis por este
-                  paciente. O acesso clínico começa após o aceite do
-                  profissional.
-                </p>
-                <Link
-                  className="button secondary"
-                  href={`/clinicas/${tenantId}/equipe?paciente=${patientId}`}
-                >
-                  Gerenciar equipe deste paciente
-                </Link>
-              </>
-            ) : (
-              <p>
-                Consulte os profissionais com responsabilidade ativa por este
-                paciente.
-              </p>
-            )}
-          </section>
-          <section className="panel future-care">
-            <h2>Onde continuar</h2>
+            <h2>Acesso clínico restrito</h2>
             <p>
-              Use a Agenda para os próximos encontros e Atendimentos para os
-              registros de consulta disponíveis ao seu vínculo.
+              O perfil administrativo pode organizar vínculos, mas não acessa
+              documentos, relatos, medidas ou histórico clínico.
             </p>
-            <div className="patient-record-next-links">
-              <Link href={`/clinicas/${tenantId}/agenda`}>Abrir agenda</Link>
-              <Link href={`/clinicas/${tenantId}/atendimentos`}>
-                Ver atendimentos
-              </Link>
-            </div>
           </section>
-        </div>
-      )}
+        ) : active === "Documentos" && documents ? (
+          <StaffPatientDocumentsPanel
+            initial={documents}
+            base={`${recordBase}?aba=Documentos`}
+          />
+        ) : active === "Linha do tempo" && longitudinal ? (
+          <StaffLongitudinalWorkspace
+            initial={longitudinal}
+            base={recordBase}
+            showPatientPicker={false}
+            showMeasures={false}
+            backHref={`${recordBase}?aba=Visão%20geral`}
+            backLabel="Voltar à visão geral do paciente"
+          />
+        ) : active === "Evolução" && longitudinal ? (
+          <>
+            {checkIns && (
+              <StaffCheckInsPanel
+                data={checkIns}
+                tenantId={tenantId}
+                patientId={patientId}
+                canEdit={context.clinic.role === "doctor"}
+              />
+            )}
+            <StaffLongitudinalWorkspace
+              initial={longitudinal}
+              base={recordBase}
+              showPatientPicker={false}
+              showTimeline={false}
+              backHref={`${recordBase}?aba=Linha%20do%20tempo`}
+              backLabel="Abrir linha do tempo do paciente"
+            />
+          </>
+        ) : null}
+        {active === "Visão geral" && (
+          <div className="patient-record-secondary">
+            <section className="panel future-care">
+              <h2>Equipe de cuidado</h2>
+              {context.clinic.role === "admin" ? (
+                <>
+                  <p>
+                    Atribua ou revise os profissionais responsáveis por este
+                    paciente. O acesso clínico começa após o aceite do
+                    profissional.
+                  </p>
+                  <Link
+                    className="button secondary"
+                    href={`/clinicas/${tenantId}/equipe?paciente=${patientId}`}
+                  >
+                    Gerenciar equipe deste paciente
+                  </Link>
+                </>
+              ) : (
+                <p>
+                  Consulte os profissionais com responsabilidade ativa por este
+                  paciente.
+                </p>
+              )}
+            </section>
+            <section className="panel future-care">
+              <h2>Onde continuar</h2>
+              <p>
+                Use a Agenda para os próximos encontros e Atendimentos para os
+                registros de consulta disponíveis ao seu vínculo.
+              </p>
+              <div className="patient-record-next-links">
+                <Link href={`/clinicas/${tenantId}/agenda`}>Abrir agenda</Link>
+                <Link href={`/clinicas/${tenantId}/atendimentos`}>
+                  Ver atendimentos
+                </Link>
+              </div>
+            </section>
+          </div>
+        )}
+      </div>
     </ClinicShell>
   );
 }

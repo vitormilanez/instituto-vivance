@@ -1,14 +1,20 @@
 import Link from "next/link";
 import type { PatientCareContext } from "@/modules/workspace/today";
 import { contextSummary } from "@/modules/workspace/patient-context-cards";
-import { dayStatusLabels, appointmentClock } from "@/modules/workspace/home-day";
+import {
+  dayStatusLabels,
+  appointmentClock,
+} from "@/modules/workspace/home-day";
 import {
   careLinkCopy,
   receivedWhen,
   type CareLink,
   type ReceivedView,
 } from "@/modules/workspace/home-view";
-import { ContextCardList, contextCardsFrom } from "@/components/context-card-list";
+import {
+  ContextCardList,
+  contextCardsFrom,
+} from "@/components/context-card-list";
 import { ReceivedSince } from "@/components/received-since";
 import { CareLinkAccept } from "@/components/care-link-accept";
 
@@ -45,8 +51,10 @@ export function ConsultationBlock({
   draft,
   backToNext,
   now,
+  compact = false,
 }: {
   now: string;
+  compact?: boolean;
   base: string;
   tenantId: string;
   today: string;
@@ -96,7 +104,8 @@ export function ConsultationBlock({
           </strong>
           <span>{appointment.kind === "return" ? "Retorno" : "Consulta"}</span>
           <span>{appointment.doctor_display_name}</span>
-          {appointment.status !== "scheduled" && appointment.status !== "in_progress" ? (
+          {appointment.status !== "scheduled" &&
+          appointment.status !== "in_progress" ? (
             <span className="home-status">
               {dayStatusLabels[appointment.status] ?? appointment.status}
             </span>
@@ -119,6 +128,14 @@ export function ConsultationBlock({
           {backToNext ? (
             <Link className="home-back" href={backToNext}>
               Voltar para a próxima consulta
+            </Link>
+          ) : null}
+          {compact ? (
+            <Link
+              className="button secondary"
+              href={`${base}/pacientes/${appointment.patient_id}`}
+            >
+              Abrir ficha
             </Link>
           ) : null}
         </div>
@@ -163,6 +180,7 @@ export function ConsultationBlock({
               <p>{contextSummary(cards)}</p>
               <ContextCardList
                 cards={cards}
+                compactRequests={compact}
                 base={base}
                 patientId={appointment.patient_id}
               />
