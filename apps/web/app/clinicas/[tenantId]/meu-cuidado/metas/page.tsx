@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { PatientIntakePanel } from "@/components/patient-intake-panel";
 import { PatientShell } from "@/components/patient-shell";
+import { PatientGoalsInitializer } from "@/components/patient-goals-initializer";
 import { AccessError } from "@/modules/identity/service";
 import { getPatientOnboarding, OnboardingError } from "@/modules/onboarding/service";
 import { getOwnPatientIntake } from "@/modules/patient-intake/service";
@@ -61,14 +62,19 @@ export default async function PatientGoalsPage({
             audience="patient"
           />
         </div>
+      ) : profile.patient ? (
+        <section className="panel">
+          <h1>Comece suas metas</h1>
+          <p>
+            Prepare um rascunho com o que você busca no cuidado. Nada será
+            compartilhado com a equipe até você confirmar o envio.
+          </p>
+          <PatientGoalsInitializer tenantId={tenantId} />
+        </section>
       ) : (
         <section className="panel">
           <h1>Metas ainda indisponíveis</h1>
-          <p>
-            {profile.patient
-              ? "Peça à equipe da clínica para habilitar suas metas e expectativas. Sua conta já está vinculada; falta apenas preparar este formulário."
-              : "A equipe precisa vincular sua conta à sua ficha antes de habilitar suas metas e expectativas."}
-          </p>
+          <p>A equipe precisa vincular sua conta à sua ficha antes desta etapa.</p>
         </section>
       )}
     </PatientShell>

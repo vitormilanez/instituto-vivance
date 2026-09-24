@@ -4656,6 +4656,73 @@ test("linked invitation reuses the assisted intake and preserves doctor and pati
   });
 });
 
+test("legacy patient explicitly initializes one own intake while active care remains linked", async () => {
+  await asUser("doctor", async () => {
+    await startClinical("2099-12-26T12:00:00Z", "2099-12-26T12:30:00Z");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+      [a, pa, users.patient.id],
+    );
+
+    await switchActor("patient");
+    const first = (
+      await db.query<{ id: string }>(
+        "select public.initialize_own_patient_intake($1) id",
+        [a],
+      )
+    ).rows[0].id;
+    const replay = (
+      await db.query<{ id: string }>(
+        "select public.initialize_own_patient_intake($1) id",
+        [a],
+      )
+    ).rows[0].id;
+    assert.equal(replay, first);
+    assert.deepEqual(
+      (
+        await db.query<{ source: string; status: string; version: number }>(
+          "select source,status,version from public.patient_intake_contexts where id=$1",
+          [first],
+        )
+      ).rows,
+      [{ source: "patient_reported", status: "draft", version: 1 }],
+    );
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.patient_intake_context_versions where intake_id=$1",
+          [first],
+        )
+      ).rows[0].count,
+      1,
+    );
+    await denied("select public.initialize_own_patient_intake($1)", [b]);
+    await switchActor("doctor");
+    await denied("select public.initialize_own_patient_intake($1)", [a]);
+
+    await db.exec("reset role");
+    await db.query(
+      `update public.care_relationships
+       set status='revoked',expected_version=1
+       where tenant_id=$1 and patient_id=$2 and professional_id=$3`,
+      [a, pa, users.doctor.id],
+    );
+    await switchActor("patient");
+    await denied("select public.initialize_own_patient_intake($1)", [a]);
+    await db.exec("reset role");
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.audit_events where entity_type='patient_intake_contexts' and entity_id=$1",
+          [first],
+        )
+      ).rows[0].count,
+      1,
+    );
+  });
+});
+
 test("admin-assigned invitation keeps doctor acceptance pending and fails closed when identities change", async () => {
   await asUser("outsider", async () => {
     await db.exec("reset role");

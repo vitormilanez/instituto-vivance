@@ -85,6 +85,21 @@ export async function getOwnPatientIntake(id: string) {
   return result.data ? mapIntake(result.data as Record<string, unknown>) : null;
 }
 
+export async function initializeOwnPatientIntake(id: string) {
+  const tenant = tenantId(id);
+  const { client } = await requireClinic(tenant, ["patient"]);
+  const result = await client.rpc("initialize_own_patient_intake", {
+    target_tenant: tenant,
+  });
+  if (result.error) databaseError(result.error);
+  if (typeof result.data !== "string")
+    throw new Error("Patient intake initialization returned an invalid response");
+  const intake = await getOwnPatientIntake(tenant);
+  if (!intake || intake.id !== result.data)
+    throw new Error("Patient intake initialization could not be read back");
+  return intake;
+}
+
 export async function savePatientIntake(
   id: string,
   patientId: string,

@@ -239,6 +239,95 @@ begin
 end;
 $$;
 
+-- Legacy patient accounts may predate both onboarding and the short intake.
+-- Initialization is an explicit patient action: the database derives the
+-- patient from the authenticated account, requires live linked care and
+-- returns the existing row on retry.
+create function private.initialize_own_patient_intake(target_tenant uuid)
+returns uuid
+language plpgsql security definer set search_path = '' as $$
+declare
+  actor uuid := auth.uid();
+  patient uuid;
+  actor_name text;
+  result uuid;
+begin
+  if actor is null
+    or not private.has_live_session()
+    or not private.has_tenant_role(target_tenant, array['patient'])
+  then
+    raise exception 'Active patient access required' using errcode = '42501';
+  end if;
+
+  select account.patient_id into patient
+  from public.patient_accounts account
+  where account.tenant_id = target_tenant
+    and account.user_id = actor
+    and exists (
+      select 1
+      from public.care_relationships relationship
+      join public.memberships doctor
+        on doctor.tenant_id = relationship.tenant_id
+       and doctor.user_id = relationship.professional_id
+      where relationship.tenant_id = account.tenant_id
+        and relationship.patient_id = account.patient_id
+        and relationship.status = 'active'
+        and doctor.role = 'doctor'
+        and doctor.status = 'active'
+    );
+  if patient is null then
+    raise exception 'Own patient account with active care required'
+      using errcode = '42501';
+  end if;
+
+  select coalesce(nullif(btrim(member.display_name), ''), 'Paciente')
+    into actor_name
+  from public.memberships member
+  where member.tenant_id = target_tenant
+    and member.user_id = actor
+    and member.role = 'patient'
+    and member.status = 'active';
+  if actor_name is null then
+    raise exception 'Active patient identity required' using errcode = '42501';
+  end if;
+
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(
+      target_tenant::text || ':' || patient::text || ':patient-intake', 0
+    )
+  );
+
+  select intake.id into result
+  from public.patient_intake_contexts intake
+  where intake.tenant_id = target_tenant
+    and intake.patient_id = patient;
+  if result is not null then
+    return result;
+  end if;
+
+  insert into public.patient_intake_contexts(
+    tenant_id, patient_id, source, recorded_by, recorded_by_name
+  ) values (
+    target_tenant, patient, 'patient_reported', actor, actor_name
+  ) returning id into result;
+  return result;
+end;
+$$;
+revoke all on function private.initialize_own_patient_intake(uuid)
+  from public, anon, authenticated;
+grant execute on function private.initialize_own_patient_intake(uuid)
+  to authenticated;
+
+create function public.initialize_own_patient_intake(target_tenant uuid)
+returns uuid
+language sql security invoker set search_path = '' as $$
+  select private.initialize_own_patient_intake(target_tenant);
+$$;
+revoke all on function public.initialize_own_patient_intake(uuid)
+  from public, anon, authenticated;
+grant execute on function public.initialize_own_patient_intake(uuid)
+  to authenticated;
+
 -- Preparation completion is request-specific. A late submission for an older
 -- preparation can no longer close a newer generic request.
 create or replace function private.complete_patient_care_request()

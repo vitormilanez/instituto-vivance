@@ -220,5 +220,18 @@ test("a página de metas aceita conta legada e só redireciona onboarding em ras
   assert.match(page, /<PatientIntakePanel/);
   assert.match(page, /audience="patient"/);
   assert.match(page, /canEdit/);
-  assert.match(page, /Peça à equipe da clínica para habilitar suas metas/);
+  assert.match(page, /<PatientGoalsInitializer tenantId=\{tenantId\}/);
+  assert.match(page, /Nada será[\s\S]*compartilhado com a equipe/);
+  const initializer = readFileSync(
+    new URL("../components/patient-goals-initializer.tsx", import.meta.url),
+    "utf8",
+  );
+  const route = readFileSync(
+    new URL("../app/api/v1/clinics/[tenantId]/intake/route.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(initializer, /Começar minhas metas/);
+  assert.match(initializer, /method: "POST"/);
+  assert.match(route, /sameOrigin\(request\)/);
+  assert.match(route, /initializeOwnPatientIntake/);
 });

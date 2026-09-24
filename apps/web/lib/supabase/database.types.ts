@@ -1577,6 +1577,10 @@ export type Database = {
         Args: { target_tenant: string; target_patient: string };
         Returns: boolean;
       };
+      initialize_own_patient_intake: {
+        Args: { target_tenant: string };
+        Returns: string;
+      };
       submit_patient_onboarding: {
         Args: { target_tenant: string; read_version: number; explicit_share_consent: boolean };
         Returns: number;
