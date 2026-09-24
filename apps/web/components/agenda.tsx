@@ -8,6 +8,8 @@ import type { Appointment, AgendaOptions } from "@/modules/agenda/service";
 import { clinicDate, localToInstant } from "@/modules/agenda/validation";
 import { focusedAppointment } from "@/modules/agenda/focus";
 import { PreparationRequestEditor } from "./preparation-request-editor";
+import { TeleconsultationSettings } from "./teleconsultation-settings";
+import { TeleconsultationLink } from "./teleconsultation-link";
 import { sentenceCase } from "@/lib/format";
 
 const statusPresentation: Record<string, { label: string; className: string }> =
@@ -29,6 +31,7 @@ export function AppointmentList({
   onNoShow,
   onStart,
   onPrepare,
+  onTeleconsultation,
   preparationStates = {},
   patientRecordBase,
 }: {
@@ -40,6 +43,7 @@ export function AppointmentList({
   onNoShow?: (appointment: Appointment) => void;
   onStart?: (appointment: Appointment) => void;
   onPrepare?: (appointment: Appointment) => void;
+  onTeleconsultation?: (appointment: Appointment) => void;
   preparationStates?: Record<string, string>;
   // Na agenda de um dia escolhido a data já está no título da lista; ela só
   // acompanha cada linha quando a lista mistura dias (próximos retornos).
@@ -91,7 +95,7 @@ export function AppointmentList({
                 .join("")
                 .toUpperCase()}
             </span>
-            <span>
+            <div>
               <strong>{a.patients?.display_name ?? "Consulta"}</strong>
               <small>
                 {a.kind === "return" ? "Retorno" : "Consulta"} ·{" "}
@@ -108,6 +112,9 @@ export function AppointmentList({
                 })}
               </small>
               <small>{a.doctor_display_name}</small>
+              {a.teleconsultation?.delivery_mode === "video" && <span className="teleconsultation-row-mode">Teleconsulta · Google Meet</span>}
+              {!patientRecordBase && a.teleconsultation?.join_url && ["scheduled", "in_progress"].includes(a.status) && <TeleconsultationLink url={a.teleconsultation.join_url} compact />}
+              {onTeleconsultation && ["scheduled", "in_progress"].includes(a.status) && <button type="button" className="secondary quiet" onClick={() => onTeleconsultation(a)}>{a.teleconsultation?.delivery_mode === "video" ? "Ver teleconsulta" : "Modalidade / teleconsulta"}</button>}
               {patientRecordBase && (
                 <Link
                   className="appointment-patient-link"
@@ -116,7 +123,7 @@ export function AppointmentList({
                   Ver ficha do paciente
                 </Link>
               )}
-            </span>
+            </div>
           </div>
           <span
             className={`badge appointment-status ${statusPresentation[a.status]?.className ?? "unknown"}`}
@@ -216,6 +223,7 @@ export function Agenda({
   const [scheduleView, setScheduleView] = useState<"day" | "week">("day");
   const [starting, setStarting] = useState<Appointment | null>(null);
   const [accepted, setAccepted] = useState(false);
+  const [teleconsultation, setTeleconsultation] = useState<Appointment | null>(null);
   const [preparing, setPreparing] = useState<Appointment | null>(null);
   const startPanel = useRef<HTMLElement>(null);
   const activePanel = useRef<HTMLElement>(null);
@@ -251,7 +259,7 @@ export function Agenda({
         throw new Error(
           result.error ?? "Não foi possível abrir o atendimento.",
         );
-      router.push(`/clinicas/${tenantId}/atendimentos/${result.id}`);
+      router.push(`/clinicas/${tenantId}/atendimentos/${result.id}${starting.teleconsultation?.delivery_mode === "video" ? "?modo=teleconsulta&etapa=consulta" : ""}`);
     } catch (e) {
       setError(
         e instanceof Error
@@ -327,6 +335,7 @@ export function Agenda({
     );
   }
   function open(value: Appointment | "new") {
+    setTeleconsultation(null);
     setEditing(value);
     setClosing(null);
     setError("");
@@ -368,7 +377,8 @@ export function Agenda({
         ).toISOString(),
         ...(edit ? { version: edit.version } : {}),
       };
-      await mutate(body, edit ?? undefined);
+      const saved = await mutate(body, edit ?? undefined);
+      if (!edit) setTeleconsultation(saved.appointment);
       setEditing(null);
       setNotice(edit ? "Agendamento atualizado." : "Agendamento criado.");
       selectDate(String(form.get("date")));
@@ -477,6 +487,15 @@ export function Agenda({
           Há mais de 500 agendamentos neste mês. A lista está incompleta.
         </p>
       )}
+      {teleconsultation && <TeleconsultationSettings
+        key={teleconsultation.id}
+        tenantId={tenantId}
+        appointmentId={teleconsultation.id}
+        patientName={teleconsultation.patients?.display_name ?? "Consulta"}
+        editable={canManage && teleconsultation.status === "scheduled"}
+        onClose={() => setTeleconsultation(null)}
+        onSaved={() => router.refresh()}
+      />}
       {editing && (
         <section
           className="panel agenda-form-panel"
@@ -893,8 +912,9 @@ export function Agenda({
                       currentTime={currentTime}
                       preparationStates={preparationStates}
                       patientRecordBase={`/clinicas/${tenantId}/pacientes`}
+                      onTeleconsultation={canManage ? (appointment) => { setTeleconsultation(appointment); setEditing(null); setStarting(null); setClosing(null); } : undefined}
                       onPrepare={canStart ? setPreparing : undefined}
-                      onStart={canStart ? (appointment) => { setStarting(appointment); setEditing(null); setClosing(null); setAccepted(false); setError(""); } : undefined}
+                      onStart={canStart ? (appointment) => { setStarting(appointment); setTeleconsultation(null); setEditing(null); setClosing(null); setAccepted(false); setError(""); } : undefined}
                       onEdit={canManage ? open : undefined}
                       onNoShow={canManage ? (appointment) => { setClosing({ appointment, status: "no_show" }); setEditing(null); setError(""); setNotice(""); } : undefined}
                       onCancel={canManage ? (appointment) => { setClosing({ appointment, status: "cancelled" }); setEditing(null); setError(""); setNotice(""); } : undefined}
@@ -911,6 +931,7 @@ export function Agenda({
               currentTime={currentTime}
               preparationStates={preparationStates}
               patientRecordBase={`/clinicas/${tenantId}/pacientes`}
+              onTeleconsultation={canManage ? (appointment) => { setTeleconsultation(appointment); setEditing(null); setStarting(null); setClosing(null); } : undefined}
               onPrepare={canStart ? setPreparing : undefined}
               onStart={
                 canStart

@@ -1,3 +1,4 @@
+import { TeleconsultationLink } from "./teleconsultation-link";
 import Link from "next/link";
 import type { Appointment } from "@/modules/agenda/service";
 import { patientTodayTasks } from "@/modules/workspace/patient-today-tasks";
@@ -237,6 +238,12 @@ export function PatientHome({
           <p className="pv-lead">Ainda não marcada. A clínica avisa quando agendar.</p>
         )}
       </section>
+
+      {next?.teleconsultation?.join_url && <section className="pv-card" aria-label="Acesso à teleconsulta">
+        <h2 className="pv-eyebrow">Sua teleconsulta</h2>
+        <p>Entre pelo link no horário combinado com seu médico.</p>
+        <TeleconsultationLink url={next.teleconsultation.join_url} compact />
+      </section>}
 
       {latestPublication && (
         <section className="pv-card" aria-labelledby="pv-plan-title">

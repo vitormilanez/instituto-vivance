@@ -46,6 +46,7 @@ export async function ClinicShell({
   clinic,
   active,
   children,
+  focusMode = false,
 }: {
   clinic: ClinicAccess;
   active:
@@ -57,6 +58,7 @@ export async function ClinicShell({
     | "notifications"
     | StaffModuleSlug;
   children: ReactNode;
+  focusMode?: boolean;
 }) {
   const base = `/clinicas/${clinic.id}`;
   const notificationCount = await unreadInAppNotificationCount(clinic.id);
@@ -66,6 +68,7 @@ export async function ClinicShell({
         clinic={clinic}
         active={active}
         notificationCount={notificationCount}
+        focusMode={focusMode}
       >
         {children}
       </DoctorShell>
