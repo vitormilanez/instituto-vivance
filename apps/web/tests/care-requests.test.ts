@@ -234,4 +234,11 @@ test("a página de metas aceita conta legada e só redireciona onboarding em ras
   assert.match(initializer, /method: "POST"/);
   assert.match(route, /sameOrigin\(request\)/);
   assert.match(route, /initializeOwnPatientIntake/);
+  assert.match(page, /patientHeading="Suas metas e expectativas"/);
+  assert.match(page, /patientSharedNotice="Metas e expectativas enviadas/);
+  const panel = readFileSync(
+    new URL("../components/patient-intake-panel.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(panel, /patientView \|\| record\.status === "draft"/);
 });

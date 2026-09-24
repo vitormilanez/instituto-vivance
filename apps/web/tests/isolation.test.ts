@@ -5655,10 +5655,46 @@ test("metas exigem uma versão de acolhimento posterior ao pedido, inclusive ap�
       (await db.query<{ requested_intake_version: number }>("select requested_intake_version from public.patient_care_requests where id=$1", [second])).rows[0].requested_intake_version,
       2,
     );
+    await denied(
+      `update public.patient_intake_contexts
+       set status='draft',expected_version=2
+       where tenant_id=$1 and patient_id=$2`,
+      [a, pa],
+    );
     await switchActor("patient");
     await db.query(
       `update public.patient_intake_contexts
-       set status='completed',expected_outcome='Meta atualizada',expected_version=2
+       set status='draft',expected_outcome='Meta em elaboração',expected_version=2
+       where tenant_id=$1 and patient_id=$2`,
+      [a, pa],
+    );
+    assert.equal(
+      (await db.query<{ status: string }>("select status from public.patient_care_requests where id=$1", [second])).rows[0].status,
+      "requested",
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.patient_intake_contexts where patient_id=$1", [pa])).rows.length,
+      0,
+    );
+    assert.deepEqual(
+      (
+        await db.query<{ status: string; version: number }>(
+          `select status,version from public.patient_intake_context_versions
+           where patient_id=$1 order by version desc limit 1`,
+          [pa],
+        )
+      ).rows,
+      [{ status: "completed", version: 2 }],
+    );
+    assert.equal(
+      (await db.query<{ status: string }>("select status from public.patient_care_requests where id=$1", [second])).rows[0].status,
+      "requested",
+    );
+    await switchActor("patient");
+    await db.query(
+      `update public.patient_intake_contexts
+       set status='completed',expected_outcome='Meta atualizada',expected_version=3
        where tenant_id=$1 and patient_id=$2`,
       [a, pa],
     );

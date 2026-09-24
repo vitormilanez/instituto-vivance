@@ -60,6 +60,10 @@ export default async function PatientGoalsPage({
             initial={intake}
             canEdit
             audience="patient"
+            patientHeading="Suas metas e expectativas"
+            patientDescription="Revise o que você busca agora e compartilhe uma nova versão quando estiver pronto."
+            patientConfirmationText="Confirmo que quero compartilhar estas metas e expectativas com a equipe."
+            patientSharedNotice="Metas e expectativas enviadas. A equipe já pode consultar esta nova versão."
           />
         </div>
       ) : profile.patient ? (

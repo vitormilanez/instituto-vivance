@@ -328,6 +328,84 @@ revoke all on function public.initialize_own_patient_intake(uuid)
 grant execute on function public.initialize_own_patient_intake(uuid)
   to authenticated;
 
+-- A completed intake is also the patient's recurring goals record. The
+-- patient may open a new private draft; staff cannot move a completed record
+-- backwards and continues to read the previous completed snapshot until the
+-- patient shares the newer version.
+create or replace function private.validate_patient_intake_context()
+returns trigger
+language plpgsql security invoker set search_path = '' as $$
+begin
+  if (new.id, new.tenant_id, new.patient_id, new.questionnaire_version,
+      new.created_at) is distinct from
+     (old.id, old.tenant_id, old.patient_id, old.questionnaire_version,
+      old.created_at) then
+    raise exception 'Immutable patient intake identity' using errcode = '42501';
+  end if;
+  if new.expected_version is null or new.expected_version <> old.version then
+    raise exception 'Stale patient intake version' using errcode = '40001';
+  end if;
+  if old.status = 'completed' and new.status = 'draft'
+    and not (
+      private.has_tenant_role(new.tenant_id, array['patient'])
+      and exists (
+        select 1 from public.patient_accounts account
+        where account.tenant_id = new.tenant_id
+          and account.patient_id = new.patient_id
+          and account.user_id = auth.uid()
+      )
+    ) then
+    raise exception 'Only the patient can start a new intake draft'
+      using errcode = '42501';
+  end if;
+  new.reason_text := btrim(new.reason_text);
+  new.expected_outcome := btrim(new.expected_outcome);
+  new.first_priority := btrim(new.first_priority);
+  new.recorded_by := auth.uid();
+  if private.has_tenant_role(new.tenant_id, array['doctor'])
+    and private.has_care_access(new.tenant_id, new.patient_id) then
+    new.source := 'staff_assisted';
+    select coalesce(nullif(btrim(membership.display_name), ''), 'Médico da equipe')
+      into new.recorded_by_name
+      from public.memberships membership
+      where membership.tenant_id = new.tenant_id
+        and membership.user_id = auth.uid()
+        and membership.role = 'doctor'
+        and membership.status = 'active';
+  elsif private.has_tenant_role(new.tenant_id, array['patient'])
+    and exists (
+      select 1 from public.patient_accounts account
+      where account.tenant_id = new.tenant_id
+        and account.patient_id = new.patient_id
+        and account.user_id = auth.uid()
+    ) then
+    new.source := 'patient_reported';
+    select coalesce(nullif(btrim(membership.display_name), ''), 'Paciente')
+      into new.recorded_by_name
+      from public.memberships membership
+      where membership.tenant_id = new.tenant_id
+        and membership.user_id = auth.uid()
+        and membership.role = 'patient'
+        and membership.status = 'active';
+  else
+    raise exception 'Active intake author required' using errcode = '42501';
+  end if;
+  if new.recorded_by_name is null then
+    raise exception 'Active intake author required' using errcode = '42501';
+  end if;
+  new.version := old.version + 1;
+  new.expected_version := null;
+  new.completed_at := case
+    when new.status = 'completed' then clock_timestamp()
+    else null
+  end;
+  new.updated_at := clock_timestamp();
+  return new;
+end;
+$$;
+revoke all on function private.validate_patient_intake_context()
+  from public, anon, authenticated;
+
 -- Preparation completion is request-specific. A late submission for an older
 -- preparation can no longer close a newer generic request.
 create or replace function private.complete_patient_care_request()
