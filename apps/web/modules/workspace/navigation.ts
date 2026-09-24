@@ -135,7 +135,13 @@ export const staffPrimaryKeys = [
 export const staffSecondaryGroups = [
   {
     label: "Cuidado",
-    keys: ["acompanhamento", "atendimentos", "preparo", "planos"],
+    keys: [
+      "acompanhamento",
+      "teleconsulta",
+      "atendimentos",
+      "preparo",
+      "planos",
+    ],
   },
   { label: "Registros", keys: ["documentos", "relatorios", "processamentos"] },
   { label: "Clínica", keys: ["team", "ia", "audit"] },

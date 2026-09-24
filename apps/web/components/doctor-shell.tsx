@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Figtree } from "next/font/google";
-import { Sun, Inbox, Users, CalendarDays, MessageCircle, Search, Bell, Settings } from "lucide-react";
+import { Sun, Inbox, Users, CalendarDays, MessageCircle, Search, Bell, Settings, Video } from "lucide-react";
 import type { ReactNode } from "react";
 import { logout } from "@/app/actions";
 import type { ClinicAccess } from "@/modules/identity/service";
@@ -14,7 +14,7 @@ import "@/app/doctor-communications.css";
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-doctor-figtree" });
 
 export function DoctorIcon({ name }: { name: string }) {
-  const Icon = ({ home: Sun, review: Inbox, patients: Users, agenda: CalendarDays, mensagens: MessageCircle, search: Search, bell: Bell }[name]) ?? Inbox;
+  const Icon = ({ home: Sun, review: Inbox, patients: Users, agenda: CalendarDays, teleconsulta: Video, mensagens: MessageCircle, search: Search, bell: Bell }[name]) ?? Inbox;
   return <Icon aria-hidden="true" size={20} strokeWidth={1.7} />;
 }
 
@@ -51,6 +51,13 @@ export function DoctorShell({
       label: "Agenda",
       mobile: "Agenda",
       href: `${base}/agenda`,
+    },
+    {
+      key: "teleconsulta",
+      label: "Teleconsulta",
+      // No celular a barra fica com cinco destinos; Teleconsulta vai no Menu.
+      mobile: null,
+      href: `${base}/teleconsulta`,
     },
     {
       key: "mensagens",
@@ -173,6 +180,12 @@ export function DoctorShell({
           <details className="dv-mobile-tools">
             <summary>Menu</summary>
             <nav aria-label="Outras áreas">
+              <Link
+                href={`${base}/teleconsulta`}
+                aria-current={active === "teleconsulta" ? "page" : undefined}
+              >
+                Teleconsulta
+              </Link>
               {secondaryLinks}
               <Link href="/clinicas">Minhas clínicas</Link>
               <form action={logout}>
@@ -188,7 +201,7 @@ export function DoctorShell({
         </main>
       </div>
       <nav className="dv-mobile-nav" aria-label="Área do médico no celular">
-        {primary.map((link) => (
+        {primary.filter((link) => link.mobile).map((link) => (
           <Link
             key={link.key}
             href={link.href}

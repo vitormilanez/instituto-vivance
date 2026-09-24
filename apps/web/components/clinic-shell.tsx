@@ -56,6 +56,7 @@ export async function ClinicShell({
     | "team"
     | "audit"
     | "notifications"
+    | "teleconsulta"
     | StaffModuleSlug;
   children: ReactNode;
   focusMode?: boolean;
@@ -91,6 +92,11 @@ export async function ClinicShell({
     },
     { key: "patients", label: "Pacientes", href: `${base}/pacientes` },
     ...moduleLinks,
+    {
+      key: "teleconsulta",
+      label: "Teleconsulta",
+      href: `${base}/teleconsulta`,
+    },
     { key: "notifications", label: "Avisos", href: `${base}/avisos` },
     { key: "team", label: "Equipe de cuidado", href: `${base}/equipe` },
     ...(clinic.role === "admin"

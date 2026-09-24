@@ -276,3 +276,131 @@
     font-size: 22px;
   }
 }
+
+/* Menu Teleconsulta --------------------------------------------------- */
+.teleconsultation-hub {
+  display: grid;
+  gap: 24px;
+  max-width: 980px;
+}
+.teleconsultation-hub .panel h2 {
+  margin-top: 0;
+}
+.tele-hub-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.tele-hub-fields {
+  display: grid;
+  gap: 24px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.tele-hub-step {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 14px;
+}
+.tele-hub-step h3 {
+  margin: 4px 0 10px;
+  font-size: 16px;
+}
+.tele-hub-step .teleconsultation-mode-options {
+  margin: 0 0 14px;
+}
+.tele-hub-step-number {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+.tele-hub-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px 16px;
+  align-items: end;
+}
+.tele-hub-row .field,
+.tele-hub-step .field {
+  margin: 0;
+}
+.tele-hub-row .tele-hub-hint {
+  grid-column: 1 / -1;
+}
+.tele-hub-hint {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.tele-hub-meet {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.tele-hub-created {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+.tele-hub-created p {
+  margin: 0;
+}
+.tele-hub-created button,
+.tele-hub-actions .button,
+.tele-hub-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tele-hub-list li {
+  display: grid;
+  gap: 12px;
+  padding: 16px 0;
+}
+.tele-hub-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.tele-hub-item > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.tele-hub-item small {
+  color: var(--muted);
+}
+.tele-hub-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.tele-hub-confirm {
+  display: grid;
+  gap: 10px;
+}
+@media (max-width: 600px) {
+  .tele-hub-step {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .tele-hub-actions > * {
+    flex: 1 1 auto;
+  }
+}
