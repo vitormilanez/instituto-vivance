@@ -27,21 +27,6 @@ export function PatientEvolution({
     { key: "tudo", label: "Tudo" },
   ];
 
-  if (!view.weight && view.others.length === 0 && period === "tudo")
-    return (
-      <div className="pv-stack">
-        <section className="pv-card" aria-labelledby="pv-evo-empty">
-          <h2 id="pv-evo-empty" className="pv-big">Seu histórico começa com o primeiro registro</h2>
-          <p className="pv-lead">
-            Aqui você vai ver seu peso e suas medidas ao longo do tempo. Não mostramos exemplos nem estimativas.
-          </p>
-          <Link className="pv-button" href={`${base}/peso`}>
-            Registrar meu peso
-            <Icon name="arrow" size={22} />
-          </Link>
-        </section>
-      </div>
-    );
 
   return (
     <div className="pv-stack">
@@ -101,7 +86,7 @@ export function PatientEvolution({
       )}
 
       <section className="pv-card" aria-labelledby="pv-feel-title">
-        <h2 id="pv-feel-title" className="pv-eyebrow">Como você se sentiu</h2>
+        <h2 id="pv-feel-title" className="pv-eyebrow">Como você se sentiu · últimos 14 dias</h2>
         {checkIn ? (
           <EffectsMap data={checkIn.effects} emptyText="Os efeitos que você marcar no check-in aparecem aqui, dia a dia." />
         ) : (
@@ -110,7 +95,7 @@ export function PatientEvolution({
       </section>
 
       {view.entries.length > 0 && (
-        <section className="pv-card" aria-labelledby="pv-regs-title">
+        <section id="registros" className="pv-card" aria-labelledby="pv-regs-title">
           <h2 id="pv-regs-title" className="pv-eyebrow">Seus registros · enviados por você</h2>
           <ul className="pv-list">
             {view.entries.map((entry) => (

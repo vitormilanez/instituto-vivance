@@ -20,6 +20,7 @@ import {
   type Intensity,
 } from "@/modules/daily-check-ins/model";
 import { Icon, type IconName } from "./icons";
+import { sendOrQueue } from "./outbox";
 
 const titles: Record<string, [string, string]> = {
   weight: ["Quanto você está pesando hoje?", "Se não se pesou hoje, pode pular."],
@@ -119,7 +120,7 @@ export function CheckInFlow({
   const [applicationDay, setApplicationDay] = useState<"today" | "yesterday" | "other">("today");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const [done, setDone] = useState<{ at: string; rows: { label: string; value: string }[] } | null>(null);
+  const [done, setDone] = useState<{ queued: boolean; at: string; rows: { label: string; value: string }[] } | null>(null);
 
   const step = steps[index];
   const last = index === steps.length - 1;
@@ -163,15 +164,17 @@ export function CheckInFlow({
     setError("");
     const body = payload();
     try {
-      const response = await fetch(`/api/v1/clinics/${tenantId}/daily-check-ins`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(20_000),
-        body: JSON.stringify({ request_key: requestKey.current, answers: body }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "Não conseguimos enviar agora.");
+      const sent = await sendOrQueue(
+        `/api/v1/clinics/${tenantId}/daily-check-ins`,
+        { request_key: requestKey.current, answers: body },
+        "Check-in",
+      );
+      if (!sent.queued) {
+        const result = await sent.response.json();
+        if (!sent.response.ok) throw new Error(result.error ?? "Não conseguimos enviar agora.");
+      }
       setDone({
+        queued: sent.queued,
         at: new Date().toLocaleString("pt-BR", {
           day: "2-digit",
           month: "2-digit",
@@ -196,10 +199,16 @@ export function CheckInFlow({
   if (done)
     return (
       <div className="pv-stack pv-done">
-        <span className="pv-done-icon" aria-hidden="true"><Icon name="check" size={32} /></span>
-        <h2 className="pv-big" tabIndex={-1} ref={doneHeading}>Pronto, obrigado!</h2>
-        <p className="pv-lead">Tudo registrado para {doctor}.</p>
-        <p className="pv-sent-when"><Icon name="check" size={16} /> Enviado {done.at.replace(",", ",")}</p>
+        <span className="pv-done-icon" aria-hidden="true"><Icon name={done.queued ? "wifiOff" : "check"} size={32} /></span>
+        <h2 className="pv-big" tabIndex={-1} ref={doneHeading}>{done.queued ? "Salvo no seu celular" : "Pronto, obrigado!"}</h2>
+        <p className="pv-lead">
+          {done.queued
+            ? "Sem internet agora. Enviamos sozinhos assim que a conexão voltar — não precisa fazer nada."
+            : `Tudo registrado para ${doctor}.`}
+        </p>
+        <p className="pv-sent-when">
+          {done.queued ? <><Icon name="wifiOff" size={16} /> Aguardando conexão</> : <><Icon name="check" size={16} /> Enviado {done.at}</>}
+        </p>
         {done.rows.length > 0 && (
           <details className="pv-card pv-receipt">
             <summary>Ver o que enviei</summary>

@@ -194,3 +194,51 @@ test("o botão é irmão do link, o bilhete é opcional e a incerteza não mente
   // Alvos de 44px também no convite ao bilhete.
   assert.match(css, /\.context-request-note \{[^}]*min-height: 44px;/);
 });
+
+test("pendências do paciente carregam o alvo exato da pré-consulta", () => {
+  const service = readFileSync(
+    new URL("../modules/care-requests/service.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(service, /select\("kind,requested_at,preparation_id,requested_intake_version"\)/);
+  assert.match(service, /preparation_starts_at/);
+  assert.match(service, /Agende primeiro uma próxima consulta/);
+  assert.match(service, /\["42703", "PGRST204"\]/);
+  assert.match(service, /legacy: true as const/);
+});
+
+test("a página de metas aceita conta legada e só redireciona onboarding em rascunho", () => {
+  const page = readFileSync(
+    new URL(
+      "../app/clinicas/[tenantId]/meu-cuidado/metas/page.tsx",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  assert.match(page, /onboarding\?\.status === "draft"/);
+  assert.doesNotMatch(page, /!onboarding \|\|/);
+  assert.match(page, /<PatientIntakePanel/);
+  assert.match(page, /audience="patient"/);
+  assert.match(page, /canEdit/);
+  assert.match(page, /<PatientGoalsInitializer tenantId=\{tenantId\}/);
+  assert.match(page, /Nada será[\s\S]*compartilhado com a equipe/);
+  const initializer = readFileSync(
+    new URL("../components/patient-goals-initializer.tsx", import.meta.url),
+    "utf8",
+  );
+  const route = readFileSync(
+    new URL("../app/api/v1/clinics/[tenantId]/intake/route.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(initializer, /Começar minhas metas/);
+  assert.match(initializer, /method: "POST"/);
+  assert.match(route, /sameOrigin\(request\)/);
+  assert.match(route, /initializeOwnPatientIntake/);
+  assert.match(page, /patientHeading="Suas metas e expectativas"/);
+  assert.match(page, /patientSharedNotice="Metas e expectativas enviadas/);
+  const panel = readFileSync(
+    new URL("../components/patient-intake-panel.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(panel, /patientView \|\| record\.status === "draft"/);
+});

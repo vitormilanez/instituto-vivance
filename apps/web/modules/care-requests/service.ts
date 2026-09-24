@@ -39,7 +39,19 @@ export async function requestPatientCare(
     request_key: values.requestKey,
     replace_pending: values.replacePending,
   });
-  if (result.error) databaseFailure(result.error.code);
+  if (result.error) {
+    if (values.kind === "preparation" && result.error.code === "23514")
+      throw new CareRequestError(
+        "Agende primeiro uma próxima consulta com este médico para solicitar a pré-consulta.",
+        409,
+      );
+    if (values.kind === "goals" && result.error.code === "23514")
+      throw new CareRequestError(
+        "Este paciente precisa ter o acolhimento inicial antes de receber uma solicitação de metas.",
+        409,
+      );
+    databaseFailure(result.error.code);
+  }
   if (typeof result.data !== "string")
     throw new Error("Care request returned an invalid response");
   return { id: result.data, kind: values.kind };
@@ -52,13 +64,61 @@ export async function myPendingCareRequests(id: string) {
   const { client } = await requireClinic(tenant, ["patient"]);
   const result = await client
     .from("patient_care_requests")
-    .select("kind,requested_at")
+    .select("kind,requested_at,preparation_id,requested_intake_version")
     .eq("tenant_id", tenant)
     .eq("status", "requested")
     .order("requested_at")
     .order("id");
+  if (result.error && ["42703", "PGRST204"].includes(result.error.code)) {
+    const legacy = await client
+      .from("patient_care_requests")
+      .select("kind,requested_at")
+      .eq("tenant_id", tenant)
+      .eq("status", "requested")
+      .order("requested_at")
+      .order("id");
+    if (legacy.error) databaseFailure(legacy.error.code);
+    return (legacy.data ?? []).map((row) => ({
+      ...row,
+      preparation_id: null,
+      preparation_starts_at: null,
+      legacy: true as const,
+    }));
+  }
   if (result.error) databaseFailure(result.error.code);
-  return result.data ?? [];
+  const rows = result.data ?? [];
+  const preparationIds = rows.flatMap((row) =>
+    row.preparation_id ? [row.preparation_id] : [],
+  );
+  if (!preparationIds.length)
+    return rows.map((row) => ({
+      ...row,
+      preparation_starts_at: null,
+      legacy:
+        (row.kind === "preparation" && row.preparation_id === null) ||
+        (row.kind === "goals" && row.requested_intake_version === null),
+    }));
+  const preparations = await client
+    .from("return_preparation_requests")
+    .select("id,appointments!return_preparation_requests_tenant_id_appointment_id_fkey(starts_at)")
+    .eq("tenant_id", tenant)
+    .in("id", preparationIds);
+  if (preparations.error) databaseFailure(preparations.error.code);
+  const startsAt = new Map(
+    (preparations.data ?? []).map((preparation) => [
+      preparation.id,
+      preparation.appointments?.starts_at ?? null,
+    ]),
+  );
+  return rows.map((row) => ({
+    ...row,
+    preparation_starts_at: row.preparation_id
+      ? (startsAt.get(row.preparation_id) ?? null)
+      : null,
+    legacy:
+      (row.kind === "preparation" && row.preparation_id === null) ||
+      (row.kind === "goals" && row.requested_intake_version === null),
+  }));
 }
 
 // Leitura para o card: só a pendência interessa ao médico, e o histórico

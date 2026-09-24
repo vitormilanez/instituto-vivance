@@ -4,6 +4,8 @@ import { Figtree } from "next/font/google";
 import type { ClinicAccess } from "@/modules/identity/service";
 import { patientTabFor, patientTabs } from "@/modules/workspace/navigation";
 import { logout } from "@/app/actions";
+import { identity } from "@/modules/identity/service";
+import { ConnectionStatus } from "./patient/connection-status";
 import { Icon, Mark } from "./patient/icons";
 import { RegisterSheet, type RegisterItem } from "./patient/register-sheet";
 import "@/app/patient.css";
@@ -28,7 +30,7 @@ export function registerItems(base: string, checkInHref?: string | null): Regist
 // "Sentiu algo forte?", conteúdo e a barra inferior com o "Registrar" no meio
 // (no computador, a navegação vira coluna lateral). Tarefas de tela cheia
 // (registrar peso, refeição, sinais de alerta): só um "voltar" e o título.
-export function PatientShell({
+export async function PatientShell({
   clinic,
   active,
   title,
@@ -49,9 +51,10 @@ export function PatientShell({
   const tab = patientTabFor(active);
   const items = registerItems(base, checkInHref);
   const task = !tab;
+  const { user } = await identity();
 
   return (
-    <div className={`pv ${figtree.variable}${task ? " pv-is-task" : ""}`}>
+    <div className={`pv ${figtree.variable}${task ? " pv-is-task" : ""}`} data-pv-owner={user.id}>
       <div className="pv-frame">
         {!task && (
           <aside className="pv-side" aria-label="Menu do paciente">
@@ -107,6 +110,7 @@ export function PatientShell({
             </Link>
           </header>
         )}
+          <ConnectionStatus owner={user.id} />
           <main id="conteudo" className="pv-main">
             {children}
           </main>

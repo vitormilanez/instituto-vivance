@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { patientDailyHistory, patientReceipt } from "@/modules/workspace/patient-receipts";
+import { PatientReceiptView } from "@/components/patient/receipt";
 import {
   getPatientOnboarding,
   OnboardingError,
@@ -9,6 +12,8 @@ import { InputError } from "@/lib/validation";
 import { findPatientSection } from "@/modules/workspace/navigation";
 import { PatientShell } from "@/components/patient-shell";
 import { PatientAlertSigns } from "@/components/patient/alert-signs";
+import { clinicPatientInfo } from "@/modules/clinic-info/service";
+import { alertSigns as noClinicInfo } from "@/modules/workspace/alert-signs";
 import { PatientMealQuick } from "@/components/patient/meal-quick";
 import { PatientMyCare } from "@/components/patient/my-care";
 import { CheckInFlow } from "@/components/patient/check-in-flow";
@@ -91,6 +96,7 @@ export default async function PatientAreaPage({
     appointments,
     checkIn,
     reminder,
+    clinicInfo,
   ] = await Promise.all([
     // onboarding
     patient && slug === "hoje"
@@ -176,12 +182,16 @@ export default async function PatientAreaPage({
       : null,
     // checkIn: estado do check-in diário (null se a tabela ainda não existe)
     patient && (section.group !== "acao" || ["checkin", "boas-vindas", "lembretes"].includes(slug))
-      ? patientCheckInState(tenantId).catch(() => null)
+      ? patientCheckInState(tenantId)
       : null,
     // reminder: null = recurso indisponível; undefined = ainda sem boas-vindas
     patient && ["hoje", "cuidado", "boas-vindas", "lembretes"].includes(slug)
-      ? myReminderPreference(tenantId).catch(() => null)
+      ? myReminderPreference(tenantId)
       : null,
+    // clinicInfo: telefone da clínica e sinais de alerta aprovados
+    ["alerta", "consultas", "cuidado"].includes(slug)
+      ? clinicPatientInfo(tenantId).catch(() => noClinicInfo)
+      : noClinicInfo,
   ]);
   // Primeiro acesso: antes da Home, as boas-vindas (uma vez só).
   if (slug === "hoje" && patient && reminder === undefined)
@@ -191,6 +201,9 @@ export default async function PatientAreaPage({
     slug === "preconsulta"
       ? (preparations?.preparations.find((item) => (query.preparo ? item.id === query.preparo : ["requested", "draft"].includes(item.status))) ?? null)
       : null;
+  const submittedPreparation = preparationItem?.submission
+    ? (await patientReceipt(tenantId, "preparation", preparationItem.id)).receipt : null;
+  const dailyHistory = patient && slug === "diario" ? await patientDailyHistory(tenantId) : null;
   const lastConsultationDay =
     appointments?.appointments
       .filter((item) => item.status === "completed" && item.ends_at < currentTime)
@@ -240,9 +253,10 @@ export default async function PatientAreaPage({
           appointments={appointments.appointments}
           documents={documents?.documents ?? null}
           reminderLabel={reminder === null ? null : reminderLabel(reminder ?? null, checkIn?.frequencyDays ?? 1)}
+          clinicPhone={clinicInfo.clinicPhone}
         />
       ) : slug === "alerta" ? (
-        <PatientAlertSigns />
+        <PatientAlertSigns content={clinicInfo} />
       ) : (slug === "boas-vindas" || slug === "lembretes") && patient ? (
         <WelcomeFlow
           tenantId={tenantId}
@@ -262,7 +276,7 @@ export default async function PatientAreaPage({
             summary={preparationRows}
             whenLabel={consultationLabel(preparationItem.appointments.starts_at, clinicDate())}
           />
-        ) : (
+        ) : submittedPreparation ? <PatientReceiptView receipt={submittedPreparation} tenantId={tenantId} /> : (
           <div className="pv-card">
             <p className="pv-big is-small">
               {preparationItem ? "Esta pré-consulta já foi enviada" : "Nenhuma pré-consulta esperando você"}
@@ -303,6 +317,10 @@ export default async function PatientAreaPage({
         <PatientEvolution data={longitudinal} base={base} period={evolution.key} checkIn={checkIn} />
       ) : slug === "diario" && checkIns && meals ? (
         <>
+          <section className="pv-card" aria-labelledby="daily-history-title">
+            <h2 id="daily-history-title" className="pv-h2">Seus check-ins diários</h2>
+            {dailyHistory === null ? <p>Os check-ins diários ainda não estão disponíveis.</p> : dailyHistory.length ? <ul className="pv-list">{dailyHistory.map((item) => <li key={item.client_request_id}><Link className="pv-link" href={`${base}/envios/daily/${item.client_request_id}`}>Check-in de {new Date(item.submitted_at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</Link></li>)}</ul> : <p>Quando você enviar um check-in, poderá consultar suas respostas aqui.</p>}
+          </section>
           <PatientMealLogs initial={meals} />
           <PatientCheckIns initial={checkIns} today={clinicDate()} />
         </>
@@ -327,7 +345,15 @@ export default async function PatientAreaPage({
               currentTime={currentTime}
             />
             <p className="module-footnote">
-              Para marcar ou alterar um horário, entre em contato com a clínica.
+              {clinicInfo.clinicPhone ? (
+                <>
+                  Para marcar ou alterar um horário, fale com a clínica:{" "}
+                  <a href={`tel:${clinicInfo.clinicPhone.tel}`}>{clinicInfo.clinicPhone.display}</a>
+                  {clinicInfo.clinicPhone.hours ? ` · ${clinicInfo.clinicPhone.hours}` : ""}.
+                </>
+              ) : (
+                "Para marcar ou alterar um horário, entre em contato com a clínica."
+              )}
             </p>
           </section>
         ) : (

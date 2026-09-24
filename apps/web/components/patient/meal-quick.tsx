@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ChangeEvent, FormEvent } from "react";
 import { uploadDocument } from "@/lib/document-upload";
+import Link from "next/link";
 import { Icon } from "./icons";
+import { sendOrQueue } from "./outbox";
 
 const acceptedPhotoTypes = ["image/jpeg", "image/png"];
 const maxPhotoBytes = 5 * 1024 * 1024;
@@ -55,6 +57,7 @@ export function PatientMealQuick({
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [pending, setPending] = useState<"" | "photo" | "meal">("");
+  const [queued, setQueued] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -123,20 +126,28 @@ export function PatientMealQuick({
             documentId = sent.documentId;
             uploaded.current = { fingerprint: photoFingerprint, documentId };
           } catch {
-            setError("A foto não foi enviada. Tente de novo ou salve sem foto.");
+            setError(
+              typeof navigator !== "undefined" && navigator.onLine === false
+                ? "Sem internet, a foto não pode ser enviada agora. Salve sem foto ou tente quando a conexão voltar."
+                : "A foto não foi enviada. Tente de novo ou salve sem foto.",
+            );
             return;
           }
         }
       }
       setPending("meal");
-      const response = await fetch(`/api/v1/clinics/${tenantId}/meals`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(20_000),
-        body: JSON.stringify({ request_key: request.current.key, photo_document_id: documentId, ...payload }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "Não foi possível registrar a refeição.");
+      const sent = await sendOrQueue(
+        `/api/v1/clinics/${tenantId}/meals`,
+        { request_key: request.current.key, photo_document_id: documentId, ...payload },
+        "Refeição",
+      );
+      if (sent.queued) {
+        request.current = null;
+        setQueued(true);
+        return;
+      }
+      const result = await sent.response.json();
+      if (!sent.response.ok) throw new Error(result.error ?? "Não foi possível registrar a refeição.");
       router.push(`${base}/hoje?enviado=refeicao`);
       router.refresh();
     } catch (reason) {
@@ -152,6 +163,17 @@ export function PatientMealQuick({
   }
 
   const disabled = pending !== "";
+
+  if (queued)
+    return (
+      <div className="pv-stack pv-done" role="status">
+        <span className="pv-done-icon" aria-hidden="true"><Icon name="wifiOff" size={32} /></span>
+        <h2 className="pv-big">Salvo no seu celular</h2>
+        <p className="pv-lead">Sem internet agora. Enviamos sozinhos assim que a conexão voltar — não precisa fazer nada.</p>
+        <p className="pv-sent-when"><Icon name="wifiOff" size={16} /> Aguardando conexão</p>
+        <Link className="pv-button" href={`${base}/hoje`}>Voltar para o início<Icon name="arrow" /></Link>
+      </div>
+    );
 
   return (
     <form className="pv-stack" onSubmit={submit} noValidate aria-busy={disabled}>

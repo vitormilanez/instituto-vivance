@@ -4656,6 +4656,73 @@ test("linked invitation reuses the assisted intake and preserves doctor and pati
   });
 });
 
+test("legacy patient explicitly initializes one own intake while active care remains linked", async () => {
+  await asUser("doctor", async () => {
+    await startClinical("2099-12-26T12:00:00Z", "2099-12-26T12:30:00Z");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+      [a, pa, users.patient.id],
+    );
+
+    await switchActor("patient");
+    const first = (
+      await db.query<{ id: string }>(
+        "select public.initialize_own_patient_intake($1) id",
+        [a],
+      )
+    ).rows[0].id;
+    const replay = (
+      await db.query<{ id: string }>(
+        "select public.initialize_own_patient_intake($1) id",
+        [a],
+      )
+    ).rows[0].id;
+    assert.equal(replay, first);
+    assert.deepEqual(
+      (
+        await db.query<{ source: string; status: string; version: number }>(
+          "select source,status,version from public.patient_intake_contexts where id=$1",
+          [first],
+        )
+      ).rows,
+      [{ source: "patient_reported", status: "draft", version: 1 }],
+    );
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.patient_intake_context_versions where intake_id=$1",
+          [first],
+        )
+      ).rows[0].count,
+      1,
+    );
+    await denied("select public.initialize_own_patient_intake($1)", [b]);
+    await switchActor("doctor");
+    await denied("select public.initialize_own_patient_intake($1)", [a]);
+
+    await db.exec("reset role");
+    await db.query(
+      `update public.care_relationships
+       set status='revoked',expected_version=1
+       where tenant_id=$1 and patient_id=$2 and professional_id=$3`,
+      [a, pa, users.doctor.id],
+    );
+    await switchActor("patient");
+    await denied("select public.initialize_own_patient_intake($1)", [a]);
+    await db.exec("reset role");
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.audit_events where entity_type='patient_intake_contexts' and entity_id=$1",
+          [first],
+        )
+      ).rows[0].count,
+      1,
+    );
+  });
+});
+
 test("admin-assigned invitation keeps doctor acceptance pending and fails closed when identities change", async () => {
   await asUser("outsider", async () => {
     await db.exec("reset role");
@@ -5203,6 +5270,14 @@ async function careRequestFixture() {
     "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
     [a, pa, users.patient.id],
   );
+  await db.query(
+    "insert into public.patient_intake_contexts(tenant_id,patient_id,recorded_by,recorded_by_name) values($1,$2,$3,'Synthetic doctor')",
+    [a, pa, users.doctor.id],
+  );
+  await db.query(
+    "insert into public.appointments(tenant_id,patient_id,doctor_id,starts_at,ends_at,kind) values($1,$2,$3,'2100-01-21T12:00:00Z','2100-01-21T12:30:00Z','return')",
+    [a, pa, users.doctor.id],
+  );
   await switchActor("doctor");
 }
 
@@ -5396,6 +5471,238 @@ test("solicitar exige médico com vínculo ativo, e o registro é auditado", asy
       [id],
     );
     assert.ok(audited.rows[0].count >= 1, "a solicitação entra na auditoria");
+  });
+});
+
+test("pré-consulta genérica cria um alvo de retorno e só esse alvo conclui o pedido", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const care = (await requestCare("preparation")).rows[0].id;
+    const stored = await db.query<{ preparation_id: string; status: string }>(
+      "select preparation_id,status from public.patient_care_requests where id=$1",
+      [care],
+    );
+    assert.ok(stored.rows[0].preparation_id);
+    assert.equal(stored.rows[0].status, "requested");
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.return_preparation_requests where id=$1 and patient_id=$2",
+          [stored.rows[0].preparation_id, pa],
+        )
+      ).rows[0].count,
+      1,
+    );
+
+    // Uma resposta antiga do mesmo paciente não satisfaz a solicitação nova.
+    await db.exec("reset role");
+    const unrelated = randomUUID();
+    const unrelatedAppointment = randomUUID();
+    await db.query(
+      `insert into public.appointments(
+        id,tenant_id,patient_id,doctor_id,starts_at,ends_at,kind
+      ) values($1,$2,$3,$4,'2100-01-22T12:00:00Z','2100-01-22T12:30:00Z','return')`,
+      [unrelatedAppointment, a, pa, users.doctor.id],
+    );
+    await db.query(
+      `insert into public.return_preparation_requests(
+        id,tenant_id,appointment_id,patient_id,doctor_id,questionnaire_version,
+        request_number,requested_by,client_request_id
+      ) select $1,tenant_id,$2,patient_id,doctor_id,
+        questionnaire_version,1,requested_by,$3
+        from public.return_preparation_requests where id=$4`,
+      [unrelated, unrelatedAppointment, randomUUID(), stored.rows[0].preparation_id],
+    );
+    await db.query(
+      "update public.return_preparation_requests set status='submitted',submitted_at=clock_timestamp() where id=$1",
+      [unrelated],
+    );
+    assert.equal(
+      (
+        await db.query<{ status: string }>(
+          "select status from public.patient_care_requests where id=$1",
+          [care],
+        )
+      ).rows[0].status,
+      "requested",
+    );
+    await db.query(
+      "update public.return_preparation_requests set status='submitted',submitted_at=clock_timestamp() where id=$1",
+      [stored.rows[0].preparation_id],
+    );
+    assert.equal(
+      (
+        await db.query<{ status: string }>(
+          "select status from public.patient_care_requests where id=$1",
+          [care],
+        )
+      ).rows[0].status,
+      "completed",
+    );
+  });
+});
+
+test("pré-consulta sem próximo retorno falha sem deixar pedido, preparo ou mensagem parcial", async () => {
+  await asUser("doctor", async () => {
+    await startClinical("2099-12-23T12:00:00Z", "2099-12-23T12:30:00Z");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+      [a, pa, users.patient.id],
+    );
+    await switchActor("doctor");
+    await denied(
+      "select public.request_patient_care($1,$2,'preparation','',$3,false)",
+      [a, pa, randomUUID()],
+    );
+    await db.exec("reset role");
+    assert.equal((await db.query("select id from public.patient_care_requests")).rows.length, 0);
+    assert.equal((await db.query("select id from public.return_preparation_requests")).rows.length, 0);
+    assert.equal((await db.query("select id from public.care_messages")).rows.length, 0);
+  });
+});
+
+test("pendência legada é preservada, reparada no reenvio e não cria preparo extra após o vínculo", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    await db.exec("reset role");
+    const legacy = randomUUID();
+    await db.query(
+      `insert into public.patient_care_requests(
+        id,tenant_id,patient_id,doctor_id,kind,note,client_request_id
+      ) values($1,$2,$3,$4,'preparation','Pedido legado',$5)`,
+      [legacy, a, pa, users.doctor.id, randomUUID()],
+    );
+    assert.deepEqual(
+      (
+        await db.query<{ status: string; preparation_id: string | null }>(
+          "select status,preparation_id from public.patient_care_requests where id=$1",
+          [legacy],
+        )
+      ).rows,
+      [{ status: "requested", preparation_id: null }],
+    );
+
+    await switchActor("doctor");
+    const repaired = (await requestCare("preparation")).rows[0].id;
+    assert.equal(repaired, legacy);
+    const linked = (
+      await db.query<{ preparation_id: string | null }>(
+        "select preparation_id from public.patient_care_requests where id=$1",
+        [legacy],
+      )
+    ).rows[0].preparation_id;
+    assert.ok(linked);
+    const beforeReplay = (
+      await db.query<{ count: number }>(
+        "select count(*)::int count from public.return_preparation_requests where patient_id=$1",
+        [pa],
+      )
+    ).rows[0].count;
+
+    assert.equal((await requestCare("preparation")).rows[0].id, legacy);
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.return_preparation_requests where patient_id=$1",
+          [pa],
+        )
+      ).rows[0].count,
+      beforeReplay,
+    );
+  });
+});
+
+test("metas exigem uma versão de acolhimento posterior ao pedido, inclusive após conclusão anterior", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    await db.exec("reset role");
+    const legacy = randomUUID();
+    await db.query(
+      `insert into public.patient_care_requests(
+        id,tenant_id,patient_id,doctor_id,kind,note,client_request_id
+      ) values($1,$2,$3,$4,'goals','Metas legadas',$5)`,
+      [legacy, a, pa, users.doctor.id, randomUUID()],
+    );
+    await switchActor("doctor");
+    const first = (await requestCare("goals")).rows[0].id;
+    assert.equal(first, legacy);
+    assert.equal(
+      (
+        await db.query<{ requested_intake_version: number }>(
+          "select requested_intake_version from public.patient_care_requests where id=$1",
+          [first],
+        )
+      ).rows[0].requested_intake_version,
+      1,
+    );
+    await switchActor("patient");
+    await db.query(
+      `update public.patient_intake_contexts
+       set status='completed',reason_text='Motivo',expected_outcome='Meta nova',
+         first_priority='Prioridade',expected_version=1
+       where tenant_id=$1 and patient_id=$2`,
+      [a, pa],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query<{ status: string }>("select status from public.patient_care_requests where id=$1", [first])).rows[0].status,
+      "completed",
+    );
+
+    const second = (await requestCare("goals")).rows[0].id;
+    assert.equal(
+      (await db.query<{ requested_intake_version: number }>("select requested_intake_version from public.patient_care_requests where id=$1", [second])).rows[0].requested_intake_version,
+      2,
+    );
+    await denied(
+      `update public.patient_intake_contexts
+       set status='draft',expected_version=2
+       where tenant_id=$1 and patient_id=$2`,
+      [a, pa],
+    );
+    await switchActor("patient");
+    await db.query(
+      `update public.patient_intake_contexts
+       set status='draft',expected_outcome='Meta em elaboração',expected_version=2
+       where tenant_id=$1 and patient_id=$2`,
+      [a, pa],
+    );
+    assert.equal(
+      (await db.query<{ status: string }>("select status from public.patient_care_requests where id=$1", [second])).rows[0].status,
+      "requested",
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select id from public.patient_intake_contexts where patient_id=$1", [pa])).rows.length,
+      0,
+    );
+    assert.deepEqual(
+      (
+        await db.query<{ status: string; version: number }>(
+          `select status,version from public.patient_intake_context_versions
+           where patient_id=$1 order by version desc limit 1`,
+          [pa],
+        )
+      ).rows,
+      [{ status: "completed", version: 2 }],
+    );
+    assert.equal(
+      (await db.query<{ status: string }>("select status from public.patient_care_requests where id=$1", [second])).rows[0].status,
+      "requested",
+    );
+    await switchActor("patient");
+    await db.query(
+      `update public.patient_intake_contexts
+       set status='completed',expected_outcome='Meta atualizada',expected_version=3
+       where tenant_id=$1 and patient_id=$2`,
+      [a, pa],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query<{ status: string }>("select status from public.patient_care_requests where id=$1", [second])).rows[0].status,
+      "completed",
+    );
   });
 });
 test("não visto é por profissional, idempotente e segue o vínculo de cuidado", async () => {
@@ -5768,5 +6075,50 @@ test("lembretes: preferência e aparelhos são só do próprio paciente; o agend
     assert.equal(again.rows.length, 0);
     assert.ok(due.rows.every((row) => row.endpoint === "https://push.example/device"));
     await denied("select * from public.patient_reminder_preferences");
+  });
+});
+
+test("telefone e sinais de alerta: equipe cadastra, só médico aprova a lista, todo membro da clínica lê", async () => {
+  await asUser("admin", async () => {
+    await denied("insert into public.clinic_patient_info(tenant_id,updated_by) values($1,$2)", [a, users.admin.id]);
+    await db.query("select public.save_clinic_phone($1,'(11) 4000-0000','(11) 4000-0000','seg a sex, 8h às 18h')", [a]);
+    // Administrador cadastra telefone, mas não aprova texto clínico.
+    await denied("select public.approve_alert_signs($1,$2::text[])", [a, ["Falta de ar"]]);
+    await denied("select public.save_clinic_phone($1,'(11) 4000-0000',null,null)", [a]);
+    await switchActor("nurse");
+    await denied("select public.save_clinic_phone($1,'(11) 4000-0000','1140000000',null)", [a]);
+    await switchActor("doctor");
+    await denied("select public.approve_alert_signs($1,$2::text[])", [a, ["x"]]);
+    await db.query("select public.approve_alert_signs($1,$2::text[])", [
+      a,
+      [" Falta de ar ou dor no peito ", "Vômitos que não param"],
+    ]);
+    const row = await db.query<{
+      phone_tel: string;
+      alert_signs: string[];
+      alert_approved_by: string;
+      alert_approved_name: string;
+      alert_approved_on: string | null;
+    }>("select phone_tel,alert_signs,alert_approved_by,alert_approved_name,alert_approved_on from public.clinic_patient_info where tenant_id=$1", [a]);
+    assert.equal(row.rows[0].phone_tel, "1140000000");
+    assert.deepEqual(row.rows[0].alert_signs, ["Falta de ar ou dor no peito", "Vômitos que não param"]);
+    assert.equal(row.rows[0].alert_approved_by, users.doctor.id);
+    assert.equal(row.rows[0].alert_approved_name, "Synthetic doctor");
+    assert.ok(row.rows[0].alert_approved_on);
+    await denied("update public.clinic_patient_info set alert_signs='{}'");
+    // O paciente da clínica lê; outra clínica não.
+    await switchActor("patient");
+    assert.equal((await db.query("select alert_signs from public.clinic_patient_info")).rows.length, 1);
+    await switchActor("other");
+    assert.equal((await db.query("select alert_signs from public.clinic_patient_info")).rows.length, 0);
+    await denied("select public.save_clinic_phone($1,'(11) 4000-0000','1140000000',null)", [a]);
+    // Lista vazia retira a aprovação.
+    await switchActor("doctor");
+    await db.query("select public.approve_alert_signs($1,'{}'::text[])", [a]);
+    const cleared = await db.query<{ alert_approved_by: string | null }>("select alert_approved_by from public.clinic_patient_info where tenant_id=$1", [a]);
+    assert.equal(cleared.rows[0].alert_approved_by, null);
+    await db.exec("reset role");
+    const audit = await db.query("select 1 from public.audit_events where entity_type='clinic_patient_info'");
+    assert.ok(audit.rows.length >= 3);
   });
 });

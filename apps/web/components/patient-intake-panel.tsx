@@ -15,6 +15,10 @@ export function PatientIntakePanel({
   audience = "staff",
   continueHref,
   detailsHref,
+  patientHeading = "Antes da primeira consulta",
+  patientDescription = "Queremos entender o que é mais importante para você.",
+  patientConfirmationText = "Confirmo que quero compartilhar estas respostas com a equipe para preparar minha consulta.",
+  patientSharedNotice = "Respostas enviadas. Sua equipe já pode preparar a primeira conversa.",
 }: {
   tenantId: string;
   patientId: string;
@@ -25,6 +29,10 @@ export function PatientIntakePanel({
   audience?: "staff" | "patient";
   continueHref?: string;
   detailsHref?: string;
+  patientHeading?: string;
+  patientDescription?: string;
+  patientConfirmationText?: string;
+  patientSharedNotice?: string;
 }) {
   const [record, setRecord] = useState(initial);
   const [reason, setReason] = useState(initial.reason);
@@ -104,7 +112,7 @@ export function PatientIntakePanel({
         intent === "draft"
           ? "Rascunho salvo. Você pode continuar depois."
           : patientView
-            ? "Respostas enviadas. Sua equipe já pode preparar a primeira conversa."
+            ? patientSharedNotice
             : "Acolhimento concluído e disponível no preparo da consulta.",
       );
     } catch (cause) {
@@ -178,12 +186,12 @@ export function PatientIntakePanel({
             aria-required="true"
           />
           {patientView
-            ? "Confirmo que quero compartilhar estas respostas com a equipe para preparar minha consulta."
+            ? patientConfirmationText
             : "Confirmo que registrei as respostas nas palavras do paciente."}
         </label>
       </fieldset>
       <div className="patient-intake-actions">
-        {record.status === "draft" ? (
+        {patientView || record.status === "draft" ? (
           <button className="secondary" name="intent" value="draft" type="submit" disabled={pending}>
             {pending ? "Salvando…" : "Salvar para continuar depois"}
           </button>
@@ -209,10 +217,10 @@ export function PatientIntakePanel({
     <section id="acolhimento-inicial" className="panel patient-intake-panel">
       <div className="section-heading patient-record-section-heading">
         <div>
-          <h2>{patientView ? "Antes da primeira consulta" : "O que o paciente busca"}</h2>
+          <h2>{patientView ? patientHeading : "O que o paciente busca"}</h2>
           <p>
             {patientView
-              ? "Queremos entender o que é mais importante para você."
+              ? patientDescription
               : "Contexto inicial para preparar a primeira conversa."}
           </p>
         </div>

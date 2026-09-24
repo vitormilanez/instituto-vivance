@@ -2211,3 +2211,96 @@
   flex: none;
   color: var(--pv-gold-ink);
 }
+
+/* Sem conexão e envios guardados no celular */
+.pv-connection {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 40px);
+  max-width: 600px;
+  margin: 12px auto 0;
+  padding: 12px 14px;
+  border: 1px solid var(--pv-gold-light);
+  border-radius: 14px;
+  background: var(--pv-gold-soft);
+  color: var(--pv-ink);
+}
+
+.pv-connection svg {
+  flex: none;
+  color: var(--pv-gold-ink);
+}
+
+.pv-connection p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Carregando: a forma da tela, sem dados inventados */
+.pv-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pv-skeleton {
+  border-radius: 20px;
+  background: linear-gradient(90deg, #ece7de 0%, #f5f1ea 50%, #ece7de 100%);
+  background-size: 200% 100%;
+  animation: pv-shimmer 1.4s ease-in-out infinite;
+}
+
+.pv-skeleton.is-title {
+  width: 60%;
+  height: 28px;
+  border-radius: 10px;
+}
+
+.pv-skeleton.is-hero {
+  height: 180px;
+  border-radius: 24px;
+}
+
+.pv-skeleton.is-row {
+  height: 72px;
+}
+
+@keyframes pv-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-skeleton { animation: none; }
+}
+
+.pv-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 24px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 4px 18px rgba(10, 26, 51, 0.05);
+}
+
+.pv-fallback-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: var(--pv-gold-soft);
+  color: var(--pv-gold-ink);
+}
+
+/* Confirmação de saída: o dialog nativo mantém o foco dentro da escolha. */
+.pv-leave-dialog { max-width: min(30rem, calc(100vw - 2rem)); border: 0; border-radius: 24px; padding: 24px; color: var(--pv-navy, #17304c); }
+.pv-leave-dialog::backdrop { background: rgb(0 0 0 / 40%); }
+.pv-receipt dd { white-space: pre-wrap; overflow-wrap: anywhere; }
+.pv-receipt dt { font-weight: 600; margin-top: 1rem; }
+.pv-receipt dd { margin: .25rem 0 0; }

@@ -138,7 +138,7 @@ test("lembretes: horários de 15 em 15 minutos, texto sem saúde e agendador pro
   assert.deepEqual(reminderInput({ enabled: true, time: "09:00" }), { enabled: true, time: "09:00" });
   for (const bad of [{ enabled: true, time: "05:45" }, { enabled: true, time: "09:10" }, { enabled: "sim" }, { enabled: true, time: "22:00" }])
     assert.throws(() => reminderInput(bad));
-  assert.equal(reminderLabel({ reminder_enabled: true, reminder_time: "20:00:00" }, 3), "A cada 3 dias às 20:00 · notificação");
+  assert.equal(reminderLabel({ reminder_enabled: true, reminder_time: "20:00:00" }, 3), "A cada 3 dias às 20:00 · horário salvo");
   assert.equal(reminderLabel(null, 1), "Desligado");
   assert.doesNotMatch(`${reminderMessage.title} ${reminderMessage.body}`, /peso|remédio|medicamento|tratamento|dose|efeito/i);
   assert.throws(() => subscriptionInput({ endpoint: "http://x", keys: { p256dh: "a".repeat(40), auth: "b".repeat(16) } }));

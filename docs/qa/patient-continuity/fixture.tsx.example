@@ -1,0 +1,23 @@
+"use client";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { PreparationFlow } from "@/components/patient/preparation-flow";
+import { PatientEvolution } from "@/components/patient/evolution";
+import { PatientHome } from "@/components/patient-home";
+import { effectsMap } from "@/modules/daily-check-ins/model";
+import type { PatientReturnPreparations } from "@/modules/return-preparation/service";
+import type { PatientLongitudinal } from "@/modules/longitudinal/service";
+import "@/app/patient.css";
+const base='/patient-fixture';
+const day='2026-09-24';
+const checkIn={due:true,frequencyDays:1,applicationEnabled:false,nextLabel:'amanhã',lastSubmittedAt:"2026-09-24T12:00:00Z",recentCount:1,effects:effectsMap([{check_in_on:day,effects:{nausea:'mild'}}],day)};
+export function Fixture() {
+ const [mode,setMode]=useState('preparation'),[fail,setFail]=useState(false),[saved,setSaved]=useState(''),[mount,setMount]=useState(0);
+ const [draft,setDraft]=useState<{answers:Record<string,string>;version:number;priorities:string[]}|null>(null);
+ useEffect(()=>{ const original=window.fetch; window.fetch=async(input,init)=>{ if(String(input).includes('/return-preparations/')) { if(fail)return Response.json({error:'Falha sintética. Respostas mantidas.'},{status:503});const payload=JSON.parse(String(init?.body)); const next={...payload,version:payload.version+1}; setDraft(next);setSaved(JSON.stringify(next));return Response.json({version:next.version}); } return original(input,init); };return()=>{window.fetch=original};},[fail]);
+ const item={id:'11111111-1111-4111-8111-111111111111',status:'draft',questionnaire:{questions:[{id:'goal',label:'Qual é seu objetivo?'},{id:'changes',label:'O que mudou?'}]},draft} as unknown as PatientReturnPreparations['preparations'][number];
+ return <div className="pv pv-is-task"><div className="pv-frame"><div className="pv-column"><header className="pv-taskbar"><Link href="/patient-fixture?left=1">Sair do preparo</Link><span>TESTE SINTÉTICO LOCAL</span></header><main className="pv-main">
+ <nav><button onClick={()=>setMode('preparation')}>Pré-consulta de teste</button><button onClick={()=>setMode('evolution')}>Sem peso, com sintomas</button><button onClick={()=>setMode('home')}>Prioridades da Home</button><button onClick={()=>setFail(!fail)}>{fail?'Restaurar conexão simulada':'Simular falha ao salvar'}</button><button onClick={()=>setMount(mount+1)}>Reabrir rascunho</button></nav><p role="status">Rascunho persistido no teste: {saved||'nenhum'}</p>
+ {mode==='preparation'?<PreparationFlow key={mount} item={item} tenantId="fixture" base={base} summary={[]} whenLabel="amanhã"/>:mode==='evolution'?<PatientEvolution data={{measures:[]} as unknown as PatientLongitudinal} base={base} period="tudo" checkIn={checkIn}/>:<PatientHome base={base} tenantId="fixture" today={day} now={new Date('2026-09-24T17:00:00Z')} firstName="Teste" appointments={[]} currentTime="2026-09-24T17:00:00Z" latestPublication={null} unreadPublication={null} onboardingHref={null} pendingCheckInId={null} preparationPending={{count:1,first:{id:'prep',status:'draft'}}} requiredPreparation={null} latestMeasurement={null} careRequests={[{kind:'exams',requested_at:'2026-09-24T12:00:00Z'}]} sent={[]} checkIn={checkIn}/>}
+ </main></div></div></div>;
+}

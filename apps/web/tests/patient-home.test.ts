@@ -13,6 +13,7 @@ import {
   quickLogs,
   recentSent,
   sentWhen,
+  sentHref,
   type SentItem,
 } from "../modules/workspace/patient-home.ts";
 import { patientTodayTasks } from "../modules/workspace/patient-today-tasks.ts";
@@ -151,4 +152,11 @@ test("pré-consulta: a Home leva à tarefa de tela cheia, uma pergunta por vez",
   assert.match(flow, /Primeiro, confira o que você já registrou/);
   assert.match(flow, /Só você vê este rascunho até enviar\./);
   assert.match(flow, /return-preparations\/\$\{item\.id\}\/draft/);
+});
+
+
+test("cada recibo mantém tipo e identidade, sem depender da página do histórico", () => {
+  for (const kind of ["preparation", "daily", "meal", "document", "checkin", "measurements", "message"] as const) {
+    assert.equal(sentHref(base, { kind, key: "original-id", at: "2026-09-24T12:00:00Z", detail: null }), `${base}/envios/${kind}/original-id`);
+  }
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { PatientReturnPreparations } from "@/modules/return-preparation/service";
 import { preparationTopics } from "@/modules/return-preparation/questionnaire";
@@ -46,6 +47,11 @@ export function PreparationFlow({
   summary: { label: string; value: string }[];
   whenLabel: string;
 }) {
+  const router = useRouter();
+  const [leaveHref, setLeaveHref] = useState<string | null>(null);
+  const leaveDialog = useRef<HTMLDialogElement>(null);
+  const historyGuard = useRef(false);
+  const allowLeave = useRef(false);
   const questions = item.questionnaire.questions as { id: string; label: string }[];
   const busy = useRef(false);
   const initialView = useRef(true);
@@ -76,6 +82,56 @@ export function PreparationFlow({
     heading?.focus({ preventScroll: true });
   }, [sent, step]);
 
+  useEffect(() => {
+    if (!dirty || sent) {
+      if (historyGuard.current && window.history.state?.pvDraftGuard) {
+        historyGuard.current = false;
+        window.history.back();
+      }
+      return;
+    }
+    const currentUrl = window.location.href;
+    const guardState = { ...window.history.state, pvDraftGuard: true };
+    if (!historyGuard.current) {
+      window.history.pushState(guardState, "", currentUrl);
+      historyGuard.current = true;
+    }
+    const warn = (event: BeforeUnloadEvent) => { if (!allowLeave.current) { event.preventDefault(); event.returnValue = ""; } };
+    const link = (event: MouseEvent) => {
+      const anchor = (event.target as Element).closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!anchor || allowLeave.current || anchor.target === "_blank" || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (!busy.current) setLeaveHref(anchor.href);
+    };
+    const back = (event: PopStateEvent) => {
+      if (allowLeave.current) return;
+      // The extra same-document entry catches Back before Next changes the page.
+      event.stopImmediatePropagation();
+      window.history.pushState(guardState, "", currentUrl);
+      if (!busy.current) setLeaveHref("history-back");
+    };
+    window.addEventListener("popstate", back, true);
+    window.addEventListener("beforeunload", warn);
+    document.addEventListener("click", link, true);
+    return () => { window.removeEventListener("popstate", back, true); window.removeEventListener("beforeunload", warn); document.removeEventListener("click", link, true); };
+  }, [dirty, sent]);
+
+  function leave(href: string) {
+    allowLeave.current = true;
+    const guarded = historyGuard.current;
+    historyGuard.current = false;
+    setLeaveHref(null);
+    if (href === "history-back") window.history.go(guarded ? -2 : -1);
+    else if (guarded) router.replace(href);
+    else router.push(href);
+  }
+
+  useEffect(() => {
+    if (leaveHref) leaveDialog.current?.showModal();
+    else leaveDialog.current?.close();
+  }, [leaveHref]);
+
   const body = () => ({
     version,
     answers: Object.fromEntries(Object.entries(answers).filter(([, value]) => value.trim())),
@@ -94,28 +150,41 @@ export function PreparationFlow({
     return result;
   }
 
+  async function saveDraft() {
+    if (!dirty) return true;
+    try {
+      const result = await call(`/api/v1/clinics/${tenantId}/return-preparations/${item.id}/draft`, "PUT", body());
+      setVersion(result.version!);
+      setSavedAt("agora");
+      setDirty(false);
+      return true;
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível salvar o rascunho. Suas respostas continuam aqui.");
+      return false;
+    }
+  }
+
   async function go(next: number) {
     if (busy.current) return;
-    // Salva o rascunho ao avançar, só se algo foi escrito.
-    if (step >= 1 && step <= questions.length + 1 && (dirty || answered > 0 || priorities.length)) {
-      busy.current = true;
-      setPending(true);
-      setError("");
-      try {
-        const result = await call(`/api/v1/clinics/${tenantId}/return-preparations/${item.id}/draft`, "PUT", body());
-        setVersion(result.version!);
-        setSavedAt("agora");
-        setDirty(false);
-      } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "Não foi possível salvar o rascunho.");
-        busy.current = false;
-        setPending(false);
-        return;
-      }
-      busy.current = false;
-      setPending(false);
-    }
-    setStep(next);
+    busy.current = true;
+    setPending(true);
+    setError("");
+    if (await saveDraft()) setStep(next);
+    busy.current = false;
+    setPending(false);
+  }
+
+  async function saveAndLeave(href = `${base}/hoje`) {
+    if (busy.current) return;
+    busy.current = true;
+    setPending(true);
+    setError("");
+    if (await saveDraft()) {
+      leave(href);
+      router.refresh();
+    } else setLeaveHref(null);
+    busy.current = false;
+    setPending(false);
   }
 
   async function send() {
@@ -285,12 +354,22 @@ export function PreparationFlow({
       )}
 
       {error && <p className="pv-form-error" role="alert">{error}</p>}
+      {step > firstStep && <button type="button" className="pv-link" disabled={pending} onClick={() => saveAndLeave()}>Salvar e sair</button>}
+      <dialog ref={leaveDialog} className="pv-leave-dialog" aria-labelledby="pv-leave-title" onCancel={(event) => { event.preventDefault(); if (!pending) setLeaveHref(null); }}>
+        <div className="pv-stack">
+          <h2 id="pv-leave-title">Salvar antes de sair?</h2>
+          <p>A resposta desta etapa ainda não foi salva.</p>
+          <button type="button" className="pv-button is-center" disabled={pending} onClick={() => saveAndLeave(leaveHref ?? `${base}/hoje`)}>Salvar e sair</button>
+          <button type="button" className="pv-link" disabled={pending} onClick={() => setLeaveHref(null)}>Continuar respondendo</button>
+          <button type="button" className="pv-link" disabled={pending} onClick={() => { const href = leaveHref; setDirty(false); if (href) leave(href); }}>Descartar alterações desta etapa e sair</button>
+        </div>
+      </dialog>
 
       <div className="pv-checkin-actions">
         {step > firstStep ? (
-          <button type="button" className="pv-link" onClick={() => setStep(step - 1)} disabled={pending}>Voltar</button>
+          <button type="button" className="pv-link" onClick={() => go(step - 1)} disabled={pending}>Voltar</button>
         ) : (
-          <Link className="pv-link" href={`${base}/hoje`}>Agora não</Link>
+          <button type="button" className="pv-link" disabled={pending} onClick={() => saveAndLeave()}>Salvar e sair</button>
         )}
       </div>
       {step === questions.length + 2 ? (

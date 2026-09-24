@@ -32,7 +32,13 @@ export function RegisterSheet({
     document.body.style.overflow = "hidden";
     panel.current?.querySelector<HTMLElement>("a,button")?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") { event.preventDefault(); setOpen(false); trigger.current?.focus(); }
+      if (event.key === "Tab") {
+        const items = Array.from(panel.current?.querySelectorAll<HTMLElement>('a[href],button:not([disabled])') ?? []);
+        const first = items[0], last = items.at(-1);
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => {

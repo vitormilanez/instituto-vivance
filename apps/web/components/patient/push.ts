@@ -3,6 +3,7 @@
 // Inscrição do aparelho para receber o lembrete. Tudo opcional: sem suporte
 // ou sem permissão, o app segue igual.
 export type PushSupport = "ok" | "needs-install" | "unsupported";
+export type PushOutcome = "subscribed" | "denied" | "unsupported" | "failed";
 
 export function pushSupport(): PushSupport {
   if (typeof window === "undefined") return "unsupported";
@@ -19,7 +20,7 @@ function base64ToBytes(value: string) {
   return Uint8Array.from(raw, (char) => char.charCodeAt(0));
 }
 
-export async function subscribeThisDevice(tenantId: string): Promise<"subscribed" | "denied" | "unsupported" | "failed"> {
+export async function subscribeThisDevice(tenantId: string): Promise<PushOutcome> {
   if (pushSupport() !== "ok") return "unsupported";
   const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   if (!key) return "unsupported";

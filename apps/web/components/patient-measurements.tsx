@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Icon } from "./patient/icons";
+import { sendOrQueue } from "./patient/outbox";
 import { heightInCentimeters } from "@/modules/measurements/height";
 
 export type LastWeight = { value: number; reportedOn: string } | null;
@@ -44,6 +47,7 @@ export function PatientMeasurements({
   const [waist, setWaist] = useState("");
   const [measuredOn, setMeasuredOn] = useState(today);
   const [pending, setPending] = useState(false);
+  const [queued, setQueued] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -84,20 +88,26 @@ export function PatientMeasurements({
     setPending(true);
     setError("");
     try {
-      const response = await fetch(`/api/v1/clinics/${tenant}/measurements`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(20_000),
-        body: JSON.stringify({
+      const sent = await sendOrQueue(
+        `/api/v1/clinics/${tenant}/measurements`,
+        {
           weight_kg: weightKg,
           height_cm: heightCm,
           waist_cm: waistCm,
           measured_on: measuredOn || today,
           client_request_id: requestId.current,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Não foi possível registrar agora.");
+        },
+        weightKg !== null && waistCm === null && heightCm === null ? "Peso" : "Medidas",
+      );
+      if (sent.queued) {
+        requestId.current = crypto.randomUUID();
+        setQueued(true);
+        busy.current = false;
+        setPending(false);
+        return;
+      }
+      const data = await sent.response.json();
+      if (!sent.response.ok) throw new Error(data.error ?? "Não foi possível registrar agora.");
       requestId.current = crypto.randomUUID();
       router.push(`${base}/hoje?enviado=${weightKg !== null && waistCm === null && heightCm === null ? "peso" : "medidas"}`);
       router.refresh();
@@ -111,6 +121,17 @@ export function PatientMeasurements({
       setPending(false);
     }
   }
+
+  if (queued)
+    return (
+      <div className="pv-stack pv-done" role="status">
+        <span className="pv-done-icon" aria-hidden="true"><Icon name="wifiOff" size={32} /></span>
+        <h2 className="pv-big">Salvo no seu celular</h2>
+        <p className="pv-lead">Sem internet agora. Enviamos sozinhos assim que a conexão voltar — não precisa fazer nada.</p>
+        <p className="pv-sent-when"><Icon name="wifiOff" size={16} /> Aguardando conexão</p>
+        <Link className="pv-button" href={`${base}/hoje`}>Voltar para o início<Icon name="arrow" /></Link>
+      </div>
+    );
 
   return (
     <form className="pv-stack" onSubmit={submit} noValidate aria-labelledby="pv-weight-title">

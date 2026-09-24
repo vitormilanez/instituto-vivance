@@ -240,7 +240,7 @@ const justSentLabels: Record<string, string> = {
   peso: "Peso enviado",
   medidas: "Medidas enviadas",
   refeicao: "Refeição enviada",
-  lembrete: "Lembrete ativado",
+  lembrete: "Lembrete ativado neste aparelho",
 };
 export function justSentLabel(value: string | string[] | undefined): string | null {
   return typeof value === "string" && Object.hasOwn(justSentLabels, value)
@@ -271,4 +271,9 @@ export function consultationLabel(startsAt: string, today: string) {
   const tomorrow = isoDay.format(new Date(new Date(`${today}T12:00:00-03:00`).getTime() + 86400000));
   const name = day === today ? "hoje" : day === tomorrow ? "amanhã" : dayMonth.format(start);
   return `de ${name}, às ${clock.format(start)}`;
+}
+
+// Links identify the exact submitted record; they never imply medical review.
+export function sentHref(base: string, item: SentItem): string {
+  return `${base}/envios/${item.kind}/${encodeURIComponent(item.key)}`;
 }

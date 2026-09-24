@@ -773,6 +773,24 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      clinic_patient_info: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          phone_display: string | null;
+          phone_tel: string | null;
+          phone_hours: string | null;
+          alert_signs: string[];
+          alert_approved_by: string | null;
+          alert_approved_name: string | null;
+          alert_approved_on: string | null;
+          updated_by: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       patient_reminder_preferences: {
         Row: {
           id: string;
@@ -1366,6 +1384,8 @@ export type Database = {
           requested_at: string;
           completed_at: string | null;
           cancelled_at: string | null;
+          preparation_id: string | null;
+          requested_intake_version: number | null;
         };
         Insert: never;
         Update: never;
@@ -1383,6 +1403,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "memberships";
             referencedColumns: ["tenant_id", "user_id"];
+          },
+          {
+            foreignKeyName: "patient_care_requests_tenant_id_preparation_id_fkey";
+            columns: ["tenant_id", "preparation_id"];
+            isOneToOne: false;
+            referencedRelation: "return_preparation_requests";
+            referencedColumns: ["tenant_id", "id"];
           },
         ];
       };
@@ -1549,6 +1576,10 @@ export type Database = {
       patient_intake_invitation_available: {
         Args: { target_tenant: string; target_patient: string };
         Returns: boolean;
+      };
+      initialize_own_patient_intake: {
+        Args: { target_tenant: string };
+        Returns: string;
       };
       submit_patient_onboarding: {
         Args: { target_tenant: string; read_version: number; explicit_share_consent: boolean };
@@ -1802,6 +1833,14 @@ export type Database = {
           frequency: number;
           application: boolean;
         };
+        Returns: undefined;
+      };
+      save_clinic_phone: {
+        Args: { target_tenant: string; display: string | null; tel: string | null; hours: string | null };
+        Returns: undefined;
+      };
+      approve_alert_signs: {
+        Args: { target_tenant: string; signs: string[] };
         Returns: undefined;
       };
       save_reminder_preference: {
