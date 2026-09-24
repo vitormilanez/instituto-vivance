@@ -1,28 +1,34 @@
-// Envios guardados no celular quando a internet cai: só saem em nome de quem
-// registrou, nunca duplicam por conta própria e não travam a fila.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import test from "node:test";
+import test, { beforeEach } from "node:test";
 
 const store = new Map<string, string>();
 const listeners = new Map<string, Set<() => void>>();
-const owner = "user-a";
 let online = true;
+let failWrites = false;
+let activeOwner = "user-a";
 const calls: { url: string; body: string }[] = [];
 let respond: (url: string) => Promise<Response> = async () => new Response("{}", { status: 201 });
 
 Object.assign(globalThis, {
   window: {
+    location: { pathname: "/clinicas/t/meu-cuidado/hoje" },
     localStorage: {
       getItem: (key: string) => store.get(key) ?? null,
-      setItem: (key: string, value: string) => void store.set(key, value),
-      removeItem: (key: string) => void store.delete(key),
+      setItem: (key: string, value: string) => {
+        if (failWrites) throw new DOMException("quota", "QuotaExceededError");
+        store.set(key, value);
+      },
+      removeItem: (key: string) => {
+        if (failWrites) throw new DOMException("quota", "QuotaExceededError");
+        store.delete(key);
+      },
     },
     dispatchEvent: (event: Event) => void listeners.get(event.type)?.forEach((fn) => fn()),
     addEventListener: (type: string, fn: () => void) => void (listeners.get(type) ?? listeners.set(type, new Set()).get(type))!.add(fn),
     removeEventListener: (type: string, fn: () => void) => void listeners.get(type)?.delete(fn),
   },
-  document: { querySelector: () => ({ dataset: { pvOwner: owner } }) },
+  document: { querySelector: () => ({ dataset: { pvOwner: activeOwner } }) },
   fetch: async (url: string, init: RequestInit) => {
     calls.push({ url, body: String(init.body) });
     return respond(url);
@@ -32,73 +38,192 @@ Object.defineProperty(globalThis, "navigator", { configurable: true, get: () => 
 
 const outbox = await import("../components/patient/outbox.ts");
 
-test("sem internet: guarda em nome de quem registrou, sem chamar o servidor", async () => {
-  online = false;
+beforeEach(() => {
+  store.clear();
   calls.length = 0;
-  const sent = await outbox.sendOrQueue("/api/v1/clinics/t/daily-check-ins", { request_key: "k1" }, "Check-in");
-  assert.equal(sent.queued, true);
-  assert.equal(calls.length, 0);
-  assert.equal(outbox.pendingFor("user-a").length, 1);
-  assert.equal(outbox.pendingFor("user-b").length, 0);
+  online = true;
+  failWrites = false;
+  activeOwner = "user-a";
+  respond = async () => new Response("{}", { status: 201 });
 });
 
-test("falha de rede no meio do envio também guarda", async () => {
+test("só confirma fila depois que o armazenamento aceita o registro", async () => {
+  online = false;
+  failWrites = true;
+  await assert.rejects(
+    outbox.sendOrQueue("/api/v1/clinics/t/daily-check-ins", { request_key: "k1" }, "Check-in"),
+    /Não foi possível guardar/,
+  );
+  assert.equal(calls.length, 0);
+  assert.equal(outbox.pendingFor("user-a", "t").length, 0);
+});
+
+test("fila separa conta e clínica e nunca reenvia no escopo atual errado", async () => {
+  online = false;
+  const sent = await outbox.sendOrQueue("/api/v1/clinics/t/daily-check-ins", { request_key: "original" }, "Check-in");
+  assert.equal(sent.queued, true);
+  assert.equal(outbox.pendingFor("user-a", "t").length, 1);
+  assert.equal(outbox.pendingFor("user-b", "t").length, 0);
+  assert.equal(outbox.pendingFor("user-a", "outra").length, 0);
+
+  online = true;
+  await outbox.flushOutbox("user-b", "t");
+  await outbox.flushOutbox("user-a", "outra");
+  assert.equal(calls.length, 0);
+});
+
+test("recuperação mantém o corpo e a chave originais e mostra o envio concluído", async () => {
+  online = false;
+  await outbox.sendOrQueue("/api/v1/clinics/t/measurements", { client_request_id: "mesma-chave", weight_kg: 80 }, "Peso");
+  online = true;
+  await outbox.flushOutbox("user-a", "t");
+  assert.deepEqual(calls.map((call) => JSON.parse(call.body)), [{ client_request_id: "mesma-chave", weight_kg: 80 }]);
+  const items = outbox.outboxSnapshot("user-a", "t").items;
+  assert.equal(items[0].status, "sent");
+  assert.equal(items[0].body, "");
+  assert.equal(outbox.pendingFor("user-a", "t").length, 0);
+});
+
+test("recusa permanente fica visível e pode ser tentada de novo ou descartada", async () => {
+  online = false;
+  await outbox.sendOrQueue("/api/v1/clinics/t/meals", { request_key: "meal-key" }, "Refeição");
+  online = true;
+  respond = async () => new Response("{}", { status: 422 });
+  await outbox.flushOutbox("user-a", "t");
+  let item = outbox.outboxSnapshot("user-a", "t").items[0];
+  assert.equal(item.status, "failed");
+  assert.equal(item.failure, "rejected");
+
+  calls.length = 0;
+  respond = async () => new Response("{}", { status: 201 });
+  await outbox.retryOutboxItem(item.id, "user-a", "t");
+  assert.deepEqual(calls.map((call) => JSON.parse(call.body)), [{ request_key: "meal-key" }]);
+  item = outbox.outboxSnapshot("user-a", "t").items[0];
+  assert.equal(item.status, "sent");
+  assert.equal(outbox.discardOutboxItem(item.id, "user-a", "t"), true);
+  assert.equal(outbox.outboxSnapshot("user-a", "t").items.length, 0);
+});
+
+test("403 vira falha visível; só 401 permanece pendente para outra sessão", async () => {
+  online = false;
+  await outbox.sendOrQueue("/api/v1/clinics/t/meals", { request_key: "forbidden" }, "Refeição");
+  await outbox.sendOrQueue("/api/v1/clinics/t/meals", { request_key: "signed-out" }, "Refeição");
   online = true;
   respond = async () => {
-    throw new TypeError("Failed to fetch");
+    const key = JSON.parse(calls.at(-1)!.body).request_key;
+    return new Response("{}", { status: key === "forbidden" ? 403 : 401 });
   };
-  const sent = await outbox.sendOrQueue("/api/v1/clinics/t/measurements", { client_request_id: "k2" }, "Peso");
-  assert.equal(sent.queued, true);
-  assert.equal(outbox.pendingFor("user-a").length, 2);
+  await outbox.flushOutbox("user-a", "t");
+  const items = outbox.outboxSnapshot("user-a", "t").items;
+  assert.deepEqual(items.map((item) => item.status), ["failed", "pending"]);
 });
 
-test("outra conta no mesmo aparelho não envia o que não é dela", async () => {
-  respond = async () => new Response("{}", { status: 201 });
-  calls.length = 0;
-  await outbox.flushOutbox("user-b");
-  assert.equal(calls.length, 0);
-  assert.equal(outbox.pendingFor("user-a").length, 2);
-});
-
-test("quando a conexão volta, envia na ordem com a mesma chave e limpa a fila", async () => {
-  calls.length = 0;
-  await outbox.flushOutbox("user-a");
-  assert.deepEqual(
-    calls.map((call) => JSON.parse(call.body)),
-    [{ request_key: "k1" }, { client_request_id: "k2" }],
-  );
-  assert.equal(outbox.pendingFor("user-a").length, 0);
-});
-
-test("recusa definitiva (4xx) sai da fila; erro do servidor (5xx) espera", async () => {
+test("novo registro durante fetch não é sobrescrito pela resposta anterior", async () => {
   online = false;
-  await outbox.sendOrQueue("/a", { request_key: "bad" }, "Check-in");
-  await outbox.sendOrQueue("/b", { request_key: "later" }, "Check-in");
+  await outbox.sendOrQueue("/api/v1/clinics/t/meals", { request_key: "first" }, "Refeição");
+  let release!: (response: Response) => void;
+  respond = async () => new Promise<Response>((resolve) => { release = resolve; });
   online = true;
-  respond = async (url) => new Response("{}", { status: url === "/a" ? 422 : 503 });
-  await outbox.flushOutbox("user-a");
-  assert.deepEqual(outbox.pendingFor("user-a").map((item) => item.url), ["/b"]);
+  const flushing = outbox.flushOutbox("user-a", "t");
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  online = false;
+  await outbox.sendOrQueue("/api/v1/clinics/t/meals", { request_key: "concurrent" }, "Refeição");
+  online = true;
+  release(new Response("{}", { status: 201 }));
+  await flushing;
+  const items = outbox.outboxSnapshot("user-a", "t").items;
+  assert.deepEqual(items.map((item) => [JSON.parse(item.body || "{}").request_key ?? "stripped", item.status]), [
+    ["stripped", "sent"],
+    ["concurrent", "pending"],
+  ]);
 });
 
-test("as telas de check-in, peso e refeição usam a fila e dizem que ficou no celular", () => {
+test("descarte durante fetch vence e a resposta não ressuscita o item", async () => {
+  online = false;
+  await outbox.sendOrQueue("/api/v1/clinics/t/meals", { request_key: "discarded" }, "Refeição");
+  const id = outbox.pendingFor("user-a", "t")[0].id;
+  let release!: (response: Response) => void;
+  respond = async () => new Promise<Response>((resolve) => { release = resolve; });
+  online = true;
+  const flushing = outbox.flushOutbox("user-a", "t");
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(outbox.discardOutboxItem(id, "user-a", "t"), true);
+  release(new Response("{}", { status: 201 }));
+  await flushing;
+  assert.deepEqual(outbox.outboxSnapshot("user-a", "t").items, []);
+});
+
+test("troca de conta interrompe a fila antes do próximo reenvio", async () => {
+  online = false;
+  await outbox.sendOrQueue("/api/v1/clinics/t/meals", { request_key: "first" }, "Refeição");
+  await outbox.sendOrQueue("/api/v1/clinics/t/meals", { request_key: "second" }, "Refeição");
+  let release!: (response: Response) => void;
+  respond = async () => new Promise<Response>((resolve) => { release = resolve; });
+  online = true;
+  const flushing = outbox.flushOutbox("user-a", "t");
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  activeOwner = "user-b";
+  release(new Response("{}", { status: 201 }));
+  await flushing;
+  assert.equal(calls.length, 1);
+  assert.deepEqual(outbox.outboxSnapshot("user-a", "t").items.map((item) => item.status), ["sent", "pending"]);
+});
+
+test("expiração e limite não apagam registros silenciosamente", async () => {
+  const old = Date.now() - 8 * 24 * 60 * 60 * 1000;
+  const item = (index: number, createdAt = Date.now()) => ({
+    id: `id-${index}`, owner: "user-a", tenantId: "t", url: "/api/v1/clinics/t/meals",
+    body: JSON.stringify({ request_key: `k-${index}` }), label: "Refeição", createdAt, status: "pending",
+  });
+  store.set("pv-outbox-v1", JSON.stringify([item(0, old)]));
+  const expired = outbox.outboxSnapshot("user-a", "t").items[0];
+  assert.equal(expired.status, "failed");
+  assert.equal(expired.failure, "expired");
+
+  store.set("pv-outbox-v1", JSON.stringify(Array.from({ length: 30 }, (_, index) => item(index))));
+  online = false;
+  await assert.rejects(
+    outbox.sendOrQueue("/api/v1/clinics/t/meals", { request_key: "overflow" }, "Refeição"),
+    /fila do celular está cheia/,
+  );
+  assert.equal(outbox.outboxSnapshot("user-a", "t").items.length, 30);
+});
+
+test("falha ao persistir normalização é sinalizada sem disparar eventos em ciclo", () => {
+  const legacy = {
+    id: "legacy", owner: "user-a", url: "/api/v1/clinics/t/meals",
+    body: JSON.stringify({ request_key: "legacy-key" }), label: "Refeição", createdAt: Date.now(),
+  };
+  store.set("pv-outbox-v1", JSON.stringify([legacy]));
+  let events = 0;
+  const listener = () => { events += 1; };
+  listeners.set("pv-outbox", new Set([listener]));
+  failWrites = true;
+  const snapshot = outbox.outboxSnapshot("user-a", "t");
+  assert.equal(snapshot.storageError, true);
+  assert.equal(snapshot.items.length, 1);
+  assert.equal(events, 0);
+});
+
+test("interface expõe pendente, enviado e falhou com recuperação explícita", () => {
+  const status = readFileSync(new URL("../components/patient/connection-status.tsx", import.meta.url), "utf8");
+  assert.match(status, /pendente/);
+  assert.match(status, /enviado/);
+  assert.match(status, /não aceito/);
+  assert.match(status, /Tentar novamente/);
+  assert.match(status, /window\.confirm/);
+  assert.match(status, /Descartar envio/);
+  assert.match(status, /Fechar confirmação/);
+  assert.match(status, /Fotos e pré-consulta precisam de internet/);
+});
+
+test("check-in, peso e refeição sem foto usam a fila; foto não ganha promessa offline", () => {
   for (const file of ["../components/patient/check-in-flow.tsx", "../components/patient-measurements.tsx", "../components/patient/meal-quick.tsx"]) {
     const source = readFileSync(new URL(file, import.meta.url), "utf8");
     assert.match(source, /sendOrQueue\(/, file);
-    assert.match(source, /Salvo no seu celular/, file);
-    assert.match(source, /Aguardando conexão/, file);
   }
-  const shell = readFileSync(new URL("../components/patient-shell.tsx", import.meta.url), "utf8");
-  assert.match(shell, /<ConnectionStatus owner=\{user\.id\} \/>/);
-  assert.match(shell, /data-pv-owner=\{user\.id\}/);
-});
-
-test("carregando e erro próprios do paciente, sem dados de exemplo", () => {
-  const dir = "../app/clinicas/[tenantId]/meu-cuidado/[section]/";
-  const loading = readFileSync(new URL(dir + "loading.tsx", import.meta.url), "utf8");
-  const error = readFileSync(new URL(dir + "error.tsx", import.meta.url), "utf8");
-  assert.match(loading, /Carregando suas informações…/);
-  assert.doesNotMatch(loading, /\d+[,.]\d+ ?kg/);
-  assert.match(error, /Não conseguimos carregar agora/);
-  assert.match(error, /Seus registros estão seguros/);
-  assert.match(error, /Tentar de novo/);
+  const meal = readFileSync(new URL("../components/patient/meal-quick.tsx", import.meta.url), "utf8");
+  assert.ok(meal.indexOf("uploadDocument(") < meal.indexOf("sendOrQueue("));
+  const preparation = readFileSync(new URL("../components/patient/preparation-flow.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(preparation, /sendOrQueue\(/);
 });

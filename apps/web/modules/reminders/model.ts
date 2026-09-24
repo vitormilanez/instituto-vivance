@@ -36,7 +36,7 @@ export function subscriptionInput(value: unknown) {
 export function reminderLabel(pref: { reminder_enabled: boolean; reminder_time: string } | null, frequencyDays: number) {
   if (!pref || !pref.reminder_enabled) return "Desligado";
   const time = pref.reminder_time.slice(0, 5);
-  return `${frequencyDays === 3 ? "A cada 3 dias" : "Todos os dias"} às ${time} · notificação`;
+  return `${frequencyDays === 3 ? "A cada 3 dias" : "Todos os dias"} às ${time} · horário salvo`;
 }
 
 // O texto do lembrete: nada de saúde, nada que alguém ao lado leia e entenda

@@ -36,7 +36,7 @@ export function WelcomeFlow({
   const [time, setTime] = useState(initialTime);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState<"install" | "denied" | "unsupported" | "failed" | "">("");
   const doctor = doctorName ?? "seu médico";
 
   async function save(enabled: boolean) {
@@ -63,8 +63,8 @@ export function WelcomeFlow({
           return;
         }
         const outcome = await subscribeThisDevice(tenantId);
-        if (outcome === "denied") {
-          setNote("denied");
+        if (outcome !== "subscribed") {
+          setNote(outcome);
           setPending(false);
           return;
         }
@@ -81,17 +81,27 @@ export function WelcomeFlow({
     return (
       <div className="pv-stack">
         <h2 className="pv-big">
-          {note === "install" ? "Falta um passo no iPhone" : "Tudo bem, sem notificações por enquanto"}
+          {note === "install" ? "Falta um passo no iPhone" :
+            note === "denied" ? "Notificações não foram permitidas" :
+              note === "unsupported" ? "Este aparelho não oferece notificações" :
+                "Não conseguimos ativar neste aparelho"}
         </h2>
         {note === "install" ? (
-          <ol className="pv-steps">
-            <li>Toque em <strong>Compartilhar</strong> (o quadrado com a seta) no Safari.</li>
-            <li>Escolha <strong>Adicionar à Tela de Início</strong>.</li>
-            <li>Abra o Vivance pelo ícone novo e ative em <strong>Meu cuidado › Lembretes</strong>.</li>
-          </ol>
+          <>
+            <p className="pv-lead">Seu horário foi salvo, mas as notificações ainda não estão ativas neste aparelho.</p>
+            <ol className="pv-steps">
+              <li>Toque em <strong>Compartilhar</strong> (o quadrado com a seta) no Safari.</li>
+              <li>Escolha <strong>Adicionar à Tela de Início</strong>.</li>
+              <li>Abra o Vivance pelo ícone novo e ative em <strong>Meu cuidado › Lembretes</strong>.</li>
+            </ol>
+          </>
         ) : (
           <p className="pv-lead">
-            Seu horário ficou salvo. Se mudar de ideia, permita as notificações do site nas configurações do navegador e ative em Meu cuidado › Lembretes.
+            Seu horário foi salvo, mas as notificações não estão ativas neste aparelho. {note === "denied"
+              ? "Se mudar de ideia, permita as notificações do site nas configurações do navegador e tente novamente em Meu cuidado › Lembretes."
+              : note === "unsupported"
+                ? "Você ainda pode acompanhar os check-ins ao abrir o Vivance."
+                : "Confira sua conexão e tente novamente em Meu cuidado › Lembretes."}
           </p>
         )}
         <button type="button" className="pv-button is-center" onClick={() => router.push(`${base}/hoje`)}>
