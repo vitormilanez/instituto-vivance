@@ -118,3 +118,39 @@ test("Teleconsulta is a menu destination for doctors and staff", () => {
   assert.match(doctorShell, /label: "Teleconsulta"/);
   assert.match(clinicShell, /key: "teleconsulta"/);
 });
+
+import {
+  teleconsultationInvite,
+  whatsappShareUrl,
+} from "../modules/teleconsultations/share.ts";
+
+test("WhatsApp invite carries only the greeting, clinic and link", () => {
+  const text = teleconsultationInvite(meet, "Maria Souza Lima");
+  assert.match(text, /^Olá, Maria!/);
+  assert.ok(text.includes(meet));
+  assert.doesNotMatch(text, /Souza|Lima/);
+  assert.match(teleconsultationInvite(meet, null), /^Olá!/);
+  const share = new URL(whatsappShareUrl(meet, "Maria"));
+  assert.equal(share.origin, "https://wa.me");
+  assert.equal(share.searchParams.get("text"), teleconsultationInvite(meet, "Maria"));
+});
+
+test("hub: selected mode is styled, link can be pasted, today comes first", () => {
+  const hub = readFileSync(
+    new URL("../components/teleconsultation-hub.tsx", import.meta.url),
+    "utf8",
+  );
+  const css = readFileSync(
+    new URL("../app/teleconsultation.css", import.meta.url),
+    "utf8",
+  );
+  assert.match(css, /\.tele-hub-switch button\[aria-pressed="true"\]/);
+  assert.match(hub, /navigator\.clipboard\.readText\(\)/);
+  assert.match(hub, /meetPattern\.test\(text\)/);
+  assert.ok(hub.indexOf('id="tele-today"') < hub.indexOf('id="tele-new"'));
+  const workspace = readFileSync(
+    new URL("../components/teleconsultation-workspace.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(workspace, /<h1 className="sr-only">/);
+});

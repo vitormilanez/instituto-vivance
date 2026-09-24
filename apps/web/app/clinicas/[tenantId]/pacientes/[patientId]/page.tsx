@@ -166,6 +166,7 @@ export default async function Patient({
           tabs={tabs}
           activeTab={active}
           recordBase={recordBase}
+          patientId={patientId}
         />
         {active === "Visão geral" ? (
           <div className={doctorView ? "dv-record-overview" : undefined}>

@@ -429,7 +429,15 @@ export function Agenda({
           <p>Consultas e retornos no horário de Brasília (UTC−3).</p>
         </div>
         {canManage && (
-          <button onClick={() => open("new")}>Novo agendamento</button>
+          <div className="agenda-heading-actions">
+            <Link
+              className="button secondary"
+              href={`/clinicas/${tenantId}/teleconsulta`}
+            >
+              Nova teleconsulta
+            </Link>
+            <button onClick={() => open("new")}>Novo agendamento</button>
+          </div>
         )}
       </div>
       {nextAppointment && !returns && !isDoctorView && (

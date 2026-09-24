@@ -1,15 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, ExternalLink, Video } from "lucide-react";
+import { Copy, ExternalLink, MessageCircle, Video } from "lucide-react";
+import { whatsappShareUrl } from "@/modules/teleconsultations/share";
 
 /** The external provider owns the call. Opening a link never changes clinical state. */
 export function TeleconsultationLink({
   url,
   compact = false,
+  patientName,
 }: {
   url: string;
   compact?: boolean;
+  /** Presente só na visão da equipe: habilita "Enviar pelo WhatsApp". */
+  patientName?: string | null;
 }) {
   const [notice, setNotice] = useState("");
   async function copy() {
@@ -48,6 +52,17 @@ export function TeleconsultationLink({
           >
             <Copy size={16} aria-hidden="true" /> Copiar link
           </button>
+        )}
+        {!compact && patientName !== undefined && (
+          <a
+            className="button secondary"
+            href={whatsappShareUrl(url, patientName)}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-external-call
+          >
+            <MessageCircle size={16} aria-hidden="true" /> Enviar pelo WhatsApp
+          </a>
         )}
       </div>
       {!compact && <p className="teleconsultation-url">{url}</p>}

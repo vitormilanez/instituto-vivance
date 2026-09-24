@@ -232,7 +232,7 @@
 .teleconsultation-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 24px;
@@ -402,5 +402,118 @@
   }
   .tele-hub-actions > * {
     flex: 1 1 auto;
+  }
+}
+
+/* Seletor Iniciar agora / Agendar: a opção escolhida precisa ser óbvia. */
+.tele-hub-switch button {
+  min-width: 132px;
+}
+.tele-hub-switch button[aria-pressed="true"] {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+.dv .tele-hub-switch button[aria-pressed="true"] {
+  background: var(--dv-ink);
+  border-color: var(--dv-ink);
+  color: #fff;
+}
+.agenda-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.tele-hub-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+}
+.tele-hub-search-box input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+.tele-hub-search-box:focus-within {
+  outline: 2px solid var(--navy);
+  outline-offset: 1px;
+}
+.tele-hub-results {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.tele-hub-results button {
+  width: 100%;
+  text-align: left;
+  justify-content: flex-start;
+  background: transparent;
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 500;
+}
+.tele-hub-results button:hover,
+.tele-hub-results button:focus-visible {
+  border-color: var(--navy);
+}
+.tele-hub-picked {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.tele-hub-picked strong {
+  flex: 1;
+  min-width: 0;
+}
+.tele-hub-link-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.tele-hub-link-row input {
+  flex: 1;
+  min-width: 0;
+}
+.tele-hub-link-row button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.tele-hub-link-notice {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+}
+.tele-hub-today {
+  border: 1px solid var(--navy);
+}
+.tele-hub-today h2 {
+  margin-top: 0;
+}
+.teleconsultation-link-actions .button {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+@media (max-width: 600px) {
+  .tele-hub-link-row {
+    flex-direction: column;
   }
 }
