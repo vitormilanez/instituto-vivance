@@ -5703,18 +5703,17 @@ test("lembretes: preferência e aparelhos são só do próprio paciente; o agend
     await db.exec("reset role");
     const secret = "s".repeat(40);
     await db.query("insert into private.reminder_cron_secret(secret_sha256) values(encode(sha256(convert_to($1,'UTF8')),'hex'))", [secret]);
+    // Horário de Brasília arredondado para a hora cheia e mantido dentro da
+    // faixa aceita (06:00–21:45). Antes, entre 22h e 0h, o valor saía da faixa,
+    // o update falhava e abortava a transação do teste.
+    const localHour = Math.min(
+      21,
+      Math.max(6, new Date(Date.now() - 3 * 3600_000 - 5 * 60_000).getUTCHours()),
+    );
     await db.query(
       "update public.patient_reminder_preferences set reminder_enabled=true, reminder_time=$1::time where user_id=$2",
-      [
-        new Date(Date.now() - 3 * 3600_000 - 5 * 60_000)
-          .toISOString()
-          .slice(11, 14)
-          .replace(/:$/, ":00")
-          .padEnd(5, "0")
-          .replace(/^(0[0-5])/, "06"),
-        users.patient.id,
-      ],
-    ).catch(() => null);
+      [`${String(localHour).padStart(2, "0")}:00`, users.patient.id],
+    );
     await db.exec("set local role anon");
     const due = await db.query<{ endpoint: string }>("select * from public.claim_due_reminders($1)", [secret]);
     // Uma segunda chamada no mesmo dia nunca repete o lembrete.
