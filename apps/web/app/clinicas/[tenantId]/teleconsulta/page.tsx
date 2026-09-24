@@ -36,7 +36,6 @@ export default async function TeleconsultationPage({
       clinic: result.clinic,
       appointments: result.appointments.filter(
         (appointment) =>
-          appointment.teleconsultation?.delivery_mode === "video" &&
           ["scheduled", "in_progress"].includes(appointment.status),
       ),
     };

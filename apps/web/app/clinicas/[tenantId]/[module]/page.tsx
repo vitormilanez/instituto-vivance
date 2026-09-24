@@ -67,7 +67,7 @@ export default async function ModulePage({
         </ClinicShell>
       );
     const query = await searchParams;
-    const active = query.aba === "evolucao" ? "evolucao" : "check-ins";
+    const active = query.aba === "evolucao" ? "evolucao" : query.aba === "refeicoes" ? "refeicoes" : "check-ins";
     const base = `/clinicas/${tenantId}/acompanhamento`;
     const checkIns = active === "check-ins"
       ? JSON.parse(JSON.stringify(await staffCheckIns(tenantId, query.pagina)))
@@ -85,7 +85,7 @@ export default async function ModulePage({
         <div className="page-heading">
           <div>
             <h1>Acompanhamento</h1>
-            <p>Relatos, medidas e publicações com data e origem.</p>
+            <p>Veja primeiro os pedidos de check-in, depois refeições e a evolução de cada paciente.</p>
           </div>
         </div>
         <nav className="module-tabs" aria-label="Áreas do acompanhamento">
@@ -96,23 +96,28 @@ export default async function ModulePage({
             Check-ins
           </Link>
           <Link
+            href={`${base}?aba=refeicoes`}
+            aria-current={active === "refeicoes" ? "page" : undefined}
+          >
+            Refeições
+          </Link>
+          <Link
             href={`${base}?aba=evolucao`}
             aria-current={active === "evolucao" ? "page" : undefined}
           >
             Evolução
           </Link>
         </nav>
-        {longitudinal ? (
+        {active === "evolucao" && longitudinal ? (
           <StaffLongitudinalWorkspace
             initial={longitudinal}
             base={base}
           />
-        ) : (
-          <>
-            <StaffMealLogs initial={await staffMeals(tenantId)} />
-            <CheckInWorkspace initial={checkIns} />
-          </>
-        )}
+        ) : active === "refeicoes" ? (
+          <StaffMealLogs initial={await staffMeals(tenantId)} />
+        ) : checkIns ? (
+          <CheckInWorkspace initial={checkIns} />
+        ) : null}
       </ClinicShell>
     );
   }

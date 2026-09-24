@@ -148,6 +148,18 @@ test("hub: selected mode is styled, link can be pasted, today comes first", () =
   assert.match(hub, /navigator\.clipboard\.readText\(\)/);
   assert.match(hub, /meetPattern\.test\(text\)/);
   assert.ok(hub.indexOf('id="tele-today"') < hub.indexOf('id="tele-new"'));
+  assert.match(hub, /Consultas agendadas sem sala de vídeo/);
+  assert.match(hub, /\/appointments\/\$\{appointment\.id\}\/teleconsultation/);
+  assert.match(hub, /method: "PUT"/);
+  assert.match(hub, /sem criar outro agendamento/);
+  const page = readFileSync(
+    new URL("../app/clinicas/[tenantId]/teleconsulta/page.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.doesNotMatch(
+    page,
+    /appointment\.teleconsultation\?\.delivery_mode === "video"/,
+  );
   const workspace = readFileSync(
     new URL("../components/teleconsultation-workspace.tsx", import.meta.url),
     "utf8",

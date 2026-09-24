@@ -74,13 +74,21 @@ export function TeleconsultationHub({
         .filter((p) => plain(p.display_name).includes(plain(patientQuery.trim())))
         .slice(0, 8)
     : [];
-  const todays = appointments.filter(
+  const videoAppointments = appointments.filter(
+    (appointment) => appointment.teleconsultation?.delivery_mode === "video",
+  );
+  const appointmentsToPrepare = appointments.filter(
+    (appointment) =>
+      appointment.status === "scheduled" &&
+      appointment.teleconsultation?.delivery_mode !== "video",
+  );
+  const todays = videoAppointments.filter(
     (a) =>
       new Date(a.starts_at).toLocaleDateString("en-CA", {
         timeZone: "America/Sao_Paulo",
       }) === today,
   );
-  const later = appointments.filter((a) => !todays.includes(a));
+  const later = videoAppointments.filter((a) => !todays.includes(a));
   const [created, setCreated] = useState<{ name: string; url: string } | null>(
     null,
   );
@@ -88,6 +96,7 @@ export function TeleconsultationHub({
   const [openAccepted, setOpenAccepted] = useState(false);
   const [listError, setListError] = useState("");
   const [copied, setCopied] = useState("");
+  const [preparing, setPreparing] = useState<string | null>(null);
   const noDoctor = !options.doctors.length;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -221,6 +230,51 @@ export function TeleconsultationHub({
       setCopied(id);
     } catch {
       setCopied("");
+    }
+  }
+
+  async function prepareExistingAppointment(
+    event: FormEvent<HTMLFormElement>,
+    appointment: Appointment,
+  ) {
+    event.preventDefault();
+    if (pending) return;
+    setPending(true);
+    setListError("");
+    try {
+      const form = new FormData(event.currentTarget);
+      const joinUrl = normalizeMeetUrl(String(form.get("join_url") ?? ""));
+      if (!meetPattern.test(joinUrl))
+        throw new Error(
+          "Informe um link Google Meet no formato https://meet.google.com/xxx-xxxx-xxx.",
+        );
+      const response = await fetch(
+        `/api/v1/clinics/${tenantId}/appointments/${appointment.id}/teleconsultation`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            delivery_mode: "video",
+            join_url: joinUrl,
+            version: appointment.teleconsultation?.version ?? 0,
+          }),
+        },
+      );
+      const result = await response.json();
+      if (!response.ok)
+        throw new Error(
+          result.error ?? "Não foi possível preparar esta teleconsulta.",
+        );
+      setPreparing(null);
+      router.refresh();
+    } catch (e) {
+      setListError(
+        e instanceof Error
+          ? e.message
+          : "Não foi possível preparar esta teleconsulta.",
+      );
+    } finally {
+      setPending(false);
     }
   }
 
@@ -365,6 +419,114 @@ export function TeleconsultationHub({
             </p>
           )}
           <ul className="list tele-hub-list">{todays.map(renderItem)}</ul>
+        </section>
+      )}
+
+      {appointmentsToPrepare.length > 0 && (
+        <section className="panel tele-hub-pending" aria-labelledby="tele-pending">
+          <h2 id="tele-pending">Consultas agendadas sem sala de vídeo</h2>
+          <p className="tele-hub-hint">
+            Estes horários já existem na Agenda. Se o atendimento será por vídeo,
+            adicione uma sala do Meet ao agendamento existente, sem criar outro agendamento.
+          </p>
+          {listError && (
+            <p className="feedback" role="alert">
+              {listError}
+            </p>
+          )}
+          <ul className="list tele-hub-list">
+            {appointmentsToPrepare.map((appointment) => (
+              <li key={appointment.id}>
+                <div className="tele-hub-item">
+                  <div>
+                    <strong>
+                      {appointment.patients?.display_name ?? "Consulta"}
+                    </strong>
+                    <small>
+                      {when(appointment.starts_at)} ·{" "}
+                      {appointment.kind === "return" ? "Retorno" : "Consulta"}
+                      {" · "}
+                      {appointment.doctor_display_name}
+                    </small>
+                  </div>
+                  <span className="badge appointment-status scheduled">
+                    {appointment.teleconsultation?.delivery_mode === "in_person"
+                      ? "Presencial"
+                      : "Sem sala de vídeo"}
+                  </span>
+                </div>
+                {preparing === appointment.id ? (
+                  <form
+                    className="tele-hub-prepare"
+                    onSubmit={(event) =>
+                      void prepareExistingAppointment(event, appointment)
+                    }
+                  >
+                    <div className="field">
+                      <label htmlFor={`prepare-meet-${appointment.id}`}>
+                        Link da sala do Google Meet
+                      </label>
+                      <input
+                        id={`prepare-meet-${appointment.id}`}
+                        name="join_url"
+                        type="url"
+                        inputMode="url"
+                        autoComplete="off"
+                        required
+                        maxLength={200}
+                        placeholder="https://meet.google.com/abc-defg-hij"
+                      />
+                    </div>
+                    <div className="tele-hub-actions">
+                      <a
+                        className="button secondary"
+                        href={meetNewRoomUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-external-call
+                      >
+                        <Video size={16} aria-hidden="true" /> Criar sala no Meet
+                      </a>
+                      <button type="submit" disabled={pending}>
+                        {pending ? "Salvando…" : "Salvar como teleconsulta"}
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary"
+                        disabled={pending}
+                        onClick={() => setPreparing(null)}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="tele-hub-actions">
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={pending}
+                      onClick={() => {
+                        setPreparing(appointment.id);
+                        setListError("");
+                      }}
+                    >
+                      Preparar teleconsulta
+                    </button>
+                    <Link
+                      href={`/clinicas/${tenantId}/agenda?data=${new Date(
+                        appointment.starts_at,
+                      ).toLocaleDateString("en-CA", {
+                        timeZone: "America/Sao_Paulo",
+                      })}`}
+                    >
+                      Ver na agenda
+                    </Link>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
@@ -710,7 +872,7 @@ export function TeleconsultationHub({
       </section>
 
       <section className="panel" aria-labelledby="tele-next">
-        <h2 id="tele-next">Próximas teleconsultas</h2>
+        <h2 id="tele-next">Teleconsultas prontas</h2>
         {!todays.length && listError && (
           <p className="feedback" role="alert">
             {listError}
@@ -720,10 +882,13 @@ export function TeleconsultationHub({
           <div className="empty">
             <h3>
               {todays.length
-                ? "Nenhuma outra teleconsulta nos próximos 30 dias"
-                : "Nenhuma teleconsulta nos próximos 30 dias"}
+                ? "Nenhuma outra teleconsulta pronta nos próximos 30 dias"
+                : "Nenhuma teleconsulta pronta nos próximos 30 dias"}
             </h3>
-            <p>As consultas por vídeo aparecem aqui quando forem criadas.</p>
+            <p>
+              As consultas aparecem aqui depois que uma sala do Meet é
+              vinculada ao agendamento.
+            </p>
           </div>
         ) : (
           <ul className="list tele-hub-list">

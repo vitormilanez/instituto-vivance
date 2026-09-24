@@ -11,6 +11,7 @@ const labels: Record<string, string> = {
   submitted: "Aguardando revisão",
   reviewed: "Revisado",
 };
+const priority: Record<string, number> = { submitted: 0, pending: 1, reviewed: 2 };
 const mealPromptSuggestion =
   "Conte o que você comeu hoje, com os horários e o que havia em cada refeição. Se quiser, envie junto uma foto do prato: ela não é interpretada automaticamente e fica disponível para eu conferir.";
 export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
@@ -19,6 +20,7 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
     [pending, setPending] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
+    [selectedPatient, setSelectedPatient] = useState(""),
     [promptDraft, setPromptDraft] = useState("");
   // Devolve se a operação foi concluída, para quem chama só limpar o que
   // o usuário escreveu quando o envio realmente deu certo.
@@ -79,9 +81,12 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
       "Revisão registrada.",
     );
   }
-  const submitted = initial.checkIns.filter((item) => item.status === "submitted").length;
-  const pendingRequests = initial.checkIns.filter((item) => item.status === "pending").length;
-  const reviewed = initial.checkIns.filter((item) => item.status === "reviewed").length;
+  const visibleCheckIns = initial.checkIns
+    .filter((item) => !selectedPatient || item.patient_id === selectedPatient)
+    .sort((a, b) => (priority[a.status] ?? 3) - (priority[b.status] ?? 3));
+  const submitted = visibleCheckIns.filter((item) => item.status === "submitted").length;
+  const pendingRequests = visibleCheckIns.filter((item) => item.status === "pending").length;
+  const reviewed = visibleCheckIns.filter((item) => item.status === "reviewed").length;
 
   return (
     <>
@@ -98,17 +103,24 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
       <section className="check-in-board" aria-label="Fila de check-ins">
         <div className="section-heading">
           <div>
-            <h2>Fila de revisão</h2>
-            <p>Solicitações de check-in e relatos enviados pelos pacientes.</p>
+            <h2>Pedidos de check-in</h2>
+            <p>Os relatos para revisar aparecem primeiro. Os números abaixo correspondem aos pedidos desta página.</p>
           </div>
         </div>
+        <label className="field followup-filter">
+          Filtrar por paciente
+          <select value={selectedPatient} onChange={(event) => setSelectedPatient(event.target.value)}>
+            <option value="">Todos os pacientes</option>
+            {initial.patients.map((patient) => <option key={patient.id} value={patient.id}>{patient.display_name}</option>)}
+          </select>
+        </label>
         <dl className="check-in-summary" aria-label="Resumo da fila">
           <div><dt>Para revisar</dt><dd>{submitted}</dd></div>
           <div><dt>Aguardando resposta</dt><dd>{pendingRequests}</dd></div>
           <div><dt>Revisados</dt><dd>{reviewed}</dd></div>
         </dl>
-        {initial.checkIns.length ? (
-          initial.checkIns.map((item) => (
+        {visibleCheckIns.length ? (
+          visibleCheckIns.map((item) => (
             <article
               id={`check-in-${item.id}`}
               className={`panel check-in-card ${item.status}`}
@@ -193,8 +205,8 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
           ))
         ) : (
           <section className="panel empty">
-            <h3>Nenhum check-in nesta página</h3>
-            <p>As solicitações e respostas reais aparecerão aqui.</p>
+            <h3>Nenhum check-in para este filtro</h3>
+            <p>Escolha outro paciente ou avance a página para ver mais pedidos.</p>
           </section>
         )}
       </section>
@@ -240,10 +252,10 @@ export function CheckInWorkspace({ initial }: { initial: StaffCheckIns }) {
       </details>
       <nav className="agenda-actions" aria-label="Páginas de check-ins">
         {initial.page > 1 && (
-          <Link href={`?pagina=${initial.page - 1}`}>Anterior</Link>
+          <Link href={`?aba=check-ins&pagina=${initial.page - 1}`}>Anterior</Link>
         )}
         {initial.hasNext && (
-          <Link href={`?pagina=${initial.page + 1}`}>Próxima</Link>
+          <Link href={`?aba=check-ins&pagina=${initial.page + 1}`}>Próxima</Link>
         )}
       </nav>
     </>
