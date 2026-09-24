@@ -208,7 +208,7 @@ export function TeleconsultationSettings({
         </p>
       )}
       {loaded && current?.delivery_mode === "video" && current.join_url && (
-        <TeleconsultationLink url={current.join_url} />
+        <TeleconsultationLink url={current.join_url} patientName={patientName} />
       )}
     </section>
   );

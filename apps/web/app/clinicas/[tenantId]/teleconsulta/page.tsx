@@ -10,10 +10,18 @@ export const dynamic = "force-dynamic";
 
 export default async function TeleconsultationPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ tenantId: string }>;
+  searchParams: Promise<{ paciente?: string | string[] }>;
 }) {
   const { tenantId } = await params;
+  const requested = (await searchParams).paciente;
+  // Só um id bem formado; o componente ainda confere se o paciente está na lista.
+  const initialPatientId =
+    typeof requested === "string" && /^[0-9a-f-]{36}$/i.test(requested)
+      ? requested
+      : null;
   const today = clinicDate();
   const now = requestInstant();
   const context = await (async () => {
@@ -46,6 +54,7 @@ export default async function TeleconsultationPage({
         role={context.clinic.role}
         options={context.options}
         appointments={context.appointments}
+        initialPatientId={initialPatientId}
       />
     </ClinicShell>
   );

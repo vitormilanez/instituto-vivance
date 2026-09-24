@@ -17,6 +17,8 @@ export type PatientRecordHeaderProps = {
   tabs: readonly string[];
   activeTab: string;
   recordBase: string;
+  /** Presente quando quem vê pode criar teleconsulta (médico/equipe). */
+  patientId?: string;
 };
 
 export function PatientRecordHeader({
@@ -29,6 +31,7 @@ export function PatientRecordHeader({
   tabs,
   activeTab,
   recordBase,
+  patientId,
 }: PatientRecordHeaderProps) {
   const initials = patient.display_name
     .split(/\s+/)
@@ -78,6 +81,13 @@ export function PatientRecordHeader({
             aria-label="Ações deste paciente"
           >
             <Link href={`/clinicas/${tenantId}/agenda`}>Ver agenda</Link>
+            {patientId && (
+              <Link
+                href={`/clinicas/${tenantId}/teleconsulta?paciente=${patientId}`}
+              >
+                Teleconsulta
+              </Link>
+            )}
             <Link href={`/clinicas/${tenantId}/atendimentos`}>
               Atendimentos
             </Link>

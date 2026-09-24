@@ -23,9 +23,8 @@ export function TeleconsultationWorkspace({
   return (
     <div className="teleconsultation-workspace">
       <header className="teleconsultation-toolbar">
-        <div>
-          <h1>Modo atendimento</h1>
-        </div>
+        {/* A barra do topo já diz "Modo atendimento"; o título fica para leitores de tela. */}
+        <h1 className="sr-only">Modo atendimento · {patientName}</h1>
         <Link
           className="back-link"
           href={`/clinicas/${tenantId}/atendimentos/${encounterId}?etapa=consulta`}
@@ -52,7 +51,7 @@ export function TeleconsultationWorkspace({
               </p>
             </div>
             {url ? (
-              <TeleconsultationLink url={url} />
+              <TeleconsultationLink url={url} patientName={patientName} />
             ) : (
               <div className="teleconsultation-no-link">
                 <p>
