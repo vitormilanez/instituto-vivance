@@ -520,6 +520,8 @@ export function HomeDay({
             </section>
           )}
 
+          {shortcuts}
+
           <section
             className="doctor-home-schedule"
             aria-labelledby="doctor-home-schedule-title"
@@ -586,7 +588,6 @@ export function HomeDay({
 
         </aside>
       </div>
-      {shortcuts}
     </div>
   );
 }

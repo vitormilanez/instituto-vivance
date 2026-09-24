@@ -98,8 +98,8 @@ export function CareRequestAction({
       {noteOpen ? (
         <label className="field">
           Mensagem para o paciente (opcional)
-          <input
-            type="text"
+          <textarea
+            rows={4}
             maxLength={500}
             value={note}
             disabled={busy}

@@ -368,6 +368,9 @@
   border-top: 1px solid var(--dv-line);
   background: #fcfbf8;
 }
+.dv .context-cards > li:has(.context-request-disclosure[open]) {
+  grid-column: 1 / -1;
+}
 .dv .context-request-disclosure > summary {
   min-height: 44px;
   display: flex;
@@ -397,12 +400,13 @@
   font-size: 12px;
 }
 .dv .doctor-home .shortcuts-section {
+  margin: 0;
   padding: 24px;
   border: 1px solid var(--dv-line);
   border-radius: 14px;
 }
 .dv .doctor-home .shortcuts-section .more-tools-list {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .dv .doctor-home .home-sticky {
   top: 0;
