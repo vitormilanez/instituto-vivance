@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { TeleconsultationWorkspace } from "@/components/teleconsultation-workspace";
 import { getAppointmentTeleconsultation } from "@/modules/teleconsultations/service";
+import { clinicDate } from "@/modules/agenda/validation";
 import { patientCareContext } from "@/modules/workspace/today";
 import {
   ContextCardList,
@@ -8,7 +9,7 @@ import {
 } from "@/components/context-card-list";
 import { EncounterPreparationSummary } from "@/components/preparation-summary";
 import { notFound, redirect } from "next/navigation";
-import { AccessError } from "@/modules/identity/service";
+import { AccessError, requireClinic } from "@/modules/identity/service";
 import { EncounterError, loadEncounter } from "@/modules/encounters/service";
 import { InputError } from "@/lib/validation";
 import { ClinicShell } from "@/components/clinic-shell";
@@ -53,15 +54,20 @@ export default async function EncounterPage({
       getSubmittedPatientOnboarding(tenantId, detail.encounter.patient_id),
       encounterPreparation(tenantId, detail.encounter.appointment_id),
       focusMode
-        ? getAppointmentTeleconsultation(
-            tenantId,
-            detail.encounter.appointment_id,
-          )
-            .then((teleconsultation) => ({
-              teleconsultation,
-              unavailable: false,
-            }))
-            .catch(() => ({ teleconsultation: null, unavailable: true }))
+        ? (async () => {
+            const [{ client }, teleconsultation] = await Promise.all([
+              requireClinic(tenantId, ["doctor"]),
+              getAppointmentTeleconsultation(tenantId, detail.encounter.appointment_id),
+            ]);
+            const appointment = await client.from("appointments")
+              .select("id,status,starts_at")
+              .eq("tenant_id", tenantId)
+              .eq("id", detail.encounter.appointment_id)
+              .maybeSingle();
+            if (appointment.error || !appointment.data)
+              throw new Error("Unable to load linked appointment");
+            return { teleconsultation, appointment: appointment.data, unavailable: false };
+          })().catch(() => ({ teleconsultation: null, appointment: null, unavailable: true }))
         : null,
       focusMode
         ? patientCareContext(tenantId, detail.encounter.patient_id)
@@ -105,6 +111,13 @@ export default async function EncounterPage({
         <TeleconsultationWorkspace
           tenantId={tenantId}
           encounterId={encounterId}
+          appointmentId={detail.encounter.appointment_id}
+          appointmentLabel={call?.appointment
+            ? `agendamento de ${new Date(call.appointment.starts_at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" })}`
+            : "agendamento vinculado"}
+          agendaHref={call?.appointment
+            ? `${base}/agenda?data=${clinicDate(new Date(call.appointment.starts_at))}#consulta-${call.appointment.id}`
+            : `${base}/agenda`}
           patientName={detail.encounter.patients?.display_name ?? "Paciente"}
           url={
             detail.encounter.status === "draft" &&
@@ -112,6 +125,8 @@ export default async function EncounterPage({
               ? call.teleconsultation.join_url
               : null
           }
+          audit={call?.teleconsultation ?? null}
+          editable={detail.canEdit && call?.appointment?.status === "in_progress"}
           unavailable={call?.unavailable}
           context={
             <>
