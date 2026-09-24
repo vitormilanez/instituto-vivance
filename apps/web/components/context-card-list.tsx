@@ -14,18 +14,24 @@ export function ContextCardList({
   base,
   patientId,
   compactRequests = false,
+  homeView = false,
 }: {
   cards: ContextCard[];
   base?: string;
   patientId?: string;
   compactRequests?: boolean;
+  homeView?: boolean;
 }) {
   const tenantId = base?.split("/")[2];
   return (
-    <ul className="context-cards">
+    <ul className={homeView ? "context-cards context-cards-home" : "context-cards"}>
       {cards.map((card) => (
-        <li key={card.id}>
-          <a className={card.pending ? "is-pending" : undefined} href={card.href}>
+        <li key={card.id} className={`context-card-${card.id}`}>
+          <a
+            className={card.pending ? "is-pending" : undefined}
+            href={card.href}
+            aria-label={homeView ? `${card.title}: ${card.state}. ${card.action}` : undefined}
+          >
             <strong>{card.title}</strong>
             <span className="context-state">{card.state}</span>
             <span className="context-action">{card.action}</span>
@@ -38,7 +44,11 @@ export function ContextCardList({
           {card.request && tenantId && patientId ? (
             compactRequests ? (
               <details className="context-request-disclosure">
-                <summary>{careRequestActionLabel(card.request.kind)}</summary>
+                <summary>
+                  {homeView ? (
+                    <>{card.request.requestedAt ? "Solicitado" : "Pedir"}<span className="sr-only"> {card.title}</span></>
+                  ) : careRequestActionLabel(card.request.kind)}
+                </summary>
                 <CareRequestAction
                   tenantId={tenantId}
                   patientId={patientId}

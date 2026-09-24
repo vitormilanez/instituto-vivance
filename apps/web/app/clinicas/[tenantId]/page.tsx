@@ -11,6 +11,8 @@ export const dynamic = "force-dynamic";
 
 // Ícones de traço 1.6 em 20x20, a mesma família da barra do celular.
 const shortcutIcons: Record<string, string> = {
+  agenda:
+    "M4.5 5.5h11a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1ZM6.5 3.5v4M13.5 3.5v4M3.5 9h13",
   pacientes:
     "M7.5 9a2.75 2.75 0 1 0 0-5.5 2.75 2.75 0 0 0 0 5.5ZM2.5 16.5c0-2.8 2.2-4.75 5-4.75s5 1.95 5 4.75M14 4.5v5M11.5 7h5",
   atendimento:
@@ -97,12 +99,54 @@ export default async function Dashboard({
       ))}
     </ul>
   );
+  // Agenda e Pacientes já estão no cabeçalho/menu. Aqui priorizamos tarefas
+  // que exigiam abrir "Mais" e mantemos todas as oito portas disponíveis.
+  const primaryOrder = [
+    "Adicionar paciente",
+    "Atendimento",
+    "Planos de cuidado",
+    "Acompanhamento",
+  ];
+  const primaryActions = primaryOrder.flatMap((title) =>
+    homeActions.filter((action) => action.title === title),
+  );
+  const secondaryActions = homeActions.filter(
+    (action) => !primaryOrder.includes(action.title),
+  );
   const shortcuts =
     context.clinic.role === "doctor" ? (
-      <details className="shortcuts-section doctor-shortcuts">
-        <summary>Ações rápidas · {homeActions.length}</summary>
-        {shortcutList}
-      </details>
+      <section className="shortcuts-section doctor-shortcuts" aria-labelledby="quick-actions">
+        <h2 id="quick-actions">Ações rápidas</h2>
+        <ul className="more-tools-list doctor-shortcuts-primary">
+          {primaryActions.map((action) => (
+            <li key={action.title}>
+              <Link
+                className="more-tools-link"
+                href={action.href}
+                aria-label={action.title === "Acompanhamento" ? "Acompanhamento: check-ins e evolução" : undefined}
+              >
+                <ShortcutIcon name={action.icon} />
+                <strong>{action.title === "Acompanhamento" ? "Check-ins" : action.title}</strong>
+                <span>{action.text}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <details className="doctor-shortcuts-more">
+          <summary>Mais ferramentas <span>{secondaryActions.length}</span></summary>
+          <ul className="more-tools-list doctor-shortcuts-secondary">
+            {secondaryActions.map((action) => (
+              <li key={action.title}>
+                <Link className="more-tools-link" href={action.href}>
+                  <ShortcutIcon name={action.icon} />
+                  <strong>{action.title}</strong>
+                  <span>{action.text}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </details>
+      </section>
     ) : (
       <section className="shortcuts-section" aria-labelledby="quick-actions">
         <h2 id="quick-actions">Ações rápidas</h2>

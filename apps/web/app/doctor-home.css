@@ -254,6 +254,7 @@
 .dv .doctor-home .home-between-who a {
   color: #7a5a1e;
 }
+
 .dv .doctor-home .shortcuts-section {
   border-color: var(--dv-line);
   background: #fff;
@@ -338,3 +339,180 @@
 .dv .doctor-home-aside .home-plain-list li > span { min-width: 0; }
 @media (min-width: 960px) and (max-width: 1199px) { .dv .doctor-home-overview { grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); } .dv .doctor-consultation-context .context-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 599px) { .dv .doctor-consultation-context .context-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dv .doctor-consultation-identity { align-items: start; gap: 12px; } .dv .doctor-consultation-identity h2 { font-size: 22px; } }
+
+/* O contexto da próxima consulta cabe em seis linhas consistentes. As cores
+   identificam o tipo de registro, sem representar gravidade clínica. */
+.dv .doctor-consultation-context .context-cards-home {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.dv .doctor-consultation-context .context-cards-home > li {
+  --card-accent: #41658b;
+  --card-tint: #f2f6fb;
+  display: grid;
+  grid-column: auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: start;
+  min-width: 0;
+  border: 1px solid #e1e5e8;
+  border-left: 3px solid var(--card-accent);
+  border-radius: 11px;
+  background: var(--card-tint);
+  overflow: visible;
+}
+.dv .doctor-consultation-context .context-cards-home > li:nth-child(n+5) { grid-column: auto; }
+.dv .doctor-consultation-context .context-cards-home > li.context-card-preparation { --card-accent: #9a7834; --card-tint: #fcf8ef; }
+.dv .doctor-consultation-context .context-cards-home > li.context-card-documents { --card-accent: #45769c; --card-tint: #f0f7fc; }
+.dv .doctor-consultation-context .context-cards-home > li.context-card-measurements { --card-accent: #337f76; --card-tint: #eff8f6; }
+.dv .doctor-consultation-context .context-cards-home > li.context-card-goals { --card-accent: #806ba5; --card-tint: #f7f4fb; }
+.dv .doctor-consultation-context .context-cards-home > li.context-card-encounter { --card-accent: #608196; --card-tint: #f2f7fa; }
+.dv .doctor-consultation-context .context-cards-home > li.context-card-plan { --card-accent: #987446; --card-tint: #fbf6ef; }
+.dv .doctor-consultation-context .context-cards-home > li > a:first-child,
+.dv .doctor-consultation-context .context-cards-home > li:nth-child(n+5) > a:first-child {
+  position: relative;
+  display: grid;
+  grid-column: 1;
+  grid-row: 1;
+  align-content: center;
+  gap: 1px;
+  min-height: 68px;
+  padding: 8px 14px;
+  background: transparent;
+}
+.dv .doctor-consultation-context .context-cards-home > li:not(:has(.context-request-disclosure)) > a:first-child {
+  grid-column: 1 / -1;
+  padding-right: 30px;
+}
+.dv .doctor-consultation-context .context-cards-home > li:not(:has(.context-request-disclosure)) > a:first-child::after {
+  content: "›";
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--card-accent);
+  font-size: 22px;
+  line-height: 1;
+}
+.dv .doctor-consultation-context .context-cards-home > li > a:first-child:hover {
+  background: #ffffffa6;
+}
+.dv .doctor-consultation-context .context-cards-home strong { font-size: 13px; line-height: 1.25; }
+.dv .doctor-consultation-context .context-cards-home .context-state {
+  font-size: 11px;
+  line-height: 1.3;
+  color: #46546a;
+}
+.dv .doctor-consultation-context .context-cards-home .context-action { display: none; }
+.dv .doctor-consultation-context .context-cards-home > li > .context-request-disclosure {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: stretch;
+  padding: 0 8px 0 0;
+  border: 0;
+  background: transparent;
+}
+.dv .doctor-consultation-context .context-cards-home .context-request-disclosure > summary {
+  min-height: 68px;
+  padding: 0 6px;
+  color: #315475;
+  font-size: 11px;
+  font-weight: 750;
+}
+.dv .doctor-consultation-context .context-cards-home .context-request-disclosure > summary::before { content: none; }
+.dv .doctor-consultation-context .context-cards-home .context-request-disclosure > summary:hover { text-decoration: underline; }
+.dv .doctor-consultation-context .context-cards-home > li > a.context-history {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-height: 36px;
+  margin: 0;
+  padding: 6px 14px;
+  border-top: 1px solid #dce3e8;
+  font-size: 11px;
+}
+.dv .doctor-consultation-context .context-cards-home > li:has(.context-request-disclosure[open]) {
+  grid-column: 1 / -1;
+}
+.dv .doctor-consultation-context .context-cards-home > li > .context-request-disclosure[open] {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  padding: 0 14px;
+  border-top: 1px solid #dce3e8;
+}
+.dv .doctor-consultation-context .context-cards-home > li > .context-request-disclosure[open] > summary {
+  min-height: 40px;
+  padding: 0;
+}
+
+/* Ações do dia primeiro; destinos menos frequentes ficam a um toque de distância. */
+.dv .doctor-home .doctor-shortcuts { padding: 16px; }
+.dv .doctor-home .doctor-shortcuts h2 { margin-bottom: 12px; font-size: 15px; }
+.dv .doctor-home .doctor-shortcuts .doctor-shortcuts-primary,
+.dv .doctor-home .doctor-shortcuts .doctor-shortcuts-secondary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.dv .doctor-home .doctor-shortcuts .more-tools-link {
+  grid-template-columns: 30px minmax(0, 1fr);
+  grid-template-areas: "icon title";
+  align-items: center;
+  min-height: 56px;
+  gap: 8px;
+  padding: 9px;
+  border-radius: 11px;
+  background: #f4f7fb;
+}
+.dv .doctor-home .doctor-shortcuts .more-tools-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #e5edf8;
+  color: #274d7c;
+}
+.dv .doctor-home .doctor-shortcuts .doctor-shortcuts-primary > li:nth-child(1) .more-tools-link { background: #f0f6fc; }
+.dv .doctor-home .doctor-shortcuts .doctor-shortcuts-primary > li:nth-child(2) .more-tools-link { background: #eef7f4; }
+.dv .doctor-home .doctor-shortcuts .doctor-shortcuts-primary > li:nth-child(2) .more-tools-icon { background: #dceee7; color: #256a5d; }
+.dv .doctor-home .doctor-shortcuts .doctor-shortcuts-primary > li:nth-child(3) .more-tools-link { background: #f6f2fa; }
+.dv .doctor-home .doctor-shortcuts .doctor-shortcuts-primary > li:nth-child(3) .more-tools-icon { background: #eae2f4; color: #6e548e; }
+.dv .doctor-home .doctor-shortcuts .doctor-shortcuts-primary > li:nth-child(4) .more-tools-link { background: #fbf6ec; }
+.dv .doctor-home .doctor-shortcuts .doctor-shortcuts-primary > li:nth-child(4) .more-tools-icon { background: #f5e9d0; color: #785c26; }
+.dv .doctor-home .doctor-shortcuts .more-tools-link strong { font-size: 12px; line-height: 1.25; }
+.dv .doctor-home .doctor-shortcuts .more-tools-link > span:not(.more-tools-icon) { display: none; }
+.dv .doctor-home .doctor-shortcuts .more-tools-link:hover { border-color: #b7c8d7; filter: brightness(.985); }
+.dv .doctor-home .doctor-shortcuts-more { margin-top: 8px; }
+.dv .doctor-home .doctor-shortcuts-more > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 4px 8px;
+  color: #294775;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.dv .doctor-home .doctor-shortcuts-more > summary span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #e5edf8;
+}
+.dv .doctor-home .doctor-shortcuts-more .more-tools-list { margin-top: 4px; }
+
+@media (min-width: 600px) and (max-width: 1199px) {
+  .dv .doctor-consultation-context .context-cards-home { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dv .doctor-home .doctor-shortcuts .doctor-shortcuts-primary,
+  .dv .doctor-home .doctor-shortcuts .doctor-shortcuts-secondary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 599px) {
+  .dv .doctor-home-focus .doctor-consultation { padding: 16px; }
+  .dv .doctor-consultation-identity { margin-bottom: 12px; }
+  .dv .doctor-consultation-context .context-cards-home { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .dv .doctor-consultation-context .context-cards-home > li > a:first-child,
+  .dv .doctor-consultation-context .context-cards-home > li:nth-child(n+5) > a:first-child { min-height: 58px; }
+  .dv .doctor-consultation-context .context-cards-home .context-request-disclosure > summary { min-height: 58px; }
+  .dv .doctor-home .doctor-shortcuts .doctor-shortcuts-primary,
+  .dv .doctor-home .doctor-shortcuts .doctor-shortcuts-secondary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dv .doctor-home .doctor-shortcuts { padding: 12px; }
+}

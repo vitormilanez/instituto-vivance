@@ -162,8 +162,8 @@ test("a tela mostra os cards e distingue falta de vínculo de falta de registro"
   // Sem vínculo, nem recebidos nem cards: a cópia do vínculo substitui os dois.
   assert.match(block, /\{linkCopy \? \(/);
   // Todo card é um alvo único e focável — nada de linha inerte.
-  assert.match(component, /<ul className="context-cards">/);
-  assert.match(component, /<a className=\{card\.pending \? "is-pending" : undefined\} href=\{card\.href\}>/);
+  assert.match(component, /homeView \? "context-cards context-cards-home" : "context-cards"/);
+  assert.match(component, /className=\{card\.pending \? "is-pending" : undefined\}[\s\S]*?href=\{card\.href\}/);
   assert.doesNotMatch(component, /care-context-links/);
   assert.doesNotMatch(css, /care-context-links/);
   // Alvo de 44px, medida contida e contraste do texto secundário por token.
