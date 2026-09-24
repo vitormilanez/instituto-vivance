@@ -23,11 +23,13 @@ export function DoctorShell({
   active,
   notificationCount,
   children,
+  focusMode = false,
 }: {
   clinic: ClinicAccess;
   active: string;
   notificationCount: number;
   children: ReactNode;
+  focusMode?: boolean;
 }) {
   const base = `/clinicas/${clinic.id}`;
   const primary = [
@@ -89,7 +91,7 @@ export function DoctorShell({
     </Link>
   ));
   return (
-    <div className={`dv dv-area-${active} ${figtree.variable}`}>
+    <div className={`dv dv-area-${active} ${focusMode ? "dv-focus-mode" : ""} ${figtree.variable}`}>
       <aside className="dv-sidebar">
         <Link className="dv-brand" href={base}>
           <Image className="dv-mark" src="/brand/vivance-mark.png" alt="" width={38} height={38} />
@@ -138,7 +140,7 @@ export function DoctorShell({
       </aside>
       <div className="dv-workspace">
         <header className="dv-topbar">
-          <span className="dv-location">{title}</span>
+          <span className="dv-location">{focusMode ? "Modo atendimento" : title}</span>
           <form
             action={`${base}/pacientes`}
             role="search"
