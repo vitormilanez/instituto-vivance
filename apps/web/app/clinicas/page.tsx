@@ -5,12 +5,16 @@ import { Header } from "@/components/header";
 import { PatientInvitations } from "@/components/patient-invitations";
 import { listMyPatientInvitations } from "@/modules/onboarding/service";
 import { ClinicInvitations } from "@/components/clinic-invitations";
+import { singlePatientDestination } from "@/modules/identity/entry";
 export const dynamic = "force-dynamic";
-export default async function Clinics() {
+export default async function Clinics({ searchParams }: { searchParams: Promise<{ gerenciar?: string }> }) {
   const context = await clinics().catch((error) => {
     if (error instanceof AccessError && error.status === 401) redirect("/login");
     throw error;
   });
+  const { gerenciar } = await searchParams;
+  const destination = singlePatientDestination(context.clinics);
+  if (destination && gerenciar !== "1") redirect(destination);
   const patientInvitations = await listMyPatientInvitations();
   return (
     <>
