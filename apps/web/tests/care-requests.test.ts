@@ -207,7 +207,7 @@ test("pendências do paciente carregam o alvo exato da pré-consulta", () => {
   assert.match(service, /legacy: true as const/);
 });
 
-test("a página estática de metas reutiliza o acolhimento versionado após o onboarding", () => {
+test("a página de metas aceita conta legada e só redireciona onboarding em rascunho", () => {
   const page = readFileSync(
     new URL(
       "../app/clinicas/[tenantId]/meu-cuidado/metas/page.tsx",
@@ -215,8 +215,10 @@ test("a página estática de metas reutiliza o acolhimento versionado após o on
     ),
     "utf8",
   );
-  assert.match(page, /onboarding\.status !== "submitted"/);
+  assert.match(page, /onboarding\?\.status === "draft"/);
+  assert.doesNotMatch(page, /!onboarding \|\|/);
   assert.match(page, /<PatientIntakePanel/);
   assert.match(page, /audience="patient"/);
   assert.match(page, /canEdit/);
+  assert.match(page, /Peça à equipe da clínica para habilitar suas metas/);
 });

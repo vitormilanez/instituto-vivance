@@ -28,7 +28,10 @@ export default async function PatientGoalsPage({
     getOwnPatientIntake(tenantId),
   ]);
 
-  if (!onboarding || onboarding.status !== "submitted")
+  // Contas anteriores ao onboarding não têm linha nessa tabela. Elas já estão
+  // em cuidado e podem usar o intake versionado normalmente; só um onboarding
+  // realmente em rascunho precisa voltar aos primeiros passos.
+  if (onboarding?.status === "draft")
     redirect(`/clinicas/${tenantId}/primeiros-passos`);
 
   return (
@@ -61,7 +64,11 @@ export default async function PatientGoalsPage({
       ) : (
         <section className="panel">
           <h1>Metas ainda indisponíveis</h1>
-          <p>A equipe precisa vincular sua conta à sua ficha antes desta etapa.</p>
+          <p>
+            {profile.patient
+              ? "Peça à equipe da clínica para habilitar suas metas e expectativas. Sua conta já está vinculada; falta apenas preparar este formulário."
+              : "A equipe precisa vincular sua conta à sua ficha antes de habilitar suas metas e expectativas."}
+          </p>
         </section>
       )}
     </PatientShell>
