@@ -97,6 +97,9 @@ export default async function EncounterPage({
               id: preparation.id,
               status: preparation.status,
               submitted_at: preparation.submission.submitted_at,
+              answers: careContext.preparation?.id === preparation.id
+                ? careContext.preparation.answers
+                : null,
             }
           : null,
       }
