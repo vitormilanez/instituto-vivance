@@ -31,3 +31,52 @@ test("validação e texto genérico do push continuam protegidos", () => {
   assert.throws(() => subscriptionInput({ endpoint: "http://x", keys: { p256dh: "a".repeat(40), auth: "b".repeat(16) } }));
   assert.doesNotMatch(`${reminderMessage.title} ${reminderMessage.body}`, /peso|remédio|medicamento|tratamento|dose|efeito/i);
 });
+
+// Exercise the client against browser doubles, without permission prompts or
+// a real service worker/network. Failed registration must never mean enabled.
+test("push só confirma ativação após permissão e persistência da inscrição", async (t) => {
+  const { pushSupport, subscribeThisDevice } = await import("../components/patient/push.ts");
+  const names = ["window", "navigator", "Notification", "fetch"] as const;
+  const descriptors = names.map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)] as const);
+  const originalKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  t.after(() => {
+    for (const [name, descriptor] of descriptors) {
+      if (descriptor) Object.defineProperty(globalThis, name, descriptor);
+      else Reflect.deleteProperty(globalThis, name);
+    }
+    if (originalKey === undefined) delete process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    else process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = originalKey;
+  });
+  const set = (name: string, value: unknown) => Object.defineProperty(globalThis, name, { configurable: true, writable: true, value });
+  set("window", {});
+  set("navigator", { userAgent: "test" });
+  assert.equal(pushSupport(), "unsupported");
+  assert.equal(await subscribeThisDevice("clinic"), "unsupported");
+  set("navigator", { userAgent: "iPhone" });
+  assert.equal(pushSupport(), "needs-install");
+
+  let permission = "denied", registrationFails = false, posted = 0, accepted = false;
+  const subscription = { toJSON: () => ({ endpoint: "https://push.example.test/sub", keys: { p256dh: "test", auth: "test" } }) };
+  set("window", { PushManager: {}, Notification: {} });
+  set("Notification", { requestPermission: async () => permission });
+  set("navigator", { userAgent: "test", serviceWorker: {
+    ready: Promise.resolve(),
+    register: async () => {
+      if (registrationFails) throw new Error("registration failed");
+      return { pushManager: { getSubscription: async () => subscription } };
+    },
+  } });
+  set("fetch", async () => { posted++; return { ok: accepted }; });
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = "AQ";
+  assert.equal(await subscribeThisDevice("clinic"), "denied");
+  assert.equal(posted, 0);
+  permission = "granted";
+  registrationFails = true;
+  assert.equal(await subscribeThisDevice("clinic"), "failed");
+  assert.equal(posted, 0);
+  registrationFails = false;
+  assert.equal(await subscribeThisDevice("clinic"), "failed");
+  accepted = true;
+  assert.equal(await subscribeThisDevice("clinic"), "subscribed");
+  assert.equal(posted, 2);
+});
