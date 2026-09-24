@@ -18,6 +18,7 @@ import {
 } from "@/components/context-card-list";
 import { ReceivedSince } from "@/components/received-since";
 import { CareLinkAccept } from "@/components/care-link-accept";
+import { DoctorWeightChart, type WeightPoint } from "@/components/doctor-weight-chart";
 
 export type BlockAppointment = {
   id: string;
@@ -49,6 +50,7 @@ export function ConsultationBlock({
   eyebrow,
   link,
   context,
+  weight,
   received,
   draft,
   backToNext,
@@ -64,6 +66,7 @@ export function ConsultationBlock({
   eyebrow: string;
   link: CareLink;
   context: PatientCareContext | null;
+  weight: WeightPoint[] | null;
   received: ReceivedView | null;
   draft: BlockDraft | null;
   backToNext?: string | null;
@@ -103,7 +106,7 @@ export function ConsultationBlock({
         <div><p className="home-eyebrow">{eyebrow} · {appointmentClock(appointment.starts_at)}–{appointmentClock(appointment.ends_at)}</p><h2 id={titleId}>{name}</h2><p className="home-consultation-meta">{appointment.kind === "return" ? "Retorno" : "Consulta"} · {appointment.doctor_display_name}</p></div>
       </header>
       {linkCopy ? <div className="home-care-link"><p>{linkCopy}</p>{link.status === "assigned" && <CareLinkAccept tenantId={tenantId} relationshipId={link.relationshipId} version={link.version} patientName={name} />}</div> : <>
-        {context && <ConsultationGlance context={context} tenantId={tenantId} />}
+        {context && <ConsultationGlance context={context} tenantId={tenantId} patientId={appointment.patient_id} weight={weight} />}
         {context && <div className="doctor-consultation-context"><ContextCardList cards={cards} compactRequests={compact} homeView base={base} patientId={appointment.patient_id} /></div>}
       </>}
       <div className="home-consultation-actions">
@@ -217,7 +220,7 @@ export function ConsultationBlock({
   );
 }
 
-function ConsultationGlance({ context, tenantId }: { context: PatientCareContext; tenantId: string }) {
+function ConsultationGlance({ context, tenantId, patientId, weight }: { context: PatientCareContext; tenantId: string; patientId: string; weight: WeightPoint[] | null }) {
   const date = (value: string) =>
     new Date(value).toLocaleDateString("pt-BR", {
       day: "2-digit",
@@ -239,13 +242,14 @@ function ConsultationGlance({ context, tenantId }: { context: PatientCareContext
     <section className="doctor-consultation-glance" aria-label="Resumo para a consulta">
       <div>
         <h3>Evolução registrada</h3>
-        <p>{context.encounter?.evolution?.trim() || "Nenhuma evolução finalizada registrada."}</p>
+        <p className="doctor-evolution-text">{context.encounter?.evolution?.trim() || "Nenhuma evolução finalizada registrada."}</p>
         {context.encounter?.evolution?.trim() && context.encounter.finalized_at && (
           <small>Último atendimento finalizado em {date(context.encounter.finalized_at)}.</small>
         )}
         {context.encounter?.evolution?.trim() && (
           <Link href={`/clinicas/${tenantId}/atendimentos/${context.encounter.id}`}>Ler evolução completa</Link>
         )}
+        <DoctorWeightChart points={weight} href={`/clinicas/${tenantId}/acompanhamento?aba=evolucao&paciente=${patientId}`} />
       </div>
       <div>
         <h3>O que o paciente procura nesta consulta</h3>
