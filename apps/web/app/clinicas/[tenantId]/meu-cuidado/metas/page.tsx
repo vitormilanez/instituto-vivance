@@ -34,7 +34,7 @@ export default async function PatientGoalsPage({
   return (
     <PatientShell
       clinic={profile.clinic}
-      active="cuidado"
+      active="metas"
       title="Metas e expectativas"
       heading="bar"
       backHref={`/clinicas/${tenantId}/meu-cuidado/hoje`}

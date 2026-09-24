@@ -5495,10 +5495,80 @@ test("pré-consulta sem próximo retorno falha sem deixar pedido, preparo ou men
   });
 });
 
+test("pendência legada é preservada, reparada no reenvio e não cria preparo extra após o vínculo", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    await db.exec("reset role");
+    const legacy = randomUUID();
+    await db.query(
+      `insert into public.patient_care_requests(
+        id,tenant_id,patient_id,doctor_id,kind,note,client_request_id
+      ) values($1,$2,$3,$4,'preparation','Pedido legado',$5)`,
+      [legacy, a, pa, users.doctor.id, randomUUID()],
+    );
+    assert.deepEqual(
+      (
+        await db.query<{ status: string; preparation_id: string | null }>(
+          "select status,preparation_id from public.patient_care_requests where id=$1",
+          [legacy],
+        )
+      ).rows,
+      [{ status: "requested", preparation_id: null }],
+    );
+
+    await switchActor("doctor");
+    const repaired = (await requestCare("preparation")).rows[0].id;
+    assert.equal(repaired, legacy);
+    const linked = (
+      await db.query<{ preparation_id: string | null }>(
+        "select preparation_id from public.patient_care_requests where id=$1",
+        [legacy],
+      )
+    ).rows[0].preparation_id;
+    assert.ok(linked);
+    const beforeReplay = (
+      await db.query<{ count: number }>(
+        "select count(*)::int count from public.return_preparation_requests where patient_id=$1",
+        [pa],
+      )
+    ).rows[0].count;
+
+    assert.equal((await requestCare("preparation")).rows[0].id, legacy);
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.return_preparation_requests where patient_id=$1",
+          [pa],
+        )
+      ).rows[0].count,
+      beforeReplay,
+    );
+  });
+});
+
 test("metas exigem uma versão de acolhimento posterior ao pedido, inclusive após conclusão anterior", async () => {
   await asUser("doctor", async () => {
     await careRequestFixture();
+    await db.exec("reset role");
+    const legacy = randomUUID();
+    await db.query(
+      `insert into public.patient_care_requests(
+        id,tenant_id,patient_id,doctor_id,kind,note,client_request_id
+      ) values($1,$2,$3,$4,'goals','Metas legadas',$5)`,
+      [legacy, a, pa, users.doctor.id, randomUUID()],
+    );
+    await switchActor("doctor");
     const first = (await requestCare("goals")).rows[0].id;
+    assert.equal(first, legacy);
+    assert.equal(
+      (
+        await db.query<{ requested_intake_version: number }>(
+          "select requested_intake_version from public.patient_care_requests where id=$1",
+          [first],
+        )
+      ).rows[0].requested_intake_version,
+      1,
+    );
     await switchActor("patient");
     await db.query(
       `update public.patient_intake_contexts

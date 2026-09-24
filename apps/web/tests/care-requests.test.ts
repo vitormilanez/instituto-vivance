@@ -200,9 +200,11 @@ test("pendências do paciente carregam o alvo exato da pré-consulta", () => {
     new URL("../modules/care-requests/service.ts", import.meta.url),
     "utf8",
   );
-  assert.match(service, /select\("kind,requested_at,preparation_id"\)/);
+  assert.match(service, /select\("kind,requested_at,preparation_id,requested_intake_version"\)/);
   assert.match(service, /preparation_starts_at/);
   assert.match(service, /Agende primeiro uma próxima consulta/);
+  assert.match(service, /\["42703", "PGRST204"\]/);
+  assert.match(service, /legacy: true as const/);
 });
 
 test("a página estática de metas reutiliza o acolhimento versionado após o onboarding", () => {

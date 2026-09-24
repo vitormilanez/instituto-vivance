@@ -64,18 +64,40 @@ export async function myPendingCareRequests(id: string) {
   const { client } = await requireClinic(tenant, ["patient"]);
   const result = await client
     .from("patient_care_requests")
-    .select("kind,requested_at,preparation_id")
+    .select("kind,requested_at,preparation_id,requested_intake_version")
     .eq("tenant_id", tenant)
     .eq("status", "requested")
     .order("requested_at")
     .order("id");
+  if (result.error && ["42703", "PGRST204"].includes(result.error.code)) {
+    const legacy = await client
+      .from("patient_care_requests")
+      .select("kind,requested_at")
+      .eq("tenant_id", tenant)
+      .eq("status", "requested")
+      .order("requested_at")
+      .order("id");
+    if (legacy.error) databaseFailure(legacy.error.code);
+    return (legacy.data ?? []).map((row) => ({
+      ...row,
+      preparation_id: null,
+      preparation_starts_at: null,
+      legacy: true as const,
+    }));
+  }
   if (result.error) databaseFailure(result.error.code);
   const rows = result.data ?? [];
   const preparationIds = rows.flatMap((row) =>
     row.preparation_id ? [row.preparation_id] : [],
   );
   if (!preparationIds.length)
-    return rows.map((row) => ({ ...row, preparation_starts_at: null }));
+    return rows.map((row) => ({
+      ...row,
+      preparation_starts_at: null,
+      legacy:
+        (row.kind === "preparation" && row.preparation_id === null) ||
+        (row.kind === "goals" && row.requested_intake_version === null),
+    }));
   const preparations = await client
     .from("return_preparation_requests")
     .select("id,appointments!return_preparation_requests_tenant_id_appointment_id_fkey(starts_at)")
@@ -93,6 +115,9 @@ export async function myPendingCareRequests(id: string) {
     preparation_starts_at: row.preparation_id
       ? (startsAt.get(row.preparation_id) ?? null)
       : null,
+    legacy:
+      (row.kind === "preparation" && row.preparation_id === null) ||
+      (row.kind === "goals" && row.requested_intake_version === null),
   }));
 }
 
