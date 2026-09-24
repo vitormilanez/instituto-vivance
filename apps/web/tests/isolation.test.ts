@@ -5770,3 +5770,49 @@ test("lembretes: preferência e aparelhos são só do próprio paciente; o agend
     await denied("select * from public.patient_reminder_preferences");
   });
 });
+
+test("telefone e sinais de alerta: equipe cadastra, só médico aprova a lista, todo membro da clínica lê", async () => {
+  await asUser("admin", async () => {
+    await denied("insert into public.clinic_patient_info(tenant_id,updated_by) values($1,$2)", [a, users.admin.id]);
+    await db.query("select public.save_clinic_phone($1,'(11) 4000-0000','(11) 4000-0000','seg a sex, 8h às 18h')", [a]);
+    // Administrador cadastra telefone, mas não aprova texto clínico.
+    await denied("select public.approve_alert_signs($1,$2::text[])", [a, ["Falta de ar"]]);
+    await denied("select public.save_clinic_phone($1,'(11) 4000-0000',null,null)", [a]);
+    await switchActor("nurse");
+    await denied("select public.save_clinic_phone($1,'(11) 4000-0000','1140000000',null)", [a]);
+    await switchActor("doctor");
+    await denied("select public.approve_alert_signs($1,$2::text[])", [a, ["x"]]);
+    await db.query("select public.approve_alert_signs($1,$2::text[])", [
+      a,
+      [" Falta de ar ou dor no peito ", "Vômitos que não param"],
+    ]);
+    const row = await db.query<{
+      phone_tel: string;
+      alert_signs: string[];
+      alert_approved_by: string;
+      alert_approved_name: string;
+      alert_approved_on: string | null;
+    }>("select phone_tel,alert_signs,alert_approved_by,alert_approved_name,alert_approved_on from public.clinic_patient_info where tenant_id=$1", [a]);
+    assert.equal(row.rows[0].phone_tel, "1140000000");
+    assert.deepEqual(row.rows[0].alert_signs, ["Falta de ar ou dor no peito", "Vômitos que não param"]);
+    assert.equal(row.rows[0].alert_approved_by, users.doctor.id);
+    assert.equal(row.rows[0].alert_approved_name, "Synthetic doctor");
+    assert.ok(row.rows[0].alert_approved_on);
+    await denied("update public.clinic_patient_info set alert_signs='{}'");
+    // O paciente da clínica lê; outra clínica não.
+    await switchActor("patient");
+    assert.equal((await db.query("select alert_signs from public.clinic_patient_info")).rows.length, 1);
+    await switchActor("other");
+    assert.equal((await db.query("select alert_signs from public.clinic_patient_info")).rows.length, 0);
+    await denied("select public.save_clinic_phone($1,'(11) 4000-0000','1140000000',null)", [a]);
+    // Lista vazia retira a aprovação.
+    await switchActor("doctor");
+    await db.query("select public.approve_alert_signs($1,'{}'::text[])", [a]);
+    const cleared = await db.query<{ alert_approved_by: string | null }>("select alert_approved_by from public.clinic_patient_info where tenant_id=$1", [a]);
+    assert.equal(cleared.rows[0].alert_approved_by, null);
+    await db.exec("reset role");
+    const audit = await db.query("select 1 from public.audit_events where entity_type='clinic_patient_info'");
+    assert.ok(audit.rows.length >= 3);
+  });
+});
+

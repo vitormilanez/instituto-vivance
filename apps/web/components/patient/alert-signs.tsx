@@ -1,10 +1,9 @@
-import { alertSigns, alertSignsReady } from "@/modules/workspace/alert-signs";
+import { alertSignsReady, type AlertSignsContent } from "@/modules/workspace/alert-signs";
 import { Icon } from "./icons";
 
 // "Sentiu algo forte ou diferente?" — estática, sem triagem. Urgência não passa
 // pelo app: a primeira ação é sempre ligar.
-export function PatientAlertSigns() {
-  const content = alertSigns;
+export function PatientAlertSigns({ content }: { content: AlertSignsContent }) {
   const ready = alertSignsReady(content);
   return (
     <div className="pv-stack">

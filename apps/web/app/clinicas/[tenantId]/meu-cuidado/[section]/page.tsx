@@ -9,6 +9,8 @@ import { InputError } from "@/lib/validation";
 import { findPatientSection } from "@/modules/workspace/navigation";
 import { PatientShell } from "@/components/patient-shell";
 import { PatientAlertSigns } from "@/components/patient/alert-signs";
+import { clinicPatientInfo } from "@/modules/clinic-info/service";
+import { alertSigns as noClinicInfo } from "@/modules/workspace/alert-signs";
 import { PatientMealQuick } from "@/components/patient/meal-quick";
 import { PatientMyCare } from "@/components/patient/my-care";
 import { CheckInFlow } from "@/components/patient/check-in-flow";
@@ -91,6 +93,7 @@ export default async function PatientAreaPage({
     appointments,
     checkIn,
     reminder,
+    clinicInfo,
   ] = await Promise.all([
     // onboarding
     patient && slug === "hoje"
@@ -182,6 +185,10 @@ export default async function PatientAreaPage({
     patient && ["hoje", "cuidado", "boas-vindas", "lembretes"].includes(slug)
       ? myReminderPreference(tenantId).catch(() => null)
       : null,
+    // clinicInfo: telefone da clínica e sinais de alerta aprovados
+    ["alerta", "consultas", "cuidado"].includes(slug)
+      ? clinicPatientInfo(tenantId).catch(() => noClinicInfo)
+      : noClinicInfo,
   ]);
   // Primeiro acesso: antes da Home, as boas-vindas (uma vez só).
   if (slug === "hoje" && patient && reminder === undefined)
@@ -240,9 +247,10 @@ export default async function PatientAreaPage({
           appointments={appointments.appointments}
           documents={documents?.documents ?? null}
           reminderLabel={reminder === null ? null : reminderLabel(reminder ?? null, checkIn?.frequencyDays ?? 1)}
+          clinicPhone={clinicInfo.clinicPhone}
         />
       ) : slug === "alerta" ? (
-        <PatientAlertSigns />
+        <PatientAlertSigns content={clinicInfo} />
       ) : (slug === "boas-vindas" || slug === "lembretes") && patient ? (
         <WelcomeFlow
           tenantId={tenantId}
@@ -327,7 +335,15 @@ export default async function PatientAreaPage({
               currentTime={currentTime}
             />
             <p className="module-footnote">
-              Para marcar ou alterar um horário, entre em contato com a clínica.
+              {clinicInfo.clinicPhone ? (
+                <>
+                  Para marcar ou alterar um horário, fale com a clínica:{" "}
+                  <a href={`tel:${clinicInfo.clinicPhone.tel}`}>{clinicInfo.clinicPhone.display}</a>
+                  {clinicInfo.clinicPhone.hours ? ` · ${clinicInfo.clinicPhone.hours}` : ""}.
+                </>
+              ) : (
+                "Para marcar ou alterar um horário, entre em contato com a clínica."
+              )}
             </p>
           </section>
         ) : (

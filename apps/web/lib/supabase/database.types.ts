@@ -773,6 +773,24 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      clinic_patient_info: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          phone_display: string | null;
+          phone_tel: string | null;
+          phone_hours: string | null;
+          alert_signs: string[];
+          alert_approved_by: string | null;
+          alert_approved_name: string | null;
+          alert_approved_on: string | null;
+          updated_by: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       patient_reminder_preferences: {
         Row: {
           id: string;
@@ -1802,6 +1820,14 @@ export type Database = {
           frequency: number;
           application: boolean;
         };
+        Returns: undefined;
+      };
+      save_clinic_phone: {
+        Args: { target_tenant: string; display: string | null; tel: string | null; hours: string | null };
+        Returns: undefined;
+      };
+      approve_alert_signs: {
+        Args: { target_tenant: string; signs: string[] };
         Returns: undefined;
       };
       save_reminder_preference: {

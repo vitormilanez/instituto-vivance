@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { ClinicPhone } from "@/modules/workspace/alert-signs";
+import { documentTitle } from "@/modules/documents/title";
 import type { Appointment } from "@/modules/agenda/service";
 import { logout } from "@/app/actions";
 import { appointmentWhen } from "@/modules/workspace/patient-home";
@@ -30,6 +32,7 @@ export function PatientMyCare({
   appointments,
   documents,
   reminderLabel = null,
+  clinicPhone = null,
 }: {
   base: string;
   clinicId: string;
@@ -39,6 +42,7 @@ export function PatientMyCare({
   appointments: Appointment[];
   documents: DocumentRow[] | null;
   reminderLabel?: string | null;
+  clinicPhone?: ClinicPhone | null;
 }) {
   const upcoming = appointments
     .filter((item) => ["scheduled", "in_progress"].includes(item.status) && item.ends_at >= currentTime)
@@ -101,7 +105,15 @@ export function PatientMyCare({
               </div>
             );
           })}
-          <p className="pv-muted">Para marcar ou alterar um horário, fale com a clínica.</p>
+          {clinicPhone ? (
+            <p className="pv-muted">
+              Para marcar ou alterar um horário, fale com a clínica:{" "}
+              <a className="pv-link" href={`tel:${clinicPhone.tel}`}>{clinicPhone.display}</a>
+              {clinicPhone.hours ? ` · ${clinicPhone.hours}` : ""}
+            </p>
+          ) : (
+            <p className="pv-muted">Para marcar ou alterar um horário, fale com a clínica.</p>
+          )}
           <Link className="pv-link" href={`${base}/consultas`}>Ver todas as consultas</Link>
         </div>
       </section>
@@ -115,7 +127,7 @@ export function PatientMyCare({
                 <li key={item.id}>
                   <span className="pv-doc">
                     <Icon name="file" size={20} />
-                    <span className="pv-ellipsis">{item.original_filename}</span>
+                    <span className="pv-ellipsis">{documentTitle(item)}</span>
                   </span>
                   <span className="pv-sent-when">Enviado {dayMonth(item.created_at)}</span>
                 </li>
