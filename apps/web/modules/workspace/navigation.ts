@@ -245,6 +245,7 @@ export const patientSections = [
     group: "cuidado",
     description: "Sínteses que seu médico revisou e compartilhou com você.",
   },
+  { slug: "metas", title: "Metas e expectativas", group: "acao", description: "O que você espera do seu cuidado." },
   // Tarefas de tela cheia, abertas pelo botão "Registrar" ou por atalhos. Não
   // aparecem na navegação: têm começo, fim e um "voltar".
   {

@@ -2297,3 +2297,10 @@
   background: var(--pv-gold-soft);
   color: var(--pv-gold-ink);
 }
+
+/* Confirmação de saída: o dialog nativo mantém o foco dentro da escolha. */
+.pv-leave-dialog { max-width: min(30rem, calc(100vw - 2rem)); border: 0; border-radius: 24px; padding: 24px; color: var(--pv-navy, #17304c); }
+.pv-leave-dialog::backdrop { background: rgb(0 0 0 / 40%); }
+.pv-receipt dd { white-space: pre-wrap; overflow-wrap: anywhere; }
+.pv-receipt dt { font-weight: 600; margin-top: 1rem; }
+.pv-receipt dd { margin: .25rem 0 0; }

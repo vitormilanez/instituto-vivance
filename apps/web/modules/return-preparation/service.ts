@@ -136,11 +136,12 @@ export async function patientPreparationPending(id: string) {
   const tenant = tenantId(id);
   const { client } = await requireClinic(tenant, ["patient"]);
   const result = await client.from("return_preparation_requests")
-    .select("id,status", { count: "exact" })
+    .select("id,status,appointments!return_preparation_requests_tenant_id_appointment_id_fkey(starts_at)", { count: "exact" })
     .eq("tenant_id", tenant).in("status", ["requested", "draft"])
     .order("requested_at").order("id").limit(1);
   if (result.error) failed(result.error.code);
-  return { count: result.count ?? 0, first: result.data?.[0] ?? null };
+  const first = result.data?.[0];
+  return { count: result.count ?? 0, first: first ? { id: first.id, status: first.status, starts_at: first.appointments?.starts_at } : null };
 }
 
 export async function patientPreparationRequirement(id: string) {

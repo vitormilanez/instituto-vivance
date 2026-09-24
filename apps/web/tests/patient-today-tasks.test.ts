@@ -14,8 +14,8 @@ test("patient today lists only unresolved actions in their expected order", () =
       hasMeasurement: false,
     }).map((task) => [task.id, task.href]),
     [
-      ["check-in-check-in-1", `${base}/diario#check-in-check-in-1`],
       ["preparation-preparation-1", `${base}/preconsulta?preparo=preparation-1`],
+      ["check-in-check-in-1", `${base}/diario#check-in-check-in-1`],
       ["published-plan", `${base}/plano`],
       ["onboarding", "/clinicas/tenant/primeiros-passos"],
       ["measurements", `${base}/peso`],
@@ -73,7 +73,7 @@ test("o pedido do médico vira tarefa que abre direto o formulário", () => {
     onboardingHref: "/clinicas/tenant/primeiros-passos",
     hasMeasurement: true,
     careRequests: [
-      { kind: "preparation", requested_at: "2026-09-22T12:00:00Z" },
+      { kind: "preparation", requested_at: "2026-09-22T12:00:00Z", preparation_id: "preparation-1" },
       { kind: "exams", requested_at: "2026-09-22T12:00:00Z" },
       { kind: "goals", requested_at: "2026-09-22T12:00:00Z" },
       { kind: "measurements", requested_at: "2026-09-22T12:00:00Z" },
@@ -86,9 +86,9 @@ test("o pedido do médico vira tarefa que abre direto o formulário", () => {
     "care-request-measurements",
   ]);
   assert.deepEqual(tasks.map((task) => task.href), [
-    `${base}/preconsulta`,
-    "/clinicas/tenant/primeiros-passos",
-    "/clinicas/tenant/primeiros-passos",
+    `${base}/preconsulta?preparo=preparation-1`,
+    `${base}/documentos#enviar-documento`,
+    `${base}/metas`,
     `${base}/peso`,
   ]);
   // Cada tarefa diz de onde veio, com a data do pedido — nunca risco.
@@ -106,13 +106,13 @@ test("o pedido substitui o lembrete genérico da mesma pendência", () => {
     preparationPending: { count: 1, first: { id: "preparation-1", status: "requested" } },
     careRequests: [
       { kind: "measurements", requested_at: "2026-09-22T12:00:00Z" },
-      { kind: "preparation", requested_at: "2026-09-22T12:00:00Z" },
+      { kind: "preparation", requested_at: "2026-09-22T12:00:00Z", preparation_id: "preparation-1" },
     ],
   });
   // A mesma pendência não aparece em dois vocabulários.
   assert.deepEqual(tasks.map((task) => task.id), [
-    "care-request-measurements",
     "care-request-preparation",
+    "care-request-measurements",
   ]);
 });
 
@@ -129,4 +129,35 @@ test("um tipo fora do contrato não inventa tarefa", () => {
     [],
     "registros da clínica nunca viram tarefa do paciente",
   );
+});
+
+
+test("pré-consulta e pedidos precedem o check-in diário sem repetir a mesma solicitação", () => {
+  const tasks = patientTodayTasks({ base: "/cuidado", hasMeasurement: false, dailyCheckInDue: true,
+    preparationPending: { count: 1, first: { id: "prep", status: "draft" } },
+    careRequests: [{ kind: "exams", requested_at: "2026-09-24T12:00:00Z" }, { kind: "preparation", preparation_id: "prep", requested_at: "2026-09-24T12:00:00Z" }],
+    unreadPlan: { title: "Orientação", revision: 1 },
+  });
+  assert.deepEqual(tasks.map((t) => t.id), ["care-request-preparation", "care-request-exams", "daily-check-in", "published-plan", "measurements"]);
+  assert.equal(tasks[0].href, "/cuidado/preconsulta?preparo=prep");
+});
+
+test("pedido legado sem formulário indica consultas; não abre pré-consulta vazia", () => {
+  const [task] = patientTodayTasks({ base: "/cuidado", hasMeasurement: true, careRequests: [{ kind: "preparation", requested_at: "2026-09-24T12:00:00Z" }] });
+  assert.equal(task.href, "/cuidado/consultas");
+  assert.match(task.detail, /vincular este pedido/);
+});
+
+test("preparo antigo pendente não esconde preparo obrigatório de outra consulta", () => {
+  const tasks = patientTodayTasks({ base: "/cuidado", hasMeasurement: true, hasRequiredPreparation: true, preparationPending: {count: 1, first: {id: "old", status: "draft"}} });
+  assert.deepEqual(tasks.map((task) => task.id), ["required-preparation", "preparation-old"]);
+});
+
+
+test("pedido legado não assume vínculo com outro preparo pendente", () => {
+  const tasks = patientTodayTasks({ base: "/cuidado", hasMeasurement: true,
+    preparationPending: { count: 1, first: { id: "outra-consulta", status: "draft" } },
+    careRequests: [{ kind: "preparation", preparation_id: null, requested_at: "2026-09-24T12:00:00Z" }],
+  });
+  assert.deepEqual(tasks.map((task) => task.href), ["/cuidado/consultas", "/cuidado/preconsulta?preparo=outra-consulta"]);
 });

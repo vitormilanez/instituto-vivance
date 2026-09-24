@@ -11,15 +11,17 @@ export type PatientTodayTasksInput = {
   onboardingHref?: string | null;
   pendingCheckInId?: string | null;
   hasRequiredPreparation?: boolean;
+  requiredPreparationStartsAt?: string;
+  dailyCheckInDue?: boolean;
   preparationPending?: {
     count: number;
-    first: { id: string; status: string } | null;
+    first: { id: string; status: string; starts_at?: string } | null;
   };
   unreadPlan?: { title: string; revision: number } | null;
   hasMeasurement: boolean;
   // Pedidos abertos do médico. São pendências operacionais do paciente, nunca
   // risco ou urgência.
-  careRequests?: { kind: string; requested_at: string }[];
+  careRequests?: { kind: string; requested_at: string; preparation_id?: string | null; preparation_starts_at?: string | null }[];
 };
 
 const dayMonth = (value: string) =>
@@ -32,12 +34,14 @@ const dayMonth = (value: string) =>
 // Cada pedido abre direto o formulário que o resolve.
 function careRequestTask(
   input: PatientTodayTasksInput,
-  request: { kind: string; requested_at: string },
+  request: { kind: string; requested_at: string; preparation_id?: string | null; preparation_starts_at?: string | null },
 ): PatientTodayTask | null {
   const asked = `Pedido em ${dayMonth(request.requested_at)}.`;
-  const onboarding = input.onboardingHref ?? `${input.base}/documentos`;
+  const preparation = request.preparation_id;
+  const missingPreparation = request.kind === "preparation" && !preparation;
+  const consultation = request.preparation_starts_at ? ` Consulta de ${dayMonth(request.preparation_starts_at)}.` : "";
   const detail = {
-    preparation: `Seu médico pediu o preenchimento da sua pré-consulta. ${asked}`,
+    preparation: missingPreparation ? `A clínica precisa vincular este pedido a uma consulta. ${asked}` : `Seu médico pediu o preenchimento da sua pré-consulta.${consultation} ${asked}`,
     exams: `Seu médico pediu exames ou documentos. ${asked}`,
     measurements: `Seu médico pediu a atualização das suas medidas. ${asked}`,
     goals: `Seu médico pediu sua resposta sobre metas e expectativas. ${asked}`,
@@ -46,23 +50,23 @@ function careRequestTask(
   return {
     id: `care-request-${request.kind}`,
     title: {
-      preparation: "Preencher a pré-consulta pedida",
+      preparation: missingPreparation ? "Conferir o pedido de pré-consulta" : "Preencher a pré-consulta pedida",
       exams: "Enviar exames ou documentos",
       measurements: "Atualizar suas medidas",
       goals: "Responder sobre metas e expectativas",
     }[request.kind]!,
     detail,
     action: {
-      preparation: "Preencher agora",
+      preparation: missingPreparation ? "Ver consultas" : "Preencher agora",
       exams: "Enviar exames",
       measurements: "Atualizar medidas",
       goals: "Responder",
     }[request.kind]!,
     href: {
-      preparation: `${input.base}/preconsulta`,
-      exams: onboarding,
+      preparation: preparation ? `${input.base}/preconsulta?preparo=${preparation}` : `${input.base}/consultas`,
+      exams: `${input.base}/documentos#enviar-documento`,
       measurements: `${input.base}/peso`,
-      goals: onboarding,
+      goals: `${input.base}/metas`,
     }[request.kind]!,
   };
 }
@@ -78,7 +82,7 @@ export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTa
     tasks.push({
       id: "required-preparation",
       title: "Preencher sua pré-consulta",
-      detail: "Responda às cinco perguntas antes da sua próxima consulta.",
+      detail: input.requiredPreparationStartsAt ? `Responda às cinco perguntas antes da consulta de ${dayMonth(input.requiredPreparationStartsAt)}.` : "Responda às cinco perguntas antes da sua próxima consulta.",
       action: "Preencher agora",
       href: "#preconsulta-obrigatoria",
     });
@@ -98,7 +102,7 @@ export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTa
       href: `${input.base}/diario#check-in-${input.pendingCheckInId}`,
     });
 
-  if (input.preparationPending?.first && !asked.has("preparation")) {
+  if (input.preparationPending?.first && !requests.some((request) => request.kind === "preparation" && request.preparation_id === input.preparationPending?.first?.id)) {
     const isDraft = input.preparationPending.first.status === "draft";
     const remaining = input.preparationPending.count > 1
       ? ` Há mais ${input.preparationPending.count - 1} preparo${input.preparationPending.count === 2 ? "" : "s"} aguardando você.`
@@ -106,7 +110,7 @@ export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTa
     tasks.push({
       id: `preparation-${input.preparationPending.first.id}`,
       title: isDraft ? "Continuar sua pré-consulta" : "Responder sua pré-consulta",
-      detail: `${isDraft ? "Seu rascunho foi salvo; complete quando puder." : "Seu médico enviou um roteiro curto para a próxima conversa."}${remaining}`,
+      detail: `${isDraft ? "Seu rascunho foi salvo; complete quando puder." : "Seu médico enviou um roteiro curto para a próxima conversa."}${input.preparationPending.first.starts_at ? ` Consulta de ${dayMonth(input.preparationPending.first.starts_at)}.` : ""}${remaining}`,
       action: isDraft ? "Continuar preparo" : "Responder preparo",
       href: `${input.base}/preconsulta?preparo=${input.preparationPending.first.id}`,
     });
@@ -144,5 +148,12 @@ export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTa
       href: `${input.base}/peso`,
     });
 
-  return tasks;
+  if (input.dailyCheckInDue)
+    tasks.push({ id: "daily-check-in", title: "Como você está reagindo ao tratamento?", detail: "Com toques · cerca de 1 minuto", action: "Começar check-in", href: `${input.base}/checkin` });
+
+  const priority = (task: PatientTodayTask) =>
+    task.id === "required-preparation" || task.id.startsWith("preparation-") || task.id === "care-request-preparation" ? 0
+      : task.id.startsWith("care-request-") || task.id.startsWith("check-in-") ? 1
+      : task.id === "daily-check-in" ? 2 : 3;
+  return tasks.sort((a, b) => priority(a) - priority(b));
 }

@@ -127,7 +127,7 @@ export function PatientMyCare({
                 <li key={item.id}>
                   <span className="pv-doc">
                     <Icon name="file" size={20} />
-                    <span className="pv-ellipsis">{documentTitle(item)}</span>
+                    <Link className="pv-link pv-ellipsis" href={`${base}/envios/document/${item.id}`}>{documentTitle(item)}</Link>
                   </span>
                   <span className="pv-sent-when">Enviado {dayMonth(item.created_at)}</span>
                 </li>
@@ -140,7 +140,7 @@ export function PatientMyCare({
             Enviar exame ou documento
             <Icon name="plus" size={20} />
           </Link>
-          {documents && documents.length > 3 && (
+          {documents && documents.length > 0 && (
             <Link className="pv-link" href={`${base}/documentos`}>Ver todos os documentos</Link>
           )}
         </div>
@@ -165,6 +165,7 @@ export function PatientMyCare({
       <section className="pv-section" aria-labelledby="pv-care-more">
         <h2 id="pv-care-more" className="pv-h2">Mais</h2>
         <div className="pv-card pv-card-list">
+          <Link className="pv-row-link" href={`${base}/metas`}>Metas e expectativas <Icon name="chevR" size={22} /></Link>
           <Link className="pv-row-link" href={`${base}/diario`}>
             <span>
               <strong>Diário</strong>

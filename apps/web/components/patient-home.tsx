@@ -10,6 +10,7 @@ import {
   quickLogs,
   sentLabels,
   sentWhen,
+  sentHref,
   type SentItem,
 } from "@/modules/workspace/patient-home";
 import { Icon, type IconName } from "./patient/icons";
@@ -60,7 +61,7 @@ export function PatientHome({
   unreadPublication: { title: string; revision: number } | null;
   onboardingHref: string | null;
   pendingCheckInId: string | null;
-  preparationPending?: { count: number; first: { id: string; status: string } | null };
+  preparationPending?: { count: number; first: { id: string; status: string; starts_at?: string } | null };
   requiredPreparation: {
     appointmentId: string;
     startsAt: string;
@@ -72,7 +73,7 @@ export function PatientHome({
     measure_unit: string;
     reported_on: string;
   } | null;
-  careRequests: { kind: string; requested_at: string }[];
+  careRequests: { kind: string; requested_at: string; preparation_id?: string | null; preparation_starts_at?: string | null }[];
   sent: SentItem[] | null;
 }) {
   const next = patientNextAppointment(appointments, currentTime);
@@ -85,10 +86,12 @@ export function PatientHome({
     onboardingHref,
     pendingCheckInId,
     hasRequiredPreparation: Boolean(requiredPreparation),
+    requiredPreparationStartsAt: requiredPreparation?.startsAt,
     preparationPending,
     unreadPlan: unreadPublication,
     hasMeasurement: Boolean(latestMeasurement),
     careRequests,
+    dailyCheckInDue: checkIn?.due,
   });
   const { focus, rest } = patientFocus({
     base,
@@ -96,10 +99,8 @@ export function PatientHome({
     tasks,
   });
   const firstTask = tasks[0];
-  // O check-in diário é a ação do dia: vem antes de tudo, exceto consulta em
-  // andamento. Os pedidos continuam logo abaixo, em "Também para você".
-  const dailyDue = Boolean(checkIn?.due) && focus.kind !== "consultation";
-  const restTasks = dailyDue && focus.kind === "task" ? tasks : rest;
+  const dailyDue = focus.kind === "task" && firstTask?.id === "daily-check-in";
+  const restTasks = rest;
   const isCheckIn = !dailyDue && focus.kind === "task" && firstTask?.id.startsWith("check-in-");
   const isRequired = focus.kind === "task" && firstTask?.id === "required-preparation";
   const logs = quickLogs({ base, doctorName, latestMeasurement });
@@ -265,7 +266,7 @@ export function PatientHome({
             <ul className="pv-list">
               {sent.slice(0, 3).map((item) => (
                 <li key={`${item.kind}-${item.key}`}>
-                  <strong>{sentLabels[item.kind]}</strong>
+                  <Link className="pv-link" href={sentHref(base, item)}>{sentLabels[item.kind]}</Link>
                   <time className="pv-sent-when" dateTime={item.at}>
                     <Icon name="check" size={16} />
                     Enviado {sentWhen(item.at, today)}
