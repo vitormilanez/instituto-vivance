@@ -3,10 +3,13 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
+import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import type { Appointment, AgendaOptions } from "@/modules/agenda/service";
 import { clinicDate, localToInstant } from "@/modules/agenda/validation";
 import { focusedAppointment } from "@/modules/agenda/focus";
 import { PreparationRequestEditor } from "./preparation-request-editor";
+import { TeleconsultationSettings } from "./teleconsultation-settings";
+import { TeleconsultationLink } from "./teleconsultation-link";
 import { sentenceCase } from "@/lib/format";
 
 const statusPresentation: Record<string, { label: string; className: string }> =
@@ -28,6 +31,7 @@ export function AppointmentList({
   onNoShow,
   onStart,
   onPrepare,
+  onTeleconsultation,
   preparationStates = {},
   patientRecordBase,
 }: {
@@ -39,6 +43,7 @@ export function AppointmentList({
   onNoShow?: (appointment: Appointment) => void;
   onStart?: (appointment: Appointment) => void;
   onPrepare?: (appointment: Appointment) => void;
+  onTeleconsultation?: (appointment: Appointment) => void;
   preparationStates?: Record<string, string>;
   // Na agenda de um dia escolhido a data já está no título da lista; ela só
   // acompanha cada linha quando a lista mistura dias (próximos retornos).
@@ -90,7 +95,7 @@ export function AppointmentList({
                 .join("")
                 .toUpperCase()}
             </span>
-            <span>
+            <div>
               <strong>{a.patients?.display_name ?? "Consulta"}</strong>
               <small>
                 {a.kind === "return" ? "Retorno" : "Consulta"} ·{" "}
@@ -107,6 +112,9 @@ export function AppointmentList({
                 })}
               </small>
               <small>{a.doctor_display_name}</small>
+              {a.teleconsultation?.delivery_mode === "video" && <span className="teleconsultation-row-mode">Teleconsulta · Google Meet</span>}
+              {!patientRecordBase && a.teleconsultation?.join_url && ["scheduled", "in_progress"].includes(a.status) && <TeleconsultationLink url={a.teleconsultation.join_url} compact />}
+              {onTeleconsultation && ["scheduled", "in_progress"].includes(a.status) && <button type="button" className="secondary quiet" onClick={() => onTeleconsultation(a)}>{a.teleconsultation?.delivery_mode === "video" ? "Ver teleconsulta" : "Modalidade / teleconsulta"}</button>}
               {patientRecordBase && (
                 <Link
                   className="appointment-patient-link"
@@ -115,7 +123,7 @@ export function AppointmentList({
                   Ver ficha do paciente
                 </Link>
               )}
-            </span>
+            </div>
           </div>
           <span
             className={`badge appointment-status ${statusPresentation[a.status]?.className ?? "unknown"}`}
@@ -137,6 +145,7 @@ export function AppointmentList({
                     {preparationStates[a.id] ? "Pré-consulta solicitada" : "Preparar pré-consulta"}
                   </button>
                 )}
+                {onStart ? <details className="appointment-more-actions"><summary aria-label="Mais ações do agendamento"><MoreHorizontal size={18} aria-hidden="true" /></summary><div>
                 {onEdit && (
                   <button className="secondary quiet" onClick={() => onEdit(a)}>
                     Editar
@@ -152,6 +161,23 @@ export function AppointmentList({
                     Cancelar
                   </button>
                 )}
+                </div></details> : <>
+                {onEdit && (
+                  <button className="secondary quiet" onClick={() => onEdit(a)}>
+                    Editar
+                  </button>
+                )}
+                {onNoShow && a.starts_at <= currentTime && (
+                  <button className="secondary quiet" onClick={() => onNoShow(a)}>
+                    Registrar falta
+                  </button>
+                )}
+                {onCancel && (
+                  <button className="secondary quiet" onClick={() => onCancel(a)}>
+                    Cancelar
+                  </button>
+                )}
+                </>}
               </div>
             )}
         </li>
@@ -194,8 +220,10 @@ export function Agenda({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [returns, setReturns] = useState(false);
+  const [scheduleView, setScheduleView] = useState<"day" | "week">("day");
   const [starting, setStarting] = useState<Appointment | null>(null);
   const [accepted, setAccepted] = useState(false);
+  const [teleconsultation, setTeleconsultation] = useState<Appointment | null>(null);
   const [preparing, setPreparing] = useState<Appointment | null>(null);
   const startPanel = useRef<HTMLElement>(null);
   const activePanel = useRef<HTMLElement>(null);
@@ -231,7 +259,7 @@ export function Agenda({
         throw new Error(
           result.error ?? "Não foi possível abrir o atendimento.",
         );
-      router.push(`/clinicas/${tenantId}/atendimentos/${result.id}`);
+      router.push(`/clinicas/${tenantId}/atendimentos/${result.id}${starting.teleconsultation?.delivery_mode === "video" ? "?modo=teleconsulta&etapa=consulta" : ""}`);
     } catch (e) {
       setError(
         e instanceof Error
@@ -259,6 +287,39 @@ export function Agenda({
         a.starts_at > currentTime
       : clinicDate(new Date(a.starts_at)) === date,
   );
+  const selectedDay = new Date(`${date}T12:00:00Z`);
+  const selectedDayOffset = (selectedDay.getUTCDay() + 6) % 7;
+  const weekDays = Array.from({ length: 7 }, (_, index) => {
+    const value = new Date(selectedDay);
+    value.setUTCDate(selectedDay.getUTCDate() - selectedDayOffset + index);
+    return value.toISOString().slice(0, 10);
+  });
+  const weekStart = weekDays[0];
+  const weekEnd = weekDays.at(-1)!;
+  const isDoctorView = canStart;
+  const uncoveredWeekDays = weekDays.filter((weekDay) =>
+    !weekDay.startsWith(month),
+  );
+  const hasPartialWeek = isDoctorView && scheduleView === "week" && uncoveredWeekDays.length > 0;
+  const scheduleTitle = returns
+    ? "Próximos retornos do mês"
+    : isDoctorView && scheduleView === "week"
+      ? `${new Date(`${weekStart}T12:00:00Z`).toLocaleDateString("pt-BR", { day: "numeric", month: "long", timeZone: "UTC" })} a ${new Date(`${weekEnd}T12:00:00Z`).toLocaleDateString("pt-BR", { day: "numeric", month: "long", timeZone: "UTC" })}`
+      : sentenceCase(
+          selectedDay.toLocaleDateString("pt-BR", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            timeZone: "UTC",
+          }),
+        );
+  const scheduleAppointments = returns
+    ? chosen
+    : isDoctorView && scheduleView === "week"
+      ? appointments.filter((appointment) =>
+          weekDays.includes(clinicDate(new Date(appointment.starts_at))),
+        )
+      : chosen;
   const nextAppointment = focusedAppointment(appointments, currentTime, date);
   const edit = editing && editing !== "new" ? editing : null;
   function selectDate(next: string) {
@@ -274,6 +335,7 @@ export function Agenda({
     );
   }
   function open(value: Appointment | "new") {
+    setTeleconsultation(null);
     setEditing(value);
     setClosing(null);
     setError("");
@@ -315,7 +377,8 @@ export function Agenda({
         ).toISOString(),
         ...(edit ? { version: edit.version } : {}),
       };
-      await mutate(body, edit ?? undefined);
+      const saved = await mutate(body, edit ?? undefined);
+      if (!edit) setTeleconsultation(saved.appointment);
       setEditing(null);
       setNotice(edit ? "Agendamento atualizado." : "Agendamento criado.");
       selectDate(String(form.get("date")));
@@ -369,7 +432,7 @@ export function Agenda({
           <button onClick={() => open("new")}>Novo agendamento</button>
         )}
       </div>
-      {nextAppointment && !returns && (
+      {nextAppointment && !returns && !isDoctorView && (
         <section
           className="agenda-focus-card"
           aria-label="Próximo atendimento do dia"
@@ -424,6 +487,15 @@ export function Agenda({
           Há mais de 500 agendamentos neste mês. A lista está incompleta.
         </p>
       )}
+      {teleconsultation && <TeleconsultationSettings
+        key={teleconsultation.id}
+        tenantId={tenantId}
+        appointmentId={teleconsultation.id}
+        patientName={teleconsultation.patients?.display_name ?? "Consulta"}
+        editable={canManage && teleconsultation.status === "scheduled"}
+        onClose={() => setTeleconsultation(null)}
+        onSaved={() => router.refresh()}
+      />}
       {editing && (
         <section
           className="panel agenda-form-panel"
@@ -663,13 +735,65 @@ export function Agenda({
         </section>
       )}
       <div className="agenda-actions agenda-view-controls">
-        <button
+        {isDoctorView ? <div className="agenda-range-controls" aria-label="Formato da agenda">
+          <button
+            className="secondary"
+            aria-pressed={!returns && scheduleView === "day"}
+            onClick={() => {
+              setReturns(false);
+              setScheduleView("day");
+            }}
+          >
+            Dia
+          </button>
+          <button
+            className="secondary"
+            aria-pressed={!returns && scheduleView === "week"}
+            onClick={() => {
+              setReturns(false);
+              setScheduleView("week");
+            }}
+          >
+            Semana
+          </button>
+        </div> : <button
           className="secondary"
           aria-pressed={!returns}
           onClick={() => setReturns(false)}
         >
           Calendário
-        </button>
+        </button>}
+        {isDoctorView && <button
+          className="secondary agenda-date-nav"
+          aria-label={scheduleView === "week" ? "Semana anterior" : "Dia anterior"}
+          disabled={navigating}
+          onClick={() => {
+            const previous = new Date(selectedDay);
+            previous.setUTCDate(selectedDay.getUTCDate() - (scheduleView === "week" ? 7 : 1));
+            selectDate(previous.toISOString().slice(0, 10));
+          }}
+        >
+          <ChevronLeft aria-hidden="true" size={18} />
+        </button>}
+        {isDoctorView && <button
+          className="secondary agenda-today-button"
+          disabled={navigating}
+          onClick={() => selectDate(today)}
+        >
+          Hoje
+        </button>}
+        {isDoctorView && <button
+          className="secondary agenda-date-nav"
+          aria-label={scheduleView === "week" ? "Próxima semana" : "Próximo dia"}
+          disabled={navigating}
+          onClick={() => {
+            const next = new Date(selectedDay);
+            next.setUTCDate(selectedDay.getUTCDate() + (scheduleView === "week" ? 7 : 1));
+            selectDate(next.toISOString().slice(0, 10));
+          }}
+        >
+          <ChevronRight aria-hidden="true" size={18} />
+        </button>}
         <button
           className="secondary"
           aria-pressed={returns}
@@ -752,24 +876,53 @@ export function Agenda({
           </button>
         </section>
         <section className="calendar-schedule">
-          <h2>
-            {returns
-              ? "Próximos retornos do mês"
-              : sentenceCase(
-                  new Date(`${date}T12:00:00Z`).toLocaleDateString("pt-BR", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    timeZone: "UTC",
-                  }),
-                )}
-          </h2>
+          <h2>{scheduleTitle}</h2>
           <p className="schedule-caption">
-            {chosen.length}{" "}
-            {chosen.length === 1 ? "agendamento" : "agendamentos"}
+            {scheduleAppointments.length}{" "}
+            {scheduleAppointments.length === 1 ? "agendamento" : "agendamentos"}
+            {hasPartialWeek ? " no mês carregado" : ""}
           </p>
+          {hasPartialWeek && (
+            <p className="agenda-week-coverage" role="status">
+              Esta semana inclui outro mês. Abra o dia para consultar seus horários.
+            </p>
+          )}
           {navigating ? (
             <p role="status">Carregando horários…</p>
+          ) : isDoctorView && !returns && scheduleView === "week" ? (
+            <div className="agenda-week-grid" aria-label="Agenda semanal">
+              {weekDays.map((weekDay) => {
+                const isCovered = weekDay.startsWith(month);
+                const dayAppointments = appointments.filter(
+                  (appointment) => clinicDate(new Date(appointment.starts_at)) === weekDay,
+                );
+                return (
+                  <section className="agenda-week-day" key={weekDay}>
+                    <button
+                      className="agenda-week-day-heading"
+                      onClick={() => selectDate(weekDay)}
+                    >
+                      <span>{new Date(`${weekDay}T12:00:00Z`).toLocaleDateString("pt-BR", { weekday: "short", timeZone: "UTC" })}</span>
+                      <strong>{new Date(`${weekDay}T12:00:00Z`).toLocaleDateString("pt-BR", { day: "2-digit", timeZone: "UTC" })}</strong>
+                    </button>
+                    {isCovered ? <AppointmentList
+                      showDate={false}
+                      appointments={dayAppointments}
+                      nextId={nextAppointment?.id}
+                      currentTime={currentTime}
+                      preparationStates={preparationStates}
+                      patientRecordBase={`/clinicas/${tenantId}/pacientes`}
+                      onTeleconsultation={canManage ? (appointment) => { setTeleconsultation(appointment); setEditing(null); setStarting(null); setClosing(null); } : undefined}
+                      onPrepare={canStart ? setPreparing : undefined}
+                      onStart={canStart ? (appointment) => { setStarting(appointment); setTeleconsultation(null); setEditing(null); setClosing(null); setAccepted(false); setError(""); } : undefined}
+                      onEdit={canManage ? open : undefined}
+                      onNoShow={canManage ? (appointment) => { setClosing({ appointment, status: "no_show" }); setEditing(null); setError(""); setNotice(""); } : undefined}
+                      onCancel={canManage ? (appointment) => { setClosing({ appointment, status: "cancelled" }); setEditing(null); setError(""); setNotice(""); } : undefined}
+                    /> : <p className="agenda-week-unavailable">Abra este dia para ver os horários.</p>}
+                  </section>
+                );
+              })}
+            </div>
           ) : (
             <AppointmentList
               showDate={returns}
@@ -778,6 +931,7 @@ export function Agenda({
               currentTime={currentTime}
               preparationStates={preparationStates}
               patientRecordBase={`/clinicas/${tenantId}/pacientes`}
+              onTeleconsultation={canManage ? (appointment) => { setTeleconsultation(appointment); setEditing(null); setStarting(null); setClosing(null); } : undefined}
               onPrepare={canStart ? setPreparing : undefined}
               onStart={
                 canStart

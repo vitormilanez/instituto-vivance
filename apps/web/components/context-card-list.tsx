@@ -1,6 +1,7 @@
 import type { patientCareContext } from "@/modules/workspace/today";
 import {
   consultationContextCards,
+  careRequestActionLabel,
   type ContextCard,
 } from "@/modules/workspace/patient-context-cards";
 import { CareRequestAction } from "@/components/care-request-action";
@@ -12,10 +13,12 @@ export function ContextCardList({
   cards,
   base,
   patientId,
+  compactRequests = false,
 }: {
   cards: ContextCard[];
   base?: string;
   patientId?: string;
+  compactRequests?: boolean;
 }) {
   const tenantId = base?.split("/")[2];
   return (
@@ -28,12 +31,24 @@ export function ContextCardList({
             <span className="context-action">{card.action}</span>
           </a>
           {card.request && tenantId && patientId ? (
-            <CareRequestAction
-              tenantId={tenantId}
-              patientId={patientId}
-              kind={card.request.kind}
-              requestedAt={card.request.requestedAt}
-            />
+            compactRequests ? (
+              <details className="context-request-disclosure">
+                <summary>{careRequestActionLabel(card.request.kind)}</summary>
+                <CareRequestAction
+                  tenantId={tenantId}
+                  patientId={patientId}
+                  kind={card.request.kind}
+                  requestedAt={card.request.requestedAt}
+                />
+              </details>
+            ) : (
+              <CareRequestAction
+                tenantId={tenantId}
+                patientId={patientId}
+                kind={card.request.kind}
+                requestedAt={card.request.requestedAt}
+              />
+            )
           ) : null}
         </li>
       ))}
@@ -89,15 +104,18 @@ export function PatientCareLinks({
   patientId,
   context,
   recordBase,
+  compactRequests = false,
 }: {
   base: string;
   patientId: string;
   context: NonNullable<Awaited<ReturnType<typeof patientCareContext>>>;
   recordBase?: string;
+  compactRequests?: boolean;
 }) {
   return (
     <ContextCardList
       cards={contextCardsFrom(base, patientId, context, recordBase)}
+      compactRequests={compactRequests}
       base={base}
       patientId={patientId}
     />

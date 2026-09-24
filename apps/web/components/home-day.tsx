@@ -9,6 +9,7 @@ import {
   dayStatusLabels,
 } from "@/modules/workspace/home-day";
 import { receivedDateLabel } from "@/modules/workspace/received-items";
+import { doctorReviewGroups as groupReceivedForReview } from "@/modules/workspace/doctor-review";
 import {
   betweenConsultations,
   earlierLabel,
@@ -18,7 +19,10 @@ import {
   splitDay,
   type CareLink,
 } from "@/modules/workspace/home-view";
-import { receivedItemLabels } from "@/modules/workspace/received-items";
+import {
+  receivedItemLabels,
+  type ReceivedItem,
+} from "@/modules/workspace/received-items";
 import { ConsultationBlock } from "@/components/consultation-block";
 import { StickyConsultation } from "@/components/sticky-consultation";
 import { RetryButton } from "@/components/retry-button";
@@ -54,6 +58,172 @@ function careLink(data: Data, patientId: string): CareLink {
   };
 }
 
+function ReceivedBetween({
+  base,
+  between,
+  data,
+  noConsultations,
+  tenantId,
+  doctorView = false,
+}: {
+  base: string;
+  between: ReturnType<typeof betweenConsultations>;
+  data: Data;
+  noConsultations: boolean;
+  tenantId: string;
+  doctorView?: boolean;
+}) {
+  return (
+    <section
+      className={`home-section home-between${doctorView ? " doctor-home-received" : ""}`}
+      aria-labelledby="home-between-title"
+    >
+      <details open={noConsultations}>
+        <summary>
+          <h2 id="home-between-title">
+            {doctorView ? "Recebido entre consultas" : "Entre consultas"}
+          </h2>
+          <span>
+            {data.failed.length
+              ? "Contagem indisponível"
+              : between.length
+                ? `${between.length} ${between.length === 1 ? "paciente enviou" : "pacientes enviaram"} algo desde a última consulta`
+                : "Nada recebido de pacientes sem consulta hoje"}
+          </span>
+        </summary>
+        <p className="home-section-note">
+          {doctorView
+            ? "Atualizações de pacientes com vínculo ativo e sem consulta hoje, em ordem de chegada e sem classificação."
+            : "Pacientes com vínculo ativo com você e sem consulta hoje. Ordem de chegada, sem classificação."}
+        </p>
+        {between.length ? (
+          <ul className="home-between-list">
+            {between.map((patient) => (
+              <li key={patient.patientId}>
+                <div className="home-between-who">
+                  <strong>{patient.name}</strong>
+                  <Link href={`${base}/pacientes/${patient.patientId}`}>
+                    Abrir ficha
+                  </Link>
+                </div>
+                <ul className="home-received-list">
+                  {patient.items.slice(0, 5).map((item) => (
+                    <ReceivedRow
+                      key={`${item.kind}-${item.id}`}
+                      item={item}
+                      today={data.today}
+                      tenantId={tenantId}
+                      label={receivedItemLabels[item.kind]}
+                    />
+                  ))}
+                </ul>
+                {patient.items.length > 5 ? (
+                  <p className="home-section-note">
+                    e mais {patient.items.length - 5} desde a última consulta.
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {data.failed.length ? (
+          <div className="home-received-error" role="status">
+            <p>
+              {receivedFailureCopy(
+                data.failed.map((kind) => receivedItemLabels[kind]),
+              )}
+            </p>
+            <RetryButton />
+          </div>
+        ) : null}
+      </details>
+    </section>
+  );
+}
+
+type DoctorReviewGroup = {
+  patientId: string;
+  patientName: string;
+  counts: { label: string; total: number }[];
+};
+
+// A revisão compacta usa somente itens já filtrados pelo vínculo ativo. A
+// ordem padrão é a chegada mais antiga; não há score, prioridade ou urgência.
+function doctorReviewSummary(
+  links: Data["links"],
+  received: Data["received"],
+): DoctorReviewGroup[] {
+  const groups = groupReceivedForReview(
+    [...links]
+      .filter(([, link]) => link.status === "active")
+      .map(([patientId, link]) => ({
+        patientId,
+        name: link.name,
+        items: received.get(patientId) ?? [],
+      })),
+    { kind: "all", status: "all", search: "" },
+  );
+  return groups.map(({ patientId, name, items }) => {
+    const totals = new Map<ReceivedItem["kind"], number>();
+    for (const item of items)
+      totals.set(item.kind, (totals.get(item.kind) ?? 0) + 1);
+    return {
+      patientId,
+      patientName: name,
+      counts: [...totals.entries()].map(([kind, total]) => ({
+        label: receivedItemLabels[kind],
+        total,
+      })),
+    };
+  });
+}
+
+function DoctorReviewPanel({ base, data }: { base: string; data: Data }) {
+  const groups = doctorReviewSummary(data.links, data.received).slice(0, 5);
+  return (
+    <section className="doctor-review" aria-labelledby="doctor-review-title">
+      <div className="doctor-review-head">
+        <div>
+          <h2 id="doctor-review-title">Para revisar</h2>
+          <p className="doctor-review-caption">Envios por paciente · do mais antigo</p>
+        </div>
+        <Link className="button secondary" href={`${base}/revisar`}>Abrir</Link>
+      </div>
+      {groups.length ? (
+        <ul>
+          {groups.map((group) => (
+            <li key={group.patientId}>
+              <Link className="doctor-review-patient" href={`${base}/revisar?paciente=${group.patientId}`}>
+                <span className="dv-avatar" aria-hidden="true">{group.patientName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>
+                <span><strong>{group.patientName}</strong><small>
+                {group.counts
+                  .map(
+                    ({ label, total }) => `${total} × ${label.toLowerCase()}`,
+                  )
+                  .join(" · ")}
+                </small></span><b>{group.counts.reduce((total, item) => total + item.total, 0)}</b>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="doctor-review-empty">
+          {data.failed.length
+            ? "Não foi possível carregar todos os envios."
+            : "Nenhum envio de pacientes com vínculo ativo por aqui ainda."}
+        </p>
+      )}
+      {data.failed.length ? (
+        <p className="doctor-review-failure">
+          {receivedFailureCopy(
+            data.failed.map((kind) => receivedItemLabels[kind]),
+          )}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
 // O dia do médico como eixo. A consulta aberta é o único bloco com peso de
 // cartão; as outras linhas são texto numa coluna de horários. As consultas que
 // já passaram ficam recolhidas antes da próxima, para que ela esteja na
@@ -62,10 +232,12 @@ export function HomeDay({
   base,
   data,
   shortcuts,
+  doctorView = false,
 }: {
   base: string;
   data: Data;
   shortcuts?: ReactNode;
+  doctorView?: boolean;
 }) {
   const tenantId = base.split("/")[2];
   const counts = dayCounts(
@@ -101,11 +273,15 @@ export function HomeDay({
   const draftFor = (patientId: string) =>
     data.drafts.find((draft) => draft.patient_id === patientId) ?? null;
 
-  const block = (appointment: Appointment | NonNullable<Data["next"]>, eyebrow: string) => {
+  const block = (
+    appointment: Appointment | NonNullable<Data["next"]>,
+    eyebrow: string,
+  ) => {
     const link = careLink(data, appointment.patient_id);
     const isNext = appointment.id === data.nextToday;
     return (
       <ConsultationBlock
+        compact={doctorView}
         base={base}
         now={data.now}
         tenantId={tenantId}
@@ -140,41 +316,42 @@ export function HomeDay({
     const name = appointment.patients?.display_name ?? "Paciente";
     const muted = ["cancelled", "no_show"].includes(appointment.status);
     const isOpen = appointment.id === openId;
+    const link = (
+      <Link
+        className="home-row-link"
+        href={`${base}?consulta=${appointment.id}#consulta-${appointment.id}`}
+        scroll={false}
+      >
+        <span className="home-row-who">
+          <strong>{name}</strong>
+          <span>
+            {appointment.kind === "return" ? "Retorno" : "Consulta"} ·{" "}
+            {dayStatusLabels[appointment.status] ?? appointment.status}
+          </span>
+        </span>
+        {!muted ? (
+          <span className="home-row-summary">
+            {rowSummary({
+              link: careLink(data, appointment.patient_id),
+              received: data.received.get(appointment.patient_id) ?? [],
+              failed: data.failed,
+            })}
+          </span>
+        ) : null}
+      </Link>
+    );
     return (
       <li
         key={appointment.id}
-        id={`consulta-${appointment.id}`}
+        id={doctorView ? undefined : `consulta-${appointment.id}`}
         className={`home-row${muted ? " is-muted" : ""}${isOpen ? " is-open" : ""}`}
       >
         <time className="home-clock" dateTime={appointment.starts_at}>
           {appointmentClock(appointment.starts_at)}
         </time>
-        {isOpen ? (
-          block(appointment, eyebrowFor(appointment))
-        ) : (
-          <Link
-            className="home-row-link"
-            href={`${base}?consulta=${appointment.id}#consulta-${appointment.id}`}
-            scroll={false}
-          >
-            <span className="home-row-who">
-              <strong>{name}</strong>
-              <span>
-                {appointment.kind === "return" ? "Retorno" : "Consulta"} ·{" "}
-                {dayStatusLabels[appointment.status] ?? appointment.status}
-              </span>
-            </span>
-            {!muted ? (
-              <span className="home-row-summary">
-                {rowSummary({
-                  link: careLink(data, appointment.patient_id),
-                  received: data.received.get(appointment.patient_id) ?? [],
-                  failed: data.failed,
-                })}
-              </span>
-            ) : null}
-          </Link>
-        )}
+        {doctorView || !isOpen
+          ? link
+          : block(appointment, eyebrowFor(appointment))}
       </li>
     );
   };
@@ -182,7 +359,10 @@ export function HomeDay({
   // Próxima consulta de outro dia: o dia de hoje acabou (ou não teve
   // consultas), e ela aparece depois do eixo, com a data dita por extenso.
   const future =
-    data.next && !data.nextToday && data.nextDate && data.nextDate !== data.today
+    data.next &&
+    !data.nextToday &&
+    data.nextDate &&
+    data.nextDate !== data.today
       ? data.next
       : null;
 
@@ -207,13 +387,97 @@ export function HomeDay({
   );
   const noConsultations = counts.consultations === 0;
 
+  if (!doctorView) {
+    return (
+      <div className="home">
+        {open && stickyLabel ? (
+          <StickyConsultation
+            targetId={`consulta-${open.id}`}
+            label={stickyLabel}
+          />
+        ) : null}
+        <header className="home-head">
+          <div>
+            <h1>{dayHeading(data.today)}</h1>
+            <p>
+              {dayCountsLine(counts)}
+              {data.truncated ? " · lista limitada" : ""}
+            </p>
+          </div>
+          <Link className="home-agenda-link" href={`${base}/agenda`}>
+            Abrir agenda
+          </Link>
+        </header>
+        {data.appointments.length ? (
+          <ol className="home-timeline" aria-label="Consultas de hoje">
+            {earlier.length ? (
+              <li className="home-earlier">
+                <details open={openInEarlier}>
+                  <summary>
+                    {earlierLabel(earlier.length, !data.nextToday)}
+                  </summary>
+                  <ol className="home-timeline">{earlier.map(row)}</ol>
+                </details>
+              </li>
+            ) : null}
+            {rest.map(row)}
+          </ol>
+        ) : null}
+        {future ? (
+          <div className="home-future" id={`consulta-${future.id}`}>
+            {block(
+              future,
+              `Próxima consulta · ${futureDayLabel(data.nextDate!, data.today)}`,
+            )}
+          </div>
+        ) : !data.nextToday && !data.next ? (
+          <section
+            className="panel home-empty"
+            aria-labelledby="home-empty-title"
+          >
+            <h2 id="home-empty-title">Nenhuma consulta futura agendada</h2>
+            <p>Organize o próximo atendimento na Agenda.</p>
+            <Link className="button secondary" href={`${base}/agenda`}>
+              Organizar agenda
+            </Link>
+          </section>
+        ) : null}
+        <OpenWork
+          items={
+            data.work?.filter(
+              (item) =>
+                !(
+                  item.kind === "encounter" && blockPatients.has(item.patientId)
+                ),
+            ) ?? null
+          }
+          today={data.today}
+        />
+        <ReceivedBetween
+          base={base}
+          between={between}
+          data={data}
+          noConsultations={noConsultations}
+          tenantId={tenantId}
+        />
+        {shortcuts}
+      </div>
+    );
+  }
+
+  const focus = open ?? future;
+
   return (
-    <div className="home">
+    <div className="home doctor-home">
       {open && stickyLabel ? (
-        <StickyConsultation targetId={`consulta-${open.id}`} label={stickyLabel} />
+        <StickyConsultation
+          targetId={`consulta-${open.id}`}
+          label={stickyLabel}
+        />
       ) : null}
-      <header className="home-head">
+      <header className="home-head doctor-home-head">
         <div>
+
           <h1>{dayHeading(data.today)}</h1>
           <p>
             {dayCountsLine(counts)}
@@ -225,34 +489,91 @@ export function HomeDay({
         </Link>
       </header>
 
-      {data.appointments.length ? (
-        <ol className="home-timeline" aria-label="Consultas de hoje">
-          {earlier.length ? (
-            <li className="home-earlier">
-              <details open={openInEarlier}>
-                <summary>{earlierLabel(earlier.length, !data.nextToday)}</summary>
-                <ol className="home-timeline">{earlier.map(row)}</ol>
-              </details>
-            </li>
-          ) : null}
-          {rest.map(row)}
-        </ol>
-      ) : null}
+      <div className="doctor-home-overview">
+        <aside className="doctor-home-focus" aria-label="Foco do dia">
+          {focus ? (
+            <div id={`consulta-${focus.id}`}>
+              {block(
+                focus,
+                focus.id === data.nextToday
+                  ? focus.status === "in_progress"
+                    ? "Atendimento em andamento"
+                    : "Próxima consulta"
+                  : future && focus.id === future.id
+                    ? `Próxima consulta · ${futureDayLabel(data.nextDate!, data.today)}`
+                    : "Consulta selecionada",
+              )}
+            </div>
+          ) : (
+            <section
+              className="doctor-home-focus-empty"
+              aria-labelledby="doctor-home-focus-empty-title"
+            >
+              <p className="doctor-home-kicker">Próximo passo</p>
+              <h2 id="doctor-home-focus-empty-title">
+                Nenhuma consulta futura agendada
+              </h2>
+              <p>Quando houver um horário agendado, ele aparecerá aqui.</p>
+              <Link className="button secondary" href={`${base}/agenda`}>
+                Organizar agenda
+              </Link>
+            </section>
+          )}
 
-      {future ? (
-        <div className="home-future" id={`consulta-${future.id}`}>
-          {block(future, `Próxima consulta · ${futureDayLabel(data.nextDate!, data.today)}`)}
-        </div>
-      ) : !data.nextToday && !data.next ? (
-        <section className="panel home-empty" aria-labelledby="home-empty-title">
-          <h2 id="home-empty-title">Nenhuma consulta futura agendada</h2>
-          <p>Organize o próximo atendimento na Agenda.</p>
-          <Link className="button secondary" href={`${base}/agenda`}>
-            Organizar agenda
-          </Link>
-        </section>
-      ) : null}
+          {shortcuts}
 
+          <section
+            className="doctor-home-schedule"
+            aria-labelledby="doctor-home-schedule-title"
+          >
+            <div className="doctor-home-section-head">
+              <div>
+
+                <h2 id="doctor-home-schedule-title">Consultas do dia</h2>
+              </div>
+              <dl className="doctor-home-counts" aria-label="Resumo da agenda">
+                <div>
+                  <dt>Consultas</dt>
+                  <dd>{counts.consultations}</dd>
+                </div>
+                {counts.cancelled ? (
+                  <div>
+                    <dt>Canceladas</dt>
+                    <dd>{counts.cancelled}</dd>
+                  </div>
+                ) : null}
+                {counts.noShow ? (
+                  <div>
+                    <dt>Faltas</dt>
+                    <dd>{counts.noShow}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            </div>
+            {data.appointments.length ? (
+              <ol className="home-timeline" aria-label="Consultas de hoje">
+                {earlier.length ? (
+                  <li className="home-earlier">
+                    <details>
+                      <summary>
+                        {earlierLabel(earlier.length, !data.nextToday)}
+                      </summary>
+                      <ol className="home-timeline">{earlier.map(row)}</ol>
+                    </details>
+                  </li>
+                ) : null}
+                {rest.map(row)}
+              </ol>
+            ) : (
+              <div className="doctor-home-empty">
+                <p>Nenhuma consulta hoje.</p>
+                <Link href={`${base}/agenda`}>Organizar agenda</Link>
+              </div>
+            )}
+          </section>
+        </aside>
+        <aside className="doctor-home-aside" aria-label="Revisão e trabalho em aberto">
+          <DoctorReviewPanel base={base} data={data} />
       <OpenWork
         items={
           data.work?.filter(
@@ -265,66 +586,8 @@ export function HomeDay({
         today={data.today}
       />
 
-      <section className="home-section home-between" aria-labelledby="home-between-title">
-        <details open={noConsultations}>
-          <summary>
-            <h2 id="home-between-title">Entre consultas</h2>
-            <span>
-              {data.failed.length
-                ? "Contagem indisponível"
-                : between.length
-                  ? `${between.length} ${between.length === 1 ? "paciente enviou" : "pacientes enviaram"} algo desde a última consulta`
-                  : "Nada recebido de pacientes sem consulta hoje"}
-            </span>
-          </summary>
-          <p className="home-section-note">
-            Pacientes com vínculo ativo com você e sem consulta hoje. Ordem de
-            chegada, sem classificação.
-          </p>
-          {between.length ? (
-            <ul className="home-between-list">
-              {between.map((patient) => (
-                <li key={patient.patientId}>
-                  <div className="home-between-who">
-                    <strong>{patient.name}</strong>
-                    <Link href={`${base}/pacientes/${patient.patientId}`}>
-                      Abrir ficha
-                    </Link>
-                  </div>
-                  <ul className="home-received-list">
-                    {patient.items.slice(0, 5).map((item) => (
-                      <ReceivedRow
-                        key={`${item.kind}-${item.id}`}
-                        item={item}
-                        today={data.today}
-                        tenantId={tenantId}
-                        label={receivedItemLabels[item.kind]}
-                      />
-                    ))}
-                  </ul>
-                  {patient.items.length > 5 ? (
-                    <p className="home-section-note">
-                      e mais {patient.items.length - 5} desde a última consulta.
-                    </p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {data.failed.length ? (
-            <div className="home-received-error" role="status">
-              <p>
-                {receivedFailureCopy(
-                  data.failed.map((kind) => receivedItemLabels[kind]),
-                )}
-              </p>
-              <RetryButton />
-            </div>
-          ) : null}
-        </details>
-      </section>
-
-      {shortcuts}
+        </aside>
+      </div>
     </div>
   );
 }

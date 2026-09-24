@@ -630,6 +630,301 @@ test("patient sees only linked appointments, doctor name, and cannot edit", asyn
     await db.exec("rollback");
   }
 });
+
+test("teleconsultation configuration is canonical, versioned and audited", async () => {
+  await asUser("doctor", async () => {
+    const appointment = await book();
+    const created = await db.query<{
+      id: string;
+      version: number;
+      provider: string;
+      join_url: string;
+    }>(
+      `insert into public.appointment_teleconsultations(
+         tenant_id,appointment_id,delivery_mode,provider,join_url
+       ) values($1,$2,'video','google_meet',$3)
+       returning id,version,provider,join_url`,
+      [a, appointment.id, "https://meet.google.com/abc-defg-hij"],
+    );
+    assert.deepEqual(
+      {
+        version: created.rows[0].version,
+        provider: created.rows[0].provider,
+        join_url: created.rows[0].join_url,
+      },
+      {
+        version: 1,
+        provider: "google_meet",
+        join_url: "https://meet.google.com/abc-defg-hij",
+      },
+    );
+    await denied(
+      "update public.appointment_teleconsultations set delivery_mode='in_person',provider=null,join_url=null,expected_version=2 where appointment_id=$1",
+      [appointment.id],
+    );
+    const updated = await db.query<{ version: number }>(
+      "update public.appointment_teleconsultations set delivery_mode='in_person',provider=null,join_url=null,expected_version=1 where appointment_id=$1 returning version",
+      [appointment.id],
+    );
+    assert.equal(updated.rows[0].version, 2);
+    await denied(
+      "update public.appointment_teleconsultations set delivery_mode='video',provider='google_meet',join_url='https://meet.google.com/abc-defg-hij?authuser=1',expected_version=2 where appointment_id=$1",
+      [appointment.id],
+    );
+    await denied(
+      "insert into public.appointment_teleconsultations(tenant_id,appointment_id,delivery_mode,provider,join_url) values($1,$2,'video','google_meet','https://evil.example/abc-defg-hij')",
+      [a, appointment.id],
+    );
+    await denied(
+      "update public.appointment_teleconsultations set delivery_mode='video',provider=null,join_url='https://meet.google.com/abc-defg-hij',expected_version=2 where appointment_id=$1",
+      [appointment.id],
+    );
+    await denied(
+      "update public.appointment_teleconsultations set delivery_mode='video',provider='google_meet',join_url=null,expected_version=2 where appointment_id=$1",
+      [appointment.id],
+    );
+    await db.exec("reset role");
+    const audit = await db.query<{ payload: string }>(
+      "select to_jsonb(event)::text payload from public.audit_events event where entity_type='appointment_teleconsultations' and entity_id=$1 order by created_at,id",
+      [created.rows[0].id],
+    );
+    assert.equal(audit.rows.length, 2);
+    assert.ok(
+      audit.rows.every((event) => !event.payload.includes("meet.google.com")),
+    );
+  });
+  await db.exec("begin; set local role anon");
+  try {
+    await assert.rejects(
+      db.query("select id from public.appointment_teleconsultations"),
+      /permission denied/,
+    );
+  } finally {
+    await db.exec("rollback");
+  }
+  const readPolicies = await db.query<{ policyname: string }>(
+    "select policyname from pg_policies where schemaname='public' and tablename='appointment_teleconsultations' and cmd='SELECT'",
+  );
+  assert.deepEqual(readPolicies.rows, [
+    { policyname: "appointment_teleconsultations_read_authorized" },
+  ]);
+});
+
+test("teleconsultation configuration rolls back when its audit cannot be recorded", async () => {
+  await asUser("doctor", async () => {
+    const appointment = await book();
+    await db.exec("reset role");
+    await db.exec(`
+      create function private.synthetic_teleconsultation_audit_failure()
+      returns trigger language plpgsql as $$
+      begin
+        if new.entity_type = 'appointment_teleconsultations' then
+          raise exception 'Synthetic audit failure';
+        end if;
+        return new;
+      end;
+      $$;
+      create trigger synthetic_teleconsultation_audit_failure
+        before insert on public.audit_events
+        for each row execute function private.synthetic_teleconsultation_audit_failure();
+    `);
+    await switchActor("doctor");
+    await denied(
+      `insert into public.appointment_teleconsultations(
+         tenant_id,appointment_id,delivery_mode,provider,join_url
+       ) values($1,$2,'video','google_meet',$3)`,
+      [a, appointment.id, "https://meet.google.com/abc-defg-hij"],
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.appointment_teleconsultations where appointment_id=$1",
+          [appointment.id],
+        )
+      ).rows.length,
+      0,
+    );
+  });
+});
+
+test("teleconsultation access follows tenant and current doctor assignment", async () => {
+  await asUser("admin", async () => {
+    const appointment = await book();
+    await switchActor("doctor");
+    await db.query(
+      `insert into public.appointment_teleconsultations(
+         tenant_id,appointment_id,delivery_mode,provider,join_url
+       ) values($1,$2,'video','google_meet',$3)`,
+      [a, appointment.id, "https://meet.google.com/abc-defg-hij"],
+    );
+    await denied(
+      `insert into public.appointment_teleconsultations(
+         tenant_id,appointment_id,delivery_mode,provider,join_url
+       ) values($1,$2,'video','google_meet',$3)`,
+      [b, appointment.id, "https://meet.google.com/def-ghij-klm"],
+    );
+    await switchActor("admin");
+    await db.query(
+      "update public.appointments set doctor_id=$2,expected_version=1 where id=$1",
+      [appointment.id, users.colleague.id],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.appointment_teleconsultations where appointment_id=$1",
+          [appointment.id],
+        )
+      ).rows.length,
+      0,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "update public.appointment_teleconsultations set delivery_mode='in_person',provider=null,join_url=null,expected_version=1 where appointment_id=$1 returning id",
+          [appointment.id],
+        )
+      ).rows.length,
+      0,
+    );
+    await switchActor("colleague");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.appointment_teleconsultations where appointment_id=$1",
+          [appointment.id],
+        )
+      ).rows.length,
+      1,
+    );
+    assert.equal(
+      (
+        await db.query<{ version: number }>(
+          "update public.appointment_teleconsultations set delivery_mode='in_person',provider=null,join_url=null,expected_version=1 where appointment_id=$1 returning version",
+          [appointment.id],
+        )
+      ).rows[0].version,
+      2,
+    );
+  });
+});
+
+test("patient teleconsultation links are limited to own scheduled or active appointment", async () => {
+  await asUser("doctor", async () => {
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,user_id,patient_id) values($1,$2,$3)",
+      [a, users.patient.id, pa],
+    );
+    await switchActor("doctor");
+    const active = await book();
+    await db.query(
+      `insert into public.appointment_teleconsultations(
+         tenant_id,appointment_id,delivery_mode,provider,join_url
+       ) values($1,$2,'video','google_meet',$3)`,
+      [a, active.id, "https://meet.google.com/abc-defg-hij"],
+    );
+    await switchActor("patient");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.appointment_teleconsultations where appointment_id=$1",
+          [active.id],
+        )
+      ).rows.length,
+      1,
+    );
+    await switchActor("doctor");
+    const encounter = await db.query<{ id: string }>(
+      "select public.start_encounter($1,$2,true,1) id",
+      [a, active.id],
+    );
+    await switchActor("patient");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.appointment_teleconsultations where appointment_id=$1",
+          [active.id],
+        )
+      ).rows.length,
+      1,
+    );
+    await switchActor("doctor");
+    await saveClinical(
+      encounter.rows[0].id,
+      1,
+      "Synthetic completion",
+      "Synthetic record",
+      "finalized",
+    );
+    assert.equal(
+      (
+        await db.query(
+          "update public.appointment_teleconsultations set delivery_mode='in_person',provider=null,join_url=null,expected_version=1 where appointment_id=$1 returning id",
+          [active.id],
+        )
+      ).rows.length,
+      0,
+    );
+    await switchActor("patient");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.appointment_teleconsultations where appointment_id=$1",
+          [active.id],
+        )
+      ).rows.length,
+      0,
+    );
+
+    await switchActor("doctor");
+    const cancelled = await book(
+      pa,
+      users.doctor.id,
+      a,
+      "2099-09-10T13:00:00Z",
+      "2099-09-10T13:30:00Z",
+    );
+    await db.query(
+      `insert into public.appointment_teleconsultations(
+         tenant_id,appointment_id,delivery_mode,provider,join_url
+       ) values($1,$2,'video','google_meet',$3)`,
+      [a, cancelled.id, "https://meet.google.com/def-ghij-klm"],
+    );
+    await db.query("select public.transition_appointment($1,$2,1,'cancelled')", [
+      a,
+      cancelled.id,
+    ]);
+    assert.equal(
+      (
+        await db.query(
+          "update public.appointment_teleconsultations set delivery_mode='in_person',provider=null,join_url=null,expected_version=1 where appointment_id=$1 returning id",
+          [cancelled.id],
+        )
+      ).rows.length,
+      0,
+    );
+    await switchActor("patient");
+    assert.equal(
+      (
+        await db.query(
+          "select id from public.appointment_teleconsultations where appointment_id=$1",
+          [cancelled.id],
+        )
+      ).rows.length,
+      0,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "update public.appointment_teleconsultations set join_url=null where appointment_id=$1 returning id",
+          [cancelled.id],
+        )
+      ).rows.length,
+      0,
+    );
+  });
+});
 test("doctor cannot read or change colleague appointments; patient overlap is blocked across doctors", async () => {
   await db.exec("begin");
   try {

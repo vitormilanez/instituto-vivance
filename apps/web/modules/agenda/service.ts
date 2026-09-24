@@ -1,5 +1,6 @@
 import { DomainError } from "@/lib/errors";
 import "server-only";
+import { listAppointmentTeleconsultations, type AppointmentTeleconsultation } from "@/modules/teleconsultations/service";
 import { requireClinic } from "@/modules/identity/service";
 import { InputError, tenantId } from "@/lib/validation";
 import {
@@ -35,9 +36,11 @@ export async function listAppointments(
     .order("id")
     .limit(501);
   if (error) throw new Error("Unable to load appointments");
+  const appointments = (data ?? []).slice(0, 500);
+  const calls = await listAppointmentTeleconsultations(id, appointments.map(a => a.id));
   return {
     clinic,
-    appointments: (data ?? []).slice(0, 500),
+    appointments: appointments.map(a => ({ ...a, ...(calls[a.id] ? { teleconsultation: calls[a.id] as AppointmentTeleconsultation } : {}) })),
     truncated: (data?.length ?? 0) > 500,
   };
 }

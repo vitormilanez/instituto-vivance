@@ -1,0 +1,329 @@
+/* Agenda and direct messages share the doctor's quiet, full-height workspace.
+   Kept below .dv so patient and nursing presentations retain their own UI. */
+.dv-area-mensagens .dv-main { padding: 0; }
+.dv-area-mensagens .dv-main > .page-heading { display: none; }
+.dv.dv-area-mensagens .conversation-workspace-staff { border: 0; border-radius: 0; height: calc(100dvh - 64px); min-height: 0; }
+.dv .conversation-workspace-staff {
+  display: grid;
+  grid-template-columns: minmax(240px, .72fr) minmax(420px, 1.6fr) minmax(220px, .58fr);
+  min-height: calc(100dvh - 168px);
+  border: 1px solid var(--dv-line);
+  border-radius: 12px;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.dv .conversation-workspace-staff .conversation-directory {
+  overflow-y: auto;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--dv-line);
+  border-radius: 0;
+  background: white;
+}
+.dv .conversation-workspace-staff .conversation-directory > h2 {
+  margin: 0;
+  padding: 22px 20px 8px;
+}
+.dv .conversation-workspace-staff .conversation-directory > p {
+  margin: 0;
+  padding: 0 20px 16px;
+  border-bottom: 1px solid var(--dv-line);
+  font-size: 12px;
+}
+.dv .conversation-workspace-staff .conversation-recipient-list {
+  display: block;
+  margin: 0;
+}
+.dv .conversation-workspace-staff .conversation-recipient {
+  position: relative;
+  min-height: 74px;
+  gap: 2px;
+  padding: 15px 20px 14px 60px;
+  border: 0;
+  border-bottom: 1px solid #efede8;
+  border-radius: 0;
+}
+.dv .conversation-workspace-staff .conversation-recipient-avatar {
+  position: absolute;
+  top: 17px;
+  left: 20px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  background: #f1eee8;
+  color: var(--dv-ink);
+  font-size: 10px;
+  font-weight: 750;
+}
+.dv .conversation-workspace-staff .conversation-recipient:hover,
+.dv .conversation-workspace-staff .conversation-recipient[aria-current="page"] {
+  border-color: #efede8;
+  background: #faf4e4;
+}
+.dv .conversation-workspace-staff .conversation-recipient small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dv .conversation-workspace-staff .conversation-unread {
+  position: absolute;
+  top: 18px;
+  right: 16px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--dv-ink);
+  color: white;
+  font-size: 10px;
+}
+.dv .conversation-workspace-staff .conversation-detail {
+  display: flex;
+  min-height: 0;
+  padding: 0;
+  flex-direction: column;
+  background: #f7f5f1;
+}
+.dv .conversation-workspace-staff .conversation-detail-heading {
+  align-items: center;
+  min-height: 63px;
+  padding: 12px 28px;
+  border-bottom: 1px solid var(--dv-line);
+  background: white;
+}
+.dv .conversation-workspace-staff .conversation-detail-heading h2 {
+  margin: 0;
+  font-size: 17px;
+}
+.dv .conversation-workspace-staff .conversation-detail-heading p,
+.dv .conversation-workspace-staff .conversation-return-link {
+  display: none;
+}
+.dv .conversation-workspace-staff .quiet-label {
+  font-size: 12px;
+  color: var(--dv-muted);
+}
+.dv .conversation-workspace-staff .conversation-messages {
+  flex: 1;
+  align-content: start;
+  overflow-y: auto;
+  max-height: none;
+  min-height: 0;
+  padding: 26px 28px;
+  gap: 12px;
+  background: #f7f5f1;
+}
+.dv .conversation-workspace-staff .conversation-message {
+  align-self: start;
+  max-width: min(78%, 520px);
+  padding: 13px 16px;
+  border: 1px solid #ebe7df;
+  border-radius: 16px 16px 16px 4px;
+  box-shadow: none;
+  background: white;
+}
+.dv .conversation-workspace-staff .conversation-message.outgoing {
+  margin-left: auto;
+  border-color: #dbe3ef;
+  border-radius: 16px 16px 4px;
+  background: #e8eef7;
+  color: var(--dv-ink);
+}
+.dv .conversation-workspace-staff .conversation-message small,
+.dv .conversation-workspace-staff .conversation-message.outgoing small {
+  color: var(--dv-muted);
+  font-size: 11px;
+}
+.dv .conversation-workspace-staff .conversation-message p {
+  margin: 4px 0 0;
+  color: inherit;
+}
+.dv .conversation-workspace-staff .agenda-actions:not(.agenda-view-controls) {
+  margin: 0;
+  padding: 0 28px 8px;
+  background: #f7f5f1;
+}
+.dv .conversation-workspace-staff .conversation-composer {
+  margin: 0;
+  padding: 14px 20px 18px;
+  border: 0;
+  border-top: 1px solid var(--dv-line);
+  border-radius: 0;
+  background: white;
+}
+.dv .conversation-workspace-staff .conversation-composer > label,
+.dv .conversation-workspace-staff .conversation-boundary {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+.dv .conversation-workspace-staff .conversation-composer textarea {
+  min-height: 52px;
+  padding: 14px;
+  border-radius: 10px;
+  resize: vertical;
+}
+.dv .conversation-workspace-staff .conversation-composer > div:last-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: var(--dv-muted);
+  font-size: 11px;
+}
+.dv .conversation-workspace-staff .conversation-composer button:not(.secondary) {
+  min-height: 36px;
+  padding: 7px 13px;
+  background: var(--dv-ink);
+}
+.dv .conversation-context {
+  padding: 24px 20px;
+  border-left: 1px solid var(--dv-line);
+  background: white;
+}
+.dv .conversation-context-patient {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--dv-line);
+}
+.dv .conversation-context-avatar {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 50%;
+  background: #f4ecd9;
+  color: #795b23;
+  font-weight: 750;
+}
+.dv .conversation-context h2,
+.dv .conversation-context p { margin: 0; }
+.dv .conversation-context h2 { font-size: 15px; }
+.dv .conversation-context p { font-size: 12px; }
+.dv .conversation-context-details { margin: 18px 0; }
+.dv .conversation-context-details div + div {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--dv-line);
+}
+.dv .conversation-context-details dt {
+  color: var(--dv-muted);
+  font-size: 12px;
+}
+.dv .conversation-context-details dd {
+  margin: 2px 0 0;
+  font-weight: 650;
+}
+.dv .conversation-context-link {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  text-decoration: none;
+}
+
+.dv .agenda-view-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 18px;
+}
+.dv-area-agenda .page-heading > div { display: none; }
+.dv-area-agenda .page-heading { justify-content: flex-end; margin-bottom: 12px; }
+.dv .appointment-more-actions { position: relative; }
+.dv .appointment-more-actions > summary { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--dv-line); border-radius: 8px; cursor: pointer; list-style: none; }
+.dv .appointment-more-actions > summary::-webkit-details-marker { display: none; }
+.dv .appointment-more-actions > div { position: absolute; right: 0; top: 40px; min-width: 150px; padding: 6px; border: 1px solid var(--dv-line); border-radius: 10px; background: white; box-shadow: 0 8px 24px #0a1a3314; z-index: 5; }
+.dv .appointment-more-actions button { display: block; width: 100%; text-align: left; }
+.dv .agenda-range-controls {
+  display: flex;
+  margin-right: 8px;
+  padding: 3px;
+  border-radius: 10px;
+  background: #ece9e3;
+}
+.dv .agenda-range-controls button,
+.dv .agenda-view-controls > button {
+  min-height: 38px;
+  padding: 7px 13px;
+  border-radius: 8px;
+}
+.dv .agenda-range-controls button { border-color: transparent; background: transparent; }
+.dv .agenda-range-controls button[aria-pressed="true"] {
+  border-color: var(--dv-line);
+  background: white;
+  color: var(--dv-ink);
+  box-shadow: 0 1px 2px rgba(10, 26, 51, .08);
+}
+.dv .agenda-date-nav { width: 38px; padding: 0 !important; font-size: 21px; }
+.dv .agenda-today-button { font-weight: 650; }
+.dv .agenda-view-controls > button[aria-pressed="true"] { background: var(--dv-ink); color: white; }
+.dv .calendar-workspace { grid-template-columns: 240px minmax(0, 1fr); min-height: 610px; border-radius: 12px; }
+.dv .calendar-month { padding: 22px; background: #f7f5f1; }
+.dv .calendar-toolbar { margin-bottom: 12px; }
+.dv .calendar-toolbar h2 { font-size: 16px; }
+.dv .calendar-toolbar button { min-height: 36px; width: 36px; padding: 5px; }
+.dv .calendar-grid { gap: 1px 0; }
+.dv .calendar-weekday { padding: 7px 0; font-size: 11px; font-weight: 650; }
+.dv button.calendar-day { min-height: 37px; border-radius: 8px; font-size: 13px; }
+.dv button.calendar-day[aria-pressed="true"] { box-shadow: none; }
+.dv .calendar-today { min-height: 38px; margin-top: 14px; }
+.dv .calendar-schedule { padding: 0; background: white; }
+.dv .calendar-schedule > h2 { margin: 0; padding: 22px 24px 0; font-size: 19px; }
+.dv .calendar-schedule > .schedule-caption { margin: 2px 0 14px; padding: 0 24px; font-size: 12px; }
+.dv .calendar-schedule > .agenda-week-coverage { margin: -6px 0 14px; padding: 0 24px; color: var(--dv-muted); font-size: 12px; }
+.dv .calendar-schedule > .appointment-list { margin: 0; }
+.dv .calendar-schedule .appointment-row { grid-template-columns: 60px minmax(0, 1fr) minmax(150px, auto); gap: 6px 14px; min-height: 76px; padding: 13px 20px !important; }
+.dv .calendar-schedule .appointment-row > .appointment-status { grid-column: 2; grid-row: 2; justify-self: start; }
+.dv .calendar-schedule .appointment-actions { grid-column: 3; grid-row: 1 / span 2; justify-content: flex-end; max-width: 250px; }
+.dv .calendar-schedule .appointment-patient { min-width: 0; }
+.dv .calendar-schedule .appointment-patient .patient-avatar { display: none; }
+.dv .calendar-schedule .appointment-patient strong { white-space: normal; }
+.dv .calendar-schedule .appointment-patient small:nth-of-type(2) { display: none; }
+.dv .calendar-schedule .appointment-row > .appointment-status { grid-column: 3; grid-row: 1; align-self: start; justify-self: end; font-size: 10px; }
+.dv .calendar-schedule .appointment-actions { grid-row: 2; }
+.dv .calendar-schedule .appointment-patient { grid-row: 1 / span 2; }
+.dv .calendar-schedule .appointment-time { grid-row: 1 / span 2; }
+.dv .calendar-schedule .appointment-actions button { min-height: 34px; padding: 6px 9px; font-size: 11px; }
+.dv .calendar-schedule .appointment-patient-link { min-height: 0; padding: 0; }
+.dv .agenda-week-grid { display: grid; grid-template-columns: repeat(7, minmax(150px, 1fr)); overflow-x: auto; border-top: 1px solid var(--dv-line); }
+.dv .agenda-week-day { min-width: 150px; border-right: 1px solid var(--dv-line); }
+.dv .agenda-week-day:last-child { border-right: 0; }
+.dv .agenda-week-day-heading { display: flex; width: 100%; min-height: 72px; padding: 14px; align-items: flex-start; flex-direction: column; border: 0; border-bottom: 1px solid var(--dv-line); border-radius: 0; background: white; text-align: left; }
+.dv .agenda-week-day-heading span { color: var(--dv-muted); font-size: 12px; text-transform: capitalize; }
+.dv .agenda-week-day-heading strong { font-size: 19px; }
+.dv .agenda-week-day .appointment-list { border: 0; }
+.dv .agenda-week-day .appointment-row { display: block; min-height: 0; padding: 11px 12px !important; border-bottom: 1px solid #efede8; }
+.dv .agenda-week-day .appointment-time strong { font-size: 13px; }
+.dv .agenda-week-day .appointment-patient { margin-top: 3px; gap: 0; }
+.dv .agenda-week-day .patient-avatar, .dv .agenda-week-day .appointment-status, .dv .agenda-week-day .appointment-actions, .dv .agenda-week-day .appointment-patient small:nth-of-type(2), .dv .agenda-week-day .appointment-patient-link { display: none; }
+.dv .agenda-week-day .appointment-patient strong { font-size: 12px; white-space: normal; }
+.dv .agenda-week-day .empty { min-height: 80px; padding: 12px; background: transparent; }
+.dv .agenda-week-day .empty h3, .dv .agenda-week-day .empty p { display: none; }
+.dv .agenda-week-unavailable { min-height: 80px; margin: 0; padding: 12px; color: var(--dv-muted); font-size: 12px; line-height: 1.4; }
+
+@media (max-width: 1050px) {
+  .dv .conversation-workspace-staff { grid-template-columns: minmax(220px, .7fr) minmax(0, 1.5fr); }
+  .dv .conversation-context { display: none; }
+}
+@media (max-width: 760px) {
+  .dv.dv-area-mensagens .conversation-workspace-staff { height: auto; }
+  .dv .conversation-workspace-staff { display: block; min-height: 0; }
+  .dv .conversation-workspace-staff .conversation-directory { border-right: 0; border-bottom: 1px solid var(--dv-line); }
+  .dv .conversation-workspace-staff .conversation-recipient-list { display: flex; overflow-x: auto; }
+  .dv .conversation-workspace-staff .conversation-recipient { min-width: 220px; border-right: 1px solid #efede8; border-bottom: 0; }
+  .dv .conversation-workspace-staff .conversation-detail { min-height: 520px; }
+  .dv .calendar-workspace { grid-template-columns: 1fr; }
+  .dv .calendar-month { border-right: 0; border-bottom: 1px solid var(--dv-line); }
+  .dv .agenda-view-controls { flex-wrap: wrap; }
+  .dv .calendar-schedule .appointment-row { grid-template-columns: 62px minmax(0, 1fr); }
+  .dv .calendar-schedule .appointment-status, .dv .calendar-schedule .appointment-actions { grid-column: 2; justify-content: flex-start; }
+  .dv .calendar-schedule .appointment-row > .appointment-status { grid-column: 2; grid-row: 3; justify-self: start; }
+  .dv .calendar-schedule .appointment-patient, .dv .calendar-schedule .appointment-time { grid-row: auto; }
+  .dv .calendar-schedule .appointment-actions { grid-row: 4; }
+}

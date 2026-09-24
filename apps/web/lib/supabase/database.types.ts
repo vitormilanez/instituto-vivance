@@ -454,6 +454,44 @@ export type Database = {
           },
         ];
       };
+      appointment_teleconsultations: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          appointment_id: string;
+          delivery_mode: "in_person" | "video";
+          provider: "google_meet" | null;
+          join_url: string | null;
+          version: number;
+          expected_version: number | null;
+          created_by: string;
+          updated_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          tenant_id: string;
+          appointment_id: string;
+          delivery_mode: "in_person" | "video";
+          provider?: "google_meet" | null;
+          join_url?: string | null;
+        };
+        Update: {
+          delivery_mode?: "in_person" | "video";
+          provider?: "google_meet" | null;
+          join_url?: string | null;
+          expected_version: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "appointment_teleconsultations_tenant_id_appointment_id_fkey";
+            columns: ["tenant_id", "appointment_id"];
+            isOneToOne: true;
+            referencedRelation: "appointments";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
       appointments: {
         Row: {
           id: string;

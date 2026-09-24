@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { acknowledgedDraftField } from "@/modules/encounters/draft-save";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { EncounterDetail } from "@/modules/encounters/service";
 import type { OnboardingRecord } from "@/modules/onboarding/types";
 import { OnboardingSummary } from "@/components/onboarding-summary";
@@ -37,8 +38,12 @@ export function EncounterEditor({
   onboarding,
   preparation,
   initialStage = "preparation",
+  autoSave = false,
+  compact = false,
 }: {
   initialStage?: EncounterStage;
+  autoSave?: boolean;
+  compact?: boolean;
   initial: EncounterDetail;
   intake?: StaffPatientIntake | null;
   onboarding?: OnboardingRecord | null;
@@ -58,6 +63,7 @@ export function EncounterEditor({
     [notice, setNotice] = useState("");
   const [addendumError, setAddendumError] = useState(""),
     [addendumNotice, setAddendumNotice] = useState("");
+  const [automaticSaving, setAutomaticSaving] = useState(false);
   const busy = useRef(false);
   const addendumBusy = useRef(false);
   const {
@@ -149,13 +155,14 @@ export function EncounterEditor({
     );
   }
   // Sensitive drafts stay in memory, never localStorage. Warn on tab close and
-  // same-app links; the explicit save button is the persistence boundary.
+  // same-app links. External call links open a separate tab without leaving the draft.
   useEffect(() => {
     if (!dirty) return;
     const unload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
     };
     const click = (event: MouseEvent) => {
+      if ((event.target as Element)?.closest("[data-external-call]")) return;
       if (
         (event.target as Element)?.closest("a[href], [data-leave-clinic]") &&
         !window.confirm("Há alterações não salvas. Sair sem salvar?")
@@ -171,10 +178,11 @@ export function EncounterEditor({
       document.removeEventListener("click", click, true);
     };
   }, [dirty]);
-  async function save(status: "draft" | "finalized") {
+  const save = useCallback(async (status: "draft" | "finalized", automatic = false) => {
     if (busy.current) return;
     busy.current = true;
     setPending(true);
+    setAutomaticSaving(automatic);
     setError("");
     setNotice("");
     try {
@@ -199,13 +207,14 @@ export function EncounterEditor({
         );
       const next = result as EncounterDetail;
       setDetail(next);
-      setReason(next.encounter.reason);
-      setEvolution(next.encounter.evolution);
+      // A response may arrive after more typing. Only normalize unchanged fields.
+      setReason(current => acknowledgedDraftField(current, reason, next.encounter.reason));
+      setEvolution(current => acknowledgedDraftField(current, evolution, next.encounter.evolution));
       setConfirming(false);
       setNotice(
         status === "finalized"
           ? "Atendimento finalizado. Registro disponível para leitura."
-          : "Rascunho salvo. Você pode sair e continuar depois.",
+          : automatic ? "Rascunho salvo automaticamente." : "Rascunho salvo. Você pode sair e continuar depois.",
       );
     } catch (error) {
       if (status === "finalized") setConfirming(false);
@@ -217,8 +226,14 @@ export function EncounterEditor({
     } finally {
       busy.current = false;
       setPending(false);
+      setAutomaticSaving(false);
     }
-  }
+  }, [e.tenant_id, e.id, e.version, reason, evolution]);
+  useEffect(() => {
+    if (!autoSave || !canEdit || !recordDirty || pending || confirming || error) return;
+    const timer = window.setTimeout(() => { void save("draft", true); }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [autoSave, canEdit, recordDirty, pending, confirming, error, save]);
   async function saveAddendum() {
     if (addendumBusy.current) return;
     addendumBusy.current = true;
@@ -263,12 +278,12 @@ export function EncounterEditor({
   }
   return (
     <>
-      <Link
+      {!compact && <Link
         className="back-link"
         href={`/clinicas/${e.tenant_id}/atendimentos`}
       >
         Voltar aos atendimentos
-      </Link>
+      </Link>}
       <header className="clinical-patient-header">
         <span className="patient-avatar patient-avatar-xl" aria-hidden="true">
           {(e.patients?.display_name ?? "Atendimento")
@@ -331,7 +346,7 @@ export function EncounterEditor({
           ))}
         </ol>
       </nav>
-      {notice && (
+      {notice && !(autoSave && recordDirty) && (
         <p className="notice" role="status">
           {notice}
         </p>
@@ -408,8 +423,10 @@ export function EncounterEditor({
             >
               {pending
                 ? "Salvando…"
+                : error && recordDirty
+                  ? "Não salvo · tente salvar novamente"
                 : recordDirty
-                  ? "Alterações não salvas"
+                  ? autoSave ? "Aguardando para salvar…" : "Alterações não salvas"
                   : `Versão ${e.version} · ${clinicalTime(e.updated_at)}`}
             </span>
           </div>
@@ -420,7 +437,7 @@ export function EncounterEditor({
                 void save("draft");
               }}
             >
-              <fieldset disabled={pending || confirming}>
+              <fieldset disabled={(pending && !automaticSaving) || confirming}>
                 <div className="field">
                   <label htmlFor="encounter-reason">Motivo da consulta</label>
                   <textarea
@@ -447,7 +464,7 @@ export function EncounterEditor({
                   />
                   <small id="evolution-help">
                     Registre as informações avaliadas e suas decisões. Até
-                    10.000 caracteres.
+                    10.000 caracteres. {autoSave && "O rascunho é salvo automaticamente após uma pausa na escrita."}
                   </small>
                 </div>
               </fieldset>

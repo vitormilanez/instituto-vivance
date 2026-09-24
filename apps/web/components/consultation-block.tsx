@@ -1,14 +1,21 @@
 import Link from "next/link";
+import { TeleconsultationLink } from "./teleconsultation-link";
 import type { PatientCareContext } from "@/modules/workspace/today";
 import { contextSummary } from "@/modules/workspace/patient-context-cards";
-import { dayStatusLabels, appointmentClock } from "@/modules/workspace/home-day";
+import {
+  dayStatusLabels,
+  appointmentClock,
+} from "@/modules/workspace/home-day";
 import {
   careLinkCopy,
   receivedWhen,
   type CareLink,
   type ReceivedView,
 } from "@/modules/workspace/home-view";
-import { ContextCardList, contextCardsFrom } from "@/components/context-card-list";
+import {
+  ContextCardList,
+  contextCardsFrom,
+} from "@/components/context-card-list";
 import { ReceivedSince } from "@/components/received-since";
 import { CareLinkAccept } from "@/components/care-link-accept";
 
@@ -20,6 +27,7 @@ export type BlockAppointment = {
   kind: string;
   status: string;
   doctor_display_name: string;
+  teleconsultation?: { delivery_mode: "in_person" | "video"; join_url: string | null };
   patients: { display_name: string } | null;
 };
 
@@ -45,8 +53,10 @@ export function ConsultationBlock({
   draft,
   backToNext,
   now,
+  compact = false,
 }: {
   now: string;
+  compact?: boolean;
   base: string;
   tenantId: string;
   today: string;
@@ -67,6 +77,8 @@ export function ConsultationBlock({
   }).format(new Date(appointment.starts_at));
   const agendaHref = `${base}/agenda?data=${date}#consulta-${appointment.id}`;
   const resumesThis = draft && draft.appointment_id === appointment.id;
+  const video = appointment.teleconsultation?.delivery_mode === "video";
+  const encounterQuery = video ? "?modo=teleconsulta&etapa=consulta" : "";
   // Consulta agendada que já terminou não se "prepara": a ação é ir à Agenda,
   // onde se registra o que aconteceu (concluir, falta). Nada é inferido aqui.
   const preparable =
@@ -84,6 +96,26 @@ export function ConsultationBlock({
         )
       : [];
   const linkCopy = careLinkCopy(link);
+  if (compact) return (
+    <article className="home-consultation doctor-consultation" aria-labelledby={titleId}>
+      <header className="doctor-consultation-identity">
+        <span className="dv-avatar" aria-hidden="true">{name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>
+        <div><p className="home-eyebrow">{eyebrow} · {appointmentClock(appointment.starts_at)}–{appointmentClock(appointment.ends_at)}</p><h2 id={titleId}>{name}</h2><p className="home-consultation-meta">{appointment.kind === "return" ? "Retorno" : "Consulta"} · {appointment.doctor_display_name}</p></div>
+      </header>
+      {linkCopy ? <div className="home-care-link"><p>{linkCopy}</p>{link.status === "assigned" && <CareLinkAccept tenantId={tenantId} relationshipId={link.relationshipId} version={link.version} patientName={name} />}</div> : <>
+        {context && <div className="doctor-consultation-context"><ContextCardList cards={cards} compactRequests={compact} base={base} patientId={appointment.patient_id} /></div>}
+      </>}
+      <div className="home-consultation-actions">
+        <Link className="button" href={resumesThis ? `${base}/atendimentos/${draft.id}${encounterQuery}` : agendaHref}>{resumesThis ? "Retomar atendimento" : preparable ? "Preparar atendimento" : "Ver na agenda"}</Link>
+        <Link className="button secondary" href={`${base}/pacientes/${appointment.patient_id}`}>Abrir ficha</Link>
+        <Link className="button secondary" href={`${base}/mensagens?paciente=${appointment.patient_id}`}>Mensagem</Link>
+      </div>
+      {video && preparable && appointment.teleconsultation?.join_url && <TeleconsultationLink url={appointment.teleconsultation.join_url} compact />}
+      {draft && !resumesThis && <p className="home-draft">Atendimento em rascunho · <Link href={`${base}/atendimentos/${draft.id}`}>Retomar</Link></p>}
+      {received && !linkCopy && <details className="doctor-consultation-received"><summary>O que chegou desde a última consulta</summary><ReceivedSince view={received} today={today} tenantId={tenantId} headingId={`consulta-${appointment.id}-recebido`} /></details>}
+      {backToNext && <Link className="home-back" href={backToNext}>Voltar para a próxima consulta</Link>}
+    </article>
+  );
   return (
     <article className="home-consultation" aria-labelledby={titleId}>
       <header className="home-consultation-head">
@@ -96,7 +128,8 @@ export function ConsultationBlock({
           </strong>
           <span>{appointment.kind === "return" ? "Retorno" : "Consulta"}</span>
           <span>{appointment.doctor_display_name}</span>
-          {appointment.status !== "scheduled" && appointment.status !== "in_progress" ? (
+          {appointment.status !== "scheduled" &&
+          appointment.status !== "in_progress" ? (
             <span className="home-status">
               {dayStatusLabels[appointment.status] ?? appointment.status}
             </span>
@@ -119,6 +152,14 @@ export function ConsultationBlock({
           {backToNext ? (
             <Link className="home-back" href={backToNext}>
               Voltar para a próxima consulta
+            </Link>
+          ) : null}
+          {compact ? (
+            <Link
+              className="button secondary"
+              href={`${base}/pacientes/${appointment.patient_id}`}
+            >
+              Abrir ficha
             </Link>
           ) : null}
         </div>
@@ -163,6 +204,7 @@ export function ConsultationBlock({
               <p>{contextSummary(cards)}</p>
               <ContextCardList
                 cards={cards}
+                compactRequests={compact}
                 base={base}
                 patientId={appointment.patient_id}
               />

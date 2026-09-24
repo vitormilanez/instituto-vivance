@@ -1,0 +1,439 @@
+/* The doctor directory and record share this calm, task-first treatment. All
+   selectors stay below .dv so administrative and nursing workspaces retain
+   their established presentation. */
+.dv {
+  --dv-ink: #0a1a33;
+  --dv-muted: #5b6478;
+  --dv-line: #e7e3dc;
+  --dv-canvas: #f7f5f1;
+  --dv-gold: #c8a15a;
+  color: var(--dv-ink);
+}
+
+.dv .dv-directory,
+.dv .dv-record {
+  max-width: 1320px;
+  margin-inline: auto;
+}
+
+.dv .dv-directory-heading,
+.dv .dv-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.dv .dv-directory-heading {
+  margin-bottom: 20px;
+}
+.dv .dv-directory-heading h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.dv .dv-directory-heading p { display: none; }
+.dv .dv-directory-heading { justify-content: flex-end; margin-bottom: 12px; }
+.dv .dv-directory-panel .dv-section-heading { display: none; }
+
+.dv .dv-directory-heading h1,
+.dv .dv-section-heading h2 {
+  margin: 0;
+  color: var(--dv-ink);
+}
+.dv .dv-directory-heading h1 {
+  font-size: clamp(27px, 3vw, 34px);
+  letter-spacing: -0.035em;
+}
+.dv .dv-directory-heading p,
+.dv .dv-section-heading p,
+.dv .dv-disclosure > p {
+  margin: 7px 0 0;
+  color: var(--dv-muted);
+}
+.dv .dv-primary-action {
+  background: var(--dv-ink);
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.dv .dv-directory-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+.dv .dv-directory-panel,
+.dv .dv-directory-aside .panel {
+  border-color: var(--dv-line);
+  box-shadow: 0 4px 18px rgba(10, 26, 51, 0.045);
+}
+.dv .dv-directory-panel {
+  padding: 18px 0 0;
+  overflow: hidden;
+}
+.dv .dv-directory-panel > :not(.dv-directory-columns):not(.dv-patient-list):not(.dv-directory-table-wrap) {
+  margin-inline: 20px;
+}
+.dv .dv-section-heading {
+  margin-bottom: 16px;
+}
+.dv .dv-section-heading h2 {
+  font-size: 17px;
+}
+.dv .dv-section-heading p {
+  font-size: 13px;
+}
+.dv .dv-count {
+  flex: none;
+  margin: 0 !important;
+  font-size: 13px !important;
+  font-weight: 650;
+  color: #7a5a1e !important;
+}
+.dv .dv-search-form {
+  display: flex;
+  max-width: 440px;
+  margin-top: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.dv .dv-search-form input {
+  border-color: #dcd7ce;
+  background: #fff;
+}
+.dv .dv-search-form button {
+  min-height: 40px;
+  border-radius: 9px;
+  background: var(--dv-ink);
+}
+.dv .dv-directory-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.dv .dv-directory-filters > span {
+  margin-right: 2px;
+  color: var(--dv-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+.dv .dv-directory-filters a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--dv-line);
+  border-radius: 999px;
+  color: var(--dv-ink);
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.dv .dv-directory-filters a[aria-current="page"] {
+  border-color: var(--dv-ink);
+  background: var(--dv-ink);
+  color: #fff;
+}
+.dv .dv-results-count {
+  margin: 15px 20px 8px;
+  color: var(--dv-muted);
+}
+.dv .dv-directory-columns {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.5fr) minmax(128px, 0.7fr) minmax(150px, 0.8fr) 104px;
+  gap: 16px;
+  padding: 11px 20px;
+  border-top: 1px solid var(--dv-line);
+  border-bottom: 1px solid var(--dv-line);
+  background: #fcfbf8;
+  color: var(--dv-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.dv .dv-patient-list {
+  margin: 0;
+}
+.dv .dv-patient-list li > a {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.5fr) minmax(128px, 0.7fr) minmax(150px, 0.8fr) 104px;
+  gap: 16px;
+  align-items: center;
+  min-height: 76px;
+  padding: 12px 20px;
+  border-radius: 0;
+  transition: background 0.15s ease;
+}
+.dv .dv-patient-list li > a:hover {
+  background: #fbf6ec;
+}
+.dv .dv-patient-list strong {
+  color: var(--dv-ink);
+}
+.dv .dv-patient-list .dv-patient-identity {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.dv .dv-patient-identity > span:last-child { min-width: 0; }
+.dv .dv-patient-identity strong,
+.dv .dv-patient-identity small { display: block; }
+.dv .dv-patient-identity small { margin-top: 3px; color: var(--dv-muted); font-size: 12px; }
+.dv .dv-patient-list .patient-avatar {
+  width: 40px;
+  height: 40px;
+  background: #f4f0e9;
+  color: var(--dv-ink);
+}
+.dv .dv-status-cell { color: var(--dv-muted); font-size: 13px; }
+.dv .dv-patient-list .row-action {
+  color: var(--dv-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+.dv .dv-directory-aside {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.dv .dv-action-panel {
+  scroll-margin-top: 24px;
+}
+.dv .dv-action-panel .patient-invitation-form {
+  margin: 0;
+}
+.dv .dv-directory-aside .patient-invitation-form h2 {
+  color: var(--dv-ink);
+  font-size: 18px;
+}
+.dv .dv-directory-aside .patient-invitation-form > p {
+  color: var(--dv-muted);
+}
+.dv .dv-directory-aside .patient-invitation-form button[type="submit"] {
+  background: var(--dv-ink);
+}
+.dv .dv-disclosure {
+  padding: 15px 16px;
+  border: 1px solid var(--dv-line);
+  border-radius: 12px;
+  background: #fff;
+}
+.dv .dv-directory-action-disclosure { flex: 1 1 290px; }
+.dv .dv-disclosure > summary {
+  cursor: pointer;
+  color: var(--dv-ink);
+  font-weight: 700;
+}
+.dv .dv-disclosure > summary::marker {
+  color: var(--dv-gold);
+}
+.dv .dv-disclosure[open] > summary {
+  margin-bottom: 14px;
+}
+.dv .dv-disclosure > .panel {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.dv .dv-record {
+  padding-bottom: 8px;
+}
+.dv .dv-record .back-link {
+  display: inline-flex;
+  margin-bottom: 17px;
+  color: var(--dv-muted);
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.dv .dv-record .back-link:hover {
+  color: var(--dv-ink);
+  text-decoration: underline;
+}
+.dv .dv-record .patient-record-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px 18px;
+  padding: 18px 20px;
+  border: 0;
+  border-bottom: 1px solid var(--dv-line);
+  border-radius: 0;
+  background: #fff;
+}
+.dv .dv-record .patient-avatar {
+  background: #f6eedc;
+  color: #7a5a1e;
+}
+.dv .dv-record .patient-record-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 14px;
+  margin-top: 3px;
+}
+.dv .dv-record .patient-record-meta > p {
+  display: inline;
+  margin: 0;
+  color: var(--dv-muted);
+}
+.dv .dv-record .clinical-patient-title h1 {
+  font-size: clamp(24px, 3vw, 31px);
+  letter-spacing: -0.03em;
+  color: var(--dv-ink);
+}
+.dv .dv-record .patient-record-actions {
+  grid-column: auto;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+}
+.dv .dv-record .patient-record-actions a,
+.dv .dv-record .patient-record-next-links a {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid #dcd7ce;
+  border-radius: 8px;
+  color: var(--dv-ink);
+  font-size: 13px;
+  font-weight: 650;
+}
+.dv .dv-record .patient-record-actions a:hover {
+  background: var(--dv-canvas);
+  text-decoration: none;
+}
+.dv .dv-record .patient-record-facts {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--dv-line);
+  border-radius: 0;
+  background: #fff;
+}
+.dv .dv-record .patient-record-facts > div { padding: 12px 20px; background: #fff; }
+.dv .dv-record .patient-record-facts dt {
+  color: var(--dv-muted);
+}
+.dv .dv-record .patient-record-facts dd,
+.dv .dv-record .patient-record-facts dd a {
+  color: var(--dv-ink);
+}
+.dv .dv-record .module-tabs {
+  gap: 24px;
+  margin: 0 0 20px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--dv-line);
+  border-radius: 0;
+  background: #fff;
+}
+.dv .dv-record .module-tabs a {
+  min-height: 44px;
+  padding: 11px 0 9px;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--dv-muted);
+  font-weight: 650;
+}
+.dv .dv-record .module-tabs a:hover {
+  background: var(--dv-canvas);
+}
+.dv .dv-record .module-tabs a[aria-current="page"] {
+  background: transparent;
+  border-color: var(--dv-gold);
+  color: var(--dv-ink);
+}
+.dv .dv-record .panel {
+  border-color: var(--dv-line);
+  box-shadow: 0 4px 18px rgba(10, 26, 51, 0.045);
+}
+.dv .dv-record .patient-record-care {
+  padding: 18px;
+}
+.dv .dv-record-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: 18px;
+  align-items: start;
+}
+.dv .dv-record-main { min-width: 0; }
+.dv .dv-record .patient-record-secondary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.dv .dv-record .patient-record-secondary .panel {
+  background: #fcfbf8;
+}
+.dv .dv-record-disclosure {
+  padding: 18px 20px;
+}
+.dv .dv-record-disclosure > summary {
+  cursor: pointer;
+  color: var(--dv-ink);
+  font-size: 16px;
+  font-weight: 700;
+}
+.dv .dv-record-disclosure[open] > summary {
+  margin-bottom: 18px;
+}
+.dv .dv-record-disclosure > .panel {
+  margin: 0;
+  box-shadow: none;
+}
+.dv .dv-record-disclosure .patient-record-invitation {
+  margin-top: 14px;
+}
+.dv .dv-record-disclosure .patient-record-invitation > summary {
+  cursor: pointer;
+  color: var(--dv-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 980px) {
+  .dv .dv-record-overview { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 700px) {
+  .dv .dv-directory-heading,
+  .dv .dv-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .dv .dv-primary-action {
+    width: 100%;
+    justify-content: center;
+  }
+  .dv .dv-search-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .dv .dv-search-form button {
+    width: 100%;
+  }
+  .dv .dv-directory-panel {
+    padding: 16px;
+  }
+  .dv .dv-directory-panel > :not(.dv-directory-columns):not(.dv-patient-list):not(.dv-directory-table-wrap) { margin-inline: 0; }
+  .dv .dv-directory-columns { display: none; }
+  .dv .dv-patient-list li > a { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 13px 0; }
+  .dv .dv-status-cell { display: none; }
+  .dv .dv-record .patient-record-header {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 16px;
+  }
+  .dv .dv-record .patient-record-header > .appointment-status {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .dv .dv-record .patient-record-actions {
+    grid-column: 1 / -1;
+  }
+  .dv .dv-record .patient-record-facts {
+    grid-template-columns: 1fr;
+  }
+}

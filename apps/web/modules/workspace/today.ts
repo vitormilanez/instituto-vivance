@@ -1,4 +1,5 @@
 import "server-only";
+import { listAppointmentTeleconsultations } from "@/modules/teleconsultations/service";
 import { requireClinic } from "@/modules/identity/service";
 import { listAppointments } from "@/modules/agenda/service";
 import { clinicDate } from "@/modules/agenda/validation";
@@ -46,7 +47,11 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
       .order("id")
       .limit(1);
     if (future.error) throw new Error("Unable to load next appointment");
-    next = future.data?.[0] ?? null;
+    const futureAppointment = future.data?.[0];
+    if (futureAppointment) {
+      const calls = await listAppointmentTeleconsultations(id, [futureAppointment.id]);
+      next = { ...futureAppointment, ...(calls[futureAppointment.id] ? { teleconsultation: calls[futureAppointment.id] } : {}) };
+    }
   }
   const nextToday =
     next && agenda.appointments.some((item) => item.id === next?.id)

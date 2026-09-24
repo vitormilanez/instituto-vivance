@@ -55,7 +55,8 @@ export default async function Dashboard({
   const { consulta } = await searchParams;
   const focus = typeof consulta === "string" ? consulta : null;
   const fail = (error: unknown): never => {
-    if (error instanceof AccessError && error.status === 401) redirect("/login");
+    if (error instanceof AccessError && error.status === 401)
+      redirect("/login");
     if (error instanceof AccessError || error instanceof InputError) notFound();
     throw error;
   };
@@ -67,30 +68,56 @@ export default async function Dashboard({
   const context =
     access.clinic.role === "admin"
       ? await listPatients(tenantId).catch(fail)
-      : { clinic: access.clinic, count: 0, patients: [] as Awaited<ReturnType<typeof listPatients>>["patients"] };
+      : {
+          clinic: access.clinic,
+          count: 0,
+          patients: [] as Awaited<ReturnType<typeof listPatients>>["patients"],
+        };
   const today =
-    context.clinic.role !== "admin" ? await todayWorkspace(tenantId, focus) : null;
+    context.clinic.role !== "admin"
+      ? await todayWorkspace(tenantId, focus)
+      : null;
 
-  const shortcuts = (
-    <section className="shortcuts-section" aria-labelledby="quick-actions">
-      <h2 id="quick-actions">Atalhos</h2>
-      <ul className="more-tools-list">
-        {staffShortcuts(base).map((action) => (
-          <li key={action.title}>
-            <Link className="more-tools-link" href={action.href}>
-              <ShortcutIcon name={action.icon} />
-              <strong>{action.title}</strong>
-              <span>{action.text}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
+  // Na Home do médico, as oito portas de entrada continuam disponíveis depois
+  // da visão do dia. Enfermagem mantém o conjunto reduzido que já tinha.
+  const homeActions =
+    context.clinic.role === "doctor"
+      ? staffActions(base)
+      : staffShortcuts(base);
+  const shortcutList = (
+    <ul className="more-tools-list">
+      {homeActions.map((action) => (
+        <li key={action.title}>
+          <Link className="more-tools-link" href={action.href}>
+            <ShortcutIcon name={action.icon} />
+            <strong>{action.title}</strong>
+            <span>{action.text}</span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
+  const shortcuts =
+    context.clinic.role === "doctor" ? (
+      <details className="shortcuts-section doctor-shortcuts">
+        <summary>Ações rápidas · {homeActions.length}</summary>
+        {shortcutList}
+      </details>
+    ) : (
+      <section className="shortcuts-section" aria-labelledby="quick-actions">
+        <h2 id="quick-actions">Ações rápidas</h2>
+        {shortcutList}
+      </section>
+    );
   return (
     <ClinicShell clinic={context.clinic} active="home">
       {today ? (
-        <TodayWorkspace base={base} data={today} shortcuts={shortcuts} />
+        <TodayWorkspace
+          base={base}
+          data={today}
+          doctorView={context.clinic.role === "doctor"}
+          shortcuts={shortcuts}
+        />
       ) : (
         <>
           <div className="page-heading">
@@ -120,14 +147,21 @@ export default async function Dashboard({
         </>
       )}
       {!today && (
-        <section className="quick-actions-section" aria-labelledby="quick-actions-admin">
+        <section
+          className="quick-actions-section"
+          aria-labelledby="quick-actions-admin"
+        >
           <div className="quick-actions-heading">
             <h2 id="quick-actions-admin">Ações rápidas</h2>
             <p>Continue o cuidado pelo ponto certo, sem perder o contexto.</p>
           </div>
           <div className="quick-actions">
             {staffActions(base).map((action) => (
-              <Link className="quick-action" href={action.href} key={action.title}>
+              <Link
+                className="quick-action"
+                href={action.href}
+                key={action.title}
+              >
                 <strong>{action.title}</strong>
                 <span>{action.text}</span>
                 <span className="action-state">Abrir</span>
