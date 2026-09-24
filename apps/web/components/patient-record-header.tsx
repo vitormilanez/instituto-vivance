@@ -46,12 +46,14 @@ export function PatientRecordHeader({
         </span>
         <div className="clinical-patient-title">
           <h1>{patient.display_name}</h1>
-          <p>Contexto do paciente · {clinicName}</p>
-          <p>
-            {patient.birth_date
-              ? `Nascimento: ${patient.birth_date.split("-").reverse().join("/")}`
-              : "Nascimento não informado"}
-          </p>
+          <div className="patient-record-meta">
+            <p>Contexto do paciente · {clinicName}</p>
+            <p>
+              {patient.birth_date
+                ? `Nascimento: ${patient.birth_date.split("-").reverse().join("/")}`
+                : "Nascimento não informado"}
+            </p>
+          </div>
           {(headerFacts || hasOnboarding) && (
             <div className="patient-record-badges">
               {headerFacts && (

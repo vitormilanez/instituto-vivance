@@ -35,6 +35,17 @@ function conversationHref(
   return `${base}?${query}`;
 }
 
+function initialsFor(name: string) {
+  return name
+    .replace(/^(Dra?\.)\s+/i, "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
 function ConversationWorkspace({
   initial,
   base,
@@ -425,7 +436,7 @@ function ConversationWorkspace({
   }
 
   return (
-    <div className="conversation-workspace">
+    <div className="conversation-workspace conversation-workspace-staff">
       <section className="conversation-directory" aria-label={directoryTitle}>
         <h2>{directoryTitle}</h2>
         <p>Somente vínculos ativos aparecem aqui.</p>
@@ -445,6 +456,9 @@ function ConversationWorkspace({
                     : undefined
                 }
               >
+                <span className="conversation-recipient-avatar" aria-hidden="true">
+                  {initialsFor(recipient.displayName)}
+                </span>
                 <strong>{recipient.displayName}</strong>
                 {recipient.hasUnread && (
                   <span className="conversation-unread">Nova mensagem</span>
@@ -661,6 +675,35 @@ function ConversationWorkspace({
           </section>
         )}
       </section>
+      {selected && (
+        <aside className="conversation-context" aria-label="Contexto do paciente">
+          <div className="conversation-context-patient">
+            <span className="conversation-context-avatar" aria-hidden="true">
+              {initialsFor(selected.displayName)}
+            </span>
+            <div>
+              <h2>{selected.displayName}</h2>
+              <p>Conversa direta com este paciente.</p>
+            </div>
+          </div>
+          <dl className="conversation-context-details">
+            <div>
+              <dt>Canal</dt>
+              <dd>Não emergencial</dd>
+            </div>
+            <div>
+              <dt>Compartilhamento</dt>
+              <dd>Sem anexos</dd>
+            </div>
+          </dl>
+          <Link
+            className="secondary conversation-context-link"
+            href={`/clinicas/${initial.clinic.id}/pacientes/${selected.patientId}`}
+          >
+            Abrir ficha
+          </Link>
+        </aside>
+      )}
     </div>
   );
 }

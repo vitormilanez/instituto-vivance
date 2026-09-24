@@ -1,6 +1,7 @@
 /* Doctor workspace: the Claude reference's quiet canvas and compact hierarchy.
    Every override lives inside this role-specific shell. */
 .dv {
+  font-family: var(--font-doctor-figtree), var(--font-geist-sans), sans-serif;
   --dv-ink: #0a1a33;
   --dv-muted: #5b6478;
   --dv-line: #e7e3dc;
@@ -15,7 +16,7 @@
   --gold: #c8a15a;
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: 232px minmax(0, 1fr);
+  grid-template-columns: 208px minmax(0, 1fr);
   color: var(--dv-ink);
   background: var(--dv-canvas);
   font-size: 14px;
@@ -163,7 +164,7 @@
   color: var(--gold);
 }
 .dv .dv-tools {
-  margin: 28px 0 36px;
+  margin: auto 0 8px;
   border-top: 1px solid var(--dv-line);
   padding-top: 16px;
 }
@@ -199,7 +200,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: auto;
+  margin-top: 0;
   padding: 14px 8px 8px;
   border-top: 1px solid var(--dv-line);
 }
@@ -249,14 +250,14 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  height: 72px;
+  height: 64px;
   padding: 0 32px;
   background: white;
   border-bottom: 1px solid var(--dv-line);
 }
 .dv .dv-location {
   font-weight: 650;
-  font-size: 15px;
+  font-size: 20px;
   margin-right: auto;
 }
 .dv .dv-global-search {
@@ -307,11 +308,14 @@
 }
 .dv .dv-main {
   min-width: 0;
-  max-width: 1440px;
+  max-width: 1800px;
   width: 100%;
   margin: 0 auto;
   padding: 28px 32px 48px;
 }
+.dv .dv-mark { object-fit: contain; }
+.dv .dv-primary-nav { margin-bottom: 24px; }
+.dv .dv-clinic-settings { display: flex; align-items: center; gap: 12px; padding: 14px; color: var(--blue); text-decoration: none; font-size: 13px; }
 .dv .dv-mobile-tools,
 .dv .dv-mobile-nav {
   display: none;

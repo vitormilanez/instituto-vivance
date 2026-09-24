@@ -92,6 +92,25 @@ export function ConsultationBlock({
         )
       : [];
   const linkCopy = careLinkCopy(link);
+  if (compact) return (
+    <article className="home-consultation doctor-consultation" aria-labelledby={titleId}>
+      <header className="doctor-consultation-identity">
+        <span className="dv-avatar" aria-hidden="true">{name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>
+        <div><p className="home-eyebrow">{eyebrow} · {appointmentClock(appointment.starts_at)}–{appointmentClock(appointment.ends_at)}</p><h2 id={titleId}>{name}</h2><p className="home-consultation-meta">{appointment.kind === "return" ? "Retorno" : "Consulta"} · {appointment.doctor_display_name}</p></div>
+      </header>
+      {linkCopy ? <div className="home-care-link"><p>{linkCopy}</p>{link.status === "assigned" && <CareLinkAccept tenantId={tenantId} relationshipId={link.relationshipId} version={link.version} patientName={name} />}</div> : <>
+        {context && <div className="doctor-consultation-context"><ContextCardList cards={cards} compactRequests={compact} base={base} patientId={appointment.patient_id} /></div>}
+      </>}
+      <div className="home-consultation-actions">
+        <Link className="button" href={resumesThis ? `${base}/atendimentos/${draft.id}` : agendaHref}>{resumesThis ? "Retomar atendimento" : preparable ? "Preparar atendimento" : "Ver na agenda"}</Link>
+        <Link className="button secondary" href={`${base}/pacientes/${appointment.patient_id}`}>Abrir ficha</Link>
+        <Link className="button secondary" href={`${base}/mensagens?paciente=${appointment.patient_id}`}>Mensagem</Link>
+      </div>
+      {draft && !resumesThis && <p className="home-draft">Atendimento em rascunho · <Link href={`${base}/atendimentos/${draft.id}`}>Retomar</Link></p>}
+      {received && !linkCopy && <details className="doctor-consultation-received"><summary>O que chegou desde a última consulta</summary><ReceivedSince view={received} today={today} tenantId={tenantId} headingId={`consulta-${appointment.id}-recebido`} /></details>}
+      {backToNext && <Link className="home-back" href={backToNext}>Voltar para a próxima consulta</Link>}
+    </article>
+  );
   return (
     <article className="home-consultation" aria-labelledby={titleId}>
       <header className="home-consultation-head">

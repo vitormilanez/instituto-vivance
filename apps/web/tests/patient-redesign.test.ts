@@ -110,7 +110,10 @@ test("registrar peso: um campo, passo de 0,1 kg e confirmação na Home sem prom
 
 test("conversa do paciente: abre direto, sem 'Remetente', com aviso de urgência e atalho", () => {
   const chat = read("../components/messages-workspace.tsx");
-  const patientPart = chat.slice(chat.indexOf("if (!isStaffConversation) {"), chat.indexOf("  return (\n    <div className=\"conversation-workspace\">"));
+  const patientStart = chat.indexOf("if (!isStaffConversation) {");
+  const staffStart = chat.indexOf('  return (\n    <div className="conversation-workspace', patientStart);
+  assert.ok(patientStart >= 0 && staffStart > patientStart, "patient and staff layouts remain separate");
+  const patientPart = chat.slice(patientStart, staffStart);
   assert.doesNotMatch(patientPart, /Remetente/);
   assert.match(patientPart, /Não é canal de urgência\./);
   assert.match(patientPart, /meu-cuidado\/alerta/);

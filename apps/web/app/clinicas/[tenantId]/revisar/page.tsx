@@ -8,15 +8,20 @@ import {
 } from "@/modules/workspace/received";
 import { ClinicShell } from "@/components/clinic-shell";
 import { DoctorReviewInbox } from "@/components/doctor-review-inbox";
+import { DoctorReviewDetail } from "@/components/doctor-review-detail";
+import { doctorReviewSelection } from "@/modules/workspace/doctor-review";
 
 export const dynamic = "force-dynamic";
 
 export default async function DoctorReview({
   params,
+  searchParams,
 }: {
   params: Promise<{ tenantId: string }>;
+  searchParams: Promise<{ item?: string; paciente?: string }>;
 }) {
   const { tenantId } = await params;
+  const query = await searchParams;
   const context = await (async () => {
     const { clinic } = await requireClinic(tenantId, ["doctor"]);
     const links = (await myCareLinks(tenantId)).filter(
@@ -44,13 +49,17 @@ export default async function DoctorReview({
     if (error instanceof AccessError || error instanceof InputError) notFound();
     throw error;
   });
+  const selected = doctorReviewSelection(context.patients, query);
   return (
     <ClinicShell clinic={context.clinic} active="review">
       <DoctorReviewInbox
         tenantId={tenantId}
         patients={context.patients}
         failed={context.failed}
-      />
+        selectedKey={selected ? `${selected.item.kind}:${selected.item.id}` : null}
+      >
+        {selected && <DoctorReviewDetail tenantId={tenantId} patientId={selected.patient.patientId} item={selected.item} />}
+      </DoctorReviewInbox>
     </ClinicShell>
   );
 }

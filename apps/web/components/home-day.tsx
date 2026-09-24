@@ -184,25 +184,25 @@ function DoctorReviewPanel({ base, data }: { base: string; data: Data }) {
     <section className="doctor-review" aria-labelledby="doctor-review-title">
       <div className="doctor-review-head">
         <div>
-          <p className="doctor-home-kicker">Recebido</p>
           <h2 id="doctor-review-title">Para revisar</h2>
+          <p className="doctor-review-caption">Envios por paciente · do mais antigo</p>
         </div>
-        <Link href={`${base}/revisar`}>Abrir revisão</Link>
+        <Link className="button secondary" href={`${base}/revisar`}>Abrir</Link>
       </div>
       {groups.length ? (
         <ul>
           {groups.map((group) => (
             <li key={group.patientId}>
-              <Link href={`${base}/pacientes/${group.patientId}`}>
-                {group.patientName}
-              </Link>
-              <span>
+              <Link className="doctor-review-patient" href={`${base}/revisar?paciente=${group.patientId}`}>
+                <span className="dv-avatar" aria-hidden="true">{group.patientName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>
+                <span><strong>{group.patientName}</strong><small>
                 {group.counts
                   .map(
                     ({ label, total }) => `${total} × ${label.toLowerCase()}`,
                   )
                   .join(" · ")}
-              </span>
+                </small></span><b>{group.counts.reduce((total, item) => total + item.total, 0)}</b>
+              </Link>
             </li>
           ))}
         </ul>
@@ -477,7 +477,7 @@ export function HomeDay({
       ) : null}
       <header className="home-head doctor-home-head">
         <div>
-          <p className="doctor-home-kicker">Seu dia</p>
+
           <h1>{dayHeading(data.today)}</h1>
           <p>
             {dayCountsLine(counts)}
@@ -519,16 +519,15 @@ export function HomeDay({
               </Link>
             </section>
           )}
-        </aside>
-        <aside className="doctor-home-aside" aria-label="Agenda e revisão">
+
           <section
             className="doctor-home-schedule"
             aria-labelledby="doctor-home-schedule-title"
           >
             <div className="doctor-home-section-head">
               <div>
-                <p className="doctor-home-kicker">Agenda de hoje</p>
-                <h2 id="doctor-home-schedule-title">Consultas</h2>
+
+                <h2 id="doctor-home-schedule-title">Consultas do dia</h2>
               </div>
               <dl className="doctor-home-counts" aria-label="Resumo da agenda">
                 <div>
@@ -570,10 +569,9 @@ export function HomeDay({
               </div>
             )}
           </section>
-          <DoctorReviewPanel base={base} data={data} />
         </aside>
-      </div>
-
+        <aside className="doctor-home-aside" aria-label="Revisão e trabalho em aberto">
+          <DoctorReviewPanel base={base} data={data} />
       <OpenWork
         items={
           data.work?.filter(
@@ -586,6 +584,8 @@ export function HomeDay({
         today={data.today}
       />
 
+        </aside>
+      </div>
       {shortcuts}
     </div>
   );

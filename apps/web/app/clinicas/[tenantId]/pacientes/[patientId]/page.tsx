@@ -114,6 +114,42 @@ export default async function Patient({
           },
         )
       : null;
+  const recordSecondary = (
+    <div className="patient-record-secondary">
+      <section className="panel future-care">
+        <h2>Equipe de cuidado</h2>
+        {context.clinic.role === "admin" ? (
+          <>
+            <p>
+              Atribua ou revise os profissionais responsáveis por este
+              paciente. O acesso clínico começa após o aceite do profissional.
+            </p>
+            <Link
+              className="button secondary"
+              href={`/clinicas/${tenantId}/equipe?paciente=${patientId}`}
+            >
+              Gerenciar equipe deste paciente
+            </Link>
+          </>
+        ) : (
+          <p>Consulte os profissionais com responsabilidade ativa por este paciente.</p>
+        )}
+      </section>
+      <section className="panel future-care">
+        <h2>Onde continuar</h2>
+        <p>
+          Use a Agenda para os próximos encontros e Atendimentos para os
+          registros de consulta disponíveis ao seu vínculo.
+        </p>
+        <div className="patient-record-next-links">
+          <Link href={`/clinicas/${tenantId}/agenda`}>Abrir agenda</Link>
+          <Link href={`/clinicas/${tenantId}/atendimentos`}>
+            Ver atendimentos
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
   return (
     <ClinicShell clinic={context.clinic} active="patients">
       <div className={doctorView ? "dv-record" : undefined}>
@@ -132,7 +168,8 @@ export default async function Patient({
           recordBase={recordBase}
         />
         {active === "Visão geral" ? (
-          <>
+          <div className={doctorView ? "dv-record-overview" : undefined}>
+            <div className={doctorView ? "dv-record-main" : undefined}>
             {doctorView && careOverview}
             {intake &&
               (doctorView ? (
@@ -242,7 +279,9 @@ export default async function Patient({
                 </div>
               </dl>
             </section>
-          </>
+            </div>
+            {doctorView && recordSecondary}
+          </div>
         ) : !clinicalArea ? (
           <section className="panel">
             <h2>Acesso clínico restrito</h2>
@@ -285,46 +324,7 @@ export default async function Patient({
             />
           </>
         ) : null}
-        {active === "Visão geral" && (
-          <div className="patient-record-secondary">
-            <section className="panel future-care">
-              <h2>Equipe de cuidado</h2>
-              {context.clinic.role === "admin" ? (
-                <>
-                  <p>
-                    Atribua ou revise os profissionais responsáveis por este
-                    paciente. O acesso clínico começa após o aceite do
-                    profissional.
-                  </p>
-                  <Link
-                    className="button secondary"
-                    href={`/clinicas/${tenantId}/equipe?paciente=${patientId}`}
-                  >
-                    Gerenciar equipe deste paciente
-                  </Link>
-                </>
-              ) : (
-                <p>
-                  Consulte os profissionais com responsabilidade ativa por este
-                  paciente.
-                </p>
-              )}
-            </section>
-            <section className="panel future-care">
-              <h2>Onde continuar</h2>
-              <p>
-                Use a Agenda para os próximos encontros e Atendimentos para os
-                registros de consulta disponíveis ao seu vínculo.
-              </p>
-              <div className="patient-record-next-links">
-                <Link href={`/clinicas/${tenantId}/agenda`}>Abrir agenda</Link>
-                <Link href={`/clinicas/${tenantId}/atendimentos`}>
-                  Ver atendimentos
-                </Link>
-              </div>
-            </section>
-          </div>
-        )}
+        {active === "Visão geral" && !doctorView && recordSecondary}
       </div>
     </ClinicShell>
   );

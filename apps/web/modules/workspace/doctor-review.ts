@@ -7,6 +7,16 @@ export type DoctorReviewPatient = {
 };
 export type DoctorReviewStatus = "all" | "unopened" | "opened";
 
+// Only resolve identifiers already returned by the authorized inbox query.
+// An invalid explicit selection must not silently show another patient's data.
+export function doctorReviewSelection(patients: DoctorReviewPatient[], query: { item?: string; paciente?: string }) {
+  const ordered = doctorReviewGroups(patients, { kind: "all", status: "all", search: "" });
+  const available = ordered.flatMap((patient) => patient.items.map((item) => ({ patient, item })));
+  return available.find(({ patient, item }) =>
+    (!query.paciente || patient.patientId === query.paciente) &&
+    (!query.item || `${item.kind}:${item.id}` === query.item));
+}
+
 // A fila organiza envios por chegada, sem inferir prioridade clínica. `seen`
 // significa somente abertura pelo profissional, nunca revisão ou aprovação.
 export function doctorReviewGroups(

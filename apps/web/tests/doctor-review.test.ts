@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { doctorReviewGroups } from "../modules/workspace/doctor-review.ts";
+import { doctorReviewGroups, doctorReviewSelection } from "../modules/workspace/doctor-review.ts";
 import type { DoctorReviewPatient } from "../modules/workspace/doctor-review.ts";
 
 const patients: DoctorReviewPatient[] = [
@@ -50,6 +50,17 @@ const patients: DoctorReviewPatient[] = [
   },
 ];
 const defaults = { kind: "all", status: "all", search: "" } as const;
+
+test("review detail resolves only authorized inbox items and respects patient scope", () => {
+  assert.equal(doctorReviewSelection(patients, {})?.item.id, "1");
+  assert.equal(doctorReviewSelection(patients, { paciente: "b" })?.item.id, "3");
+  assert.equal(doctorReviewSelection(patients, { item: "messages:2" })?.patient.patientId, "a");
+  assert.equal(doctorReviewSelection(patients, { item: "messages:2", paciente: "b" }), undefined);
+  assert.equal(doctorReviewSelection(patients, { item: "documents:2" }), undefined);
+  assert.equal(doctorReviewSelection(patients, { item: "messages:unknown" }), undefined);
+  assert.equal(doctorReviewSelection(patients, { paciente: "unknown" }), undefined);
+  assert.equal(doctorReviewSelection([], {}), undefined);
+});
 
 test("review groups chronological arrivals without changing source ordering or links", () => {
   const groups = doctorReviewGroups(patients, defaults);

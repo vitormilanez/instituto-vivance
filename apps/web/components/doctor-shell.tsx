@@ -1,4 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
+import { Figtree } from "next/font/google";
+import { Sun, Inbox, Users, CalendarDays, MessageCircle, Search, Bell, Settings } from "lucide-react";
 import type { ReactNode } from "react";
 import { logout } from "@/app/actions";
 import type { ClinicAccess } from "@/modules/identity/service";
@@ -6,34 +9,13 @@ import { navLabel, staffModules } from "@/modules/workspace/navigation";
 import "@/app/doctor.css";
 import "@/app/doctor-home.css";
 import "@/app/doctor-patients.css";
-
-const paths: Record<string, string> = {
-  home: "M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0",
-  review: "M4 4h16v16H4zM8 8h8m-8 4h8m-8 4h4",
-  patients:
-    "M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0M5 21v-3a7 7 0 0 1 14 0v3M19 4a3 3 0 0 1 0 6M22 19v-2a6 6 0 0 0-3-5",
-  agenda: "M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1M8 3v4m8-4v4M4 10h16",
-  mensagens: "M4 4h16v12H9l-5 4V4",
-  search: "M16 10a6 6 0 1 1-12 0 6 6 0 0 1 12 0m-1.8 4.2L21 21",
-  bell: "M6 9a6 6 0 0 1 12 0v6l2 3H4l2-3V9m4 12h4",
-};
+import "@/app/doctor-review.css";
+import "@/app/doctor-communications.css";
+const figtree = Figtree({ subsets: ["latin"], variable: "--font-doctor-figtree" });
 
 export function DoctorIcon({ name }: { name: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d={paths[name] ?? paths.review} />
-    </svg>
-  );
+  const Icon = ({ home: Sun, review: Inbox, patients: Users, agenda: CalendarDays, mensagens: MessageCircle, search: Search, bell: Bell }[name]) ?? Inbox;
+  return <Icon aria-hidden="true" size={20} strokeWidth={1.7} />;
 }
 
 export function DoctorShell({
@@ -107,12 +89,10 @@ export function DoctorShell({
     </Link>
   ));
   return (
-    <div className="dv">
+    <div className={`dv dv-area-${active} ${figtree.variable}`}>
       <aside className="dv-sidebar">
         <Link className="dv-brand" href={base}>
-          <span className="dv-mark" aria-hidden="true">
-            V
-          </span>
+          <Image className="dv-mark" src="/brand/vivance-mark.png" alt="" width={38} height={38} />
           <span>
             <strong>Vivance</strong>
             <small>{clinic.name}</small>
@@ -137,6 +117,7 @@ export function DoctorShell({
           <summary>Mais ferramentas</summary>
           <nav aria-label="Ferramentas de cuidado">{secondaryLinks}</nav>
         </details>
+        <Link className="dv-clinic-settings" href={`${base}/equipe`}><Settings size={19} aria-hidden="true" />Clínica e equipe</Link>
         <div className="dv-account">
           <span className="dv-avatar" aria-hidden="true">
             {initials}
