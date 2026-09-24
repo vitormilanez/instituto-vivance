@@ -115,10 +115,18 @@
 .teleconsultation-call-stage > svg {
   color: var(--gold);
 }
-.teleconsultation-call-card > .teleconsultation-link,
-.teleconsultation-call-card > .teleconsultation-no-link {
+.teleconsultation-call-access {
+  display: grid;
+  gap: 14px;
   padding: 22px;
 }
+.teleconsultation-call-access > p { margin: 0; }
+.teleconsultation-call-access > button { justify-self: start; min-height: 44px; }
+.teleconsultation-call-access .teleconsultation-no-link { color: var(--muted); font-size: 14px; line-height: 1.55; }
+.teleconsultation-call-access .teleconsultation-no-link p { margin: 0 0 10px; }
+.teleconsultation-call-access .teleconsultation-link-audit { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.teleconsultation-call-access .teleconsultation-appointment { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.teleconsultation-call-access .teleconsultation-settings { margin: 0; max-width: none; }
 .teleconsultation-call-card details {
   padding: 16px 22px;
   border-top: 1px solid var(--border);

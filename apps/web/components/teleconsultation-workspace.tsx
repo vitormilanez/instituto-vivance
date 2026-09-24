@@ -1,21 +1,31 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Video, ArrowLeft } from "lucide-react";
-import { TeleconsultationLink } from "./teleconsultation-link";
+import { TeleconsultationCallAccess } from "./teleconsultation-call-access";
 
 export function TeleconsultationWorkspace({
   tenantId,
   encounterId,
+  appointmentId,
+  appointmentLabel,
+  agendaHref,
   patientName,
   url,
+  audit,
+  editable,
   unavailable,
   children,
   context,
 }: {
   tenantId: string;
   encounterId: string;
+  appointmentId: string;
+  appointmentLabel: string;
+  agendaHref: string;
   patientName: string;
   url: string | null;
+  audit: { updated_at: string; updated_by: string; updated_by_name?: string | null } | null;
+  editable: boolean;
   unavailable?: boolean;
   children: ReactNode;
   context: ReactNode;
@@ -50,20 +60,18 @@ export function TeleconsultationWorkspace({
                   : "Tudo o que você precisa para conduzir e registrar a consulta."}
               </p>
             </div>
-            {url ? (
-              <TeleconsultationLink url={url} patientName={patientName} />
-            ) : (
-              <div className="teleconsultation-no-link">
-                <p>
-                  {unavailable
-                    ? "Não foi possível carregar o link da chamada. Tente atualizar a página."
-                    : "Nenhum link de teleconsulta disponível para este atendimento."}
-                </p>
-                <Link href={`/clinicas/${tenantId}/agenda`}>
-                  Consultar a agenda
-                </Link>
-              </div>
-            )}
+            <TeleconsultationCallAccess
+              key={audit?.updated_at ?? "no-configuration"}
+              tenantId={tenantId}
+              appointmentId={appointmentId}
+              patientName={patientName}
+              agendaHref={agendaHref}
+              appointmentLabel={appointmentLabel}
+              initialUrl={url}
+              initialAudit={audit}
+              editable={editable}
+              unavailable={Boolean(unavailable)}
+            />
             {url && (
               <details>
                 <summary>Manter o vídeo visível enquanto escrevo</summary>

@@ -8,6 +8,9 @@ type Configuration = {
   delivery_mode: "in_person" | "video";
   join_url: string | null;
   version: number;
+  updated_by: string;
+  updated_by_name?: string | null;
+  updated_at: string;
 };
 
 export function TeleconsultationSettings({
@@ -15,6 +18,8 @@ export function TeleconsultationSettings({
   appointmentId,
   patientName,
   editable,
+  videoOnly = false,
+  showClose = true,
   onClose,
   onSaved,
 }: {
@@ -22,8 +27,10 @@ export function TeleconsultationSettings({
   appointmentId: string;
   patientName: string;
   editable: boolean;
+  videoOnly?: boolean;
+  showClose?: boolean;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (configuration: Configuration) => void;
 }) {
   const [current, setCurrent] = useState<Configuration | null>(null);
   const [mode, setMode] = useState<"in_person" | "video">("in_person");
@@ -53,7 +60,7 @@ export function TeleconsultationSettings({
           );
         const configuration: Configuration | null = result.teleconsultation;
         setCurrent(configuration);
-        setMode(configuration?.delivery_mode ?? "in_person");
+        setMode(videoOnly ? "video" : configuration?.delivery_mode ?? "in_person");
         setUrl(configuration?.join_url ?? "");
         setLoaded(true);
       } catch (cause) {
@@ -67,7 +74,7 @@ export function TeleconsultationSettings({
     }
     void load();
     return () => controller.abort();
-  }, [endpoint, retry]);
+  }, [endpoint, retry, videoOnly]);
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!loaded || pending) return;
@@ -90,9 +97,10 @@ export function TeleconsultationSettings({
         throw new Error(
           result.error ?? "Não foi possível salvar a modalidade.",
         );
-      setCurrent(result.teleconsultation);
+      const saved = result.teleconsultation as Configuration;
+      setCurrent(saved);
       setNotice("Modalidade salva. O paciente pode consultar os dados no app.");
-      onSaved();
+      onSaved(saved);
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -112,17 +120,17 @@ export function TeleconsultationSettings({
     >
       <div className="section-heading">
         <div>
-          <h2>Como será a consulta?</h2>
+          <h2>{videoOnly ? "Configurar link da chamada" : "Como será a consulta?"}</h2>
           <p>{patientName}</p>
         </div>
-        <button
+        {showClose && <button
           className="secondary"
           type="button"
           onClick={onClose}
           disabled={pending}
         >
           Fechar
-        </button>
+        </button>}
       </div>
       {loading ? (
         <p role="status">Carregando modalidade…</p>
@@ -131,7 +139,7 @@ export function TeleconsultationSettings({
           <form onSubmit={save}>
             <fieldset disabled={!editable || pending}>
               <legend className="sr-only">Modalidade</legend>
-              <div className="teleconsultation-mode-options">
+              {!videoOnly && <div className="teleconsultation-mode-options">
                 <label>
                   <input
                     type="radio"
@@ -150,7 +158,7 @@ export function TeleconsultationSettings({
                   />{" "}
                   Teleconsulta · Google Meet
                 </label>
-              </div>
+              </div>}
               {mode === "video" && (
                 <label className="field">
                   Link da chamada
@@ -171,7 +179,7 @@ export function TeleconsultationSettings({
               )}
               {editable && (
                 <button type="submit">
-                  {pending ? "Salvando…" : "Salvar modalidade"}
+                  {pending ? "Salvando…" : videoOnly ? "Salvar link" : "Salvar modalidade"}
                 </button>
               )}
             </fieldset>
@@ -207,7 +215,7 @@ export function TeleconsultationSettings({
           {notice}
         </p>
       )}
-      {loaded && current?.delivery_mode === "video" && current.join_url && (
+      {loaded && !videoOnly && current?.delivery_mode === "video" && current.join_url && (
         <TeleconsultationLink url={current.join_url} patientName={patientName} />
       )}
     </section>

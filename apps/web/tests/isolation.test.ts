@@ -710,6 +710,53 @@ test("teleconsultation configuration is canonical, versioned and audited", async
   ]);
 });
 
+test("assigned doctor can recover a Meet link during a draft encounter, with audit and closure guard", async () => {
+  await asUser("doctor", async () => {
+    const encounter = await startClinical();
+    const inserted = await db.query<{ id: string; version: number; updated_by: string }>(
+      `insert into public.appointment_teleconsultations(
+         tenant_id,appointment_id,delivery_mode,provider,join_url
+       ) values($1,$2,'video','google_meet',$3)
+       returning id,version,updated_by`,
+      [a, encounter.appointment, "https://meet.google.com/abc-defg-hij"],
+    );
+    assert.equal(inserted.rows[0].version, 1);
+    assert.equal(inserted.rows[0].updated_by, users.doctor.id);
+    await denied(
+      "update public.appointment_teleconsultations set join_url='https://meet.google.com.evil.test/abc-defg-hij',expected_version=1 where id=$1",
+      [inserted.rows[0].id],
+    );
+    const updated = await db.query<{ version: number; join_url: string }>(
+      "update public.appointment_teleconsultations set join_url=$2,expected_version=1 where id=$1 returning version,join_url",
+      [inserted.rows[0].id, "https://meet.google.com/def-ghij-klm"],
+    );
+    assert.deepEqual(updated.rows[0], { version: 2, join_url: "https://meet.google.com/def-ghij-klm" });
+    await denied(
+      "update public.appointment_teleconsultations set join_url=$2,expected_version=1 where id=$1",
+      [inserted.rows[0].id, "https://meet.google.com/ghi-jklm-nop"],
+    );
+    for (const role of ["admin", "nurse", "colleague", "patient"]) {
+      await switchActor(role);
+      assert.equal((await db.query(
+        "update public.appointment_teleconsultations set join_url=$2,expected_version=2 where id=$1 returning id",
+        [inserted.rows[0].id, "https://meet.google.com/ghi-jklm-nop"],
+      )).rows.length, 0);
+    }
+    await switchActor("doctor");
+    await saveClinical(encounter.id, 1, "Synthetic reason", "Synthetic evolution", "finalized");
+    assert.equal((await db.query(
+      "update public.appointment_teleconsultations set join_url=$2,expected_version=2 where id=$1 returning id",
+      [inserted.rows[0].id, "https://meet.google.com/ghi-jklm-nop"],
+    )).rows.length, 0);
+    await db.exec("reset role");
+    const audit = await db.query<{ actor_user_id: string }>(
+      "select actor_user_id from public.audit_events where entity_type='appointment_teleconsultations' and entity_id=$1 order by created_at,id",
+      [inserted.rows[0].id],
+    );
+    assert.deepEqual(audit.rows.map((row) => row.actor_user_id), [users.doctor.id, users.doctor.id]);
+  });
+});
+
 test("teleconsultation configuration rolls back when its audit cannot be recorded", async () => {
   await asUser("doctor", async () => {
     const appointment = await book();

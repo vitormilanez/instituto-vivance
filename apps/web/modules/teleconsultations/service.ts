@@ -9,9 +9,9 @@ export class TeleconsultationError extends DomainError {}
 const failed: (code?: string) => never = databaseFailure({
   error: TeleconsultationError,
   denied:
-    "Seu acesso mudou ou este agendamento não está disponível. Atualize a agenda.",
+    "Seu acesso mudou ou este agendamento não está disponível. Atualize a página.",
   conflict:
-    "A configuração do atendimento mudou ou o agendamento já foi encerrado. Atualize a agenda.",
+    "A configuração do atendimento mudou ou o agendamento já foi encerrado. Atualize a página.",
   conflictCodes: ["23503", "23505", "23514", "40001"],
   log: "Teleconsultation operation failed",
 });
@@ -31,6 +31,9 @@ export type AppointmentTeleconsultation = {
   updated_by: string;
   created_at: string;
   updated_at: string;
+  // Resolved only when fetching one configuration. The audit identity remains
+  // the immutable membership ID even when its display name is unavailable.
+  updated_by_name?: string | null;
 };
 
 export async function getAppointmentTeleconsultation(
@@ -61,7 +64,17 @@ export async function getAppointmentTeleconsultation(
     .eq("appointment_id", appointmentId)
     .maybeSingle();
   if (result.error) failed(result.error.code);
-  return (result.data as AppointmentTeleconsultation | null) ?? null;
+  if (!result.data) return null;
+  const editor = await client
+    .from("memberships")
+    .select("display_name")
+    .eq("tenant_id", tenant)
+    .eq("user_id", result.data.updated_by)
+    .maybeSingle();
+  return {
+    ...result.data,
+    updated_by_name: editor.error ? null : editor.data?.display_name ?? null,
+  } as AppointmentTeleconsultation;
 }
 
 export async function listAppointmentTeleconsultations(
@@ -101,7 +114,7 @@ export async function saveAppointmentTeleconsultation(
   const tenant = tenantId(tenantInput);
   const appointmentId = tenantId(appointmentInput);
   const input = teleconsultationInput(body);
-  const { client } = await requireClinic(tenant, ["admin", "doctor", "nurse"]);
+  const { client, clinic } = await requireClinic(tenant, ["admin", "doctor", "nurse"]);
   const values = {
     delivery_mode: input.deliveryMode,
     provider: input.deliveryMode === "video" ? ("google_meet" as const) : null,
@@ -125,8 +138,11 @@ export async function saveAppointmentTeleconsultation(
   if (result.error) failed(result.error.code);
   if (!result.data)
     throw new TeleconsultationError(
-      "A configuração do atendimento mudou ou o agendamento não está disponível. Atualize a agenda.",
+      "A configuração do atendimento mudou ou o agendamento não está disponível. Atualize a página.",
       409,
     );
-  return result.data as AppointmentTeleconsultation;
+  return {
+    ...result.data,
+    updated_by_name: clinic.displayName,
+  } as AppointmentTeleconsultation;
 }
