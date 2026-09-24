@@ -403,6 +403,19 @@
   display: grid;
   gap: 10px;
 }
+.tele-hub-pending {
+  border-left: 4px solid var(--gold);
+}
+.tele-hub-prepare {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--warm, #f8f5ef);
+}
+.tele-hub-prepare .field {
+  margin: 0;
+}
 @media (max-width: 600px) {
   .tele-hub-step {
     grid-template-columns: minmax(0, 1fr);

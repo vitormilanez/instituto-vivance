@@ -159,6 +159,11 @@
 .meal-log-item { display: grid; gap: 10px; padding: 20px 24px; }
 .meal-log-item > div { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
 .meal-log-item > div > span { color: var(--muted); font-size: 14px; white-space: nowrap; }
+.meal-log-disclosure > summary { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; cursor: pointer; }
+.meal-log-disclosure > summary::marker { color: var(--gold); }
+.meal-log-disclosure > summary span { color: var(--muted); font-size: 14px; white-space: nowrap; }
+.meal-log-disclosure[open] > summary { margin-bottom: 10px; }
+.followup-filter { max-width: 360px; margin: 18px 0; }
 .meal-log-item p { margin: 0; max-width: 70ch; white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* Foto opcional: a mesma fonte original do relato, servida pela rota protegida. */
@@ -174,6 +179,7 @@
 @media (max-width: 760px) {
   .meal-log-fields { grid-template-columns: 1fr; }
   .meal-log-item > div { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .meal-log-disclosure > summary { align-items: flex-start; flex-direction: column; gap: 4px; }
 }
 
 .patient-required-preparation h2,
