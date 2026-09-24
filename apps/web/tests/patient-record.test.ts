@@ -39,12 +39,15 @@ test("patient header states an active link honestly even with no consultation or
     patientHeaderFacts(
       {
         relationshipId: "rel-1",
+        canReviewPreparation: true,
 preparation: null,
+        previousPreparation: null,
         documents: { total: 0, latest_at: null },
         measurements: { total: 0, latest_at: null },
         intake: null,
         encounter: null,
         nextAppointment: null,
+        preparationAppointmentAt: null,
         publications: [],
         requests: [],
       },
@@ -67,12 +70,15 @@ test("patient header links to the real finalized encounter and published plan", 
     patientHeaderFacts(
       {
         relationshipId: "rel-1",
+        canReviewPreparation: true,
 preparation: null,
+        previousPreparation: null,
         documents: { total: 0, latest_at: null },
         measurements: { total: 0, latest_at: null },
         intake: null,
         encounter: { id: "enc-1", finalized_at: "2026-09-10T12:00:00.000Z" },
         nextAppointment: null,
+        preparationAppointmentAt: null,
         publications: [
           {
             id: "pub-1",
@@ -102,7 +108,9 @@ test("patient header links to the next scheduled appointment", () => {
   const facts = patientHeaderFacts(
     {
       relationshipId: "rel-1",
+      canReviewPreparation: true,
 preparation: null,
+      previousPreparation: null,
       documents: { total: 0, latest_at: null },
       measurements: { total: 0, latest_at: null },
       intake: null,
@@ -112,6 +120,7 @@ preparation: null,
         starts_at: "2026-09-20T13:30:00.000Z",
         status: "scheduled",
       },
+      preparationAppointmentAt: "2026-09-20T13:30:00.000Z",
       publications: [],
       requests: [],
     },

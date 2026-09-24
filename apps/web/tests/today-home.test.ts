@@ -77,7 +77,7 @@ test("sem vínculo ativo não há contexto, nem recebidos, nem query de recebido
 
 test("cada bloco usa o contexto do próprio paciente, nunca o de outra linha", () => {
   const service = read("../modules/workspace/today.ts");
-  assert.match(service, /\[item\.id, await patientCareContext\(id, item\.patient_id\)\] as const/);
+  assert.match(service, /\[item\.id, await patientCareContext\(id, item\.patient_id, \{\s*id: item\.id,\s*starts_at: item\.starts_at,\s*\}\)\] as const/);
   assert.match(day(), /const contextFor = \(appointmentId: string\) =>\s*data\.contexts\.get\(appointmentId\) \?\? null;/);
   assert.doesNotMatch(day(), /data\.context\b/);
 });

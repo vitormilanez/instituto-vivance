@@ -2928,6 +2928,8 @@ button.calendar-day[aria-pressed="true"] {
 .context-cards strong { font-size: 13px; color: var(--navy); }
 .context-cards .context-state { grid-column: 1; max-width: 52ch; font-size: 12px; line-height: 1.45; color: var(--context-muted); overflow-wrap: anywhere; }
 .context-cards .context-action { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--blue); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.context-cards > li > a.context-history { display: flex; align-items: center; min-height: 44px; margin-top: 4px; padding: 8px 14px; border: 0; background: transparent; color: var(--blue); font-size: 12px; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
+.context-cards > li > a.context-history:hover { background: var(--blue-soft); }
 /* Pedido ao paciente: botão próprio, abaixo do link que abre o registro —
    alvos irmãos, nunca um controle dentro do outro. A ação nomeia o objeto, e o
    convite ao bilhete fica mais discreto que ela. */

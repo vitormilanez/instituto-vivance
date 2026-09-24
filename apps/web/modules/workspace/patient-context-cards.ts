@@ -9,7 +9,10 @@
 export type ConsultationContextInput = {
   base: string;
   recordBase: string;
+  canReviewPreparation: boolean;
   preparation: { id: string; status: string; submittedAt: string | null } | null;
+  nextAppointmentAt: string | null;
+  previousPreparation: { id: string; submittedAt: string } | null;
   documents: { total: number; latestAt: string | null };
   measurements: { total: number; latestAt: string | null };
   intake: { hasGoal: boolean; updatedAt: string | null } | null;
@@ -52,8 +55,11 @@ export type ContextCard = {
   // Ausência do que o paciente deve fornecer. É pendência operacional, nunca
   // risco ou urgência.
   pending: boolean;
+  // Pré-consulta só entra no resumo de lacunas quando há solicitação para a consulta.
+  expected?: boolean;
   // Presente apenas nos cards que o paciente alimenta.
   request: ContextCardRequest | null;
+  history: { label: string; href: string } | null;
 };
 
 // A ordem é fixa para o médico aprender onde olhar: primeiro o que o paciente
@@ -121,22 +127,40 @@ function requestFor(
 
 function preparationCard(input: ConsultationContextInput): ContextCard {
   const request = input.preparation;
-  const state =
-    !request || request.status === "requested" || request.status === "cancelled"
-      ? { state: "Não preenchida", pending: true }
-      : request.status === "draft"
-        ? { state: "Rascunho salvo", pending: true }
-        : { state: "Enviada", pending: false };
+  const appointmentDate = dayMonth(input.nextAppointmentAt);
+  const forAppointment = appointmentDate ? ` para consulta de ${appointmentDate}` : "";
+  const state = !input.nextAppointmentAt
+    ? { state: "Sem próxima consulta agendada", pending: false }
+    : !request || request.status === "cancelled"
+      ? { state: `Não solicitada${forAppointment}`, pending: false }
+      : request.status === "requested"
+        ? { state: `Aguardando resposta${forAppointment}`, pending: true }
+        : request.status === "draft"
+          ? { state: `Em preenchimento${forAppointment}`, pending: true }
+          : {
+              state: `Enviada${request.submittedAt ? ` em ${dayMonth(request.submittedAt)}` : ""}${forAppointment}`,
+              pending: false,
+            };
+  const history = input.canReviewPreparation && input.previousPreparation
+    ? {
+        label: `Ver pré-consulta anterior enviada em ${dayMonth(input.previousPreparation.submittedAt)}`,
+        href: `${input.base}/preparo?solicitacao=${input.previousPreparation.id}#preparo-${input.previousPreparation.id}`,
+      }
+    : null;
   return {
     id: "preparation",
     title: "Pré-consulta",
     ...state,
-    action: "Abrir pré-consulta",
+    expected: Boolean(request && request.status !== "cancelled"),
+    action: request && request.status !== "cancelled"
+      ? "Abrir pré-consulta desta consulta"
+      : input.canReviewPreparation ? "Ver pré-consultas" : "Ver ficha",
     href:
       request && request.status !== "cancelled"
         ? `${input.base}/preparo?solicitacao=${request.id}#preparo-${request.id}`
-        : input.recordBase,
+        : input.canReviewPreparation ? `${input.base}/preparo` : input.recordBase,
     request: requestFor(input, "preparation"),
+    history,
   };
 }
 
@@ -161,6 +185,7 @@ export function consultationContextCards(
       action: "Abrir documentos",
       href: `${input.recordBase}?aba=Documentos`,
       request: requestFor(input, "documents"),
+      history: null,
     },
     measurements: {
       id: "measurements",
@@ -174,6 +199,7 @@ export function consultationContextCards(
       action: "Abrir evolução",
       href: `${input.recordBase}?aba=Evolu%C3%A7%C3%A3o`,
       request: requestFor(input, "measurements"),
+      history: null,
     },
     goals: {
       id: "goals",
@@ -183,6 +209,7 @@ export function consultationContextCards(
       action: "Abrir contexto",
       href: `${input.recordBase}?aba=Vis%C3%A3o%20geral`,
       request: requestFor(input, "goals"),
+      history: null,
     },
     encounter: {
       id: "encounter",
@@ -198,6 +225,7 @@ export function consultationContextCards(
         ? `${input.base}/atendimentos/${input.encounter.id}`
         : `${input.base}/atendimentos`,
       request: null,
+      history: null,
     },
     plan: {
       id: "plan",
@@ -213,6 +241,7 @@ export function consultationContextCards(
         ? `${input.base}/planos/${input.publication.planId}`
         : `${input.recordBase}?aba=Vis%C3%A3o%20geral`,
       request: null,
+      history: null,
     },
   };
   return contextCardOrder.map((id) => cards[id]);
@@ -221,10 +250,16 @@ export function consultationContextCards(
 // Quantas das informações que o paciente deve fornecer ainda faltam. Diz o
 // tamanho da lacuna sem nomear risco nem priorizar conduta.
 export function contextSummary(cards: ContextCard[]): string {
-  const pending = cards.filter(
-    (card) => patientProvided.includes(card.id) && card.pending,
-  ).length;
-  if (pending === 0)
-    return "Pré-consulta, exames, medidas e metas estão registrados por este paciente.";
-  return `${pending} de ${patientProvided.length} informações do paciente ainda não foram registradas.`;
+  const expected = cards.filter(
+    (card) => patientProvided.includes(card.id) && card.expected !== false,
+  );
+  const pending = expected.filter((card) => card.pending).length;
+  if (pending === 0) {
+    return expected.length === patientProvided.length
+      ? "Pré-consulta, exames, medidas e metas estão registrados por este paciente."
+      : cards.find((card) => card.id === "preparation")?.state === "Sem próxima consulta agendada"
+        ? "Exames, medidas e metas registrados. Sem próxima consulta agendada para pré-consulta."
+        : "Exames, medidas e metas registrados. Não há pré-consulta solicitada para esta consulta.";
+  }
+  return `${pending} de ${expected.length} informações esperadas do paciente ainda não foram registradas.`;
 }

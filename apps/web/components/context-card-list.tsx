@@ -30,6 +30,11 @@ export function ContextCardList({
             <span className="context-state">{card.state}</span>
             <span className="context-action">{card.action}</span>
           </a>
+          {card.history ? (
+            <a className="context-history" href={card.history.href}>
+              {card.history.label}
+            </a>
+          ) : null}
           {card.request && tenantId && patientId ? (
             compactRequests ? (
               <details className="context-request-disclosure">
@@ -66,11 +71,19 @@ export function contextCardsFrom(
   return consultationContextCards({
     base,
     recordBase: recordBase ?? `${base}/pacientes/${patientId}`,
+    canReviewPreparation: context.canReviewPreparation,
     preparation: context.preparation
       ? {
           id: context.preparation.id,
           status: context.preparation.status,
           submittedAt: context.preparation.submitted_at,
+        }
+      : null,
+    nextAppointmentAt: context.preparationAppointmentAt,
+    previousPreparation: context.previousPreparation
+      ? {
+          id: context.previousPreparation.id,
+          submittedAt: context.previousPreparation.submitted_at,
         }
       : null,
     documents: {

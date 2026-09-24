@@ -123,7 +123,10 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
     Promise.all(
       shown.map(
         async (item) =>
-          [item.id, await patientCareContext(id, item.patient_id)] as const,
+          [item.id, await patientCareContext(id, item.patient_id, {
+            id: item.id,
+            starts_at: item.starts_at,
+          })] as const,
       ),
     ),
   ]);
@@ -157,8 +160,10 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
 
 export type PatientCareContext = {
   relationshipId: string;
+  canReviewPreparation: boolean;
   encounter: { id: string; finalized_at: string | null } | null;
   nextAppointment: { id: string; starts_at: string; status: string } | null;
+  preparationAppointmentAt: string | null;
   publications: {
     id: string;
     plan_id: string;
@@ -171,6 +176,10 @@ export type PatientCareContext = {
     status: string;
     submitted_at: string | null;
   } | null;
+  previousPreparation: {
+    id: string;
+    submitted_at: string;
+  } | null;
   documents: { total: number; latest_at: string | null };
   measurements: { total: number; latest_at: string | null };
   intake: { hasGoal: boolean; updatedAt: string | null } | null;
@@ -181,8 +190,9 @@ export type PatientCareContext = {
 export async function patientCareContext(
   id: string,
   patientId: string,
+  focusedAppointment?: { id: string; starts_at: string },
 ): Promise<PatientCareContext | null> {
-  const { client, user } = await requireClinic(id, ["doctor", "nurse"]);
+  const { client, user, clinic } = await requireClinic(id, ["doctor", "nurse"]);
   const relationship = await client
     .from("care_relationships")
     .select("id")
@@ -232,8 +242,8 @@ export async function patientCareContext(
   // O que o paciente deve fornecer e o que a clínica registrou, por tipo: o
   // bloco "Contexto para esta consulta" mostra um estado factual para cada um,
   // inclusive quando falta. Somente leitura; nenhuma inferência clínica.
-  const appointmentId = nextAppointment.data?.[0]?.id ?? null;
-  const [preparation, documents, measurements, intake, requests] =
+  const appointmentId = focusedAppointment?.id ?? nextAppointment.data?.[0]?.id ?? null;
+  const [preparation, previousPreparations, documents, measurements, intake, requests] =
     await Promise.all([
     appointmentId
       ? client
@@ -248,6 +258,17 @@ export async function patientCareContext(
           .limit(1)
           .maybeSingle()
       : Promise.resolve({ data: null, error: null }),
+    client
+      .from("return_preparation_requests")
+      .select("id,submitted_at")
+      .eq("tenant_id", id)
+      .eq("patient_id", patientId)
+      .eq("doctor_id", user.id)
+      .in("status", ["submitted", "reviewed"])
+      .not("submitted_at", "is", null)
+      .order("submitted_at", { ascending: false })
+      .order("id")
+      .limit(2),
     client
       .from("patient_documents")
       .select("created_at", { count: "exact" })
@@ -284,6 +305,7 @@ export async function patientCareContext(
   ]);
   if (
     preparation.error ||
+    previousPreparations.error ||
     documents.error ||
     measurements.error ||
     intake.error ||
@@ -293,10 +315,18 @@ export async function patientCareContext(
   const documentRow = documents.data?.[0] ?? null;
   const measurementRow = measurements.data?.[0] ?? null;
   const intakeRow = intake.data ?? null;
+  const previousPreparationRow = (previousPreparations.data ?? []).find(
+    (row) => row.id !== preparation.data?.id && row.submitted_at !== null,
+  ) ?? null;
+  const previousPreparation = previousPreparationRow?.submitted_at
+    ? { id: previousPreparationRow.id, submitted_at: previousPreparationRow.submitted_at }
+    : null;
   return {
     relationshipId: relationship.data.id,
+    canReviewPreparation: clinic.role === "doctor",
     encounter: encounter.data?.[0] ?? null,
     nextAppointment: nextAppointment.data?.[0] ?? null,
+    preparationAppointmentAt: focusedAppointment?.starts_at ?? nextAppointment.data?.[0]?.starts_at ?? null,
     publications: publications.data ?? [],
     preparation: preparation.data
       ? {
@@ -305,6 +335,7 @@ export async function patientCareContext(
           submitted_at: preparation.data.submitted_at,
         }
       : null,
+    previousPreparation,
     documents: {
       total: documents.count ?? (documentRow ? 1 : 0),
       latest_at: documentRow?.created_at ?? null,

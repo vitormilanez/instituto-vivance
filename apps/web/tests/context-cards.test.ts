@@ -14,7 +14,10 @@ const recordBase = `${base}/pacientes/paciente-1`;
 const empty: ConsultationContextInput = {
   base,
   recordBase,
+  canReviewPreparation: true,
   preparation: null,
+  nextAppointmentAt: "2026-09-25T13:00:00Z",
+  previousPreparation: null,
   documents: { total: 0, latestAt: null },
   measurements: { total: 0, latestAt: null },
   intake: null,
@@ -39,7 +42,6 @@ test("os cards de contexto mantêm a mesma ordem e nunca somem quando faltam", (
     assert.ok(item.href.startsWith(base), `${item.id} sem destino`);
   }
   assert.deepEqual(cards.filter((c) => c.pending).map((c) => c.id), [
-    "preparation",
     "documents",
     "measurements",
     "goals",
@@ -58,7 +60,7 @@ test("cada card escreve o próprio estado factual, sem frase genérica", () => {
     encounter: { id: "enc-1", finalizedAt: "2026-09-12T12:00:00Z" },
     publication: { planId: "plan-1", revision: 3, publishedAt: "2026-09-13T12:00:00Z" },
   });
-  assert.equal(card(cards, "preparation").state, "Rascunho salvo");
+  assert.equal(card(cards, "preparation").state, "Em preenchimento para consulta de 25/09");
   assert.equal(card(cards, "documents").state, "2 exames enviados em 17/09");
   // A contagem funciona no singular e mesmo sem data conhecida.
   assert.equal(
@@ -79,21 +81,48 @@ test("cada card escreve o próprio estado factual, sem frase genérica", () => {
 test("pré-consulta distingue não preenchida, rascunho e enviada", () => {
   const state = (preparation: ConsultationContextInput["preparation"]) =>
     card(consultationContextCards({ ...empty, preparation }), "preparation");
-  assert.equal(state(null).state, "Não preenchida");
-  assert.equal(state({ id: "p", status: "requested", submittedAt: null }).state, "Não preenchida");
-  assert.equal(state({ id: "p", status: "cancelled", submittedAt: null }).state, "Não preenchida");
-  assert.equal(state({ id: "p", status: "draft", submittedAt: null }).state, "Rascunho salvo");
-  assert.equal(state({ id: "p", status: "submitted", submittedAt: "2026-09-20T12:00:00Z" }).state, "Enviada");
-  assert.equal(state({ id: "p", status: "reviewed", submittedAt: "2026-09-20T12:00:00Z" }).state, "Enviada");
+  assert.equal(state(null).state, "Não solicitada para consulta de 25/09");
+  assert.equal(state({ id: "p", status: "requested", submittedAt: null }).state, "Aguardando resposta para consulta de 25/09");
+  assert.equal(state({ id: "p", status: "cancelled", submittedAt: null }).state, "Não solicitada para consulta de 25/09");
+  assert.equal(state({ id: "p", status: "draft", submittedAt: null }).state, "Em preenchimento para consulta de 25/09");
+  assert.equal(state({ id: "p", status: "submitted", submittedAt: "2026-09-20T12:00:00Z" }).state, "Enviada em 20/09 para consulta de 25/09");
+  assert.equal(state({ id: "p", status: "reviewed", submittedAt: "2026-09-20T12:00:00Z" }).state, "Enviada em 20/09 para consulta de 25/09");
   // O rascunho e a solicitação pendente continuam sendo lacuna.
   assert.ok(state({ id: "p", status: "draft", submittedAt: null }).pending);
-  assert.ok(state(null).pending);
+  assert.ok(!state(null).pending);
   assert.ok(!state({ id: "p", status: "submitted", submittedAt: null }).pending);
+});
+
+test("pré-consulta anterior não se confunde com a próxima consulta", () => {
+  const current = card(consultationContextCards({
+    ...empty,
+    previousPreparation: { id: "old-1", submittedAt: "2026-09-23T19:32:00Z" },
+  }), "preparation");
+  assert.equal(current.state, "Não solicitada para consulta de 25/09");
+  assert.equal(current.href, `${base}/preparo`);
+  assert.deepEqual(current.history, {
+    label: "Ver pré-consulta anterior enviada em 23/09",
+    href: `${base}/preparo?solicitacao=old-1#preparo-old-1`,
+  });
+  const withoutAppointment = card(consultationContextCards({
+    ...empty,
+    nextAppointmentAt: null,
+    previousPreparation: { id: "old-1", submittedAt: "2026-09-23T19:32:00Z" },
+  }), "preparation");
+  assert.equal(withoutAppointment.state, "Sem próxima consulta agendada");
+  assert.equal(withoutAppointment.history?.href, current.history?.href);
+  const nurse = card(consultationContextCards({
+    ...empty,
+    canReviewPreparation: false,
+    previousPreparation: { id: "old-1", submittedAt: "2026-09-23T19:32:00Z" },
+  }), "preparation");
+  assert.equal(nurse.href, recordBase);
+  assert.equal(nurse.history, null);
 });
 
 test("o resumo conta só o que o paciente deve fornecer", () => {
   const cards = consultationContextCards(empty);
-  assert.equal(contextSummary(cards), "4 de 4 informações do paciente ainda não foram registradas.");
+  assert.equal(contextSummary(cards), "3 de 3 informações esperadas do paciente ainda não foram registradas.");
   const onlyPlanMissing = consultationContextCards({
     ...empty,
     preparation: { id: "p", status: "submitted", submittedAt: null },
