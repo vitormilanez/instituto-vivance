@@ -20,6 +20,9 @@ const empty: ConsultationContextInput = {
   base,
   recordBase,
   preparation: null,
+  canReviewPreparation: true,
+  nextAppointmentAt: null,
+  previousPreparation: null,
   documents: { total: 0, latestAt: null },
   measurements: { total: 0, latestAt: null },
   intake: null,
@@ -164,7 +167,8 @@ test("o botão é irmão do link, o bilhete é opcional e a incerteza não mente
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 
   // Nada de controle interativo dentro da âncora: o link navega, o botão pede.
-  assert.match(list, /<\/a>\s*\{card\.request && tenantId && patientId \? \(/);
+  assert.match(list, /<\/a>\s*\{card\.history \? \(/);
+  assert.match(list, /\) : null\}\s*\{card\.request && tenantId && patientId \? \(/);
   assert.doesNotMatch(list, /<a[^>]*>\s*<CareRequestAction/);
   // Um clique pede; o bilhete é um convite separado.
   assert.match(component, /Adicionar uma mensagem/);
