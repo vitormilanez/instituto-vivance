@@ -19,6 +19,8 @@ import {
 import { ReceivedSince } from "@/components/received-since";
 import { CareLinkAccept } from "@/components/care-link-accept";
 import { DoctorWeightChart, type WeightPoint } from "@/components/doctor-weight-chart";
+import { preparationQuestions } from "@/modules/return-preparation/questionnaire";
+import { onboardingMeasurements, onboardingQuestions } from "@/modules/onboarding/display";
 
 export type BlockAppointment = {
   id: string;
@@ -107,6 +109,7 @@ export function ConsultationBlock({
       </header>
       {linkCopy ? <div className="home-care-link"><p>{linkCopy}</p>{link.status === "assigned" && <CareLinkAccept tenantId={tenantId} relationshipId={link.relationshipId} version={link.version} patientName={name} />}</div> : <>
         {context && <ConsultationGlance context={context} tenantId={tenantId} patientId={appointment.patient_id} weight={weight} />}
+        {context && <ConsultationAnswers context={context} />}
         {context && <div className="doctor-consultation-context"><ContextCardList cards={cards} compactRequests={compact} homeView base={base} patientId={appointment.patient_id} /></div>}
       </>}
       <div className="home-consultation-actions">
@@ -262,6 +265,42 @@ function ConsultationGlance({ context, tenantId, patientId, weight }: { context:
           </p>
         ) : null}
       </div>
+    </section>
+  );
+}
+
+function ConsultationAnswers({ context }: { context: PatientCareContext }) {
+  const current = context.preparation;
+  const onboarding = context.onboarding;
+  if (!current?.submitted_at && !onboarding) return null;
+  const submittedDate = (value: string) => new Date(value).toLocaleDateString("pt-BR", {
+    day: "2-digit", month: "2-digit", year: "numeric", timeZone: "America/Sao_Paulo",
+  });
+  return (
+    <section className="doctor-consultation-answers" aria-label="Respostas enviadas pelo paciente">
+      {current?.submitted_at && current.answers && (
+        <article className="doctor-consultation-answer-card">
+          <h3>Pré-consulta desta consulta</h3>
+          <p className="doctor-consultation-answer-source">Enviada em {submittedDate(current.submitted_at)} pelo paciente.</p>
+          <dl>
+            {preparationQuestions.map(({ id, label }) => (
+              <div key={id}><dt>{label}</dt><dd>{current.answers?.[id]?.trim() ? current.answers[id] : "Não informado"}</dd></div>
+            ))}
+          </dl>
+        </article>
+      )}
+      {onboarding && (
+        <article className="doctor-consultation-answer-card">
+          <h3>Cadastro inicial</h3>
+          <p className="doctor-consultation-answer-source">Enviado em {submittedDate(onboarding.submittedAt)} pelo paciente.</p>
+          <dl>
+            {onboardingQuestions.map(({ id, label }) => (
+              <div key={id}><dt>{label}</dt><dd>{onboarding.answers[id]?.trim() ? onboarding.answers[id] : "Não informado"}</dd></div>
+            ))}
+            <div><dt>Medidas informadas no cadastro</dt><dd>{onboardingMeasurements(onboarding.measurements)}</dd></div>
+          </dl>
+        </article>
+      )}
     </section>
   );
 }

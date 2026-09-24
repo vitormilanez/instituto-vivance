@@ -1,13 +1,6 @@
 import Link from "next/link";
 import type { OnboardingRecord } from "@/modules/onboarding/types";
-
-const questions = [
-  ["goal", "O que procura melhorar"],
-  ["history", "Quando começou e o que mudou"],
-  ["routine", "Rotina e impacto no dia a dia"],
-  ["treatments", "Tratamentos, medicamentos e tentativas anteriores"],
-  ["questions", "Dúvidas para a consulta"],
-] as const;
+import { onboardingMeasurements, onboardingQuestions } from "@/modules/onboarding/display";
 
 export function OnboardingSummary({
   record,
@@ -28,33 +21,18 @@ export function OnboardingSummary({
         .
       </p>
       <dl className="patient-facts">
-        {questions.map(([key, label]) => (
-          <div key={key}>
+        {onboardingQuestions.map(({ id, label }) => (
+          <div key={id}>
             <dt>{label}</dt>
             <dd style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
-              {record.answers[key] || "Não informado — conversar na consulta"}
+              {record.answers[id] || "Não informado — conversar na consulta"}
             </dd>
           </div>
         ))}
         <div>
           <dt>Medidas informadas</dt>
           <dd>
-            {[
-              measures.weightKg !== null
-                ? `Peso: ${measures.weightKg} kg`
-                : null,
-              measures.heightCm !== null
-                ? `Altura: ${measures.heightCm} cm`
-                : null,
-              measures.waistCm !== null
-                ? `Cintura: ${measures.waistCm} cm`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" · ") || "Não informadas"}
-            {measures.measuredOn
-              ? ` (${measures.measuredOn.split("-").reverse().join("/")})`
-              : ""}
+            {onboardingMeasurements(measures)}
           </dd>
         </div>
       </dl>

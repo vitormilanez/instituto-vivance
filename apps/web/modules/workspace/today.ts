@@ -8,6 +8,7 @@ import { requestInstant } from "@/lib/request-time";
 import { openConsultationId } from "./home-view";
 import { openWork } from "./open-work";
 import { staffRecentWeight } from "@/modules/longitudinal/service";
+import { preparationQuestions } from "@/modules/return-preparation/questionnaire";
 import type { OpenWorkItem } from "./open-work-items";
 import type { ReceivedItem } from "./received-items";
 import {
@@ -192,11 +193,22 @@ export type PatientCareContext = {
     status: string;
     submitted_at: string | null;
     goal?: string | null;
+    answers: Record<string, string> | null;
   } | null;
   previousPreparation: {
     id: string;
     submitted_at: string;
     goal?: string | null;
+  } | null;
+  onboarding: {
+    submittedAt: string;
+    answers: Record<string, string>;
+    measurements: {
+      weightKg: number | null;
+      heightCm: number | null;
+      waistCm: number | null;
+      measuredOn: string | null;
+    };
   } | null;
   documents: { total: number; latest_at: string | null };
   measurements: { total: number; latest_at: string | null };
@@ -261,7 +273,7 @@ export async function patientCareContext(
   // bloco "Contexto para esta consulta" mostra um estado factual para cada um,
   // inclusive quando falta. Somente leitura; nenhuma inferência clínica.
   const appointmentId = focusedAppointment?.id ?? nextAppointment.data?.[0]?.id ?? null;
-  const [preparation, previousPreparations, documents, measurements, intake, requests] =
+  const [preparation, previousPreparations, documents, measurements, intake, requests, onboarding] =
     await Promise.all([
     appointmentId
       ? client
@@ -320,6 +332,12 @@ export async function patientCareContext(
       .eq("status", "requested")
       .order("requested_at")
       .order("id"),
+    client
+      .from("patient_onboarding_submissions")
+      .select("submitted_at,answer_goal,answer_history,answer_routine,answer_treatments,answer_questions,weight_kg,height_cm,waist_cm,measured_on")
+      .eq("tenant_id", id)
+      .eq("patient_id", patientId)
+      .maybeSingle(),
   ]);
   if (
     preparation.error ||
@@ -327,7 +345,8 @@ export async function patientCareContext(
     documents.error ||
     measurements.error ||
     intake.error ||
-    requests.error
+    requests.error ||
+    onboarding.error
   )
     throw new Error("Unable to load patient care context");
   const documentRow = documents.data?.[0] ?? null;
@@ -349,15 +368,19 @@ export async function patientCareContext(
     : { data: [], error: null };
   if (submissions.error)
     throw new Error("Unable to load preparation answers");
-  const goalFor = (requestId: string | undefined) => {
+  const answersFor = (requestId: string | undefined): Record<string, string> | null => {
     const answers = submissions.data?.find(
       (submission) => submission.request_id === requestId,
     )?.answers;
     if (!answers || Array.isArray(answers) || typeof answers !== "object")
       return null;
-    const goal = (answers as Record<string, unknown>).goal;
-    return typeof goal === "string" && goal.trim() ? goal.trim() : null;
+    const original = answers as Record<string, unknown>;
+    return Object.fromEntries(preparationQuestions.map(({ id: questionId }) => [
+      questionId,
+      typeof original[questionId] === "string" ? original[questionId] : "",
+    ]));
   };
+  const goalFor = (requestId: string | undefined) => answersFor(requestId)?.goal.trim() || null;
   const previousPreparation = previousPreparationRow?.submitted_at
     ? {
         id: previousPreparationRow.id,
@@ -378,9 +401,26 @@ export async function patientCareContext(
           status: preparation.data.status,
           submitted_at: preparation.data.submitted_at,
           goal: goalFor(preparation.data.id),
+          answers: answersFor(preparation.data.id),
         }
       : null,
     previousPreparation,
+    onboarding: onboarding.data ? {
+      submittedAt: onboarding.data.submitted_at,
+      answers: {
+        goal: onboarding.data.answer_goal ?? "",
+        history: onboarding.data.answer_history ?? "",
+        routine: onboarding.data.answer_routine ?? "",
+        treatments: onboarding.data.answer_treatments ?? "",
+        questions: onboarding.data.answer_questions ?? "",
+      },
+      measurements: {
+        weightKg: onboarding.data.weight_kg,
+        heightCm: onboarding.data.height_cm,
+        waistCm: onboarding.data.waist_cm,
+        measuredOn: onboarding.data.measured_on,
+      },
+    } : null,
     documents: {
       total: documents.count ?? (documentRow ? 1 : 0),
       latest_at: documentRow?.created_at ?? null,
