@@ -517,3 +517,8 @@
     flex-direction: column;
   }
 }
+/* A Agenda do médico esconde o título (div) do page-heading; os botões
+   ficam num div próprio e precisam continuar visíveis. */
+.dv-area-agenda .page-heading > .agenda-heading-actions {
+  display: flex;
+}

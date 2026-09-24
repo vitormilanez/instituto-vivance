@@ -154,3 +154,16 @@ test("hub: selected mode is styled, link can be pasted, today comes first", () =
   );
   assert.match(workspace, /<h1 className="sr-only">/);
 });
+
+test("doctor Agenda keeps its heading buttons visible", () => {
+  const css = readFileSync(
+    new URL("../app/teleconsultation.css", import.meta.url),
+    "utf8",
+  );
+  const hidden = readFileSync(
+    new URL("../app/doctor-communications.css", import.meta.url),
+    "utf8",
+  );
+  assert.match(hidden, /\.dv-area-agenda \.page-heading > div \{ display: none; \}/);
+  assert.match(css, /\.dv-area-agenda \.page-heading > \.agenda-heading-actions \{\s*display: flex;/);
+});
