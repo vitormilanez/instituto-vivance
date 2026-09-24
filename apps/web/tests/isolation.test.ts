@@ -5203,6 +5203,14 @@ async function careRequestFixture() {
     "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
     [a, pa, users.patient.id],
   );
+  await db.query(
+    "insert into public.patient_intake_contexts(tenant_id,patient_id,recorded_by,recorded_by_name) values($1,$2,$3,'Synthetic doctor')",
+    [a, pa, users.doctor.id],
+  );
+  await db.query(
+    "insert into public.appointments(tenant_id,patient_id,doctor_id,starts_at,ends_at,kind) values($1,$2,$3,'2100-01-21T12:00:00Z','2100-01-21T12:30:00Z','return')",
+    [a, pa, users.doctor.id],
+  );
   await switchActor("doctor");
 }
 
@@ -5396,6 +5404,132 @@ test("solicitar exige médico com vínculo ativo, e o registro é auditado", asy
       [id],
     );
     assert.ok(audited.rows[0].count >= 1, "a solicitação entra na auditoria");
+  });
+});
+
+test("pré-consulta genérica cria um alvo de retorno e só esse alvo conclui o pedido", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const care = (await requestCare("preparation")).rows[0].id;
+    const stored = await db.query<{ preparation_id: string; status: string }>(
+      "select preparation_id,status from public.patient_care_requests where id=$1",
+      [care],
+    );
+    assert.ok(stored.rows[0].preparation_id);
+    assert.equal(stored.rows[0].status, "requested");
+    assert.equal(
+      (
+        await db.query<{ count: number }>(
+          "select count(*)::int count from public.return_preparation_requests where id=$1 and patient_id=$2",
+          [stored.rows[0].preparation_id, pa],
+        )
+      ).rows[0].count,
+      1,
+    );
+
+    // Uma resposta antiga do mesmo paciente não satisfaz a solicitação nova.
+    await db.exec("reset role");
+    const unrelated = randomUUID();
+    const unrelatedAppointment = randomUUID();
+    await db.query(
+      `insert into public.appointments(
+        id,tenant_id,patient_id,doctor_id,starts_at,ends_at,kind
+      ) values($1,$2,$3,$4,'2100-01-22T12:00:00Z','2100-01-22T12:30:00Z','return')`,
+      [unrelatedAppointment, a, pa, users.doctor.id],
+    );
+    await db.query(
+      `insert into public.return_preparation_requests(
+        id,tenant_id,appointment_id,patient_id,doctor_id,questionnaire_version,
+        request_number,requested_by,client_request_id
+      ) select $1,tenant_id,$2,patient_id,doctor_id,
+        questionnaire_version,1,requested_by,$3
+        from public.return_preparation_requests where id=$4`,
+      [unrelated, unrelatedAppointment, randomUUID(), stored.rows[0].preparation_id],
+    );
+    await db.query(
+      "update public.return_preparation_requests set status='submitted',submitted_at=clock_timestamp() where id=$1",
+      [unrelated],
+    );
+    assert.equal(
+      (
+        await db.query<{ status: string }>(
+          "select status from public.patient_care_requests where id=$1",
+          [care],
+        )
+      ).rows[0].status,
+      "requested",
+    );
+    await db.query(
+      "update public.return_preparation_requests set status='submitted',submitted_at=clock_timestamp() where id=$1",
+      [stored.rows[0].preparation_id],
+    );
+    assert.equal(
+      (
+        await db.query<{ status: string }>(
+          "select status from public.patient_care_requests where id=$1",
+          [care],
+        )
+      ).rows[0].status,
+      "completed",
+    );
+  });
+});
+
+test("pré-consulta sem próximo retorno falha sem deixar pedido, preparo ou mensagem parcial", async () => {
+  await asUser("doctor", async () => {
+    await startClinical("2099-12-23T12:00:00Z", "2099-12-23T12:30:00Z");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+      [a, pa, users.patient.id],
+    );
+    await switchActor("doctor");
+    await denied(
+      "select public.request_patient_care($1,$2,'preparation','',$3,false)",
+      [a, pa, randomUUID()],
+    );
+    await db.exec("reset role");
+    assert.equal((await db.query("select id from public.patient_care_requests")).rows.length, 0);
+    assert.equal((await db.query("select id from public.return_preparation_requests")).rows.length, 0);
+    assert.equal((await db.query("select id from public.care_messages")).rows.length, 0);
+  });
+});
+
+test("metas exigem uma versão de acolhimento posterior ao pedido, inclusive após conclusão anterior", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const first = (await requestCare("goals")).rows[0].id;
+    await switchActor("patient");
+    await db.query(
+      `update public.patient_intake_contexts
+       set status='completed',reason_text='Motivo',expected_outcome='Meta nova',
+         first_priority='Prioridade',expected_version=1
+       where tenant_id=$1 and patient_id=$2`,
+      [a, pa],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query<{ status: string }>("select status from public.patient_care_requests where id=$1", [first])).rows[0].status,
+      "completed",
+    );
+
+    const second = (await requestCare("goals")).rows[0].id;
+    assert.equal(
+      (await db.query<{ requested_intake_version: number }>("select requested_intake_version from public.patient_care_requests where id=$1", [second])).rows[0].requested_intake_version,
+      2,
+    );
+    await switchActor("patient");
+    await db.query(
+      `update public.patient_intake_contexts
+       set status='completed',expected_outcome='Meta atualizada',expected_version=2
+       where tenant_id=$1 and patient_id=$2`,
+      [a, pa],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query<{ status: string }>("select status from public.patient_care_requests where id=$1", [second])).rows[0].status,
+      "completed",
+    );
   });
 });
 test("não visto é por profissional, idempotente e segue o vínculo de cuidado", async () => {
@@ -5815,4 +5949,3 @@ test("telefone e sinais de alerta: equipe cadastra, só médico aprova a lista, 
     assert.ok(audit.rows.length >= 3);
   });
 });
-

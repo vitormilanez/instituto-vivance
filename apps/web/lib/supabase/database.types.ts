@@ -1384,6 +1384,8 @@ export type Database = {
           requested_at: string;
           completed_at: string | null;
           cancelled_at: string | null;
+          preparation_id: string | null;
+          requested_intake_version: number | null;
         };
         Insert: never;
         Update: never;
@@ -1401,6 +1403,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "memberships";
             referencedColumns: ["tenant_id", "user_id"];
+          },
+          {
+            foreignKeyName: "patient_care_requests_tenant_id_preparation_id_fkey";
+            columns: ["tenant_id", "preparation_id"];
+            isOneToOne: false;
+            referencedRelation: "return_preparation_requests";
+            referencedColumns: ["tenant_id", "id"];
           },
         ];
       };

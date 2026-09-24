@@ -194,3 +194,27 @@ test("o botão é irmão do link, o bilhete é opcional e a incerteza não mente
   // Alvos de 44px também no convite ao bilhete.
   assert.match(css, /\.context-request-note \{[^}]*min-height: 44px;/);
 });
+
+test("pendências do paciente carregam o alvo exato da pré-consulta", () => {
+  const service = readFileSync(
+    new URL("../modules/care-requests/service.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(service, /select\("kind,requested_at,preparation_id"\)/);
+  assert.match(service, /preparation_starts_at/);
+  assert.match(service, /Agende primeiro uma próxima consulta/);
+});
+
+test("a página estática de metas reutiliza o acolhimento versionado após o onboarding", () => {
+  const page = readFileSync(
+    new URL(
+      "../app/clinicas/[tenantId]/meu-cuidado/metas/page.tsx",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  assert.match(page, /onboarding\.status !== "submitted"/);
+  assert.match(page, /<PatientIntakePanel/);
+  assert.match(page, /audience="patient"/);
+  assert.match(page, /canEdit/);
+});
