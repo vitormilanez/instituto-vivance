@@ -25,6 +25,7 @@ type ClockRow = {
   sender_id?: string | null;
   actor_user_id?: string | null;
   client_request_id?: string | null;
+  status?: string | null;
 };
 
 function hrefFor(
@@ -135,7 +136,7 @@ export async function receivedForPatients(
       since(
         client
           .from("return_preparation_requests")
-          .select("id,patient_id,at:submitted_at")
+          .select("id,patient_id,at:submitted_at,status")
           .eq("tenant_id", tenant)
           .in("status", ["submitted", "reviewed"])
           .in("patient_id", patientIds),
@@ -173,7 +174,7 @@ export async function receivedForPatients(
       since(
         client
           .from("care_check_ins")
-          .select("id,patient_id,at:submitted_at")
+          .select("id,patient_id,at:submitted_at,status")
           .eq("tenant_id", tenant)
           .in("status", ["submitted", "reviewed"])
           .in("patient_id", patientIds),
@@ -213,6 +214,7 @@ export async function receivedForPatients(
     kind: ReceivedItemKind,
     result: { data: unknown; error: unknown },
     sentByPatient: (row: ClockRow) => boolean,
+    reviewed?: (row: ClockRow) => boolean,
   ) => {
     if (result.error) {
       failed.push(kind);
@@ -230,13 +232,14 @@ export async function receivedForPatients(
         // Hoje o autor é sempre o paciente; a tela não exibe o campo.
         author: null,
         href: hrefFor(kind, base, row.patient_id, row.id),
+        reviewed: reviewed?.(row),
       });
     }
   };
   // Pré-consulta enviada e check-in respondido são do paciente por construção:
   // o status já garante isso. Documento, mensagem e medida podem ser da equipe,
   // então cada um compara o autor com o usuário daquele paciente.
-  consider("preparation", preparations, () => true);
+  consider("preparation", preparations, () => true, (row) => row.status === "reviewed");
   consider(
     "documents",
     documents,
@@ -247,7 +250,7 @@ export async function receivedForPatients(
     messages,
     (row) => row.sender_id === userByPatient.get(row.patient_id),
   );
-  consider("checkins", checkIns, () => true);
+  consider("checkins", checkIns, () => true, (row) => row.status === "reviewed");
   consider(
     "measurements",
     measurements,
@@ -268,21 +271,38 @@ export async function receivedForPatients(
   // O que este profissional já abriu. Leitura é por pessoa: a RLS só devolve
   // as linhas do próprio usuário, e o filtro explícito diz a mesma coisa. Se a
   // leitura falhar, nenhum item vira "novo" nem "visto" — fica sem marcação.
-  const reads = rows.length
-    ? await client
+  const documentIds = rows.filter((row) => row.kind === "documents").map((row) => row.id);
+  const [reads, documentReviews] = await Promise.all([
+    rows.length
+      ? client
         .from("patient_item_reads")
         .select("item_kind,item_id")
         .eq("tenant_id", tenant)
         .eq("user_id", user.id)
         .in("patient_id", patientIds)
-    : { data: [], error: null };
+      : Promise.resolve({ data: [], error: null }),
+    documentIds.length
+      ? client
+        .from("patient_document_reviews")
+        .select("document_id")
+        .eq("tenant_id", tenant)
+        .in("patient_id", patientIds)
+        .in("document_id", documentIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
   const seen = reads.error
     ? null
     : new Set(
         (reads.data ?? []).map((row) => `${row.item_kind}:${row.item_id}`),
       );
-  for (const row of rows)
+  const reviewedDocuments = documentReviews.error
+    ? null
+    : new Set((documentReviews.data ?? []).map((review) => review.document_id));
+  for (const row of rows) {
     row.seen = seen ? seen.has(`${row.kind}:${row.id}`) : null;
+    if (row.kind === "documents")
+      row.reviewed = reviewedDocuments ? reviewedDocuments.has(row.id) : null;
+  }
   return { byPatient: splitByPatient(rows, cutoffs), failed };
 }
 
