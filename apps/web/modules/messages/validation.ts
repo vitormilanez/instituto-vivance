@@ -21,6 +21,19 @@ function messageText(value: unknown): string {
 
 export function messageInput(value: unknown) {
   const body = record(value);
+  const hasLegacyReference = body.reference_type !== undefined || body.reference_id !== undefined;
+  const legacyReference = body.reference_type === null && body.reference_id === null
+    ? []
+    : [
+        { type: body.reference_type, id: body.reference_id },
+      ];
+  const references = Array.isArray(body.references)
+    ? body.references
+    : body.references === undefined && hasLegacyReference
+      ? legacyReference
+      : body.references === undefined
+        ? []
+        : null;
   if (
     Object.keys(body).some(
       (key) =>
@@ -28,30 +41,45 @@ export function messageInput(value: unknown) {
           "patient_id",
           "doctor_id",
           "content",
+          "references",
           "reference_type",
           "reference_id",
         ].includes(key),
     ) ||
     typeof body.patient_id !== "string" ||
     typeof body.doctor_id !== "string" ||
-    !(
-      (body.reference_type === undefined && body.reference_id === undefined) ||
+    references === null ||
+    (body.references !== undefined && hasLegacyReference) ||
+    (hasLegacyReference && !(
       (body.reference_type === null && body.reference_id === null) ||
-      (["document", "care_plan"].includes(String(body.reference_type)) &&
-        typeof body.reference_id === "string")
-    )
+      (["document", "care_plan"].includes(String(body.reference_type)) && typeof body.reference_id === "string")
+    )) ||
+    (references?.length ?? 0) > 10
   )
     throw new InputError("Confira a conversa antes de enviar.");
+  const parsedReferences = (references ?? []).map((value) => {
+    const reference = record(value);
+    if (
+      Object.keys(reference).some((key) => !["type", "id"].includes(key)) ||
+      !["document", "care_plan"].includes(String(reference.type)) ||
+      typeof reference.id !== "string"
+    )
+      throw new InputError("Confira as referências antes de enviar.");
+    return {
+      type: reference.type as "document" | "care_plan",
+      id: tenantId(reference.id),
+    };
+  });
+  if (
+    new Set(parsedReferences.map((reference) => `${reference.type}:${reference.id}`))
+      .size !== parsedReferences.length
+  )
+    throw new InputError("Não repita a mesma referência na mensagem.");
   return {
     patientId: tenantId(body.patient_id),
     doctorId: tenantId(body.doctor_id),
     content: messageText(body.content),
-    referenceType:
-      body.reference_type === "document" || body.reference_type === "care_plan"
-        ? body.reference_type
-        : null,
-    referenceId:
-      typeof body.reference_id === "string" ? tenantId(body.reference_id) : null,
+    references: parsedReferences,
   };
 }
 

@@ -161,7 +161,11 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
 export type PatientCareContext = {
   relationshipId: string;
   canReviewPreparation: boolean;
-  encounter: { id: string; finalized_at: string | null } | null;
+  encounter: {
+    id: string;
+    finalized_at: string | null;
+    evolution?: string;
+  } | null;
   nextAppointment: { id: string; starts_at: string; status: string } | null;
   preparationAppointmentAt: string | null;
   publications: {
@@ -175,10 +179,12 @@ export type PatientCareContext = {
     id: string;
     status: string;
     submitted_at: string | null;
+    goal?: string | null;
   } | null;
   previousPreparation: {
     id: string;
     submitted_at: string;
+    goal?: string | null;
   } | null;
   documents: { total: number; latest_at: string | null };
   measurements: { total: number; latest_at: string | null };
@@ -210,7 +216,7 @@ export async function patientCareContext(
   const [encounter, nextAppointment, publications] = await Promise.all([
     client
       .from("encounters")
-      .select("id,finalized_at")
+      .select("id,finalized_at,evolution")
       .eq("tenant_id", id)
       .eq("patient_id", patientId)
       .eq("status", "finalized")
@@ -318,8 +324,34 @@ export async function patientCareContext(
   const previousPreparationRow = (previousPreparations.data ?? []).find(
     (row) => row.id !== preparation.data?.id && row.submitted_at !== null,
   ) ?? null;
+  const preparationIds = [
+    preparation.data?.id,
+    previousPreparationRow?.id,
+  ].filter((value): value is string => Boolean(value));
+  const submissions = preparationIds.length
+    ? await client
+        .from("return_preparation_submissions")
+        .select("request_id,answers")
+        .eq("tenant_id", id)
+        .in("request_id", preparationIds)
+    : { data: [], error: null };
+  if (submissions.error)
+    throw new Error("Unable to load preparation answers");
+  const goalFor = (requestId: string | undefined) => {
+    const answers = submissions.data?.find(
+      (submission) => submission.request_id === requestId,
+    )?.answers;
+    if (!answers || Array.isArray(answers) || typeof answers !== "object")
+      return null;
+    const goal = (answers as Record<string, unknown>).goal;
+    return typeof goal === "string" && goal.trim() ? goal.trim() : null;
+  };
   const previousPreparation = previousPreparationRow?.submitted_at
-    ? { id: previousPreparationRow.id, submitted_at: previousPreparationRow.submitted_at }
+    ? {
+        id: previousPreparationRow.id,
+        submitted_at: previousPreparationRow.submitted_at,
+        goal: goalFor(previousPreparationRow.id),
+      }
     : null;
   return {
     relationshipId: relationship.data.id,
@@ -333,6 +365,7 @@ export async function patientCareContext(
           id: preparation.data.id,
           status: preparation.data.status,
           submitted_at: preparation.data.submitted_at,
+          goal: goalFor(preparation.data.id),
         }
       : null,
     previousPreparation,

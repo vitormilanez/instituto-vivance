@@ -29,9 +29,9 @@ test("conversation keeps a draft through a send failure and guards navigation", 
   assert.match(workspace, /"Idempotency-Key": requestKey\.current/);
   assert.match(workspace, /messages\/read/);
   assert.match(workspace, /conversation-unread/);
-  assert.match(workspace, /setSelectedReference\(""\)/);
-  assert.match(workspace, /reference_type: reference\?\.type \?\? null/);
-  assert.match(workspace, /Remover referência/);
+  assert.match(workspace, /setSelectedReferences\(\[\]\)/);
+  assert.match(workspace, /references: activeReferences\.map/);
+  assert.match(workspace, /type="checkbox"/);
 });
 
 test("conversation makes the recipient, sender and return path explicit", () => {

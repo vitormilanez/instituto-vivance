@@ -4,6 +4,10 @@ import { InputError, tenantId } from "../../lib/validation.ts";
 
 export const effectKeys = ["nausea", "queasy", "bowel", "heartburn", "headache", "tiredness"] as const;
 export type EffectKey = (typeof effectKeys)[number];
+// "bowel" permanece apenas para leitura dos relatos antigos com intensidade.
+export const selectableEffectKeys = effectKeys.filter((key) => key !== "queasy" && key !== "bowel");
+export const bowelStatusLabels = { good: "Bom", regular: "Regular", poor: "Ruim" } as const;
+export type BowelStatus = keyof typeof bowelStatusLabels;
 export const effectLabels: Record<EffectKey, string> = {
   nausea: "Náusea",
   queasy: "Enjoo",
@@ -36,6 +40,7 @@ export type CheckInAnswers = {
   weight_kg?: number;
   feeling?: number;
   effects?: Partial<Record<EffectKey, Intensity>>;
+  bowel_status?: BowelStatus;
   no_effects?: boolean;
   hunger?: number;
   satiety?: number;
@@ -79,7 +84,7 @@ const oneOf = <T extends string>(value: unknown, options: readonly T[], label: s
 };
 
 const allowed = new Set([
-  "weight_kg", "feeling", "effects", "no_effects", "hunger", "satiety", "energy", "sleep",
+  "weight_kg", "feeling", "effects", "bowel_status", "no_effects", "hunger", "satiety", "energy", "sleep",
   "water_glasses", "adherence", "adherence_reason", "application_on", "application_time",
   "application_site", "application_side", "note",
 ]);
@@ -118,6 +123,8 @@ export function dailyCheckInInput(value: unknown, today: string) {
     if (answers.effects) throw new InputError("Marque os efeitos ou \"Nenhum hoje\", não os dois.");
     answers.no_effects = true;
   }
+  const bowelStatus = oneOf(input.bowel_status, Object.keys(bowelStatusLabels) as BowelStatus[], "Intestino");
+  if (bowelStatus) answers.bowel_status = bowelStatus;
   if (input.water_glasses !== undefined && input.water_glasses !== null) {
     if (!Number.isInteger(input.water_glasses) || (input.water_glasses as number) < 0 || (input.water_glasses as number) > 30)
       throw new InputError("Água: de 0 a 30 copos.");
@@ -222,6 +229,7 @@ export function checkInSummary(answers: CheckInAnswers) {
         .map(([key, level]) => `${effectLabels[key as EffectKey]} (${intensityLabels[level as Intensity].toLowerCase()})`)
         .join(", "),
     });
+  if (answers.bowel_status) rows.push({ label: "Intestino", value: bowelStatusLabels[answers.bowel_status] });
   if (answers.hunger || answers.satiety)
     rows.push({ label: "Fome · saciedade", value: `${answers.hunger ?? "–"} · ${answers.satiety ?? "–"} de 5` });
   if (answers.energy || answers.sleep)

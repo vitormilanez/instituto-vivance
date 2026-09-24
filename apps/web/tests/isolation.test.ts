@@ -3770,6 +3770,34 @@ async function sendSyntheticDirectMessage(
   ).rows[0];
 }
 
+async function sendSyntheticDirectMessageWithReferences(
+  actor: string,
+  content: string,
+  requestKey: string,
+  referenceTypes: ("document" | "care_plan")[],
+  referenceIds: string[],
+) {
+  await switchActor(actor);
+  return (
+    await db.query<{
+      conversation_id: string;
+      message_id: string;
+      sent_at: string;
+    }>(
+      "select * from public.send_direct_message_with_references($1,$2,$3,$4,$5,$6::text[],$7::uuid[])",
+      [
+        a,
+        pa,
+        users.doctor.id,
+        content,
+        requestKey,
+        referenceTypes,
+        referenceIds,
+      ],
+    )
+  ).rows[0];
+}
+
 test("direct messages accept only currently shared documents or the published care plan in both directions", async () => {
   await asUser("doctor", async () => {
     await directMessageFixture();
@@ -3828,6 +3856,26 @@ test("direct messages accept only currently shared documents or the published ca
       [
         { reference_type: "document", reference_id: shared.document_id },
         { reference_type: "care_plan", reference_id: publication },
+      ],
+    );
+    assert.deepEqual(
+      (
+        await db.query<{ message_id: string; reference_type: string; reference_id: string }>(
+          "select message_id,reference_type,reference_id from public.care_message_references where message_id in ($1,$2) order by reference_type",
+          [documentMessage.message_id, planMessage.message_id],
+        )
+      ).rows,
+      [
+        {
+          message_id: planMessage.message_id,
+          reference_type: "care_plan",
+          reference_id: publication,
+        },
+        {
+          message_id: documentMessage.message_id,
+          reference_type: "document",
+          reference_id: shared.document_id,
+        },
       ],
     );
     await denied(
@@ -3896,6 +3944,83 @@ test("direct messages accept only currently shared documents or the published ca
       ).rows.length,
       1,
     );
+  });
+});
+
+test("one direct message preserves multiple authorized references in selection order", async () => {
+  await asUser("doctor", async () => {
+    await directMessageFixture();
+    const document = await reservePrivateDocument(
+      "multiple-context.pdf",
+      "exam",
+      "shared",
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [document.storage_path],
+    );
+    await completePrivateDocument(document.document_id);
+    const plan = (
+      await db.query<{ id: string }>(
+        "insert into public.care_plans(tenant_id,patient_id) values($1,$2) returning id",
+        [a, pa],
+      )
+    ).rows[0].id;
+    const version = await approveFixture(plan, 1);
+    const publication = await publishFixture(plan, version);
+    const requestKey = randomUUID();
+    const sent = await sendSyntheticDirectMessageWithReferences(
+      "patient",
+      "Citando dois itens",
+      requestKey,
+      ["document", "care_plan"],
+      [document.document_id, publication],
+    );
+    assert.deepEqual(
+      (
+        await db.query<{ reference_type: string; reference_id: string }>(
+          "select reference_type,reference_id from public.care_message_references where message_id=$1 order by position",
+          [sent.message_id],
+        )
+      ).rows,
+      [
+        { reference_type: "document", reference_id: document.document_id },
+        { reference_type: "care_plan", reference_id: publication },
+      ],
+    );
+    assert.deepEqual(
+      await sendSyntheticDirectMessageWithReferences(
+        "patient",
+        "Citando dois itens",
+        requestKey,
+        ["document", "care_plan"],
+        [document.document_id, publication],
+      ),
+      sent,
+    );
+    await denied(
+      "select * from public.send_direct_message_with_references($1,$2,$3,'Citando dois itens',$4,$5::text[],$6::uuid[])",
+      [
+        a,
+        pa,
+        users.doctor.id,
+        requestKey,
+        ["care_plan", "document"],
+        [publication, document.document_id],
+      ],
+    );
+    for (const role of ["admin", "nurse", "other", "outsider", "suspended"]) {
+      await switchActor(role);
+      assert.equal(
+        (
+          await db.query(
+            "select message_id from public.care_message_references where message_id=$1",
+            [sent.message_id],
+          )
+        ).rows.length,
+        0,
+      );
+    }
   });
 });
 
@@ -5901,6 +6026,7 @@ test("check-in diário: relato do próprio paciente, idempotente, append-only e 
       weight_kg: 76.4,
       feeling: 4,
       effects: { nausea: "mild", tiredness: "strong" },
+      bowel_status: "regular",
       hunger: 2,
       water_glasses: 6,
       adherence: "partial",
@@ -5917,6 +6043,7 @@ test("check-in diário: relato do próprio paciente, idempotente, append-only e 
       { effects: { nausea: "extreme" } },
       { effects: { diagnosis: "mild" } },
       { effects: { nausea: "mild" }, no_effects: true },
+      { bowel_status: "moderate" },
       { adherence: "yes", adherence_reason: "forgot" },
       { water_glasses: 99 },
       { note: "   " },
@@ -5928,12 +6055,13 @@ test("check-in diário: relato do próprio paciente, idempotente, append-only e 
     const first = await db.query<{ id: string }>("select public.submit_daily_check_in($1,$2,$3::jsonb) id", [a, key, JSON.stringify(answers)]);
     const replay = await db.query<{ id: string }>("select public.submit_daily_check_in($1,$2,$3::jsonb) id", [a, key, JSON.stringify(answers)]);
     assert.equal(replay.rows[0].id, first.rows[0].id);
-    const stored = await db.query<{ note: string; effects: Record<string, string>; patient_id: string }>(
-      "select note,effects,patient_id from public.patient_daily_check_ins where id=$1",
+    const stored = await db.query<{ note: string; effects: Record<string, string>; bowel_status: string; patient_id: string }>(
+      "select note,effects,bowel_status,patient_id from public.patient_daily_check_ins where id=$1",
       [first.rows[0].id],
     );
     assert.equal(stored.rows[0].note, "Enjoo depois da aplicação.");
     assert.deepEqual(stored.rows[0].effects, { nausea: "mild", tiredness: "strong" });
+    assert.equal(stored.rows[0].bowel_status, "regular");
     assert.equal(stored.rows[0].patient_id, pa);
     // O peso do check-in entra na série de medidas, uma vez só.
     assert.equal(

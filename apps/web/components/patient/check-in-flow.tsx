@@ -4,15 +4,16 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
   adherenceLabels,
+  bowelStatusLabels,
   checkInSteps,
   checkInSummary,
-  effectKeys,
   effectLabels,
   feelingLabels,
   hasStrongEffect,
   intensities,
   intensityLabels,
   reasonLabels,
+  selectableEffectKeys,
   sideLabels,
   siteLabels,
   type CheckInAnswers,
@@ -36,7 +37,6 @@ const titles: Record<string, [string, string]> = {
 
 // Enjoo e náusea aparecem como uma escolha no novo registro. A chave legada
 // "queasy" continua aceita e legível no histórico, sem reescrever respostas.
-const selectableEffects = effectKeys.filter((key) => key !== "queasy");
 const entryEffectLabel = (key: EffectKey) => key === "nausea" ? "Náusea ou enjoo" : effectLabels[key];
 
 const decimal = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -282,7 +282,7 @@ export function CheckInFlow({
         {step === "effects" && (
           <div className="pv-stack">
             <div className="pv-chips">
-              {selectableEffects.map((key) => {
+              {selectableEffectKeys.map((key) => {
                 const selected = Boolean(answers.effects?.[key]);
                 return (
                   <button key={key} type="button" className="pv-chip" aria-pressed={selected} onClick={() => {
@@ -311,6 +311,16 @@ export function CheckInFlow({
                 </div>
               </fieldset>
             ))}
+            <fieldset className="pv-fieldset">
+              <legend className="pv-scale-label">Como está seu intestino hoje? <span className="pv-muted">Opcional</span></legend>
+              <div className="pv-segments">
+                {(Object.keys(bowelStatusLabels) as (keyof typeof bowelStatusLabels)[]).map((key) => (
+                  <button key={key} type="button" aria-pressed={answers.bowel_status === key} onClick={() => set({ bowel_status: answers.bowel_status === key ? undefined : key })}>
+                    {bowelStatusLabels[key]}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
             {hasStrongEffect(answers) && (
               <Link className="pv-notice pv-notice-link" href={`${base}/alerta`}>
                 Sentiu algo forte ou diferente? <strong>Veja o que fazer.</strong>

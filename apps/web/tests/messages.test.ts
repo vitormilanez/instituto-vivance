@@ -22,8 +22,7 @@ test("direct message input accepts only a bounded patient-doctor pair", () => {
       patientId,
       doctorId,
       content: "Olá, doutor.",
-      referenceType: null,
-      referenceId: null,
+      references: [],
     },
   );
   assert.throws(() =>
@@ -46,21 +45,39 @@ test("direct message input accepts only a bounded patient-doctor pair", () => {
   );
 });
 
-test("direct message accepts only a paired shared-context reference", () => {
+test("direct message accepts up to ten unique shared-context references", () => {
+  assert.deepEqual(messageInput({
+    patient_id: patientId,
+    doctor_id: doctorId,
+    content: "Cliente antigo ainda aberto",
+    reference_type: "document",
+    reference_id: patientId,
+  }).references, [{ type: "document", id: patientId }]);
+  assert.deepEqual(messageInput({
+    patient_id: patientId,
+    doctor_id: doctorId,
+    content: "Sem citação",
+    reference_type: null,
+    reference_id: null,
+  }).references, []);
   assert.deepEqual(
     messageInput({
       patient_id: patientId,
       doctor_id: doctorId,
       content: "Veja este documento.",
-      reference_type: "document",
-      reference_id: patientId,
+      references: [
+        { type: "document", id: patientId },
+        { type: "care_plan", id: doctorId },
+      ],
     }),
     {
       patientId,
       doctorId,
       content: "Veja este documento.",
-      referenceType: "document",
-      referenceId: patientId,
+      references: [
+        { type: "document", id: patientId },
+        { type: "care_plan", id: doctorId },
+      ],
     },
   );
   assert.throws(() =>
@@ -68,8 +85,7 @@ test("direct message accepts only a paired shared-context reference", () => {
       patient_id: patientId,
       doctor_id: doctorId,
       content: "Inválida",
-      reference_type: "report",
-      reference_id: patientId,
+      references: [{ type: "report", id: patientId }],
     }),
   );
   assert.throws(() =>
@@ -77,7 +93,21 @@ test("direct message accepts only a paired shared-context reference", () => {
       patient_id: patientId,
       doctor_id: doctorId,
       content: "Inválida",
-      reference_type: "care_plan",
+      references: [
+        { type: "document", id: patientId },
+        { type: "document", id: patientId },
+      ],
+    }),
+  );
+  assert.throws(() =>
+    messageInput({
+      patient_id: patientId,
+      doctor_id: doctorId,
+      content: "Inválida",
+      references: Array.from({ length: 11 }, (_, index) => ({
+        type: "document",
+        id: `11111111-1111-4111-8111-${String(index).padStart(12, "0")}`,
+      })),
     }),
   );
 });

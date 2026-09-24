@@ -30,6 +30,7 @@ test("envio: pulado é ausência, nunca zero; opções fora da lista são recusa
     { feeling: 2.5 },
     { effects: { nausea: "extreme" } },
     { effects: { nausea: "mild" }, no_effects: true },
+    { bowel_status: "moderate" },
     { adherence: "yes", adherence_reason: "forgot" },
     { application_on: "2099-01-01" },
     { application_time: "25:00" },
@@ -41,6 +42,21 @@ test("envio: pulado é ausência, nunca zero; opções fora da lista são recusa
   assert.throws(() => dailyCheckInInput({ request_key: key, answers: {}, extra: 1 }, today));
   // Recado só de espaços vira ausência, não erro.
   assert.deepEqual(dailyCheckInInput({ request_key: key, answers: { note: "  " } }, today).answers, {});
+});
+
+test("intestino usa Bom/Regular/Ruim sem alterar efeitos antigos", () => {
+  const { answers } = dailyCheckInInput({ request_key: key, answers: { no_effects: true, bowel_status: "regular" } }, today);
+  assert.deepEqual(answers, { no_effects: true, bowel_status: "regular" });
+  assert.deepEqual(checkInSummary(answers), [
+    { label: "Efeitos", value: "Nenhum" },
+    { label: "Intestino", value: "Regular" },
+  ]);
+  assert.deepEqual(checkInSummary({ effects: { bowel: "moderate" } }), [
+    { label: "Efeitos", value: "Intestino (moderado)" },
+  ]);
+  const flow = readFileSync(new URL("../components/patient/check-in-flow.tsx", import.meta.url), "utf8");
+  assert.match(flow, /selectableEffectKeys/);
+  assert.match(flow, /Como está seu intestino hoje/);
 });
 
 test("pendência: diário se não houve hoje; a cada 3 dias conta a partir do último", () => {

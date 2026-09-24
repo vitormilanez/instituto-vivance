@@ -14,6 +14,10 @@ import {
 type ConversationRow =
   Database["public"]["Tables"]["care_conversations"]["Row"];
 type MessageRow = Database["public"]["Tables"]["care_messages"]["Row"];
+type MessageReferenceRow = Pick<
+  Database["public"]["Tables"]["care_message_references"]["Row"],
+  "message_id" | "position" | "reference_type" | "reference_id"
+>;
 
 export type MessageReferenceType = "document" | "care_plan";
 export type MessageReferenceOption = {
@@ -31,7 +35,7 @@ export type MessageReference =
       href: string;
     };
 export type DirectMessage = Omit<MessageRow, "reference_type" | "reference_id"> & {
-  reference: MessageReference | null;
+  references: MessageReference[];
 };
 
 export type MessageRecipient = {
@@ -108,15 +112,46 @@ async function history(
   if (result.error || read.error)
     databaseFailure(result.error?.code ?? read.error?.code);
   const rows = (result.data ?? []).slice(0, 20).reverse() as MessageRow[];
-  const documentIds = rows.flatMap((message) =>
-    message.reference_type === "document" && message.reference_id
-      ? [message.reference_id]
-      : [],
+  const messageIds = rows.map((message) => message.id);
+  const storedReferences = messageIds.length
+    ? await client
+        .from("care_message_references")
+        .select("message_id,position,reference_type,reference_id")
+        .eq("tenant_id", tenant)
+        .in("message_id", messageIds)
+        .order("position", { ascending: true })
+    : { data: [], error: null };
+  if (storedReferences.error) databaseFailure(storedReferences.error.code);
+  const referencesByMessage = new Map<string, MessageReferenceRow[]>();
+  for (const reference of storedReferences.data ?? []) {
+    const current = referencesByMessage.get(reference.message_id) ?? [];
+    current.push(reference as MessageReferenceRow);
+    referencesByMessage.set(reference.message_id, current);
+  }
+  // The scalar columns remain as a deployment compatibility bridge for
+  // messages created by an older client during rollout.
+  for (const message of rows) {
+    if (
+      !referencesByMessage.has(message.id) &&
+      message.reference_type &&
+      message.reference_id
+    ) {
+      referencesByMessage.set(message.id, [
+        {
+          message_id: message.id,
+          position: 0,
+          reference_type: message.reference_type,
+          reference_id: message.reference_id,
+        },
+      ]);
+    }
+  }
+  const allReferences = [...referencesByMessage.values()].flat();
+  const documentIds = allReferences.flatMap((reference) =>
+    reference.reference_type === "document" ? [reference.reference_id] : [],
   );
-  const publicationIds = rows.flatMap((message) =>
-    message.reference_type === "care_plan" && message.reference_id
-      ? [message.reference_id]
-      : [],
+  const publicationIds = allReferences.flatMap((reference) =>
+    reference.reference_type === "care_plan" ? [reference.reference_id] : [],
   );
   const [documents, publications] = await Promise.all([
     documentIds.length
@@ -148,35 +183,43 @@ async function history(
     (publications.data ?? []).map((publication) => [publication.id, publication]),
   );
   const messages: DirectMessage[] = rows.map((message) => {
-    const { reference_type, reference_id, ...visible } = message;
-    if (!reference_type || !reference_id) return { ...visible, reference: null };
-    if (reference_type === "document") {
-      const document = documentById.get(reference_id);
-      return {
-        ...visible,
-        reference: document
-          ? {
-              available: true,
-              type: "document",
-              label: document.original_filename,
-              href: `/api/v1/clinics/${tenant}/documents/${document.id}/download`,
-            }
-          : { available: false, label: "Conteúdo compartilhado indisponível" },
-      };
-    }
-    const publication = publicationById.get(reference_id);
+    const visible: Omit<MessageRow, "reference_type" | "reference_id"> = {
+      client_request_id: message.client_request_id,
+      content: message.content,
+      conversation_id: message.conversation_id,
+      doctor_id: message.doctor_id,
+      id: message.id,
+      patient_id: message.patient_id,
+      sender_id: message.sender_id,
+      sent_at: message.sent_at,
+      tenant_id: message.tenant_id,
+    };
     return {
       ...visible,
-      reference: publication
-        ? {
-            available: true,
-            type: "care_plan",
-            label: publication.title,
-            href: patientView
-              ? `/clinicas/${tenant}/meu-cuidado/plano#plano-${publication.id}`
-              : `/clinicas/${tenant}/planos/${publication.plan_id}`,
-          }
-        : { available: false, label: "Conteúdo compartilhado indisponível" },
+      references: (referencesByMessage.get(message.id) ?? []).map((reference) => {
+        if (reference.reference_type === "document") {
+          const document = documentById.get(reference.reference_id);
+          return document
+            ? {
+                available: true as const,
+                type: "document" as const,
+                label: document.original_filename,
+                href: `/api/v1/clinics/${tenant}/documents/${document.id}/download`,
+              }
+            : { available: false as const, label: "Conteúdo compartilhado indisponível" as const };
+        }
+        const publication = publicationById.get(reference.reference_id);
+        return publication
+          ? {
+              available: true as const,
+              type: "care_plan" as const,
+              label: publication.title,
+              href: patientView
+                ? `/clinicas/${tenant}/meu-cuidado/plano#plano-${publication.id}`
+                : `/clinicas/${tenant}/planos/${publication.plan_id}`,
+            }
+          : { available: false as const, label: "Conteúdo compartilhado indisponível" as const };
+      }),
     };
   });
   return {
@@ -423,14 +466,14 @@ export async function sendDirectMessage(
   const values = messageInput(input);
   const requestKey = messageRequestKey(requestKeyInput);
   const { client } = await requireClinic(tenant, ["doctor", "patient"]);
-  const result = await client.rpc("send_direct_message", {
+  const result = await client.rpc("send_direct_message_with_references", {
     target_tenant: tenant,
     target_patient: values.patientId,
     target_doctor: values.doctorId,
     message_text: values.content,
     request_key: requestKey,
-    message_reference_type: values.referenceType,
-    message_reference_id: values.referenceId,
+    message_reference_types: values.references.map((reference) => reference.type),
+    message_reference_ids: values.references.map((reference) => reference.id),
   });
   if (result.error) databaseFailure(result.error.code);
   const sent = result.data?.[0];
