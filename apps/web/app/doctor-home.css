@@ -307,10 +307,21 @@
 .dv .doctor-consultation-glance > div { min-width: 0; padding: 12px 14px; border: 1px solid var(--dv-line); border-radius: 12px; background: #f7f9fb; }
 .dv .doctor-consultation-glance h3 { margin: 0 0 5px; font-size: 12px; color: var(--dv-ink); }
 .dv .doctor-consultation-glance p { margin: 0; color: var(--dv-muted); font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; white-space: pre-wrap; }
-.dv .doctor-consultation-glance > div:first-child p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.dv .doctor-consultation-glance .doctor-evolution-text { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .dv .doctor-consultation-glance small { display: block; margin-top: 6px; color: var(--dv-muted); font-size: 11px; }
 .dv .doctor-consultation-glance a { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 600; }
 .dv .doctor-consultation-glance .doctor-consultation-previous-answer { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--dv-line); }
+.dv .doctor-weight-trend { margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--dv-line); }
+.dv .doctor-weight-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.dv .doctor-weight-heading h4 { margin: 0; font-size: 12px; }
+.dv .doctor-weight-heading a { margin: 0; white-space: nowrap; }
+.dv .doctor-consultation-glance .doctor-weight-value { margin-top: 8px; color: var(--dv-ink); }
+.dv .doctor-weight-value strong { font-size: 19px; }
+.dv .doctor-weight-trend svg { display: block; width: 100%; max-width: 360px; height: 100px; margin-top: 6px; overflow: visible; }
+.dv .doctor-weight-axis { stroke: var(--dv-line); stroke-width: 1; }
+.dv .doctor-weight-line { fill: none; stroke: #397a78; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.dv .doctor-weight-dot { fill: #397a78; stroke: #f7f9fb; stroke-width: 2; }
+.dv .doctor-consultation-glance .doctor-weight-caption { font-size: 11px; }
 .dv .doctor-consultation-context .context-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0; }
 .dv .doctor-consultation-context .context-cards > li { border-radius: 12px; }
 .dv .doctor-consultation-context .context-cards > li > a { padding: 12px; min-height: 105px; gap: 6px; }

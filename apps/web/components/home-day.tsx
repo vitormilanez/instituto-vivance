@@ -290,6 +290,7 @@ export function HomeDay({
         eyebrow={eyebrow}
         link={link}
         context={link.status === "active" ? contextFor(appointment.id) : null}
+        weight={link.status === "active" ? data.weights.get(appointment.patient_id) ?? null : null}
         received={
           link.status === "active"
             ? viewFor(appointment.id, appointment.patient_id)

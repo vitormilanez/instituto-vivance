@@ -7,6 +7,7 @@ import { focusedAppointment } from "@/modules/agenda/focus";
 import { requestInstant } from "@/lib/request-time";
 import { openConsultationId } from "./home-view";
 import { openWork } from "./open-work";
+import { staffRecentWeight } from "@/modules/longitudinal/service";
 import type { OpenWorkItem } from "./open-work-items";
 import type { ReceivedItem } from "./received-items";
 import {
@@ -94,9 +95,9 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
     (item, index, list): item is NonNullable<typeof item> =>
       Boolean(item) && list.findIndex((other) => other?.id === item?.id) === index,
   );
-  // As três leituras abaixo não dependem uma da outra: rodam juntas. Cada
+  // As leituras abaixo não dependem uma da outra: rodam juntas. Cada
   // uma tem ida e volta ao banco em sequência; em série, somavam a latência.
-  const [receivedResult, work, contextPairs] = await Promise.all([
+  const [receivedResult, work, contextPairs, weightPairs] = await Promise.all([
     // Recebidos de todos os pacientes com vínculo ativo, numa leitura só: os
     // do dia aparecem nas linhas, os demais em "Entre consultas". Se o corte
     // não puder ser lido, todos os tipos contam como indisponíveis — nunca zero.
@@ -129,9 +130,19 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
           })] as const,
       ),
     ),
+    Promise.all(
+      [...new Set(shown
+        .filter((item) => activeIds.includes(item.patient_id))
+        .map((item) => item.patient_id))]
+        .map(async (patientId) => [
+          patientId,
+          await staffRecentWeight(id, patientId).catch(() => null),
+        ] as const),
+    ),
   ]);
   const { cutoffs, received } = receivedResult;
   const contexts = new Map(contextPairs);
+  const weights = new Map(weightPairs);
   const context = open ? (contexts.get(open.id) ?? null) : null;
   return {
     ...agenda,
@@ -141,6 +152,7 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
     nextDate: next ? clinicDate(new Date(next.starts_at)) : null,
     context,
     contexts,
+    weights,
     work,
     drafts: drafts.data ?? [],
     links: linkByPatient,

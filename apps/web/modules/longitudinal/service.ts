@@ -119,6 +119,32 @@ async function persistedMeasurementSources(
   };
 }
 
+// Resumo curto da mesma série autorizada usada em Evolução. A consulta no
+// calendário, sozinha, não dá acesso ao histórico clínico do paciente.
+export async function staffRecentWeight(id: string, patientInput: string) {
+  const tenant = tenantId(id);
+  const patient = tenantId(patientInput);
+  const { client, user } = await requireClinic(tenant, ["doctor", "nurse"]);
+  const relationship = await client.from("care_relationships")
+    .select("id")
+    .eq("tenant_id", tenant)
+    .eq("patient_id", patient)
+    .eq("professional_id", user.id)
+    .eq("status", "active")
+    .maybeSingle();
+  if (relationship.error) throw new Error("Unable to verify measurement access");
+  if (!relationship.data)
+    throw new CheckInError("Paciente indisponível para este vínculo.", 403);
+  const sources = await persistedMeasurementSources(client, tenant, patient, { from: null, to: null });
+  const weight = measurementSeries(sources.rows).find(
+    (series) => series.label.toLocaleLowerCase("pt-BR") === "peso" && series.unit.toLocaleLowerCase("pt-BR") === "kg",
+  );
+  return weight?.entries.slice(-8).map((entry) => ({
+    value: entry.value,
+    date: entry.reportedOn,
+  })) ?? [];
+}
+
 export async function staffLongitudinal(
   id: string,
   patientInput?: string,
