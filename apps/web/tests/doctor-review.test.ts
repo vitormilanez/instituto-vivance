@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { doctorReviewGroups, doctorReviewSelection } from "../modules/workspace/doctor-review.ts";
+import { doctorReviewCounts, doctorReviewGroups, doctorReviewSelection, doctorReviewStateLabel } from "../modules/workspace/doctor-review.ts";
 import type { DoctorReviewPatient } from "../modules/workspace/doctor-review.ts";
 
 const patients: DoctorReviewPatient[] = [
@@ -119,4 +119,24 @@ test("review combines accent-insensitive patient search, kind and opening filter
     [],
   );
   assert.deepEqual(doctorReviewGroups([], defaults), []);
+});
+
+test("explicit clinical review takes precedence over opening and keeps filter totals consistent", () => {
+  const reviewable: DoctorReviewPatient[] = [{
+    patientId: "a", name: "Márcia Silva", items: [
+      { id: "not-opened", kind: "preparation", at: "2026-09-21T10:00:00Z", seen: false, reviewed: false, author: null, href: "/prep" },
+      { id: "opened", kind: "documents", at: "2026-09-21T11:00:00Z", seen: true, reviewed: false, author: null, href: "/doc" },
+      { id: "reviewed", kind: "checkins", at: "2026-09-21T12:00:00Z", seen: false, reviewed: true, author: null, href: "/checkin" },
+      { id: "unknown", kind: "documents", at: "2026-09-21T13:00:00Z", seen: true, reviewed: null, author: null, href: "/doc-unknown" },
+    ],
+  }];
+  const counts = doctorReviewCounts(doctorReviewGroups(reviewable, defaults));
+  assert.deepEqual(counts, { total: 4, unopened: 1, opened: 1, reviewed: 1, unknown: 1 });
+  for (const status of ["unopened", "opened", "reviewed", "unknown"] as const) {
+    const filtered = doctorReviewGroups(reviewable, { ...defaults, status });
+    assert.equal(doctorReviewCounts(filtered).total, counts[status]);
+  }
+  assert.equal(doctorReviewStateLabel(reviewable[0].items[1]), "Já aberto · revisão não registrada");
+  assert.equal(doctorReviewStateLabel(reviewable[0].items[2]), "Revisão registrada");
+  assert.equal(doctorReviewStateLabel(reviewable[0].items[3]), "Revisão não confirmada");
 });

@@ -5,7 +5,35 @@ export type DoctorReviewPatient = {
   name: string;
   items: ReceivedItem[];
 };
-export type DoctorReviewStatus = "all" | "unopened" | "opened";
+export type DoctorReviewStatus = "all" | "unopened" | "opened" | "reviewed" | "unknown";
+type ReviewState = Exclude<DoctorReviewStatus, "all">;
+
+// Os estados da fila são mutuamente exclusivos. Revisão humana prevalece
+// sobre abertura: uma revisão registrada nunca volta a parecer pendência.
+export function doctorReviewState(item: ReceivedItem): ReviewState {
+  if (item.reviewed === true) return "reviewed";
+  if (item.reviewed === null || item.seen == null) return "unknown";
+  return item.seen ? "opened" : "unopened";
+}
+
+export function doctorReviewStateLabel(item: ReceivedItem): string {
+  const state = doctorReviewState(item);
+  if (state === "reviewed") return "Revisão registrada";
+  if (state === "unknown")
+    return item.reviewed === null ? "Revisão não confirmada" : "Abertura não confirmada";
+  const opened = state === "opened" ? "Já aberto" : "Ainda não aberto";
+  return item.reviewed === false ? `${opened} · revisão não registrada` : opened;
+}
+
+export function doctorReviewCounts(groups: DoctorReviewPatient[]) {
+  const counts = { total: 0, unopened: 0, opened: 0, reviewed: 0, unknown: 0 };
+  for (const patient of groups)
+    for (const item of patient.items) {
+      counts.total += 1;
+      counts[doctorReviewState(item)] += 1;
+    }
+  return counts;
+}
 
 // Only resolve identifiers already returned by the authorized inbox query.
 // An invalid explicit selection must not silently show another patient's data.
@@ -17,8 +45,7 @@ export function doctorReviewSelection(patients: DoctorReviewPatient[], query: { 
     (!query.item || `${item.kind}:${item.id}` === query.item));
 }
 
-// A fila organiza envios por chegada, sem inferir prioridade clínica. `seen`
-// significa somente abertura pelo profissional, nunca revisão ou aprovação.
+// A fila organiza envios por chegada, sem inferir prioridade clínica.
 export function doctorReviewGroups(
   patients: DoctorReviewPatient[],
   filters: {
@@ -45,10 +72,7 @@ export function doctorReviewGroups(
         .filter(
           (item) =>
             (filters.kind === "all" || item.kind === filters.kind) &&
-            (filters.status === "all" ||
-              (filters.status === "opened"
-                ? item.seen === true
-                : item.seen === false)),
+            (filters.status === "all" || doctorReviewState(item) === filters.status),
         )
         .sort(chronological),
     }))

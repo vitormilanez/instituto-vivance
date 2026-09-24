@@ -29,6 +29,9 @@ export type ReceivedItem = {
   // Se o profissional logado já abriu este item. null quando não foi possível
   // saber — a tela então não diz "novo" nem "visto".
   seen?: boolean | null;
+  // Revisão humana registrada. Ausente para tipos sem revisão formal; null se
+  // a leitura do estado de revisão falhou. Abrir o item nunca define este valor.
+  reviewed?: boolean | null;
 };
 
 export type ReceivedRow = ReceivedItem & { patientId: string };
