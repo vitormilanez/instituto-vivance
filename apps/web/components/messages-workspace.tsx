@@ -64,7 +64,7 @@ function ConversationWorkspace({
   const composer = useRef<HTMLTextAreaElement>(null);
   const [pending, setPending] = useState(false);
   const [draft, setDraft] = useState("");
-  const [selectedReference, setSelectedReference] = useState("");
+  const [selectedReferences, setSelectedReferences] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [sendUncertain, setSendUncertain] = useState(false);
@@ -76,10 +76,11 @@ function ConversationWorkspace({
   const messagesBeforeAttempt = useRef<Set<string>>(new Set());
   const requestKey = useRef<string | null>(null);
   const readAttempted = useRef<string | null>(null);
-  const activeReference = initial.references.find(
-    (reference) => `${reference.type}:${reference.id}` === selectedReference,
+  const activeReferences = initial.references.filter(
+    (reference) =>
+      selectedReferences.includes(`${reference.type}:${reference.id}`),
   );
-  const hasDraft = draft.trim().length > 0 || Boolean(activeReference);
+  const hasDraft = draft.trim().length > 0 || activeReferences.length > 0;
   const isStaffConversation = recipientParam === "paciente";
 
   useEffect(() => {
@@ -112,7 +113,7 @@ function ConversationWorkspace({
         return;
       }
       setDraft("");
-      setSelectedReference("");
+      setSelectedReferences([]);
       setError("");
       setNotice("");
       setSendUncertain(false);
@@ -130,7 +131,7 @@ function ConversationWorkspace({
     if (previousSelectedKey.current === selectedKey) return;
     previousSelectedKey.current = selectedKey;
     setDraft("");
-    setSelectedReference("");
+    setSelectedReferences([]);
     setError("");
     setNotice("");
     setSendUncertain(false);
@@ -147,7 +148,7 @@ function ConversationWorkspace({
     );
     if (!confirmed) return;
     setDraft("");
-    setSelectedReference("");
+    setSelectedReferences([]);
     setError("");
     setSendUncertain(false);
     setNotice("Mensagem confirmada no histórico.");
@@ -194,10 +195,10 @@ function ConversationWorkspace({
       setError("Escreva uma mensagem antes de enviar.");
       return;
     }
-    if (selectedReference && !activeReference) {
-      setSelectedReference("");
+    if (selectedReferences.length !== activeReferences.length) {
+      setSelectedReferences(activeReferences.map((reference) => `${reference.type}:${reference.id}`));
       requestKey.current = null;
-      setError("A referência selecionada não está mais disponível.");
+      setError("Uma das referências selecionadas não está mais disponível.");
       return;
     }
     busy.current = true;
@@ -209,7 +210,6 @@ function ConversationWorkspace({
       initial.messages.map((message) => message.id),
     );
     requestKey.current ??= crypto.randomUUID();
-    const reference = activeReference;
     try {
       const response = await fetch(
         `/api/v1/clinics/${initial.clinic.id}/messages`,
@@ -224,8 +224,10 @@ function ConversationWorkspace({
             patient_id: selected.patientId,
             doctor_id: selected.doctorId,
             content,
-            reference_type: reference?.type ?? null,
-            reference_id: reference?.id ?? null,
+            references: activeReferences.map((reference) => ({
+              type: reference.type,
+              id: reference.id,
+            })),
           }),
         },
       );
@@ -236,7 +238,7 @@ function ConversationWorkspace({
       if (!response.ok)
         throw new Error(result.error ?? "Não foi possível enviar a mensagem.");
       setDraft("");
-      setSelectedReference("");
+      setSelectedReferences([]);
       requestKey.current = null;
       setNotice("Mensagem enviada.");
       router.refresh();
@@ -332,14 +334,15 @@ function ConversationWorkspace({
                       <div className="pv-bubble">
                         <span className="pv-visually-hidden">{own ? "Você:" : `${selected.displayName}:`}</span>
                         <p>{message.content}</p>
-                        {message.reference &&
-                          (message.reference.available ? (
-                            <a className="pv-bubble-ref" href={message.reference.href}>
-                              {message.reference.label}
+                        {message.references.map((reference, index) =>
+                          reference.available ? (
+                            <a className="pv-bubble-ref" href={reference.href} key={`${reference.href}:${index}`}>
+                              {reference.label}
                             </a>
                           ) : (
-                            <span className="pv-bubble-ref">{message.reference.label}</span>
-                          ))}
+                            <span className="pv-bubble-ref" key={`unavailable:${index}`}>{reference.label}</span>
+                          ),
+                        )}
                         <time dateTime={message.sent_at}>
                           {new Date(message.sent_at).toLocaleTimeString("pt-BR", {
                             hour: "2-digit",
@@ -374,25 +377,38 @@ function ConversationWorkspace({
               {notice && <p className="pv-visually-hidden" role="status">{notice}</p>}
               {initial.references.length > 0 && (
                 <details className="pv-more">
-                  <summary>Citar um documento ou orientação</summary>
-                  <label className="pv-field">
-                    <span className="pv-visually-hidden">Referência compartilhada</span>
-                    <select
-                      value={activeReference ? selectedReference : ""}
-                      disabled={pending}
-                      onChange={(event) => {
-                        setSelectedReference(event.target.value);
-                        requestKey.current = null;
-                      }}
-                    >
-                      <option value="">Nenhum</option>
-                      {initial.references.map((reference) => (
-                        <option key={`${reference.type}:${reference.id}`} value={`${reference.type}:${reference.id}`}>
-                          {reference.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <summary>
+                    Citar documentos ou orientações
+                    {activeReferences.length > 0 ? ` (${activeReferences.length})` : ""}
+                  </summary>
+                  <fieldset className="message-reference-options" disabled={pending}>
+                    <legend className="pv-visually-hidden">Referências compartilhadas</legend>
+                    {initial.references.map((reference) => {
+                      const key = `${reference.type}:${reference.id}`;
+                      return (
+                        <label key={key}>
+                          <input
+                            type="checkbox"
+                            checked={selectedReferences.includes(key)}
+                            disabled={
+                              !selectedReferences.includes(key) &&
+                              selectedReferences.length >= 10
+                            }
+                            onChange={(event) => {
+                              setSelectedReferences((current) =>
+                                event.target.checked
+                                  ? [...current, key]
+                                  : current.filter((item) => item !== key),
+                              );
+                              requestKey.current = null;
+                            }}
+                          />
+                          <span>{reference.label}</span>
+                        </label>
+                      );
+                    })}
+                  </fieldset>
+                  <small className="pv-muted">Você pode citar até 10 itens.</small>
                 </details>
               )}
               <div className="pv-composer-row">
@@ -515,25 +531,27 @@ function ConversationWorkspace({
                         Remetente: {ownMessage ? "Você" : selected.displayName} · {clinicalTime(message.sent_at)}
                       </small>
                       <p>{message.content}</p>
-                      {message.reference &&
-                        (message.reference.available ? (
+                      {message.references.map((reference, index) =>
+                        reference.available ? (
                           <a
                             className="conversation-reference"
-                            href={message.reference.href}
+                            href={reference.href}
+                            key={`${reference.href}:${index}`}
                           >
                             <span>
-                              {message.reference.type === "document"
+                              {reference.type === "document"
                                 ? "Documento compartilhado"
                                 : "Plano de cuidado publicado"}
                             </span>
-                            <strong>{message.reference.label}</strong>
+                            <strong>{reference.label}</strong>
                             <small>Abrir com acesso atual</small>
                           </a>
                         ) : (
-                          <span className="conversation-reference unavailable">
-                            {message.reference.label}
+                          <span className="conversation-reference unavailable" key={`unavailable:${index}`}>
+                            {reference.label}
                           </span>
-                        ))}
+                        ),
+                      )}
                     </article>
                   );
                 })}
@@ -609,54 +627,58 @@ function ConversationWorkspace({
               </p>
               {initial.references.length > 0 && (
                 <div className="conversation-reference-picker">
-                  <label htmlFor="direct-message-reference">
-                    Referência compartilhada (opcional)
-                  </label>
-                  <select
-                    id="direct-message-reference"
-                    value={activeReference ? selectedReference : ""}
-                    disabled={pending}
-                    onChange={(event) => {
-                      setSelectedReference(event.target.value);
-                      requestKey.current = null;
-                    }}
-                  >
-                    <option value="">Sem referência</option>
+                  <fieldset className="message-reference-options" disabled={pending}>
+                    <legend>Referências compartilhadas (opcional)</legend>
                     {["Plano de cuidado publicado", "Documentos compartilhados"].map(
                       (group) => {
                         const options = initial.references.filter(
                           (reference) => reference.group === group,
                         );
                         return options.length ? (
-                          <optgroup key={group} label={group}>
+                          <div className="message-reference-group" key={group}>
+                            <strong>{group}</strong>
                             {options.map((reference) => (
-                              <option
-                                key={`${reference.type}:${reference.id}`}
-                                value={`${reference.type}:${reference.id}`}
-                              >
-                                {reference.label}
-                              </option>
+                              <label key={`${reference.type}:${reference.id}`}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedReferences.includes(`${reference.type}:${reference.id}`)}
+                                  disabled={
+                                    !selectedReferences.includes(`${reference.type}:${reference.id}`) &&
+                                    selectedReferences.length >= 10
+                                  }
+                                  onChange={(event) => {
+                                    const key = `${reference.type}:${reference.id}`;
+                                    setSelectedReferences((current) =>
+                                      event.target.checked
+                                        ? [...current, key]
+                                        : current.filter((item) => item !== key),
+                                    );
+                                    requestKey.current = null;
+                                  }}
+                                />
+                                <span>{reference.label}</span>
+                              </label>
                             ))}
-                          </optgroup>
+                          </div>
                         ) : null;
                       },
                     )}
-                  </select>
-                  {activeReference && (
+                  </fieldset>
+                  {activeReferences.length > 0 && (
                     <button
                       type="button"
                       className="secondary conversation-reference-remove"
                       onClick={() => {
-                        setSelectedReference("");
+                        setSelectedReferences([]);
                         requestKey.current = null;
                       }}
                     >
-                      Remover referência
+                      Remover referências
                     </button>
                   )}
                   <small>
-                    Somente documentos compartilhados e o plano atualmente
-                    publicado aparecem aqui. Nenhum arquivo é enviado pela conversa.
+                    Cite até 10 itens. Somente documentos compartilhados e o plano
+                    atualmente publicado aparecem aqui. Nenhum arquivo é enviado pela conversa.
                   </small>
                 </div>
               )}

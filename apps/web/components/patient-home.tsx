@@ -141,14 +141,30 @@ export function PatientHome({
           </Link>
         </section>
       ) : focus.kind === "clear" ? (
-        <section className="pv-card" aria-labelledby="pv-focus-title">
-          <span className="pv-clear-icon" aria-hidden="true"><Icon name="check" /></span>
-          <h2 id="pv-focus-title" className="pv-big">Tudo em dia por hoje</h2>
-          <p className="pv-lead">
-            {checkIn
-              ? `Próximo check-in: ${checkIn.nextLabel}.`
-              : "Não há nada pendente com você agora. Se quiser, registre seu peso ou uma refeição."}
-          </p>
+        <section className="pv-card pv-clear-card" aria-labelledby="pv-focus-title">
+          <div className="pv-clear-layout">
+            <div className="pv-clear-copy">
+              <span className="pv-clear-icon" aria-hidden="true"><Icon name="check" /></span>
+              <h2 id="pv-focus-title" className="pv-big">Tudo em dia por hoje</h2>
+              <p className="pv-lead">
+                {checkIn
+                  ? `Próximo check-in: ${checkIn.nextLabel}.`
+                  : "Não há nada pendente com você agora. Se quiser, registre seu peso ou uma refeição."}
+              </p>
+            </div>
+            {checkIn && checkIn.recentCount > 0 && (
+              <div className="pv-rhythm" role="img" aria-label={`${checkIn.recentCount} check-ins registrados nos últimos 14 dias`}>
+                <span className="pv-rhythm-title" aria-hidden="true">Seus últimos 14 dias</span>
+                <div className="pv-rhythm-bars" aria-hidden="true">
+                  {checkIn.effects.dates.map((day, position) => (
+                    <span key={day} className={checkIn.recentDays.includes(day) ? "is-logged" : undefined}
+                      style={{ animationDelay: `${position * 40}ms` }} />
+                  ))}
+                </div>
+                <span className="pv-rhythm-caption" aria-hidden="true">Cada barra dourada é um dia com check-in.</span>
+              </div>
+            )}
+          </div>
           {checkIn && checkIn.recentCount > 0 && (
             <p className="pv-card-foot">
               {checkIn.recentCount} {checkIn.recentCount === 1 ? "check-in" : "check-ins"} nas últimas 2 semanas

@@ -80,6 +80,7 @@ export async function patientCheckInState(id: string) {
     nextLabel: nextCheckInLabel(due.nextOn, today),
     lastSubmittedAt: rows[0]?.submitted_at ?? null,
     recentCount: rows.filter((row) => row.check_in_on >= twoWeeks).length,
+    recentDays: [...new Set(rows.filter((row) => row.check_in_on >= twoWeeks).map((row) => row.check_in_on))],
     effects: effectsMap(rows, today),
   };
 }

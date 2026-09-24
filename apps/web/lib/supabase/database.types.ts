@@ -756,6 +756,7 @@ export type Database = {
           feeling: number | null;
           effects: Record<string, string>;
           no_effects: boolean;
+          bowel_status: string | null;
           hunger: number | null;
           satiety: number | null;
           energy: number | null;
@@ -879,6 +880,30 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "memberships";
             referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
+      care_message_references: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          message_id: string;
+          conversation_id: string;
+          patient_id: string;
+          doctor_id: string;
+          position: number;
+          reference_type: string;
+          reference_id: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "care_message_references_message_fkey";
+            columns: ["tenant_id", "message_id", "conversation_id", "patient_id", "doctor_id"];
+            isOneToOne: false;
+            referencedRelation: "care_messages";
+            referencedColumns: ["tenant_id", "id", "conversation_id", "patient_id", "doctor_id"];
           },
         ];
       };
@@ -1652,6 +1677,22 @@ export type Database = {
           request_key: string;
           message_reference_type?: string | null;
           message_reference_id?: string | null;
+        };
+        Returns: {
+          conversation_id: string;
+          message_id: string;
+          sent_at: string;
+        }[];
+      };
+      send_direct_message_with_references: {
+        Args: {
+          target_tenant: string;
+          target_patient: string;
+          target_doctor: string;
+          message_text: string;
+          request_key: string;
+          message_reference_types: string[];
+          message_reference_ids: string[];
         };
         Returns: {
           conversation_id: string;

@@ -303,6 +303,14 @@
 .dv .doctor-consultation-identity h2 { margin: 2px 0 4px; font-size: 25px; }
 .dv .doctor-consultation .home-eyebrow { font-size: 11px; letter-spacing: .06em; margin: 0; }
 .dv .doctor-consultation .home-consultation-meta { margin: 0; font-size: 12px; }
+.dv .doctor-consultation-glance { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0 0 12px; }
+.dv .doctor-consultation-glance > div { min-width: 0; padding: 12px 14px; border: 1px solid var(--dv-line); border-radius: 12px; background: #f7f9fb; }
+.dv .doctor-consultation-glance h3 { margin: 0 0 5px; font-size: 12px; color: var(--dv-ink); }
+.dv .doctor-consultation-glance p { margin: 0; color: var(--dv-muted); font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; white-space: pre-wrap; }
+.dv .doctor-consultation-glance > div:first-child p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.dv .doctor-consultation-glance small { display: block; margin-top: 6px; color: var(--dv-muted); font-size: 11px; }
+.dv .doctor-consultation-glance a { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 600; }
+.dv .doctor-consultation-glance .doctor-consultation-previous-answer { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--dv-line); }
 .dv .doctor-consultation-context .context-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0; }
 .dv .doctor-consultation-context .context-cards > li { border-radius: 12px; }
 .dv .doctor-consultation-context .context-cards > li > a { padding: 12px; min-height: 105px; gap: 6px; }
@@ -338,7 +346,7 @@
 .dv .doctor-home-aside .home-plain-list li > span > span { font-size: 11px; }
 .dv .doctor-home-aside .home-plain-list li > span { min-width: 0; }
 @media (min-width: 960px) and (max-width: 1199px) { .dv .doctor-home-overview { grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); } .dv .doctor-consultation-context .context-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 599px) { .dv .doctor-consultation-context .context-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dv .doctor-consultation-identity { align-items: start; gap: 12px; } .dv .doctor-consultation-identity h2 { font-size: 22px; } }
+@media (max-width: 599px) { .dv .doctor-consultation-context .context-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dv .doctor-consultation-glance { grid-template-columns: minmax(0, 1fr); } .dv .doctor-consultation-identity { align-items: start; gap: 12px; } .dv .doctor-consultation-identity h2 { font-size: 22px; } }
 
 /* O contexto da próxima consulta cabe em seis linhas consistentes. As cores
    identificam o tipo de registro, sem representar gravidade clínica. */

@@ -116,6 +116,19 @@ test("consulta agendada que já terminou não oferece 'Preparar atendimento'", (
   assert.match(source, /Ver na agenda/);
 });
 
+test("o topo da próxima consulta mostra evolução e separa a resposta atual da anterior", () => {
+  const source = block();
+  const service = read("../modules/workspace/today.ts");
+  assert.match(source, /<h3>Evolução registrada<\/h3>/);
+  assert.match(source, /<h3>O que o paciente procura nesta consulta<\/h3>/);
+  assert.match(source, /Aguardando resposta para esta consulta\./);
+  assert.match(source, /Resposta desta consulta enviada em/);
+  assert.match(source, /Resposta anterior enviada em/);
+  assert.match(service, /select\("id,finalized_at,evolution"\)/);
+  assert.match(service, /select\("request_id,answers"\)/);
+  assert.match(read("../app/doctor-home.css"), /\.doctor-consultation-glance \{ display: grid;/);
+});
+
 test("a faixa fixa só existe no celular e não rouba o foco", () => {
   const rules = homeRules();
   assert.match(rules, /\.home-sticky \{ display: none; \}/);

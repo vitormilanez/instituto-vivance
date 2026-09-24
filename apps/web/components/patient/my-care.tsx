@@ -187,6 +187,13 @@ export function PatientMyCare({
             </span>
             <Icon name="chevR" size={22} />
           </Link>
+          <Link className="pv-row-link" href="/clinicas?gerenciar=1">
+            <span>
+              <strong>Clínicas e convites</strong>
+              <small>Ver outros vínculos e convites pendentes</small>
+            </span>
+            <Icon name="chevR" size={22} />
+          </Link>
         </div>
         <form action={logout}>
           <button type="submit" className="pv-link" data-leave-clinic>Sair da conta</button>

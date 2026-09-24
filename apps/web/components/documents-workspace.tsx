@@ -1,11 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { maxDocumentBytes } from "@/modules/documents/validation";
 import { uploadDocument } from "@/lib/document-upload";
+import { uploadPatientDocumentBatch } from "@/modules/documents/batch";
+import {
+  examFileLabel,
+  examSelectionConsented,
+  examSelectionReady,
+  examSelectionReducer,
+  examStateLabel,
+  initialExamSelection,
+  type ExamSelectionItem,
+} from "@/modules/onboarding/exam-selection";
 import type {
   PatientDocuments,
   StaffDocuments,
@@ -102,6 +112,7 @@ export function DocumentUploadForm({
 
   if (!patientUpload && !patients?.length)
     return <p>Nenhum paciente com vínculo ativo está disponível para envio.</p>;
+  if (ownPatientId) return <PatientMultiDocumentUpload tenant={tenant} patientId={ownPatientId} category={category} />;
 
   return (
     <form className="document-upload-form" onSubmit={submit}>
@@ -158,6 +169,106 @@ export function DocumentUploadForm({
       </button>
     </form>
   );
+}
+
+function PatientMultiDocumentUpload({ tenant, patientId, category }: {
+  tenant: string;
+  patientId: string;
+  category?: "exam" | "clinical_document";
+}) {
+  const router = useRouter();
+  const [selection, dispatch] = useReducer(examSelectionReducer, undefined, () => initialExamSelection());
+  const [chosenCategory, setChosenCategory] = useState<"exam" | "clinical_document">(category ?? "exam");
+  const [sending, setSending] = useState(false);
+  const busy = useRef(false);
+  const [error, setError] = useState("");
+  const ready = examSelectionReady(selection);
+  const consented = examSelectionConsented(selection);
+  const failedCount = selection.items.filter((item) => item.state === "failed").length;
+  const sentCount = selection.items.filter((item) => item.state === "sent").length;
+
+  async function send(items: ExamSelectionItem[]) {
+    if (busy.current || !items.length) return;
+    busy.current = true;
+    setSending(true);
+    setError("");
+    try {
+      for (const item of items) dispatch({ type: "sending", key: item.key });
+      const sent = await uploadPatientDocumentBatch({ tenantId: tenant, patientId, category: chosenCategory, files: items },
+        ({ key, documentId, error: reason }) => {
+          if (documentId) {
+            dispatch({ type: "uploaded", key, documentId });
+            dispatch({ type: "sent", key });
+          } else {
+            const message = reason instanceof Error && reason.name !== "TimeoutError"
+              ? reason.message
+              : "Não foi possível confirmar este envio. Confira Meus documentos antes de tentar novamente.";
+            dispatch({ type: "failed", key, error: message });
+          }
+        });
+      if (sent) router.refresh();
+    } finally {
+      busy.current = false;
+      setSending(false);
+    }
+  }
+
+  return <form className="document-upload-form" onSubmit={(event) => {
+    event.preventDefault();
+    if (!ready.length) { setError("Escolha ao menos um arquivo para enviar."); return; }
+    if (!consented) { setError("Confirme os arquivos que deseja compartilhar."); return; }
+    void send(ready);
+  }}>
+    {!category && <label className="field">Tipo para todos os arquivos
+      <select value={chosenCategory} onChange={(event) => setChosenCategory(event.target.value as "exam" | "clinical_document")} disabled={sending}>
+        <option value="exam">Exame</option>
+        <option value="clinical_document">Documento clínico</option>
+      </select>
+    </label>}
+    <label className="field">Arquivos
+      <input type="file" multiple accept="application/pdf,image/jpeg,image/png" disabled={sending}
+        onChange={(event) => {
+          const files = Array.from(event.target.files ?? []);
+          event.target.value = "";
+          if (files.length) dispatch({ type: "add", files });
+        }} />
+    </label>
+    <p>Selecione vários PDF, JPG ou PNG de até {byteLimit()} cada.</p>
+    <p role="status">{failedCount
+      ? `${failedCount} arquivo${failedCount === 1 ? "" : "s"} precisa${failedCount === 1 ? "" : "m"} de atenção`
+      : ready.length
+        ? `${ready.length} arquivo${ready.length === 1 ? "" : "s"} selecionado${ready.length === 1 ? "" : "s"}`
+        : sentCount
+          ? `${sentCount} arquivo${sentCount === 1 ? "" : "s"} enviado${sentCount === 1 ? "" : "s"}`
+          : "Nenhum arquivo selecionado"}</p>
+    {selection.rejected.length > 0 && <div role="alert">
+      <p>Estes arquivos não foram adicionados:</p>
+      <ul>{selection.rejected.map((item, index) => <li key={`${item.name}-${index}`}>{item.name}: {item.reason}</li>)}</ul>
+      <button type="button" className="secondary" onClick={() => dispatch({ type: "dismissRejections" })}>Entendi</button>
+    </div>}
+    {selection.items.length > 0 && <ul className="exam-selection">
+      {selection.items.map((item) => <li key={item.key} data-state={item.state}>
+        <div className="exam-file"><strong>{item.file.name}</strong><span>{examFileLabel(item)}</span></div>
+        <span className="exam-file-state">{examStateLabel(item.state)}</span>
+        {item.error && <p className="exam-file-error" role="alert">{item.error}</p>}
+        {(item.state === "ready" || item.state === "failed") && <div className="exam-file-actions">
+          {item.state === "failed" && <button type="button" className="secondary" disabled={sending}
+            onClick={() => void send([item])}>Reenviar este arquivo</button>}
+          <button type="button" className="secondary" disabled={sending}
+            onClick={() => dispatch({ type: "remove", key: item.key })}>Remover</button>
+        </div>}
+      </li>)}
+    </ul>}
+    <label className="publication-confirm">
+      <input type="checkbox" checked={consented} disabled={sending || !ready.length}
+        onChange={(event) => dispatch({ type: "consent", consented: event.target.checked })} />
+      Confirmo que selecionei {ready.length} arquivo{ready.length === 1 ? "" : "s"} para compartilhar com a equipe.
+    </label>
+    {error && <p role="alert">{error}</p>}
+    <button type="submit" disabled={sending || !ready.length || !consented}>
+      {sending ? "Enviando arquivos…" : ready.length ? `Enviar ${ready.length} arquivo${ready.length === 1 ? "" : "s"}` : "Enviar arquivos"}
+    </button>
+  </form>;
 }
 
 function DocumentList({
@@ -444,8 +555,8 @@ export function PatientDocumentsWorkspace({ initial }: { initial: PatientDocumen
         <details className="panel document-upload-panel" id="enviar-documento" open>
           <summary>Enviar exame, foto ou documento para a equipe</summary>
           <p>
-            Aceita PDF, JPG e PNG de até {byteLimit()}. O arquivo fica privado,
-            disponível para o médico responsável revisar e não altera suas
+            Aceita PDF, JPG e PNG de até {byteLimit()} cada. Os arquivos ficam privados,
+            disponíveis para o médico responsável revisar e não alteram suas
             orientações automaticamente.
           </p>
           <DocumentUploadForm tenant={initial.clinic.id} ownPatientId={initial.patientId} />
