@@ -22,7 +22,7 @@ test("hierarquia: o dia é h1, a pessoa é h2, e o contexto usa abas com título
   assert.match(block(), /<h2 id=\{titleId\}>\{name\}<\/h2>/);
   assert.match(block(), /<ConsultationContextTabs/);
   assert.match(block(), /<h3>Cadastro inicial<\/h3>/);
-  assert.match(block(), /<h3>Pré-consulta desta consulta<\/h3>/);
+  assert.match(block(), /currentAnswers \? "Pré-consulta desta consulta" : "Pré-consulta anterior"/);
   assert.match(received(), /<h3 id=\{headingId\}>Recebido desde a última consulta<\/h3>/);
   assert.match(css(), /\.home-received > h3,\s*\.home-context > h3 \{/);
 });
@@ -122,12 +122,15 @@ test("o topo da próxima consulta mostra evolução e separa a resposta atual da
   const service = read("../modules/workspace/today.ts");
   assert.match(source, /<h3>Evolução registrada<\/h3>/);
   assert.match(source, /<ConsultationContextTabs/);
-  assert.match(source, /<h3>Pré-consulta desta consulta<\/h3>/);
+  assert.match(source, /\{contextTabs\}\s*\{otherContext\}/);
+  assert.match(source, /currentAnswers \? "Pré-consulta desta consulta" : "Pré-consulta anterior"/);
   assert.match(source, /<h3>Cadastro inicial<\/h3>/);
   assert.match(source, /Aguardando resposta para esta consulta\./);
   assert.match(source, /Enviada em \{submittedDate\} pelo paciente/);
   assert.match(service, /select\("id,finalized_at,evolution"\)/);
   assert.match(service, /select\("request_id,answers"\)/);
+  assert.match(service, /answers: answersFor\(previousPreparationRow\.id\)/);
+  assert.match(source, /const shown = currentAnswers \?\? previousAnswers/);
   assert.match(read("../app/doctor-home.css"), /\.doctor-consultation-glance \{ display: grid;/);
 });
 

@@ -22,6 +22,37 @@
   gap: 14px;
 }
 
+.prescriptions-panel__tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.prescriptions-panel__tabs button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.prescriptions-panel__tabs button[aria-selected="true"] {
+  border-bottom-color: var(--blue);
+  color: var(--ink);
+}
+
+.prescriptions-panel__tabs button:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: -3px;
+}
+
+.prescriptions-panel__section[hidden] { display: none; }
+
 .prescriptions-panel__list {
   margin: 0;
   padding: 0;
@@ -77,18 +108,23 @@
 .prescriptions-panel__form {
   grid-template-columns: minmax(240px, 1fr) minmax(150px, 0.55fr) minmax(180px, 0.65fr);
   max-width: none;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
   align-items: end;
 }
 
 .prescriptions-panel__form > h3,
+.prescriptions-panel__form > .prescriptions-panel__form-help,
 .prescriptions-panel__form > [role="alert"],
 .prescriptions-panel__form > [role="status"],
 .prescriptions-panel__source-detail,
 .prescriptions-panel__form > .publication-confirm,
 .prescriptions-panel__form > button {
   grid-column: 1 / -1;
+}
+
+.prescriptions-panel__form-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
 }
 
 .prescriptions-panel__source-detail input {

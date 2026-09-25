@@ -199,6 +199,7 @@ export type PatientCareContext = {
     id: string;
     submitted_at: string;
     goal?: string | null;
+    answers: Record<string, string> | null;
   } | null;
   onboarding: {
     submittedAt: string;
@@ -386,6 +387,7 @@ export async function patientCareContext(
         id: previousPreparationRow.id,
         submitted_at: previousPreparationRow.submitted_at,
         goal: goalFor(previousPreparationRow.id),
+        answers: answersFor(previousPreparationRow.id),
       }
     : null;
   return {

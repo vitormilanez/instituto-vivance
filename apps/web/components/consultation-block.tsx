@@ -126,8 +126,8 @@ export function ConsultationBlock({
       </header>
       {linkCopy ? <div className="home-care-link"><p>{linkCopy}</p>{link.status === "assigned" && <CareLinkAccept tenantId={tenantId} relationshipId={link.relationshipId} version={link.version} patientName={name} />}</div> : <>
         {context && <ConsultationGlance context={context} tenantId={tenantId} />}
-        {otherContext}
         {contextTabs}
+        {otherContext}
       </>}
       <div className="home-consultation-actions">
         <Link className="button" href={resumesThis ? `${base}/atendimentos/${draft.id}${encounterQuery}` : agendaHref}>{resumesThis ? "Retomar atendimento" : preparable ? "Preparar atendimento" : "Ver na agenda"}</Link>
@@ -208,8 +208,8 @@ export function ConsultationBlock({
         </div>
       ) : (
         <>
-          {otherContext}
           {contextTabs}
+          {otherContext}
         </>
       )}
     </article>
@@ -258,8 +258,21 @@ function InitialAnswers({ onboarding }: { onboarding: PatientCareContext["onboar
 
 function PreparationAnswers({ context, cards, compact, base, patientId }: { context: PatientCareContext; cards: ReturnType<typeof contextCardsFrom>; compact: boolean; base: string; patientId: string }) {
   const current = context.preparation;
-  if (!current?.submitted_at || !current.answers)
-    return <><p className="home-received-empty">{current ? "Aguardando resposta para esta consulta." : "Pré-consulta não solicitada para esta consulta."}</p><ContextCardList cards={cards} compactRequests={compact} homeView base={base} patientId={patientId} /></>;
-  const submittedDate = new Date(current.submitted_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "America/Sao_Paulo" });
-  return <><article className="doctor-consultation-answer-card"><h3>Pré-consulta desta consulta</h3><p className="doctor-consultation-answer-source">Enviada em {submittedDate} pelo paciente.</p><dl>{preparationQuestions.map(({ id, label }) => <div key={id}><dt>{label}</dt><dd>{current.answers?.[id]?.trim() ? current.answers[id] : "Não informado"}</dd></div>)}</dl></article><ContextCardList cards={cards} compactRequests={compact} homeView base={base} patientId={patientId} /></>;
+  const currentAnswers = current?.submitted_at && current.answers ? current : null;
+  const previousAnswers = context.previousPreparation?.answers ? context.previousPreparation : null;
+  const shown = currentAnswers ?? previousAnswers;
+  const submittedAt = currentAnswers?.submitted_at ?? previousAnswers?.submitted_at;
+  const submittedDate = submittedAt
+    ? new Date(submittedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "America/Sao_Paulo" })
+    : null;
+
+  return <>
+    {!currentAnswers && <p className="home-received-empty">{current ? "Aguardando resposta para esta consulta." : "Pré-consulta não solicitada para esta consulta."}</p>}
+    {shown && <article className="doctor-consultation-answer-card">
+      <h3>{currentAnswers ? "Pré-consulta desta consulta" : "Pré-consulta anterior"}</h3>
+      <p className="doctor-consultation-answer-source">Enviada em {submittedDate} pelo paciente.</p>
+      <dl>{preparationQuestions.map(({ id, label }) => <div key={id}><dt>{label}</dt><dd>{shown.answers?.[id]?.trim() ? shown.answers[id] : "Não informado"}</dd></div>)}</dl>
+    </article>}
+    <ContextCardList cards={cards} compactRequests={compact} homeView base={base} patientId={patientId} />
+  </>;
 }

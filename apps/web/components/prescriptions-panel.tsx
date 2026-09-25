@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, KeyboardEvent } from "react";
 import { uploadDocument } from "@/lib/document-upload";
 import type {
   PrescriptionArchive,
@@ -87,6 +87,9 @@ function PrescriptionsPanelContent({
   const fileId = useId();
   const urlId = useId();
   const consentId = useId();
+  const sectionId = useId();
+  const [section, setSection] = useState<"history" | "send">("history");
+  const sectionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [archive, setArchive] = useState<PrescriptionArchive | null>(null);
   const [loadError, setLoadError] = useState("");
   const [submitError, setSubmitError] = useState("");
@@ -240,6 +243,8 @@ function PrescriptionsPanelContent({
       uploaded.current = null;
       setNotice("Receita anterior adicionada ao histórico.");
       await load();
+      setSection("history");
+      sectionRefs.current[0]?.focus();
     } catch (reason) {
       setSubmitError(
         reason instanceof Error && reason.name !== "TimeoutError"
@@ -249,6 +254,14 @@ function PrescriptionsPanelContent({
     } finally {
       setPending(false);
     }
+  }
+
+  function onSectionKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const next = event.key === "Home" ? 0 : event.key === "End" ? 1 : 1 - index;
+    setSection(next === 0 ? "history" : "send");
+    sectionRefs.current[next]?.focus();
   }
 
   return (
@@ -261,18 +274,39 @@ function PrescriptionsPanelContent({
         </div>
       </div>
 
-      {loadError ? (
+      <div className="prescriptions-panel__tabs" role="tablist" aria-label="Receitas anteriores">
+        {(["history", "send"] as const).map((tab, index) => (
+          <button
+            key={tab}
+            ref={(node) => { sectionRefs.current[index] = node; }}
+            id={`${sectionId}-tab-${tab}`}
+            type="button"
+            role="tab"
+            aria-selected={section === tab}
+            aria-controls={`${sectionId}-panel-${tab}`}
+            tabIndex={section === tab ? 0 : -1}
+            onClick={() => setSection(tab)}
+            onKeyDown={(event) => onSectionKeyDown(event, index)}
+          >
+            {tab === "history" ? "Já enviadas" : "Enviar"}
+          </button>
+        ))}
+      </div>
+
+      <div id={`${sectionId}-panel-history`} className="prescriptions-panel__section" role="tabpanel" aria-labelledby={`${sectionId}-tab-history`} hidden={section !== "history"} tabIndex={0}>
+        {notice && <p role="status">{notice}</p>}
+        {loadError ? (
         <div role="alert">
           <p>{loadError}</p>
           <button type="button" className="secondary" onClick={() => void load()}>
             Tentar novamente
           </button>
         </div>
-      ) : archive === null ? (
+        ) : archive === null ? (
         <p role="status">Carregando histórico…</p>
-      ) : !archive.available ? (
+        ) : !archive.available ? (
         <p role="status">Histórico de receitas ainda indisponível.</p>
-      ) : archive.prescriptions.length ? (
+        ) : archive.prescriptions.length ? (
         <div className="prescriptions-panel__history">
           <PrescriptionList tenantId={tenantId} items={archive.prescriptions} />
           {pageError && <p role="alert">{pageError}</p>}
@@ -287,14 +321,16 @@ function PrescriptionsPanelContent({
             </button>
           )}
         </div>
-      ) : (
+        ) : (
         <p>Nenhuma receita anterior foi adicionada.</p>
-      )}
+        )}
+      </div>
 
-      <form className="document-upload-form prescriptions-panel__form" onSubmit={submit}>
-        <h3>Adicionar ao histórico</h3>
+      <div id={`${sectionId}-panel-send`} className="prescriptions-panel__section" role="tabpanel" aria-labelledby={`${sectionId}-tab-send`} hidden={section !== "send"} tabIndex={0}>
+        <form className="document-upload-form prescriptions-panel__form" onSubmit={submit}>
+        <h3>Enviar receita anterior</h3>
+        <p className="prescriptions-panel__form-help">PDF, JPG ou link da Memed. A receita será compartilhada com a equipe de cuidado.</p>
         {submitError && <p role="alert">{submitError}</p>}
-        {notice && <p role="status">{notice}</p>}
         <label className="field prescriptions-panel__title-field" htmlFor={titleId}>
           Título
           <input id={titleId} name="title" maxLength={160} required disabled={formDisabled} placeholder="Ex.: Receita da consulta de retorno" />
@@ -340,7 +376,8 @@ function PrescriptionsPanelContent({
         <button disabled={formDisabled}>
           {pending ? "Adicionando…" : "Adicionar receita anterior"}
         </button>
-      </form>
+        </form>
+      </div>
     </section>
   );
 }
