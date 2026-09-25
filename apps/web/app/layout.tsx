@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import "./teleconsultation.css";
+import "./doctor-refinements.css";
+import "./onboarding-refinements.css";
+import "./agenda-refinements.css";
+import "./message-context.css";
+import "./prescriptions.css";
 
 const geist = Geist({
   subsets: ["latin"],

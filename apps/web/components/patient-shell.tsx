@@ -22,6 +22,7 @@ export function registerItems(base: string, checkInHref?: string | null): Regist
     { href: `${base}/peso`, title: "Peso e medidas", hint: "Um campo, um toque", icon: "scale" },
     { href: `${base}/refeicao`, title: "Refeição", hint: "Foto e, se quiser, uma descrição", icon: "food" },
     { href: `${base}/documentos#enviar-documento`, title: "Exame ou documento", hint: "Foto ou PDF", icon: "file" },
+    { href: `${base}/receitas`, title: "Receita anterior", hint: "PDF, foto ou link da Memed", icon: "file" },
     { href: `${base}/conversas`, title: "Mensagem ao médico", hint: "Para dúvidas que podem esperar", icon: "chat" },
   ];
 }

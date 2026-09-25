@@ -1143,6 +1143,48 @@ export type Database = {
           },
         ];
       };
+      patient_prescriptions: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          created_by: string;
+          client_request_id: string;
+          title: string;
+          prescribed_on: string;
+          source_type: string;
+          document_id: string | null;
+          memed_url: string | null;
+          visibility: string;
+          patient_consented_at: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "patient_prescriptions_tenant_id_patient_id_fkey";
+            columns: ["tenant_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "patient_prescriptions_tenant_id_created_by_fkey";
+            columns: ["tenant_id", "created_by"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+          {
+            foreignKeyName: "patient_prescriptions_tenant_id_document_id_patient_id_fkey";
+            columns: ["tenant_id", "document_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patient_documents";
+            referencedColumns: ["tenant_id", "id", "patient_id"];
+          },
+        ];
+      };
       patient_document_reviews: {
         Row: {
           id: string;
@@ -1482,6 +1524,41 @@ export type Database = {
           photo_document?: string | null;
         };
         Returns: string;
+      };
+      record_patient_prescription: {
+        Args: {
+          target_tenant: string;
+          target_patient: string;
+          request_key: string;
+          title_text: string;
+          prescription_date: string;
+          source_kind: string;
+          source_document: string | null;
+          source_url: string | null;
+          input_visibility: string;
+          explicit_patient_consent: boolean;
+        };
+        Returns: string;
+      };
+      list_patient_prescriptions_page: {
+        Args: {
+          target_tenant: string;
+          target_patient: string;
+          before_prescribed_on: string | null;
+          before_created_at: string | null;
+          before_id: string | null;
+          page_limit?: number;
+        };
+        Returns: {
+          id: string;
+          title: string;
+          prescribed_on: string;
+          source_type: string;
+          document_id: string | null;
+          memed_url: string | null;
+          visibility: string;
+          created_at: string;
+        }[];
       };
       save_return_preparation_draft: {
         Args: {

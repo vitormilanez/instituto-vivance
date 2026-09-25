@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PrescriptionsPanel } from "@/components/prescriptions-panel";
 import { TeleconsultationWorkspace } from "@/components/teleconsultation-workspace";
 import { getAppointmentTeleconsultation } from "@/modules/teleconsultations/service";
 import { clinicDate } from "@/modules/agenda/validation";
@@ -133,6 +134,7 @@ export default async function EncounterPage({
           unavailable={call?.unavailable}
           context={
             <>
+              <details className="panel"><summary>Receitas anteriores</summary><PrescriptionsPanel tenantId={tenantId} patientId={detail.encounter.patient_id} /></details>
               <section className="panel">
                 <h2>Contexto para a conversa</h2>
                 {context ? (
@@ -174,6 +176,7 @@ export default async function EncounterPage({
             </div>
           )}
           {editor}
+          <details className="panel"><summary>Receitas anteriores</summary><PrescriptionsPanel tenantId={tenantId} patientId={detail.encounter.patient_id} /></details>
         </>
       )}
     </ClinicShell>

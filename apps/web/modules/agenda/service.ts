@@ -37,10 +37,24 @@ export async function listAppointments(
     .limit(501);
   if (error) throw new Error("Unable to load appointments");
   const appointments = (data ?? []).slice(0, 500);
-  const calls = await listAppointmentTeleconsultations(id, appointments.map(a => a.id));
+  const appointmentIds = appointments.map(a => a.id);
+  // Only care-team roles may receive a link to internal clinical records.
+  // The user's session and existing care-access RLS govern this query.
+  const [calls, records] = await Promise.all([
+    listAppointmentTeleconsultations(id, appointmentIds),
+    appointmentIds.length && ["doctor", "nurse"].includes(clinic.role)
+      ? client.from("encounters").select("id,appointment_id,status")
+          .eq("tenant_id", id).in("appointment_id", appointmentIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (records.error) throw new Error("Unable to load appointment records");
+  const encounters = new Map((records.data ?? []).map(record => [record.appointment_id, record]));
   return {
     clinic,
-    appointments: appointments.map(a => ({ ...a, ...(calls[a.id] ? { teleconsultation: calls[a.id] as AppointmentTeleconsultation } : {}) })),
+    appointments: appointments.map(a => ({ ...a,
+      ...(encounters.has(a.id) ? { encounter: encounters.get(a.id)! } : {}),
+      ...(calls[a.id] ? { teleconsultation: calls[a.id] as AppointmentTeleconsultation } : {}),
+    })),
     truncated: (data?.length ?? 0) > 500,
   };
 }

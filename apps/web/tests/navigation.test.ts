@@ -61,12 +61,10 @@ test("today preserves the focused patient when opening the record and documents"
   assert.match(workspace, /contextCardsFrom\(\s*base,\s*appointment\.patient_id,/);
   assert.match(workspace, /`\$\{base\}\/pacientes\/\$\{appointment\.patient_id\}`/);
   assert.match(workspace, /Preparar atendimento/);
-  // O bloco de contexto usa a mesma lista de cards do resto do produto, e a
-  // Home passa a identidade do paciente aberto para a ação de solicitar.
-  assert.match(
-    workspace,
-    /<ContextCardList\s+cards=\{cards\}\s+compactRequests=\{compact\}\s+base=\{base\}\s+patientId=\{appointment\.patient_id\}\s*\/>/,
-  );
+  // A aba recebe a identidade da consulta e mantém as ações no mesmo paciente.
+  assert.match(workspace, /<PreparationAnswers\b[^\n]*\bpatientId=\{appointment\.patient_id\}/);
+  assert.match(workspace, /<ContextCardList[^>]+base=\{base\} patientId=\{patientId\}/);
+
 });
 
 test("today falls forward to the next scheduled day without changing today's list", () => {

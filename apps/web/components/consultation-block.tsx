@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { PrescriptionsPanel } from "@/components/prescriptions-panel";
 import { TeleconsultationLink } from "./teleconsultation-link";
 import type { PatientCareContext } from "@/modules/workspace/today";
-import { contextSummary } from "@/modules/workspace/patient-context-cards";
 import {
   dayStatusLabels,
   appointmentClock,
@@ -21,6 +21,7 @@ import { CareLinkAccept } from "@/components/care-link-accept";
 import { DoctorWeightChart, type WeightPoint } from "@/components/doctor-weight-chart";
 import { preparationQuestions } from "@/modules/return-preparation/questionnaire";
 import { onboardingMeasurements, onboardingQuestions } from "@/modules/onboarding/display";
+import { ConsultationContextTabs } from "@/components/consultation-context-tabs";
 
 export type BlockAppointment = {
   id: string;
@@ -100,26 +101,41 @@ export function ConsultationBlock({
           `${base}/pacientes/${appointment.patient_id}`,
         )
       : [];
+  const otherCards = cards.filter((card) => card.id !== "preparation");
   const linkCopy = careLinkCopy(link);
+  const contextTabs = context ? (
+    <ConsultationContextTabs
+      initial={<InitialAnswers onboarding={context.onboarding} />}
+      preparation={<PreparationAnswers context={context} cards={cards.filter((card) => card.id === "preparation")} compact={compact} base={base} patientId={appointment.patient_id} />}
+      received={received ? <ReceivedSince view={received} today={today} tenantId={tenantId} headingId={`consulta-${appointment.id}-recebido`} /> : <p className="home-received-empty">Nenhum envio disponível para esta consulta.</p>}
+      prescriptions={<PrescriptionsPanel tenantId={tenantId} patientId={appointment.patient_id} />}
+    />
+  ) : null;
+  const otherContext = otherCards.length ? (
+    <section className="doctor-consultation-context doctor-consultation-other" aria-label="Exames, medidas, metas e registros da clínica">
+      <h3>Informações para a consulta</h3>
+      <ContextCardList cards={otherCards} compactRequests={compact} homeView base={base} patientId={appointment.patient_id} />
+    </section>
+  ) : null;
   if (compact) return (
     <article className="home-consultation doctor-consultation" aria-labelledby={titleId}>
       <header className="doctor-consultation-identity">
         <span className="dv-avatar" aria-hidden="true">{name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>
         <div><p className="home-eyebrow">{eyebrow} · {appointmentClock(appointment.starts_at)}–{appointmentClock(appointment.ends_at)}</p><h2 id={titleId}>{name}</h2><p className="home-consultation-meta">{appointment.kind === "return" ? "Retorno" : "Consulta"} · {appointment.doctor_display_name}</p></div>
+        {context && <DoctorWeightChart initialWeight={context.onboarding?.measurements.weightKg != null && context.onboarding.measurements.measuredOn ? { value: context.onboarding.measurements.weightKg, date: context.onboarding.measurements.measuredOn } : null} points={weight} href={`${base}/acompanhamento?aba=evolucao&paciente=${appointment.patient_id}`} />}
       </header>
       {linkCopy ? <div className="home-care-link"><p>{linkCopy}</p>{link.status === "assigned" && <CareLinkAccept tenantId={tenantId} relationshipId={link.relationshipId} version={link.version} patientName={name} />}</div> : <>
-        {context && <ConsultationGlance context={context} tenantId={tenantId} patientId={appointment.patient_id} weight={weight} />}
-        {context && <ConsultationAnswers context={context} />}
-        {context && <div className="doctor-consultation-context"><ContextCardList cards={cards} compactRequests={compact} homeView base={base} patientId={appointment.patient_id} /></div>}
+        {context && <ConsultationGlance context={context} tenantId={tenantId} />}
+        {otherContext}
+        {contextTabs}
       </>}
       <div className="home-consultation-actions">
         <Link className="button" href={resumesThis ? `${base}/atendimentos/${draft.id}${encounterQuery}` : agendaHref}>{resumesThis ? "Retomar atendimento" : preparable ? "Preparar atendimento" : "Ver na agenda"}</Link>
-        <Link className="button secondary" href={`${base}/pacientes/${appointment.patient_id}`}>Abrir ficha</Link>
-        <Link className="button secondary" href={`${base}/mensagens?paciente=${appointment.patient_id}`}>Mensagem</Link>
+        {link.status === "active" && <><Link className="button secondary" href={`${base}/pacientes/${appointment.patient_id}`}>Abrir ficha</Link>
+        <Link className="button secondary" href={`${base}/mensagens?paciente=${appointment.patient_id}`}>Mensagem</Link></>}
+        {video && preparable && appointment.teleconsultation?.join_url && <TeleconsultationLink url={appointment.teleconsultation.join_url} compact />}
       </div>
-      {video && preparable && appointment.teleconsultation?.join_url && <TeleconsultationLink url={appointment.teleconsultation.join_url} compact />}
       {draft && !resumesThis && <p className="home-draft">Atendimento em rascunho · <Link href={`${base}/atendimentos/${draft.id}`}>Retomar</Link></p>}
-      {received && !linkCopy && <details className="doctor-consultation-received"><summary>O que chegou desde a última consulta</summary><ReceivedSince view={received} today={today} tenantId={tenantId} headingId={`consulta-${appointment.id}-recebido`} /></details>}
       {backToNext && <Link className="home-back" href={backToNext}>Voltar para a próxima consulta</Link>}
     </article>
   );
@@ -192,55 +208,21 @@ export function ConsultationBlock({
         </div>
       ) : (
         <>
-          {received ? (
-            <ReceivedSince
-              view={received}
-              today={today}
-              tenantId={tenantId}
-              headingId={`consulta-${appointment.id}-recebido`}
-            />
-          ) : null}
-          {context ? (
-            <section
-              className="home-context"
-              aria-labelledby={`consulta-${appointment.id}-contexto`}
-            >
-              <h3 id={`consulta-${appointment.id}-contexto`}>
-                Contexto para esta consulta
-              </h3>
-              <p>{contextSummary(cards)}</p>
-              <ContextCardList
-                cards={cards}
-                compactRequests={compact}
-                base={base}
-                patientId={appointment.patient_id}
-              />
-            </section>
-          ) : null}
+          {otherContext}
+          {contextTabs}
         </>
       )}
     </article>
   );
 }
 
-function ConsultationGlance({ context, tenantId, patientId, weight }: { context: PatientCareContext; tenantId: string; patientId: string; weight: WeightPoint[] | null }) {
+function ConsultationGlance({ context, tenantId }: { context: PatientCareContext; tenantId: string }) {
   const date = (value: string) =>
     new Date(value).toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
       timeZone: "America/Sao_Paulo",
     });
-  const current = context.preparation;
-  const currentGoal = current?.goal ?? null;
-  const previous = context.previousPreparation;
-  const currentAnswer = current?.submitted_at
-    ? currentGoal
-      ? `Respondido em ${date(current.submitted_at)}`
-      : `Respondido em ${date(current.submitted_at)}; sem assunto principal informado.`
-    : current
-      ? "Aguardando resposta para esta consulta."
-      : "Pré-consulta não solicitada para esta consulta.";
-
   return (
     <section className="doctor-consultation-glance" aria-label="Resumo para a consulta">
       <div>
@@ -252,55 +234,32 @@ function ConsultationGlance({ context, tenantId, patientId, weight }: { context:
         {context.encounter?.evolution?.trim() && (
           <Link href={`/clinicas/${tenantId}/atendimentos/${context.encounter.id}`}>Ler evolução completa</Link>
         )}
-        <DoctorWeightChart points={weight} href={`/clinicas/${tenantId}/acompanhamento?aba=evolucao&paciente=${patientId}`} />
-      </div>
-      <div>
-        <h3>O que o paciente procura nesta consulta</h3>
-        <p>{currentGoal || currentAnswer}</p>
-        {currentGoal && current?.submitted_at ? (
-          <small>Resposta desta consulta enviada em {date(current.submitted_at)}.</small>
-        ) : previous?.goal ? (
-          <p className="doctor-consultation-previous-answer">
-            Resposta anterior enviada em {date(previous.submitted_at)}: {previous.goal}
-          </p>
-        ) : null}
       </div>
     </section>
   );
 }
 
-function ConsultationAnswers({ context }: { context: PatientCareContext }) {
-  const current = context.preparation;
-  const onboarding = context.onboarding;
-  if (!current?.submitted_at && !onboarding) return null;
+function InitialAnswers({ onboarding }: { onboarding: PatientCareContext["onboarding"] }) {
+  if (!onboarding) return <p className="home-received-empty">Cadastro inicial ainda não foi enviado.</p>;
   const submittedDate = (value: string) => new Date(value).toLocaleDateString("pt-BR", {
     day: "2-digit", month: "2-digit", year: "numeric", timeZone: "America/Sao_Paulo",
   });
   return (
-    <section className="doctor-consultation-answers" aria-label="Respostas enviadas pelo paciente">
-      {current?.submitted_at && current.answers && (
-        <article className="doctor-consultation-answer-card">
-          <h3>Pré-consulta desta consulta</h3>
-          <p className="doctor-consultation-answer-source">Enviada em {submittedDate(current.submitted_at)} pelo paciente.</p>
-          <dl>
-            {preparationQuestions.map(({ id, label }) => (
-              <div key={id}><dt>{label}</dt><dd>{current.answers?.[id]?.trim() ? current.answers[id] : "Não informado"}</dd></div>
-            ))}
-          </dl>
-        </article>
-      )}
-      {onboarding && (
-        <article className="doctor-consultation-answer-card">
-          <h3>Cadastro inicial</h3>
-          <p className="doctor-consultation-answer-source">Enviado em {submittedDate(onboarding.submittedAt)} pelo paciente.</p>
-          <dl>
-            {onboardingQuestions.map(({ id, label }) => (
-              <div key={id}><dt>{label}</dt><dd>{onboarding.answers[id]?.trim() ? onboarding.answers[id] : "Não informado"}</dd></div>
-            ))}
-            <div><dt>Medidas informadas no cadastro</dt><dd>{onboardingMeasurements(onboarding.measurements)}</dd></div>
-          </dl>
-        </article>
-      )}
-    </section>
+    <article className="doctor-consultation-answer-card">
+      <h3>Cadastro inicial</h3>
+      <p className="doctor-consultation-answer-source">Enviado em {submittedDate(onboarding.submittedAt)} pelo paciente.</p>
+      <dl>
+        {onboardingQuestions.map(({ id, label }) => <div key={id}><dt>{label}</dt><dd>{onboarding.answers[id]?.trim() ? onboarding.answers[id] : "Não informado"}</dd></div>)}
+        <div><dt>Medidas informadas no cadastro</dt><dd>{onboardingMeasurements(onboarding.measurements)}</dd></div>
+      </dl>
+    </article>
   );
+}
+
+function PreparationAnswers({ context, cards, compact, base, patientId }: { context: PatientCareContext; cards: ReturnType<typeof contextCardsFrom>; compact: boolean; base: string; patientId: string }) {
+  const current = context.preparation;
+  if (!current?.submitted_at || !current.answers)
+    return <><p className="home-received-empty">{current ? "Aguardando resposta para esta consulta." : "Pré-consulta não solicitada para esta consulta."}</p><ContextCardList cards={cards} compactRequests={compact} homeView base={base} patientId={patientId} /></>;
+  const submittedDate = new Date(current.submitted_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "America/Sao_Paulo" });
+  return <><article className="doctor-consultation-answer-card"><h3>Pré-consulta desta consulta</h3><p className="doctor-consultation-answer-source">Enviada em {submittedDate} pelo paciente.</p><dl>{preparationQuestions.map(({ id, label }) => <div key={id}><dt>{label}</dt><dd>{current.answers?.[id]?.trim() ? current.answers[id] : "Não informado"}</dd></div>)}</dl></article><ContextCardList cards={cards} compactRequests={compact} homeView base={base} patientId={patientId} /></>;
 }

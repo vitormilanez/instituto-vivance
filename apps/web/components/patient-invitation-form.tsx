@@ -27,7 +27,7 @@ export function PatientInvitationForm({
   targetPatient?: { id: string; displayName: string };
 }) {
   const router = useRouter();
-  const [channel, setChannel] = useState<"email" | "whatsapp">("email");
+  const [channel, setChannel] = useState<"email" | "whatsapp">("whatsapp");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [created, setCreated] = useState<CreatedInvitation>();
@@ -81,7 +81,7 @@ export function PatientInvitationForm({
           : "",
       );
       formElement.reset();
-      setChannel("email");
+      setChannel("whatsapp");
     } catch (reason) {
       setError(
         reason instanceof Error
@@ -109,7 +109,7 @@ export function PatientInvitationForm({
 
   return (
     <section
-      className="panel patient-invitation-form"
+      className="panel patient-invitation-form invitation-refined"
       aria-labelledby="patient-invitation-title"
     >
       <h2 id="patient-invitation-title">
@@ -117,12 +117,12 @@ export function PatientInvitationForm({
       </h2>
       <p>
         {targetPatient
-          ? "A pessoa confirma o acesso, revisa as três perguntas padrão e continua na mesma ficha."
-          : "Para quem vai usar o app. A pessoa recebe um link, cria o próprio acesso e preenche o cadastro — medidas, exames e pré-consulta chegam direto para você."}
+          ? "A pessoa confirma a própria identidade, aceita o acesso e continua no mesmo prontuário."
+          : "O paciente recebe um link seguro, confirma a própria identidade e começa o cadastro."}
       </p>
       <form onSubmit={submit}>
         <div className="field">
-          <label htmlFor="patient-invitation-name">Nome</label>
+          <label htmlFor="patient-invitation-name">Pessoa convidada</label>
           <input
             id="patient-invitation-name"
             name="displayName"
@@ -161,7 +161,7 @@ export function PatientInvitationForm({
           </div>
         ) : null}
         <fieldset className="channel-choice">
-          <legend>Como a pessoa receberá o convite?</legend>
+          <legend>Como enviar o convite?</legend>
           <label>
             <input
               type="radio"
@@ -170,7 +170,7 @@ export function PatientInvitationForm({
               onChange={() => setChannel("email")}
               disabled={pending}
             />{" "}
-            E-mail
+            Enviar por e-mail
           </label>
           <label>
             <input
@@ -180,7 +180,7 @@ export function PatientInvitationForm({
               onChange={() => setChannel("whatsapp")}
               disabled={pending}
             />{" "}
-            Link para WhatsApp
+              Gerar link para WhatsApp
           </label>
         </fieldset>
         {channel === "email" ? (
@@ -209,8 +209,8 @@ export function PatientInvitationForm({
               disabled={pending}
             />
             <small>
-              Você compartilhará o link manualmente. A pessoa informará e
-              confirmará o próprio e-mail para entrar.
+              Você receberá um link para enviar. A pessoa informará e
+              confirmará o próprio e-mail antes de entrar.
             </small>
           </div>
         )}
@@ -221,8 +221,12 @@ export function PatientInvitationForm({
           {pending
             ? "Criando convite…"
             : targetPatient
-              ? "Criar convite para continuar"
-              : "Criar convite"}
+              ? channel === "whatsapp"
+                ? "Gerar link de acolhimento"
+                : "Enviar convite por e-mail"
+              : channel === "whatsapp"
+                ? "Gerar link seguro"
+                : "Enviar convite por e-mail"}
         </button>
       </form>
       {error ? (
@@ -232,11 +236,11 @@ export function PatientInvitationForm({
       ) : null}
       {created ? (
         <div className="inline-confirm invitation-result" role="status">
-          <h3>Convite criado</h3>
+          <h3>Convite pronto</h3>
           <p>
             {created.shareUrl
-              ? "O link está pronto. Envie para a pessoa pelo seu WhatsApp."
-              : "O convite está registrado na clínica."}
+              ? "Envie este link à pessoa convidada. Ela confirmará a própria identidade antes de acessar o cadastro."
+              : "O convite está registrado. Confira abaixo o status do envio."}
           </p>
           {whatsappUrl && (
             <a
@@ -256,7 +260,7 @@ export function PatientInvitationForm({
                 readOnly
               />
               <button className="secondary" type="button" onClick={copyLink}>
-                {copied ? "Link copiado" : "Copiar link"}
+                {copied ? "Link copiado" : "Copiar link seguro"}
               </button>
             </div>
           ) : (

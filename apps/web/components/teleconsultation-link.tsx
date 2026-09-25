@@ -34,12 +34,14 @@ export function TeleconsultationLink({
     >
       <div className="teleconsultation-link-actions">
         <a
-          className="button"
+          className="button teleconsultation-join"
           href={url}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label={compact ? "Entrar na teleconsulta (abre em outra aba)" : "Abrir Google Meet (abre em outra aba)"}
           data-external-call
         >
+          <span className="teleconsultation-access-dot" aria-hidden="true" />
           <Video size={18} aria-hidden="true" />{" "}
           {compact ? "Entrar na teleconsulta" : "Abrir Google Meet"}
           <ExternalLink size={15} aria-hidden="true" />
@@ -66,7 +68,7 @@ export function TeleconsultationLink({
         )}
       </div>
       {!compact && <p className="teleconsultation-url">{url}</p>}
-      <small>A chamada abre em outra aba ou janela.</small>
+      <small className={compact ? "sr-only" : undefined}>A chamada abre em outra aba ou janela.</small>
       {notice && <p role="status">{notice}</p>}
     </div>
   );

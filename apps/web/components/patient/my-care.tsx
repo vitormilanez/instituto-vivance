@@ -165,6 +165,10 @@ export function PatientMyCare({
       <section className="pv-section" aria-labelledby="pv-care-more">
         <h2 id="pv-care-more" className="pv-h2">Mais</h2>
         <div className="pv-card pv-card-list">
+          <Link className="pv-row-link" href={`${base}/receitas`}>
+            <span><strong>Receitas anteriores</strong><small>PDF, foto ou link da Memed</small></span>
+            <Icon name="chevR" size={22} />
+          </Link>
           <Link className="pv-row-link" href={`${base}/metas`}>Metas e expectativas <Icon name="chevR" size={22} /></Link>
           <Link className="pv-row-link" href={`${base}/diario`}>
             <span>
