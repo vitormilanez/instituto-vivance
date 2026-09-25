@@ -66,14 +66,10 @@
 .dv .doctor-consultation-other > h3 { margin: 0 0 9px; font-size: 13px; color: var(--dv-ink); }
 .dv .doctor-context-tabs .doctor-consultation-answer-card { border: 0; border-radius: 0; padding: 4px 0; }
 .dv .doctor-context-tabs [role="tabpanel"][hidden] { display: none; }
-.dv .doctor-context-tablist { flex-wrap: wrap; overflow: visible; }
-.dv .doctor-home-focus .doctor-context-tablist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.dv .doctor-home-focus .doctor-context-tablist button { width: 100%; min-width: 0; text-align: center; }
-@media (min-width: 1600px) {
-  .dv .doctor-home-focus .doctor-context-tablist { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
+.dv .doctor-context-tablist { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: visible; }
+.dv .doctor-context-tablist button { width: 100%; min-width: 0; text-align: center; white-space: normal; line-height: 1.25; }
 @media (max-width: 650px) {
   .dv .doctor-consultation-identity .doctor-weight-trend { flex-basis: 100%; width: 100%; margin-left: 0; }
-  .dv .doctor-context-tablist button { flex: 1 1 45%; max-width: none; font-size: 12px; }
+  .dv .doctor-context-tablist button { max-width: none; padding-inline: 4px; font-size: 11px; }
   .dv .doctor-consultation .home-consultation-actions .teleconsultation-link { width: 100%; }
 }

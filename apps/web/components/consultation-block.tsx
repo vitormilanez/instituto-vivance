@@ -108,7 +108,7 @@ export function ConsultationBlock({
       initial={<InitialAnswers onboarding={context.onboarding} />}
       preparation={<PreparationAnswers context={context} cards={cards.filter((card) => card.id === "preparation")} compact={compact} base={base} patientId={appointment.patient_id} />}
       received={received ? <ReceivedSince view={received} today={today} tenantId={tenantId} headingId={`consulta-${appointment.id}-recebido`} /> : <p className="home-received-empty">Nenhum envio disponível para esta consulta.</p>}
-      prescriptions={<PrescriptionsPanel tenantId={tenantId} patientId={appointment.patient_id} />}
+      prescriptions={<PrescriptionsPanel tenantId={tenantId} patientId={appointment.patient_id} embedded />}
     />
   ) : null;
   const otherContext = otherCards.length ? (

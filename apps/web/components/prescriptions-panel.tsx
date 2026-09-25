@@ -56,10 +56,12 @@ export function PrescriptionsPanel({
   tenantId,
   patientId,
   patientView = false,
+  embedded = false,
 }: {
   tenantId: string;
   patientId: string;
   patientView?: boolean;
+  embedded?: boolean;
 }) {
   return (
     <PrescriptionsPanelContent
@@ -67,6 +69,7 @@ export function PrescriptionsPanel({
       tenantId={tenantId}
       patientId={patientId}
       patientView={patientView}
+      embedded={embedded}
     />
   );
 }
@@ -75,10 +78,12 @@ function PrescriptionsPanelContent({
   tenantId,
   patientId,
   patientView,
+  embedded,
 }: {
   tenantId: string;
   patientId: string;
   patientView: boolean;
+  embedded: boolean;
 }) {
   const headingId = useId();
   const titleId = useId();
@@ -265,16 +270,16 @@ function PrescriptionsPanelContent({
   }
 
   return (
-    <section className="card prescriptions-panel" aria-labelledby={headingId}>
+    <section className={embedded ? "prescriptions-panel prescriptions-panel--embedded" : "card prescriptions-panel"} aria-labelledby={headingId}>
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Histórico clínico</p>
-          <h2 id={headingId}>Receitas anteriores</h2>
+          {!embedded && <p className="eyebrow">Histórico clínico</p>}
+          {embedded ? <h3 id={headingId}>Receitas</h3> : <h2 id={headingId}>Receitas anteriores</h2>}
           <p>A Vivance organiza este histórico; não emite nem valida receitas.</p>
         </div>
       </div>
 
-      <div className="prescriptions-panel__tabs" role="tablist" aria-label="Receitas anteriores">
+      <div className="prescriptions-panel__tabs" role="tablist" aria-label="Receitas">
         {(["history", "send"] as const).map((tab, index) => (
           <button
             key={tab}
