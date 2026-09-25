@@ -1,5 +1,10 @@
 # Vivance — execução e escolha de modelos
 
+Antes de publicar ou atuar em uma área do produto, leia
+[`docs/GUIA_OPERACIONAL_CODEX.md`](docs/GUIA_OPERACIONAL_CODEX.md). Ele reúne
+o roteiro de release, a verificação do domínio e o mapa das áreas atuais;
+confirme sempre o estado vivo antes de reutilizar IDs ou resultados antigos.
+
 ## Política por slice
 
 O usuário pediu escolha automática de modelo por trabalho para equilibrar consumo e qualidade. Aplicar esta política dentro das ferramentas disponíveis; informar brevemente o modelo efetivamente utilizado, sem pedir escolha a cada slice.
