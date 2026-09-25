@@ -2,6 +2,8 @@ import { DomainError, databaseFailure as databaseFailureFor } from "@/lib/errors
 import "server-only";
 import { requireClinic } from "@/modules/identity/service";
 import { tenantId } from "@/lib/validation";
+import { documentTitle } from "@/modules/documents/title";
+import { staffRecentWeight } from "@/modules/longitudinal/service";
 import type { Database } from "@/lib/supabase/database.types";
 import {
   messageInput,
@@ -50,6 +52,19 @@ export type SelectedConversation = {
   displayName: string;
 };
 
+type ContextItem = { title: string; at: string; href: string };
+type ContextCollection =
+  | { state: "ready"; count: number; latest: ContextItem | null }
+  | { state: "error" };
+export type SelectedPatientMessageContext = {
+  documents: ContextCollection;
+  exams: ContextCollection;
+  records: ContextCollection;
+  weight:
+    | { state: "ready"; points: { value: number; date: string }[] }
+    | { state: "error" };
+};
+
 export class ConversationError extends DomainError {}
 
 // Typed explicitly so TypeScript keeps narrowing after a call that throws.
@@ -74,6 +89,108 @@ function sortRecipients(recipients: MessageRecipient[]) {
     );
     return time || left.displayName.localeCompare(right.displayName, "pt-BR");
   });
+}
+
+async function staffMessageContext(
+  client: Awaited<ReturnType<typeof requireClinic>>["client"],
+  tenant: string,
+  patientId: string,
+): Promise<SelectedPatientMessageContext> {
+  const documents = client
+    .from("patient_documents")
+    .select("id,original_filename,content_type,category,created_at,available_at", { count: "exact" })
+    .eq("tenant_id", tenant)
+    .eq("patient_id", patientId)
+    .eq("status", "available")
+    .eq("attached_to", "documents")
+    .eq("category", "clinical_document")
+    .order("available_at", { ascending: false })
+    .limit(1);
+  const exams = client
+    .from("patient_documents")
+    .select("id,original_filename,content_type,category,created_at,available_at", { count: "exact" })
+    .eq("tenant_id", tenant)
+    .eq("patient_id", patientId)
+    .eq("status", "available")
+    .eq("attached_to", "documents")
+    .eq("category", "exam")
+    .order("available_at", { ascending: false })
+    .limit(1);
+  const records = client
+    .from("encounters")
+    .select("id,finalized_at", { count: "exact" })
+    .eq("tenant_id", tenant)
+    .eq("patient_id", patientId)
+    .eq("status", "finalized")
+    .order("finalized_at", { ascending: false })
+    .limit(1);
+  const [documentResult, examResult, recordResult, weightResult] =
+    await Promise.allSettled([
+      documents,
+      exams,
+      records,
+      staffRecentWeight(tenant, patientId),
+    ]);
+  const collection = (
+    result: PromiseSettledResult<{
+      data: {
+        id?: string;
+        original_filename?: string;
+        content_type?: string | null;
+        category?: string | null;
+        created_at?: string;
+        available_at?: string | null;
+        finalized_at?: string | null;
+      }[] | null;
+      count: number | null;
+      error: { code?: string } | null;
+    }>,
+    fallbackTitle: string,
+    href: (id: string) => string,
+  ): ContextCollection => {
+    if (result.status === "rejected" || result.value.error) return { state: "error" };
+    const latest = result.value.data?.[0];
+    if (!latest) return { state: "ready", count: result.value.count ?? 0, latest: null };
+    const at = latest.available_at ?? latest.finalized_at ?? latest.created_at;
+    if (!at || !latest.id) return { state: "error" };
+    return {
+      state: "ready",
+      count: result.value.count ?? 0,
+      latest: {
+        title: latest.original_filename
+          ? documentTitle({
+              original_filename: latest.original_filename,
+              content_type: latest.content_type,
+              category: latest.category,
+              created_at: latest.created_at ?? at,
+            })
+          : fallbackTitle,
+        at,
+        href: href(latest.id),
+      },
+    };
+  };
+  return {
+    documents: collection(
+      documentResult,
+      "Documento",
+      () => `/clinicas/${tenant}/pacientes/${patientId}?aba=Documentos`,
+    ),
+    exams: collection(
+      examResult,
+      "Exame",
+      () => `/clinicas/${tenant}/pacientes/${patientId}?aba=Documentos`,
+    ),
+    records: collection(
+      recordResult,
+      "Registro de consulta",
+      (id) => `/clinicas/${tenant}/atendimentos/${id}`,
+    ),
+    weight:
+      weightResult.status === "fulfilled"
+        ? { state: "ready", points: weightResult.value }
+        : { state: "error" },
+  };
 }
 
 async function history(
@@ -340,9 +457,10 @@ export async function staffMessages(
           "Paciente",
       }
     : null;
-  const [conversationHistory, references] = await Promise.all([
+  const [conversationHistory, references, context] = await Promise.all([
     history(client, tenant, selected, page, false),
     referenceOptions(client, tenant, selected?.patientId ?? null),
+    selected ? staffMessageContext(client, tenant, selected.patientId) : null,
   ]);
   return {
     clinic,
@@ -351,6 +469,7 @@ export async function staffMessages(
     selected,
     page,
     references,
+    context,
     ...conversationHistory,
   };
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PrescriptionsPanel } from "@/components/prescriptions-panel";
 import { patientDailyHistory, patientReceipt } from "@/modules/workspace/patient-receipts";
 import { PatientReceiptView } from "@/components/patient/receipt";
 import {
@@ -307,7 +308,9 @@ export default async function PatientAreaPage({
       ) : section.group === "cuidado" && section.slug !== "cuidado" ? (
         <h2 className="pv-h2 pv-subtitle">{section.title}</h2>
       ) : null}
-      {slug === "relatorios" && reports ? (
+      {slug === "receitas" && patient ? (
+        <PrescriptionsPanel tenantId={tenantId} patientId={patient.id} patientView />
+      ) : slug === "relatorios" && reports ? (
         <PublishedReports initial={reports} />
       ) : slug === "conversas" && messages ? (
         <PatientMessagesWorkspace initial={messages} />
@@ -398,6 +401,7 @@ export default async function PatientAreaPage({
             "documentos",
             "conversas",
             "relatorios",
+            "receitas",
           ].includes(section.slug) && <DevelopmentNotice />}
           <PatientArea
             section={section}

@@ -1,0 +1,10 @@
+.appointment-status.outcome-pending { color: #725013; background: #faf0db; white-space: normal; text-align: center; }
+.appointment-outcome-note { max-width: 42ch; margin-top: .5rem; color: #725013; }
+.appointment-actions .button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; text-align: center; }
+.appointment-actions > small { width: 100%; color: var(--muted); }
+.appointment-record-unavailable { color: var(--muted); font-size: .85rem; }
+.appointment-actions { flex-wrap: wrap; }
+@media (max-width: 600px) {
+  .appointment-actions .button { width: 100%; }
+  .appointment-record-unavailable { grid-column: 2; }
+}

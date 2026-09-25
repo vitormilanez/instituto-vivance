@@ -99,53 +99,11 @@ export default async function Dashboard({
       ))}
     </ul>
   );
-  // Agenda e Pacientes já estão no cabeçalho/menu. Aqui priorizamos tarefas
-  // que exigiam abrir "Mais" e mantemos todas as oito portas disponíveis.
-  const primaryOrder = [
-    "Adicionar paciente",
-    "Atendimento",
-    "Planos de cuidado",
-    "Acompanhamento",
-  ];
-  const primaryActions = primaryOrder.flatMap((title) =>
-    homeActions.filter((action) => action.title === title),
-  );
-  const secondaryActions = homeActions.filter(
-    (action) => !primaryOrder.includes(action.title),
-  );
   const shortcuts =
     context.clinic.role === "doctor" ? (
       <section className="shortcuts-section doctor-shortcuts" aria-labelledby="quick-actions">
         <h2 id="quick-actions">Ações rápidas</h2>
-        <ul className="more-tools-list doctor-shortcuts-primary">
-          {primaryActions.map((action) => (
-            <li key={action.title}>
-              <Link
-                className="more-tools-link"
-                href={action.href}
-                aria-label={action.title === "Acompanhamento" ? "Acompanhamento: check-ins e evolução" : undefined}
-              >
-                <ShortcutIcon name={action.icon} />
-                <strong>{action.title === "Acompanhamento" ? "Check-ins" : action.title}</strong>
-                <span>{action.text}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <details className="doctor-shortcuts-more">
-          <summary>Mais ferramentas <span>{secondaryActions.length}</span></summary>
-          <ul className="more-tools-list doctor-shortcuts-secondary">
-            {secondaryActions.map((action) => (
-              <li key={action.title}>
-                <Link className="more-tools-link" href={action.href}>
-                  <ShortcutIcon name={action.icon} />
-                  <strong>{action.title}</strong>
-                  <span>{action.text}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </details>
+        {shortcutList}
       </section>
     ) : (
       <section className="shortcuts-section" aria-labelledby="quick-actions">

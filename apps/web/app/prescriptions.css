@@ -1,0 +1,131 @@
+.prescriptions-panel {
+  display: grid;
+  gap: 22px;
+}
+
+.prescriptions-panel > .section-heading,
+.prescriptions-panel > .section-heading p,
+.prescriptions-panel__form,
+.prescriptions-panel__form h3 {
+  margin: 0;
+}
+
+.prescriptions-panel > .section-heading p {
+  max-width: 64ch;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.prescriptions-panel__history {
+  display: grid;
+  gap: 14px;
+}
+
+.prescriptions-panel__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prescriptions-panel__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-width: 0;
+  padding: 15px 2px;
+  border-bottom: 1px solid var(--border);
+}
+
+.prescriptions-panel__item-copy {
+  min-width: 0;
+}
+
+.prescriptions-panel__item strong {
+  display: block;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.prescriptions-panel__item p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.prescriptions-panel__item > a {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--blue);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.prescriptions-panel__item > a:hover {
+  background: var(--blue-soft);
+}
+
+.prescriptions-panel__load-more {
+  justify-self: start;
+}
+
+.prescriptions-panel__form {
+  grid-template-columns: minmax(240px, 1fr) minmax(150px, 0.55fr) minmax(180px, 0.65fr);
+  max-width: none;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  align-items: end;
+}
+
+.prescriptions-panel__form > h3,
+.prescriptions-panel__form > [role="alert"],
+.prescriptions-panel__form > [role="status"],
+.prescriptions-panel__source-detail,
+.prescriptions-panel__form > .publication-confirm,
+.prescriptions-panel__form > button {
+  grid-column: 1 / -1;
+}
+
+.prescriptions-panel__source-detail input {
+  width: 100%;
+}
+
+.prescriptions-panel__form > .publication-confirm {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .prescriptions-panel {
+    gap: 18px;
+  }
+
+  .prescriptions-panel__item {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .prescriptions-panel__item > a {
+    min-height: 38px;
+    padding: 8px 11px;
+  }
+
+  .prescriptions-panel__form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prescriptions-panel__form > *,
+  .prescriptions-panel__source-detail {
+    grid-column: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prescriptions-panel__item > a {
+    transition: none;
+  }
+}

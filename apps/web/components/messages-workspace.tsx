@@ -8,15 +8,18 @@ import type {
   MessageRecipient,
   PatientMessages,
   SelectedConversation,
+  SelectedPatientMessageContext,
   StaffMessages,
 } from "@/modules/messages/service";
 import { clinicalTime } from "./encounter-editor";
+import { PrescriptionsPanel } from "@/components/prescriptions-panel";
 
 type ConversationInitial = {
   clinic: StaffMessages["clinic"];
   userId: string;
   recipients: MessageRecipient[];
   selected: SelectedConversation | null;
+  context?: SelectedPatientMessageContext | null;
   messages: StaffMessages["messages"];
   references: StaffMessages["references"];
   page: number;
@@ -44,6 +47,154 @@ function initialsFor(name: string) {
     .map((part) => part[0])
     .join("")
     .toUpperCase();
+}
+
+function contextDate(value: string) {
+  const instant = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(`${value}T12:00:00Z`)
+    : new Date(value);
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "America/Sao_Paulo",
+  }).format(instant);
+}
+
+function ContextCollectionCard({
+  title,
+  empty,
+  context,
+}: {
+  title: string;
+  empty: string;
+  context: SelectedPatientMessageContext["documents"];
+}) {
+  return (
+    <article className="message-context-card">
+      <h3>{title}</h3>
+      {context.state === "error" ? (
+        <p>Não foi possível carregar agora.</p>
+      ) : context.latest ? (
+        <>
+          <strong title={context.latest.title}>{context.latest.title}</strong>
+          <small>
+            {context.count} {context.count === 1 ? "item" : "itens"} · {contextDate(context.latest.at)}
+          </small>
+          <Link href={context.latest.href}>Abrir</Link>
+        </>
+      ) : (
+        <p>{empty}</p>
+      )}
+    </article>
+  );
+}
+
+function WeightContextCard({
+  href,
+  weight,
+}: {
+  href: string;
+  weight: SelectedPatientMessageContext["weight"];
+}) {
+  const latest = weight.state === "ready" ? weight.points.at(-1) : null;
+  const values = weight.state === "ready" ? weight.points.map((point) => point.value) : [];
+  const low = Math.min(...values) - 0.5;
+  const high = Math.max(...values) + 0.5;
+  const coordinate = (value: number, index: number) => ({
+    x: 6 + (index * 108) / Math.max(1, values.length - 1),
+    y: 6 + ((high - value) / Math.max(0.1, high - low)) * 32,
+  });
+  return (
+    <article className="message-context-card message-context-weight">
+      <h3>Evolução</h3>
+      {weight.state === "error" ? (
+        <p>Não foi possível carregar agora.</p>
+      ) : !latest ? (
+        <p>Nenhum peso informado.</p>
+      ) : (
+        <>
+          <strong>
+            {new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(latest.value)} kg
+          </strong>
+          <small>{contextDate(latest.date)}</small>
+          <svg viewBox="0 0 120 44" role="img" aria-label={values.length > 1 ? `Últimos ${values.length} pesos informados` : "Um peso informado; ainda não há tendência"}>
+            <path d="M6 39H114" className="message-context-axis" />
+            {values.length > 1 ? (
+              <path
+                d={values.map((value, index) => {
+                  const point = coordinate(value, index);
+                  return `${index ? "L" : "M"}${point.x} ${point.y}`;
+                }).join(" ")}
+                className="message-context-line"
+              />
+            ) : null}
+            {values.map((value, index) => {
+              const point = coordinate(value, index);
+              return <circle key={`${weight.points[index].date}-${index}`} cx={point.x} cy={point.y} r={index === values.length - 1 ? 3.5 : 2.5} className="message-context-dot" />;
+            })}
+          </svg>
+          <Link href={href}>Ver evolução</Link>
+        </>
+      )}
+    </article>
+  );
+}
+
+function SelectedPatientContextCards({
+  tenantId,
+  patientId,
+  context,
+}: {
+  tenantId: string;
+  patientId: string;
+  context: SelectedPatientMessageContext;
+}) {
+  return (
+    <section className="message-context-cards" aria-label="Resumo do paciente">
+      <ContextCollectionCard
+        title="Documentos"
+        empty="Nenhum documento disponível."
+        context={context.documents}
+      />
+      <ContextCollectionCard
+        title="Exames"
+        empty="Nenhum exame disponível."
+        context={context.exams}
+      />
+      <ContextCollectionCard
+        title="Consultas"
+        empty="Nenhum registro finalizado. Transcrições não estão disponíveis."
+        context={context.records}
+      />
+      <WeightContextCard
+        weight={context.weight}
+        href={`/clinicas/${tenantId}/pacientes/${patientId}?aba=Evolu%C3%A7%C3%A3o`}
+      />
+      <PreviousPrescriptions tenantId={tenantId} patientId={patientId} />
+    </section>
+  );
+}
+
+function PreviousPrescriptions({
+  tenantId,
+  patientId,
+  patientView = false,
+}: {
+  tenantId: string;
+  patientId: string;
+  patientView?: boolean;
+}) {
+  return (
+    <details className="message-context-prescriptions" key={patientId}>
+      <summary>Receitas anteriores</summary>
+      <PrescriptionsPanel
+        tenantId={tenantId}
+        patientId={patientId}
+        patientView={patientView}
+      />
+    </details>
+  );
 }
 
 function ConversationWorkspace({
@@ -306,6 +457,11 @@ function ConversationWorkspace({
                 <small>Mensagens sem pressa · sem anexos</small>
               </span>
             </header>
+            <PreviousPrescriptions
+              tenantId={initial.clinic.id}
+              patientId={selected.patientId}
+              patientView={true}
+            />
             <p className="pv-chat-urgent">
               Não é canal de urgência.{" "}
               <Link href={`/clinicas/${initial.clinic.id}/meu-cuidado/alerta`}>Veja o que fazer</Link>
@@ -516,6 +672,13 @@ function ConversationWorkspace({
               </div>
               <span className="quiet-label">Canal não emergencial</span>
             </header>
+            {isStaffConversation && initial.context ? (
+              <SelectedPatientContextCards
+                tenantId={initial.clinic.id}
+                patientId={selected.patientId}
+                context={initial.context}
+              />
+            ) : null}
             {initial.messages.length ? (
               <div className="conversation-messages" aria-live="polite">
                 {initial.messages.map((message) => {

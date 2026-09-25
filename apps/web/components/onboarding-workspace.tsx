@@ -17,6 +17,7 @@ import {
   maxExamFiles,
   type ExamSelectionItem,
 } from "@/modules/onboarding/exam-selection";
+import { onboardingProgress } from "@/modules/onboarding/progress";
 
 export type OnboardingDraft = {
   tenantId: string;
@@ -72,6 +73,13 @@ const questionFields = [
     "Quais dúvidas ou preocupações você quer conversar com o médico nesta consulta?",
     "Suas perguntas ajudam a preparar a conversa.",
   ],
+] as const;
+
+const goalChoices = [
+  "Ter mais disposição",
+  "Cuidar do peso",
+  "Melhorar sono e rotina",
+  "Entender sintomas",
 ] as const;
 
 function dateValue(value: string | null) {
@@ -341,9 +349,17 @@ export function OnboardingWorkspace({
                 : "Revisão",
       ) + 1;
   const question = questionFields[questionIndex];
+  const progressState = onboardingProgress(step, questionIndex, skipQuestions);
+  const progressPercent = Math.round((progressState.value / progressState.max) * 100);
+
+  function chooseGoal(choice: string) {
+    update({
+      answers: { ...draft.answers, goal: choice },
+    });
+  }
 
   return (
-    <section className="onboarding-workspace">
+    <section className="onboarding-workspace onboarding-refined">
       <header className="onboarding-header">
         <div>
           <h1>Seu começo na {clinicName}</h1>
@@ -388,6 +404,28 @@ export function OnboardingWorkspace({
           ),
         )}
       </ol>
+      <div
+        className="onboarding-progress-meter"
+        role="progressbar"
+        aria-label="Progresso do cadastro"
+        aria-valuemin={0}
+        aria-valuemax={progressState.max}
+        aria-valuenow={progressState.value}
+        aria-valuetext={
+          step === "questions" && !skipQuestions
+            ? `Pré-consulta, pergunta ${questionIndex + 1} de ${questionFields.length}`
+            : `${progress} de ${progressLabels.length} etapas`
+        }
+      >
+        <span style={{ width: `${progressPercent}%` }} />
+      </div>
+      <p className="onboarding-progress-text" aria-hidden="true">
+        {step === "welcome"
+          ? "Você decide o que compartilhar."
+          : step === "questions" && !skipQuestions
+            ? `Pré-consulta: pergunta ${questionIndex + 1} de ${questionFields.length}`
+            : `${progress} de ${progressLabels.length} etapas`}
+      </p>
       <p
         className={
           saveState === "error" ? "feedback save-feedback" : "save-feedback"
@@ -495,7 +533,8 @@ export function OnboardingWorkspace({
             <h2>Medidas, se quiser registrar</h2>
             <p>
               Você pode preencher valores aproximados ou deixar para conversar
-              na consulta.
+              na consulta. Peso e outras medidas também podem ser enviados mais
+              tarde pela sua área.
             </p>
             <div className="onboarding-fields measurement-fields">
               <div className="field">
@@ -611,6 +650,24 @@ export function OnboardingWorkspace({
             </p>
             <h2>{question[1]}</h2>
             <p>{question[2]}</p>
+            {question[0] === "goal" ? (
+              <div className="onboarding-choice-group" aria-label="Escolhas de objetivo">
+                <p>Escolha uma opção ou escreva do seu jeito.</p>
+                <div>
+                  {goalChoices.map((choice) => (
+                    <button
+                      className={draft.answers.goal === choice ? "selected" : "secondary"}
+                      type="button"
+                      key={choice}
+                      aria-pressed={draft.answers.goal === choice}
+                      onClick={() => chooseGoal(choice)}
+                    >
+                      {choice}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="field">
               <label className="sr-only" htmlFor="preconsult-answer">
                 Sua resposta
@@ -654,6 +711,17 @@ export function OnboardingWorkspace({
               <button
                 className="secondary"
                 type="button"
+                onClick={() =>
+                  questionIndex === questionFields.length - 1
+                    ? void move("exams", "questions")
+                    : setQuestionIndex(questionIndex + 1)
+                }
+              >
+                Responder depois
+              </button>
+              <button
+                className="secondary"
+                type="button"
                 onClick={() => void move("exams", "questions")}
               >
                 Pular pré-consulta por enquanto
@@ -665,9 +733,10 @@ export function OnboardingWorkspace({
           <>
             <h2>Exames para a equipe</h2>
             <p>
-              Se desejar, envie exames em PDF, JPG ou PNG. Os arquivos ficam
-              privados e só serão disponibilizados ao médico responsável depois
-              que você enviar esta versão com consentimento.
+              Se desejar, envie exames em PDF, JPG ou PNG. Você também pode
+              enviar depois pela sua área. Os arquivos ficam privados e só serão
+              disponibilizados ao médico responsável depois que você enviar esta
+              versão com consentimento.
             </p>
             <OnboardingExamUpload
               onPendingChange={setUploading}

@@ -16,7 +16,7 @@ export async function myPatientProfile(id: string) {
   if (!account) return { clinic, patient: null };
   const { data: patient, error } = await client
     .from("patients")
-    .select("display_name, birth_date, created_at")
+    .select("id, display_name, birth_date, created_at")
     .eq("tenant_id", id)
     .eq("id", account.patient_id)
     .maybeSingle();

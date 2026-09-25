@@ -11,9 +11,11 @@ const dateLabel = (iso: string) => iso.split("-").reverse().slice(0, 2).join("/"
 export function DoctorWeightChart({
   points,
   href,
+  initialWeight,
 }: {
   points: WeightPoint[] | null;
   href: string;
+  initialWeight?: WeightPoint | null;
 }) {
   const latest = points?.at(-1);
   const width = 320;
@@ -36,7 +38,10 @@ export function DoctorWeightChart({
         <p>Nenhum peso informado até agora.</p>
       ) : (
         <>
-          <p className="doctor-weight-value"><strong>{weightLabel.format(latest.value)} kg</strong> · {dateLabel(latest.date)}</p>
+          <div className="doctor-weight-endpoints">
+            <p><span>Peso inicial · cadastro</span><strong>{initialWeight ? `${weightLabel.format(initialWeight.value)} kg` : "Não informado"}</strong><small>{initialWeight ? dateLabel(initialWeight.date) : ""}</small></p>
+            <p><span>Atual informado</span><strong>{weightLabel.format(latest.value)} kg</strong><small>{dateLabel(latest.date)}</small></p>
+          </div>
           <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={points.length > 1 ? `Gráfico dos últimos ${points.length} pesos informados` : "Um peso informado; ainda não há evolução para comparar"}>
             <line x1="16" x2={width - 16} y1={height - 12} y2={height - 12} className="doctor-weight-axis" />
             {points.length > 1 && <path d={points.map((point, index) => `${index ? "L" : "M"}${x(index)} ${y(point.value)}`).join(" ")} className="doctor-weight-line" />}

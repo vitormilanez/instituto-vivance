@@ -11,15 +11,8 @@ import { PreparationRequestEditor } from "./preparation-request-editor";
 import { TeleconsultationSettings } from "./teleconsultation-settings";
 import { TeleconsultationLink } from "./teleconsultation-link";
 import { sentenceCase } from "@/lib/format";
-
-const statusPresentation: Record<string, { label: string; className: string }> =
-  {
-    scheduled: { label: "Agendado", className: "scheduled" },
-    in_progress: { label: "Em atendimento", className: "in-progress" },
-    completed: { label: "Concluído", className: "completed" },
-    cancelled: { label: "Cancelado", className: "cancelled" },
-    no_show: { label: "Falta", className: "no-show" },
-  };
+import { appointmentPresentation, needsAppointmentOutcome } from "@/modules/agenda/presentation";
+import { useAgendaClock } from "./use-agenda-clock";
 
 export function AppointmentList({
   showDate = true,
@@ -61,7 +54,10 @@ export function AppointmentList({
     );
   return (
     <ul className="list appointment-list">
-      {appointments.map((a) => (
+      {appointments.map((a) => {
+        const presentation = appointmentPresentation(a, currentTime, Boolean(patientRecordBase));
+        const overdue = Boolean(patientRecordBase) && needsAppointmentOutcome(a, currentTime);
+        return (
         <li
           className={`appointment-row${a.id === nextId ? " is-next" : ""}`}
           id={`consulta-${a.id}`}
@@ -123,19 +119,30 @@ export function AppointmentList({
                   Ver ficha do paciente
                 </Link>
               )}
+              {overdue && <small className="appointment-outcome-note">O horário terminou. Registre o atendimento ou confirme a falta.</small>}
             </div>
           </div>
           <span
-            className={`badge appointment-status ${statusPresentation[a.status]?.className ?? "unknown"}`}
+            className={`badge appointment-status ${presentation.className}`}
           >
-            {statusPresentation[a.status]?.label ?? "Estado indisponível"}
+            {presentation.label}
           </span>
+          {patientRecordBase && a.encounter && ["in_progress", "completed"].includes(a.status) && (
+            <div className="appointment-actions">
+              <Link className="button" href={`${patientRecordBase.replace(/\/pacientes$/, "")}/atendimentos/${a.encounter.id}${a.encounter.status === "draft" && a.teleconsultation?.delivery_mode === "video" ? "?modo=teleconsulta&etapa=consulta" : ""}`}>
+                {a.encounter.status === "finalized" ? "Ver registro da consulta" : "Retomar atendimento"}
+              </Link>
+              <small>{a.encounter.status === "finalized" ? "Registro finalizado" : "Registro salvo em rascunho"}</small>
+            </div>
+          )}
+          {patientRecordBase && canExplainMissingRecord(a) && <small className="appointment-record-unavailable">Registro não disponível para sua conta.</small>}
           {a.status === "scheduled" &&
             (onStart || onEdit || onCancel || onNoShow || onPrepare) && (
               <div className="appointment-actions">
                 {onStart && (
-                  <button onClick={() => onStart(a)}>Abrir atendimento</button>
+                  <button onClick={() => onStart(a)}>{overdue ? "Registrar atendimento" : "Abrir atendimento"}</button>
                 )}
+                {overdue && onNoShow && <button className="secondary" onClick={() => onNoShow(a)}>Registrar falta</button>}
                 {onPrepare && a.starts_at > currentTime && (
                   <button
                     className="secondary"
@@ -151,7 +158,7 @@ export function AppointmentList({
                     Editar
                   </button>
                 )}
-                {onNoShow && a.starts_at <= currentTime && (
+                {!overdue && onNoShow && a.starts_at <= currentTime && (
                   <button className="secondary quiet" onClick={() => onNoShow(a)}>
                     Registrar falta
                   </button>
@@ -167,7 +174,7 @@ export function AppointmentList({
                     Editar
                   </button>
                 )}
-                {onNoShow && a.starts_at <= currentTime && (
+                {!overdue && onNoShow && a.starts_at <= currentTime && (
                   <button className="secondary quiet" onClick={() => onNoShow(a)}>
                     Registrar falta
                   </button>
@@ -181,16 +188,20 @@ export function AppointmentList({
               </div>
             )}
         </li>
-      ))}
+      );})}
     </ul>
   );
+}
+
+function canExplainMissingRecord(appointment: Appointment) {
+  return !appointment.encounter && ["in_progress", "completed"].includes(appointment.status);
 }
 
 export function Agenda({
   tenantId,
   date,
   today,
-  currentTime,
+  currentTime: serverTime,
   appointments,
   options,
   truncated,
@@ -210,6 +221,7 @@ export function Agenda({
   preparationStates?: Record<string, string>;
 }) {
   const router = useRouter();
+  const currentTime = useAgendaClock(serverTime);
   const [navigating, startTransition] = useTransition();
   const [editing, setEditing] = useState<Appointment | "new" | null>(null);
   const [closing, setClosing] = useState<{
@@ -227,6 +239,16 @@ export function Agenda({
   const [preparing, setPreparing] = useState<Appointment | null>(null);
   const startPanel = useRef<HTMLElement>(null);
   const activePanel = useRef<HTMLElement>(null);
+  useEffect(() => {
+    // Refresh status from other tabs without interrupting an open form.
+    if (editing || closing || starting || preparing || teleconsultation || pending) return;
+    const refresh = () => {
+      if (document.visibilityState === "visible") startTransition(() => router.refresh());
+    };
+    const timer = window.setInterval(refresh, 30_000);
+    window.addEventListener("focus", refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener("focus", refresh); };
+  }, [router, editing, closing, starting, preparing, teleconsultation, pending]);
   useEffect(() => {
     if (starting) {
       startPanel.current?.focus();
@@ -478,10 +500,9 @@ export function Agenda({
             </div>
           </div>
           <span
-            className={`appointment-status ${statusPresentation[nextAppointment.status]?.className ?? "unknown"}`}
+            className={`appointment-status ${appointmentPresentation(nextAppointment, currentTime, true).className}`}
           >
-            {statusPresentation[nextAppointment.status]?.label ??
-              "Estado indisponível"}
+            {appointmentPresentation(nextAppointment, currentTime, true).label}
           </span>
         </section>
       )}

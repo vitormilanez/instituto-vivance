@@ -1,0 +1,103 @@
+/* Resumo contextual de leitura, restrito à conversa selecionada. */
+.message-context-cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 16px 18px;
+}
+
+.message-context-card {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #dbe4f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.message-context-prescriptions {
+  min-width: 0;
+  border: 1px solid #dbe4f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.message-context-prescriptions summary {
+  min-height: 44px;
+  padding: 12px;
+  cursor: pointer;
+  color: #102a43;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.message-context-prescriptions > :not(summary) {
+  margin: 0 12px 12px;
+}
+
+.message-context-prescriptions[open] {
+  grid-column: 1 / -1;
+}
+
+.pv-chat > .message-context-prescriptions {
+  margin: 12px 0;
+}
+
+.message-context-card h3,
+.message-context-card p,
+.message-context-card strong,
+.message-context-card small,
+.message-context-card a {
+  display: block;
+  margin: 0;
+}
+
+.message-context-card h3 {
+  margin-bottom: 8px;
+  color: #4b5f78;
+  font-size: 12px;
+}
+
+.message-context-card strong,
+.message-context-card p {
+  overflow-wrap: anywhere;
+  color: #102a43;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.message-context-card small {
+  margin-top: 5px;
+  color: #63758a;
+  font-size: 11px;
+}
+
+.message-context-card a {
+  margin-top: 8px;
+  color: #1f5d7a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.message-context-weight svg {
+  display: block;
+  width: 120px;
+  max-width: 100%;
+  height: 44px;
+  margin-top: 6px;
+}
+
+.message-context-axis { stroke: #c6d3df; stroke-width: 1; }
+.message-context-line { fill: none; stroke: #397a78; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.message-context-dot { fill: #397a78; stroke: #f8fafc; stroke-width: 1.5; }
+
+@media (max-width: 900px) {
+  .message-context-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 340px) {
+  .message-context-cards { grid-template-columns: 1fr; }
+}
+
+.dv .message-context-card h3 { font-size: 12px; line-height: 1.3; }
+.message-context-card strong { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.message-context-card a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 0; }

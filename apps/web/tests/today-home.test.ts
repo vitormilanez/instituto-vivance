@@ -17,20 +17,21 @@ const homeRules = () => {
   return styles.slice(styles.indexOf("/* Home do médico — direção A"));
 };
 
-test("hierarquia: o dia é h1, a pessoa é h2, as seções do bloco são h3", () => {
+test("hierarquia: o dia é h1, a pessoa é h2, e o contexto usa abas com títulos", () => {
   assert.match(day(), /<h1>\{dayHeading\(data\.today\)\}<\/h1>/);
   assert.match(block(), /<h2 id=\{titleId\}>\{name\}<\/h2>/);
-  assert.match(block(), /Contexto para esta consulta/);
+  assert.match(block(), /<ConsultationContextTabs/);
+  assert.match(block(), /<h3>Cadastro inicial<\/h3>/);
+  assert.match(block(), /<h3>Pré-consulta desta consulta<\/h3>/);
   assert.match(received(), /<h3 id=\{headingId\}>Recebido desde a última consulta<\/h3>/);
   assert.match(css(), /\.home-received > h3,\s*\.home-context > h3 \{/);
 });
 
-test("o que chegou vem antes do contexto dentro da consulta aberta", () => {
+test("o que chegou divide o mesmo contexto tabulado, sem seção duplicada", () => {
   const source = block();
-  assert.ok(
-    source.indexOf("<ReceivedSince") < source.indexOf('className="home-context"'),
-    "Recebido precisa vir antes do contexto",
-  );
+  assert.match(source, /received=\{received \? <ReceivedSince/);
+  assert.doesNotMatch(source, /doctor-consultation-received/);
+  assert.doesNotMatch(source, /Contexto para esta consulta/);
 });
 
 test("o texto secundário usa o token AA, nunca o cinza antigo", () => {
@@ -120,10 +121,11 @@ test("o topo da próxima consulta mostra evolução e separa a resposta atual da
   const source = block();
   const service = read("../modules/workspace/today.ts");
   assert.match(source, /<h3>Evolução registrada<\/h3>/);
-  assert.match(source, /<h3>O que o paciente procura nesta consulta<\/h3>/);
+  assert.match(source, /<ConsultationContextTabs/);
+  assert.match(source, /<h3>Pré-consulta desta consulta<\/h3>/);
+  assert.match(source, /<h3>Cadastro inicial<\/h3>/);
   assert.match(source, /Aguardando resposta para esta consulta\./);
-  assert.match(source, /Resposta desta consulta enviada em/);
-  assert.match(source, /Resposta anterior enviada em/);
+  assert.match(source, /Enviada em \{submittedDate\} pelo paciente/);
   assert.match(service, /select\("id,finalized_at,evolution"\)/);
   assert.match(service, /select\("request_id,answers"\)/);
   assert.match(read("../app/doctor-home.css"), /\.doctor-consultation-glance \{ display: grid;/);

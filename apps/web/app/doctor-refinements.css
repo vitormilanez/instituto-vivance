@@ -1,0 +1,79 @@
+/* Refinamentos locais da área médica. As classes são exclusivas deste slice. */
+.doctor-context-tabs { margin-top: 20px; border-top: 1px solid var(--border); }
+.doctor-context-tablist { display: flex; gap: 4px; overflow-x: auto; padding: 12px 0 0; }
+.doctor-context-tablist button { flex: 0 0 auto; min-height: 44px; padding: 8px 12px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.doctor-context-tablist button[aria-selected="true"] { border-bottom-color: var(--blue); color: var(--ink); }
+.doctor-context-tablist button:focus-visible { outline: 3px solid var(--blue); outline-offset: -3px; }
+.doctor-context-tabs [role="tabpanel"] { padding-top: 14px; }
+.doctor-context-tabs .home-received,
+.doctor-context-tabs .home-context { margin-top: 0; padding-top: 0; border-top: 0; }
+.doctor-context-tabs .home-context > h3 { margin-top: 0; }
+.doctor-context-tabs .context-cards { gap: 6px; }
+
+.doctor-consultation .home-consultation-actions .button,
+.doctor-consultation .teleconsultation-link-actions .button { min-height: 44px; }
+.doctor-consultation .teleconsultation-link { margin-top: 12px; }
+.doctor-consultation .home-consultation-actions .teleconsultation-link { margin-top: 0; }
+.doctor-consultation-identity .doctor-weight-trend { min-width: 190px; margin-left: auto; padding: 0; border: 0; background: transparent; }
+.doctor-consultation-identity .doctor-weight-heading h4 { font-size: 12px; }
+.doctor-consultation-identity .doctor-weight-heading a { font-size: 12px; }
+.doctor-consultation-identity .doctor-weight-trend svg { width: 190px; height: 58px; }
+.doctor-consultation-identity .doctor-weight-value,
+.doctor-consultation-identity .doctor-weight-caption { font-size: 12px; }
+.teleconsultation-link-actions .teleconsultation-join { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.teleconsultation-access-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+@media (prefers-reduced-motion: no-preference) {
+  .teleconsultation-access-dot { animation: teleconsultation-access-pulse 2.2s ease-in-out 2; }
+  @keyframes teleconsultation-access-pulse { 50% { opacity: .45; transform: scale(.72); } }
+}
+
+.doctor-shortcuts { display: block; }
+.doctor-shortcuts > summary { display: none; }
+
+@media (max-width: 650px) {
+  .doctor-context-tablist { margin-inline: -2px; }
+  .doctor-context-tablist button { max-width: 190px; white-space: normal; text-align: left; }
+  .doctor-consultation .home-consultation-actions .button,
+  .doctor-consultation .teleconsultation-link-actions .button { width: 100%; }
+  .doctor-consultation-identity { align-items: start; }
+  .doctor-consultation-identity .doctor-weight-trend { grid-column: 1 / -1; margin-left: 0; }
+}
+
+.doctor-weight-endpoints { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; }
+.doctor-weight-endpoints p { display: grid; gap: 2px; margin: 5px 0; }
+.doctor-weight-endpoints p:last-child { text-align: right; }
+.doctor-weight-endpoints span, .doctor-weight-endpoints small { font-size: 11px; color: var(--muted); }
+.doctor-weight-endpoints strong { font-size: 18px; white-space: nowrap; }
+@media (prefers-reduced-motion: no-preference) {
+  .doctor-consultation button, .doctor-consultation .button, .doctor-shortcuts a,
+  .appointment-actions button, .appointment-actions .button {
+    transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  }
+  .doctor-consultation .button:hover, .doctor-shortcuts a:hover { transform: translateY(-1px); }
+  .doctor-context-tabs [role="tabpanel"]:not([hidden]) { animation: context-appear 160ms ease-out; }
+  @keyframes context-appear { from { opacity: .55; } to { opacity: 1; } }
+}
+
+/* Keep the identity row compact even when the base doctor stylesheet loads later. */
+.dv .doctor-consultation-identity { flex-wrap: wrap; }
+.dv .doctor-consultation-identity > div { flex: 1 1 180px; min-width: 0; }
+.dv .doctor-consultation-identity .doctor-weight-trend { flex: 0 1 260px; width: 260px; max-width: 100%; margin: 0 0 0 auto; padding: 0; border: 0; }
+.dv .doctor-consultation-identity .doctor-weight-trend svg { width: 100%; height: 54px; margin-top: 0; }
+.dv .doctor-consultation-identity .doctor-weight-caption { font-size: 10px; line-height: 1.3; margin: 3px 0 0; }
+.dv .doctor-consultation .doctor-consultation-glance { display: block; margin-bottom: 16px; }
+.dv .doctor-consultation .doctor-consultation-glance > div { background: transparent; border: 0; border-radius: 0; padding: 0; }
+.dv .doctor-consultation-other { margin: 16px 0 4px; }
+.dv .doctor-consultation-other > h3 { margin: 0 0 9px; font-size: 13px; color: var(--dv-ink); }
+.dv .doctor-context-tabs .doctor-consultation-answer-card { border: 0; border-radius: 0; padding: 4px 0; }
+.dv .doctor-context-tabs [role="tabpanel"][hidden] { display: none; }
+.dv .doctor-context-tablist { flex-wrap: wrap; overflow: visible; }
+.dv .doctor-home-focus .doctor-context-tablist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.dv .doctor-home-focus .doctor-context-tablist button { width: 100%; min-width: 0; text-align: center; }
+@media (min-width: 1600px) {
+  .dv .doctor-home-focus .doctor-context-tablist { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 650px) {
+  .dv .doctor-consultation-identity .doctor-weight-trend { flex-basis: 100%; width: 100%; margin-left: 0; }
+  .dv .doctor-context-tablist button { flex: 1 1 45%; max-width: none; font-size: 12px; }
+  .dv .doctor-consultation .home-consultation-actions .teleconsultation-link { width: 100%; }
+}

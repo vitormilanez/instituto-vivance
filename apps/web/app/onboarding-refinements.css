@@ -1,0 +1,74 @@
+/* Convite e onboarding: estilos locais, sem alterar as áreas da clínica. */
+.invitation-refined > p {
+  max-width: 68ch;
+}
+
+.invitation-refined .channel-choice label:has(input:checked),
+.onboarding-refined .onboarding-choice-group button.selected {
+  border-color: #1c5d72;
+  background: #e9f5f7;
+  color: #123f4d;
+}
+
+.invitation-refined .invitation-result {
+  border-left: 4px solid #1c5d72;
+}
+
+.onboarding-refined .onboarding-progress-meter {
+  height: 8px;
+  margin: 0 0 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dbe5e8;
+}
+
+.onboarding-refined .onboarding-progress-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #1c5d72;
+  transition: width 240ms ease-out;
+}
+
+.onboarding-refined .onboarding-progress-text {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.onboarding-refined .onboarding-choice-group {
+  margin: 18px 0;
+}
+
+.onboarding-refined .onboarding-choice-group > p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.onboarding-refined .onboarding-choice-group > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.onboarding-refined .onboarding-choice-group button {
+  min-height: 40px;
+  border: 1px solid #98a9bf;
+  border-radius: 999px;
+  font-size: 14px;
+}
+
+@media (max-width: 650px) {
+  .onboarding-refined .onboarding-progress {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .onboarding-refined .onboarding-progress li {
+    min-height: 36px;
+  }
+
+  .onboarding-refined .onboarding-choice-group button {
+    width: 100%;
+  }
+}

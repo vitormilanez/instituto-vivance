@@ -24,6 +24,7 @@ import {
 } from "@/modules/patient-intake/service";
 import { PatientIntakePanel } from "@/components/patient-intake-panel";
 import { PatientInvitationForm } from "@/components/patient-invitation-form";
+import { PrescriptionsPanel } from "@/components/prescriptions-panel";
 export const dynamic = "force-dynamic";
 
 export default async function Patient({
@@ -50,7 +51,7 @@ export default async function Patient({
   });
   if (!context.patient) notFound();
   const p = context.patient;
-  const tabs = ["Visão geral", "Linha do tempo", "Documentos", "Evolução"];
+  const tabs = ["Visão geral", "Linha do tempo", "Documentos", "Evolução", "Receitas anteriores"];
   const active = selectedTab(tabs, query.aba);
   const recordBase = `/clinicas/${tenantId}/pacientes/${patientId}`;
   const clinicalArea = context.clinic.role !== "admin";
@@ -291,6 +292,8 @@ export default async function Patient({
               documentos, relatos, medidas ou histórico clínico.
             </p>
           </section>
+        ) : active === "Receitas anteriores" ? (
+          <PrescriptionsPanel tenantId={tenantId} patientId={patientId} />
         ) : active === "Documentos" && documents ? (
           <StaffPatientDocumentsPanel
             initial={documents}
