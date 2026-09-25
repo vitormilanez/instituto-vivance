@@ -11,7 +11,9 @@ trabalho; o histórico continua disponível no Git.
 2. [Funcionalidades](FUNCIONALIDADES.md) — contrato funcional consolidado da
    aplicação atual.
 3. [Gate P](GATE_P.md) — critérios antes de usar dados clínicos reais.
-4. [Pipeline de publicação](PIPELINE_PUBLICACAO.md) — como código, banco e
+4. [Guia operacional Codex](GUIA_OPERACIONAL_CODEX.md) — passos para publicar,
+   promover o domínio e localizar as áreas do produto.
+5. [Pipeline de publicação](PIPELINE_PUBLICACAO.md) — como código, banco e
    Vercel devem chegar ao mesmo commit.
 
 ## Referências na raiz
