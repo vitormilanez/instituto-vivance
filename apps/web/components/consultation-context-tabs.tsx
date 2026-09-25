@@ -27,7 +27,7 @@ export function ConsultationContextTabs({
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const id = useId();
   const tabs = prescriptions
-    ? [...baseTabs, { id: "prescriptions" as const, label: "Receitas anteriores" }]
+    ? [...baseTabs, { id: "prescriptions" as const, label: "Receitas" }]
     : baseTabs;
   const panels: Record<TabId, ReactNode> = { initial, preparation, received, prescriptions };
 

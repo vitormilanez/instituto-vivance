@@ -3,6 +3,17 @@
   gap: 22px;
 }
 
+.prescriptions-panel--embedded {
+  gap: 14px;
+  padding: 4px 0;
+  background: transparent;
+}
+
+.prescriptions-panel--embedded > .section-heading h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
 .prescriptions-panel > .section-heading,
 .prescriptions-panel > .section-heading p,
 .prescriptions-panel__form,
