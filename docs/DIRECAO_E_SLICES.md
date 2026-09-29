@@ -1,6 +1,6 @@
 # Direção do Vivance e próximos slices
 
-Atualizado em 28/09/2026. Este é o plano vigente. O [estado técnico](STATUS_ATUAL.md) registra o que foi comprovado; o [plano de IA clínica](PLANO_IA_CLINICA.md) detalha essa frente.
+Atualizado em 29/09/2026. Este é o plano vigente. O [estado técnico](STATUS_ATUAL.md) registra o que foi comprovado; o [plano de IA clínica](PLANO_IA_CLINICA.md) detalha essa frente.
 
 ## Resultado que estamos construindo
 
@@ -18,24 +18,67 @@ O fluxo principal é **convite → contexto inicial → preparação → consult
 | Documentos e saídas | Arquivo privado, revisão humana, receitas anteriores e relatório versionado | Aprovar, publicar e exportar são ações distintas. |
 | Plataforma | Migrations, RLS, auditoria e fundação de processamento | Worker e análise clínica por IA ainda não estão ativos. |
 
-## Próximos slices
+## Próximos slices — ordem executável
 
-Os códigos são **propostos para o novo plano**; não renumeram cards ou branches já em curso.
+Os códigos organizam o plano atual; não renumeram entregas anteriores. A
+[fotografia de 29/09](STATUS_ATUAL.md) e as tarefas do Asana registram o que já
+foi observado. Nenhum card, PR ou deployment substitui o aceite do próprio
+slice.
 
-| Ordem | Slice | Entrega e aceite mínimo |
-| --- | --- | --- |
-| 1 | **C1 · Base operacional** | Identificar e separar bancos, reconciliar migrations e backups. Evidência: destino inequívoco, schema compatível e restauração testada. |
-| 2 | **C2 · Demonstração longitudinal** | Três pacientes de teste nominados, Guilherme como único médico de demonstração, consultas/retornos e histórico sintético coerente. Preservar registros possivelmente reais. Exames precisam existir no Storage e abrir pela interface. Evidência: contagem, vínculos, ausência de órfãos e percursos paciente ↔ médico. Essa carga não valida IA clínica. |
-| 3 | **C3 · Contexto e aceite operacional** | Resolver pendências de continuidade: fonte de cada item, estado recebido/revisado/publicado e acesso ao original. Validar troca de paciente, histórico por agendamento, papéis e negações; concluir ou rejeitar explicitamente o Gate P, com remoção verificável dos dados sintéticos antes de dados reais. |
-| 4 | **IA1 · Governança e contrato** | Finalidade de uso, risco regulatório, responsável médico, modelo de observação/documento/evidência e política de fontes. Sem conclusões geradas. |
-| 5 | **IA2–IA3 · Extração e biblioteca** | Extração conferível de poucos exames e Biblioteca Clínica Vivance versionada. Referência do laboratório e guideline ficam distintos. |
-| 6 | **IA4–IA6 · Análise, revisão e validação** | Evidência aplicável, verificador independente, aprovação médica e estudo com casos revisados antes de liberação. |
+**Decisão de ambiente:** usar temporariamente `instituto-vivance-dev`
+(`oxuwrdjojsmgxoljqkuk`) como projeto único para testes sintéticos. C2 pode
+avançar sem um segundo banco. Separar desenvolvimento e produção, testar
+restauração e fechar o [Gate P](GATE_P.md) permanecem requisitos antes de dados
+de saúde reais; o uso temporário não conclui C1 para operação clínica.
 
-Os slices de interface já aprovados podem continuar se não mudarem o contrato clínico. IA1 pode avançar em paralelo como trabalho de contrato e governança; IA2–IA3 usam apenas dados sintéticos até o Gate P. Uso clínico de IA depende dos gates próprios e mantém fallback manual.
+| Ordem | Slice | Entrega verificável | Estado em 29/09 |
+| --- | --- | --- | --- |
+| 1 | **C1 · Preparar o ambiente de teste** | Confirmar o ref do Supabase em cada comando e a configuração do app sem expor chaves; inventariar schema, migrations, backups, papéis e Storage. Registrar diferenças e um modo de reversão antes de qualquer carga. | Parcial: 56 versões de migration pareadas no histórico; backups físicos não listados e restauração não testada. |
+| 2 | **C2 · Completar a demonstração** | Executar as três etapas de C2 abaixo, preservando todos os registros de origem incerta. | Parcial: duas contas vinculadas e com histórico; terceira sem vínculo, 20 prontuários no banco e nenhuma consulta futura para o trio. |
+| 3 | **C3 · Validar contexto e operação** | Executar as duas etapas de C3 abaixo com sessões reais de paciente e médico; registrar falhas e decisão de aceite **dos testes**. | Não validado neste ciclo. |
+| Paralelo | **IA1 · Governança e contrato** | Obter decisão sobre finalidade, fonte, fornecedor, privacidade, rastreabilidade e revisão médica no [contrato IA1](https://github.com/vitormilanez/instituto-vivance/pull/64). | Rascunho em revisão; nenhuma análise clínica por IA ativa. |
+| Depois | **IA2–IA3** | Extração conferível de poucos exames sintéticos e biblioteca versionada de fontes aprovadas. | Aguarda aceite de IA1. |
+| Depois | **IA4–IA6** | Evidência aplicável, verificação independente, revisão médica e validação clínica com limites previamente definidos. | Aguarda IA1–IA3 e gates clínicos. |
 
-**Decisão operacional de 29/09/2026:** para facilitar os testes, usar temporariamente o projeto Supabase atual `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`) como ambiente único. C2 pode avançar com dados sintéticos identificados sem aguardar a criação de outro projeto. A separação de desenvolvimento e produção continua planejada antes de dados reais e do fechamento do Gate P. A autorização para testar não equivale ao aceite integral de C1 nem à liberação clínica.
+### Etapas de C2
 
-O [inventário de C2 em 29/09](STATUS_ATUAL.md) confirmou que a demonstração de três pacientes ainda está incompleta: duas contas têm histórico parcial e a terceira não possui vínculo de paciente. Os demais prontuários permanecem intactos até que sua origem seja estabelecida.
+1. **Curadoria sem exclusão:** identificar as três contas indicadas no pedido
+   anterior e classificar os 20 prontuários como demonstração confirmada ou
+   origem incerta. Registrar vínculos, dependências e arquivos; não apagar nem
+   sobrescrever registros incertos. A meta de “apenas três pacientes” só pode
+   ser declarada após inventário e limpeza verificável dos registros que forem
+   comprovadamente fictícios.
+2. **História sintética coerente:** reaproveitar o que já existe sem duplicar;
+   vincular a terceira conta a um prontuário de teste e a Guilherme; completar
+   para cada paciente uma sequência identificável de pelo menos três marcos de
+   consulta, incluindo retorno, exames de amostra no Storage privado, medidas,
+   check-ins e conversas com cronologia consistente. Novos dados devem estar
+   marcados como demonstração; não atribuir decisão clínica ou nota assinada
+   fictícia ao médico. A carga deve ser repetível sem duplicação.
+3. **Aceite da demonstração:** conferir contagens, chaves e ausência de órfãos;
+   abrir os exames pela interface; entrar com sessões reais de paciente e
+   médico e percorrer consulta → registro → acompanhamento → retorno. Verificar
+   que um paciente não acessa o histórico de outro. Guardar evidência do
+   ambiente e dos registros utilizados. Isso valida a demonstração, não IA
+   clínica nem Gate P.
+
+### Etapas de C3
+
+1. **Contexto longitudinal:** em cada item, conferir origem, data, autoria,
+   estado recebido/revisado/publicado e acesso ao original. Validar troca de
+   paciente e histórico por agendamento sem misturar informações.
+2. **Aceite operacional dos testes:** executar caminhos permitidos e negados
+   para administrador, médico, enfermagem e paciente com sessões reais;
+   conferir persistência,
+   revisão e publicação separadas. Registrar defeitos, correções e aceite
+   técnico do ambiente compartilhado. O Gate P permanece **não liberado**
+   enquanto faltarem produção separada, backup/restauração e os demais
+   critérios para dados reais.
+
+Os slices de interface já aprovados podem continuar se não mudarem o contrato
+clínico. IA1 pode avançar em paralelo como trabalho de governança. IA2–IA3
+usam apenas material sintético; uso assistencial de IA depende dos gates
+próprios e mantém o fluxo manual.
 
 ## Decisões antes de IA clínica
 

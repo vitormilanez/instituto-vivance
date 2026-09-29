@@ -1,6 +1,20 @@
 # Estado atual do Vivance
 
-Fotografia técnica verificada em 28/09/2026. Para prioridades, leia [Direção e slices](DIRECAO_E_SLICES.md). Este arquivo não autoriza uso clínico.
+Fotografia técnica verificada entre 28 e 29/09/2026. Para prioridades, leia
+[Direção e slices](DIRECAO_E_SLICES.md). Este arquivo não autoriza uso clínico.
+
+## Resumo executivo — 29/09/2026
+
+| Frente | Status atual | Próximo marco |
+| --- | --- | --- |
+| **C1 · Base operacional** | Projeto único de testes autorizado; 56 migrations pareadas no histórico do projeto atual. Sem restauração testada nem produção separada. | Confirmar destino de cada ferramenta antes de escrita e manter a separação como requisito prévio a dados reais. |
+| **C2 · Demonstração longitudinal** | Incompleto: duas das três contas têm prontuário e histórico parcial; a terceira só existe no Auth. O banco contém 20 prontuários. | Preservar/classificar registros existentes, completar as três jornadas sintéticas e verificar paciente ↔ médico pela interface. |
+| **C3 · Contexto e aceite operacional** | Não validado neste ciclo. | Exercitar origem, estado, original, papéis e negações com sessões reais; registrar aceite técnico dos testes. |
+| **IA1 · Governança** | Contrato documental no [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64), ainda sem aprovação dos responsáveis. | Fechar finalidade, fonte, fornecedor, privacidade e revisão médica. |
+| **IA2–IA6** | Planejados; não há análise clínica por IA ativa. | Iniciar apenas após os gates próprios, com material sintético nas etapas iniciais. |
+| **Gate P** | Aberto. O deployment está tecnicamente `READY`, sem aceite clínico. | Separar produção, conferir migrations/backup/restauração, segurança e percursos antes de dados reais. |
+
+As mudanças de direção e status estão no [PR #63](https://github.com/vitormilanez/instituto-vivance/pull/63), ainda em rascunho; a `main` permanece em `5a64be9` até integração.
 
 **Decisão de 29/09/2026:** o projeto `instituto-vivance-dev` será o ambiente único temporário para testes com dados sintéticos. A separação dos ambientes fica para antes de dados reais e do fechamento do Gate P; não foi dispensada.
 
