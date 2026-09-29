@@ -34,7 +34,7 @@ de saúde reais; o uso temporário não conclui C1 para operação clínica.
 | Ordem | Slice | Entrega verificável | Estado em 29/09 |
 | --- | --- | --- | --- |
 | 1 | **C1 · Preparar o ambiente de teste** | Confirmar o ref do Supabase em cada comando e a configuração do app sem expor chaves; inventariar schema, migrations, backups, papéis e Storage. Registrar diferenças e um modo de reversão antes de qualquer carga. | Parcial: 56 versões de migration pareadas no histórico; backups físicos não listados e restauração não testada. |
-| 2 | **C2 · Completar a demonstração** | Usar somente as contas de Guilherme e Vitor; completar e conferir uma jornada longitudinal de demonstração no prontuário de Vitor. | Limpeza executada. Carga histórica parcial: 8 check-ins retrospectivos e 12 refeições fictícias, sem duplicação; há 10 dias de check-in ao todo. Consulta/retorno e aceite pela interface pendentes. |
+| 2 | **C2 · Completar a demonstração** | Usar somente as contas de Guilherme e Vitor; completar e conferir uma jornada longitudinal de demonstração no prontuário de Vitor. | Limpeza executada. Carga histórica parcial: 19 check-ins retrospectivos e 18 refeições fictícias, sem duplicação; há 21 dias seguidos de check-in ao todo. Consulta/retorno e aceite pela interface pendentes. |
 | 3 | **C3 · Validar contexto e operação** | Executar as duas etapas de C3 abaixo com sessões reais de paciente e médico; registrar falhas e decisão de aceite **dos testes**. | Não validado neste ciclo. |
 | Paralelo | **IA1 · Governança e contrato** | Obter decisão sobre finalidade, fonte, fornecedor, privacidade, rastreabilidade e revisão médica no [contrato IA1](https://github.com/vitormilanez/instituto-vivance/pull/64). | Rascunho em revisão; nenhuma análise clínica por IA ativa. |
 | Depois | **IA2–IA3** | Extração conferível de poucos exames sintéticos e biblioteca versionada de fontes aprovadas. | Aguarda aceite de IA1. |
@@ -49,8 +49,8 @@ de saúde reais; o uso temporário não conclui C1 para operação clínica.
    duas contas, um prontuário e cinco objetos vinculados a Vitor.
 2. **História sintética coerente:** a carga repetível em
    [`scripts/demo/seed_vitor_history.sql`](../scripts/demo/seed_vitor_history.sql)
-   adicionou 8 check-ins datados de 19–28/09, sem sobrescrever os dois
-   existentes, e 12 refeições datadas de 25–28/09. Todos os novos textos
+   adicionou 19 check-ins datados de 08–28/09, sem sobrescrever os dois
+   existentes, e 18 refeições datadas de 19–28/09. Todos os novos textos
    começam com `DEMONSTRAÇÃO`; a data técnica de criação registra a carga, não
    finge o envio no passado. O script foi executado duas vezes sem duplicar.
    Ainda faltam marcos coerentes de consulta e retorno validados pelo médico e

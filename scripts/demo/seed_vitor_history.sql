@@ -42,6 +42,17 @@ END $guard$;
 
 WITH days(check_in_on, feeling, hunger, satiety, energy, sleep, water_glasses, note) AS (
   VALUES
+    ('2026-09-08'::date, 3, 3, 3, 3, 3, 5, 'DEMONSTRAÇÃO — registro retrospectivo fictício: organizei os horários da rotina.'),
+    ('2026-09-09'::date, 4, 3, 4, 4, 4, 6, 'DEMONSTRAÇÃO — registro retrospectivo fictício: dia estável e refeições planejadas.'),
+    ('2026-09-10'::date, 3, 4, 3, 3, 3, 5, 'DEMONSTRAÇÃO — registro retrospectivo fictício: tive um dia mais corrido.'),
+    ('2026-09-11'::date, 4, 3, 4, 4, 4, 7, 'DEMONSTRAÇÃO — registro retrospectivo fictício: consegui manter pausas durante o dia.'),
+    ('2026-09-12'::date, 3, 3, 3, 3, 3, 6, 'DEMONSTRAÇÃO — registro retrospectivo fictício: caminhei no fim da tarde.'),
+    ('2026-09-13'::date, 3, 4, 3, 3, 3, 5, 'DEMONSTRAÇÃO — registro retrospectivo fictício: horários diferentes no domingo.'),
+    ('2026-09-14'::date, 4, 3, 4, 4, 4, 7, 'DEMONSTRAÇÃO — registro retrospectivo fictício: voltei ao ritmo da semana.'),
+    ('2026-09-15'::date, 3, 3, 3, 3, 3, 6, 'DEMONSTRAÇÃO — registro retrospectivo fictício: acompanhei sono e hidratação.'),
+    ('2026-09-16'::date, 4, 2, 4, 4, 4, 7, 'DEMONSTRAÇÃO — registro retrospectivo fictício: manhã tranquila e caminhada leve.'),
+    ('2026-09-17'::date, 3, 4, 3, 3, 2, 5, 'DEMONSTRAÇÃO — registro retrospectivo fictício: dormi menos do que o habitual.'),
+    ('2026-09-18'::date, 4, 3, 4, 4, 4, 7, 'DEMONSTRAÇÃO — registro retrospectivo fictício: anotei dúvidas para conversar na consulta.'),
     ('2026-09-19'::date, 3, 3, 3, 3, 3, 5, 'DEMONSTRAÇÃO — registro retrospectivo fictício: comecei a organizar a rotina da semana.'),
     ('2026-09-20'::date, 4, 3, 4, 4, 3, 6, 'DEMONSTRAÇÃO — registro retrospectivo fictício: refeições em horários regulares.'),
     ('2026-09-21'::date, 3, 4, 3, 3, 2, 5, 'DEMONSTRAÇÃO — registro retrospectivo fictício: dormi menos e anotei perguntas para a consulta.'),
@@ -73,6 +84,12 @@ ON CONFLICT (tenant_id, actor_user_id, client_request_id) DO NOTHING;
 
 WITH meals(eaten_at, meal_type, description) AS (
   VALUES
+    ('2026-09-19 12:30:00-03'::timestamptz, 'lunch', 'DEMONSTRAÇÃO — refeição fictícia: arroz, feijão, legumes e frango.'),
+    ('2026-09-20 19:40:00-03'::timestamptz, 'dinner', 'DEMONSTRAÇÃO — refeição fictícia: sopa de legumes e torradas.'),
+    ('2026-09-21 08:10:00-03'::timestamptz, 'breakfast', 'DEMONSTRAÇÃO — refeição fictícia: banana, iogurte e aveia.'),
+    ('2026-09-22 13:00:00-03'::timestamptz, 'lunch', 'DEMONSTRAÇÃO — refeição fictícia: arroz, feijão, carne e salada.'),
+    ('2026-09-23 19:35:00-03'::timestamptz, 'dinner', 'DEMONSTRAÇÃO — refeição fictícia: omelete, pão e tomate.'),
+    ('2026-09-24 12:45:00-03'::timestamptz, 'lunch', 'DEMONSTRAÇÃO — refeição fictícia: peixe, batata e legumes.'),
     ('2026-09-25 08:15:00-03'::timestamptz, 'breakfast', 'DEMONSTRAÇÃO — refeição fictícia: pão integral, queijo branco, fruta e café.'),
     ('2026-09-25 12:40:00-03'::timestamptz, 'lunch', 'DEMONSTRAÇÃO — refeição fictícia: arroz, feijão, frango e salada.'),
     ('2026-09-25 19:30:00-03'::timestamptz, 'dinner', 'DEMONSTRAÇÃO — refeição fictícia: sopa de legumes e ovo.'),
@@ -103,10 +120,10 @@ DO $verify$
 BEGIN
   IF (SELECT count(*) FROM public.patient_daily_check_ins
       WHERE patient_id='d4791c89-cfe7-438b-9686-32523dd29c15'
-        AND note LIKE 'DEMONSTRAÇÃO — registro retrospectivo fictício:%') <> 8
+        AND note LIKE 'DEMONSTRAÇÃO — registro retrospectivo fictício:%') <> 19
      OR (SELECT count(*) FROM public.patient_meal_logs
          WHERE patient_id='d4791c89-cfe7-438b-9686-32523dd29c15'
-           AND description LIKE 'DEMONSTRAÇÃO — refeição fictícia:%') <> 12
+           AND description LIKE 'DEMONSTRAÇÃO — refeição fictícia:%') <> 18
      OR (SELECT count(*) FROM auth.users) <> 2
      OR (SELECT count(*) FROM public.patients) <> 1
   THEN RAISE EXCEPTION 'Seed verification failed'; END IF;

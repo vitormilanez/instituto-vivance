@@ -8,7 +8,7 @@ Fotografia técnica verificada entre 28 e 29/09/2026. Para prioridades, leia
 | Frente | Status atual | Próximo marco |
 | --- | --- | --- |
 | **C1 · Base operacional** | Projeto único de testes autorizado; 56 migrations pareadas no histórico do projeto atual. Sem restauração testada nem produção separada. | Confirmar destino de cada ferramenta antes de escrita e manter a separação como requisito prévio a dados reais. |
-| **C2 · Demonstração longitudinal** | Limpeza concluída; carga histórica parcial executada. Restam apenas Guilherme e Vitor no Auth e um prontuário. Vitor tem 10 dias de check-in (8 de demonstração) e 12 refeições fictícias. | Verificar a jornada na interface e completar consulta/retorno sem forjar conduta ou assinatura médica. |
+| **C2 · Demonstração longitudinal** | Limpeza concluída; carga histórica parcial executada. Restam apenas Guilherme e Vitor no Auth e um prontuário. Vitor tem 21 dias seguidos de check-in (19 de demonstração) e 18 refeições fictícias. | Verificar a jornada na interface e completar consulta/retorno sem forjar conduta ou assinatura médica. |
 | **C3 · Contexto e aceite operacional** | Não validado neste ciclo. O ambiente agora tem apenas as contas de médico e paciente. | Exercitar esses dois papéis com sessões reais; planejar outro ciclo para admin, enfermagem e isolamento entre pacientes. |
 | **IA1 · Governança** | Contrato documental no [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64), ainda sem aprovação dos responsáveis. | Fechar finalidade, fonte, fornecedor, privacidade e revisão médica. |
 | **IA2–IA6** | Planejados; não há análise clínica por IA ativa. | Iniciar apenas após os gates próprios, com material sintético nas etapas iniciais. |
@@ -32,12 +32,12 @@ histórica; a limpeza não constitui aceite clínico.
 
 **Carga histórica C2 em 29/09/2026:** o script repetível
 [`seed_vitor_history.sql`](../scripts/demo/seed_vitor_history.sql) acrescentou
-oito check-ins retrospectivos (19–28/09, sem duplicar 23 e 24/09) e doze
-refeições fictícias (25–28/09). Todos os textos novos têm marcador
+19 check-ins retrospectivos (08–28/09, sem duplicar 23 e 24/09) e 18
+refeições fictícias (19–28/09). Todos os textos novos têm marcador
 `DEMONSTRAÇÃO`; as datas técnicas de criação refletem a carga, enquanto a
 data de referência representa o histórico simulado. Um ensaio com
 `ROLLBACK`, a execução e uma segunda execução sem novas linhas passaram.
-Contagem após a carga: 10 check-ins e 12 refeições para Vitor, duas contas
+Contagem após a carga: 21 check-ins e 18 refeições para Vitor, duas contas
 Auth e um prontuário. Agendamentos, atendimento, mensagens, documentos,
 medidas e Storage existentes não foram alterados pelo script. A visualização
 autenticada e o aceite médico seguem pendentes.
