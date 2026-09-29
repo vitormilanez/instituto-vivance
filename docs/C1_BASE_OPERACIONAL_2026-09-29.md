@@ -5,13 +5,21 @@ Auditoria inicial de 29/09/2026. Referência de código: `origin/main` no commit
 
 ## Decisão do slice
 
-**C1 iniciado, ainda não aceito.** O projeto Supabase acessível e ativo é
+**C1 iniciado, ainda não aceito para operação clínica.** O projeto Supabase acessível e ativo é
 `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`). Não foi identificado um
 projeto de produção separado para o Vivance na conta acessível. As 56 migrations
 do checkout constam no histórico remoto desse projeto de desenvolvimento, mas
 isso não demonstra compatibilidade com um futuro banco de produção nem substitui
 uma comparação de schema. A lista de backups físicos retornou vazia, PITR está
 desativado e não há restauração testada.
+
+**Decisão de 29/09/2026:** usar temporariamente esse mesmo projeto como ambiente
+único para os testes do Vivance. Não criar nem migrar para um segundo projeto
+agora. A separação entre desenvolvimento e produção fica planejada para antes
+do uso de dados de saúde reais e do fechamento do Gate P. A decisão permite
+prosseguir com testes controlados e dados sintéticos; não equivale a aceitar
+o projeto compartilhado como infraestrutura de produção clínica. Nenhum dado,
+configuração ou ambiente foi alterado por este registro.
 
 ## Evidência observada
 
@@ -24,27 +32,36 @@ desativado e não há restauração testada.
 | GitHub `production` | Nenhuma variável nem segredo listado no ambiente ou no repositório | No último run da `main` (`36153775423`), aplicar migrations, promover o deployment e confirmar o domínio ficaram `skipped`, embora os jobs terminassem verdes. |
 | Vercel | Projeto `vtr-consulting/instituto-vivance`, Root Directory `apps/web`, Node 24; domínio principal resolvido para deployment `dpl_3zS5YNhZZopKTVzaLuZ6p33rS6X2`, `READY` | Alcance técnico; não comprova banco de produção separado, schema ou aceite clínico. |
 
-O `docs/STATUS_ATUAL.md` da cópia de trabalho atualizada em 28/09 relata que a
-configuração pública do deployment aponta ao projeto `instituto-vivance-dev`.
-O valor do ambiente Vercel não foi reexibido nesta auditoria; essa associação
-precisa de confirmação controlada antes da mudança de destino.
+Uma inspeção registrada em 28/09 relatou que a configuração pública do
+deployment aponta ao projeto `instituto-vivance-dev`. O valor do ambiente
+Vercel não foi reexibido nesta auditoria; essa associação precisa de
+confirmação controlada antes de qualquer mudança de destino.
 
-## Próximas ações para aceitar C1
+## Próximas ações no ambiente único de testes
 
-1. Definir qual organização e projeto Supabase serão o destino de produção,
-   separados do desenvolvimento. Registrar a referência do projeto, responsável
-   e região, sem divulgar credenciais.
-2. Inventariar as variáveis Vercel de Preview e Production e a configuração
-   protegida do GitHub. Confirmar, por ambiente, a correspondência entre URL,
-   projeto Supabase e banco de migrations, sem imprimir chaves.
-3. Criar ou identificar o banco de produção aprovado. Aplicar migrations
-   versionadas **somente após** conferir o destino e registrar o histórico antes
-   e depois. Nunca editar uma migration já aplicada.
-4. Definir backups, retenção, destino de restauração e procedimento de teste.
-   Executar uma restauração isolada e documentar integridade, tempo e falhas.
-5. Confirmar schema compatível, acesso por papéis, Storage e versões das Edge
-   Functions no destino. Revalidar o deployment e seus aliases antes de qualquer
-   uso de dados clínicos reais.
+1. Tratar `oxuwrdjojsmgxoljqkuk` como destino explícito de teste antes de
+   qualquer escrita. Conferir a configuração do app e das CLIs sem imprimir
+   chaves; não usar `POSTGRES_HOST`/`POSTGRES_URL` de um projeto divergente.
+2. Identificar nominalmente as contas e os dados sintéticos do C2. Preservar
+   qualquer registro de origem incerta ou possivelmente real; não limpar nem
+   sobrescrever dados existentes para preparar a demonstração.
+3. Verificar schema, papéis, RLS, Storage e percursos autenticados no ambiente
+   compartilhado. Registrar o resultado como **teste**, sem declarar aceite
+   clínico ou produção isolada.
+
+## Pendências antes de dados reais e do Gate P
+
+1. Criar ou identificar o projeto Supabase de produção separado, com
+   organização, referência, responsável e região registrados sem credenciais.
+2. Inventariar variáveis Vercel de Preview e Production e a configuração
+   protegida do GitHub; comprovar a correspondência de cada ambiente com o
+   projeto e o histórico de migrations corretos.
+3. Comparar schema, aplicar somente migrations versionadas no destino aprovado
+   e registrar o histórico antes e depois. Nunca editar migration já aplicada.
+4. Definir backups, retenção e destino de restauração; executar restauração
+   isolada e documentar integridade, tempo e falhas.
+5. Revalidar acesso por papéis, Storage, Edge Functions, deployment e aliases
+   no destino separado antes de qualquer dado clínico real.
 
 O Gate P continua separado: C1 aceito não equivale a autorização clínica.
 
