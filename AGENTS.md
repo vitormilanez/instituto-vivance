@@ -12,6 +12,8 @@ confirme o estado vivo, sem reutilizar IDs ou resultados antigos.
 - Localize primeiro o checkout Git real; a pasta aberta no Codex pode ser apenas
   um protótipo. Consulte `docs/DIRECAO_E_SLICES.md`, `docs/STATUS_ATUAL.md` e
   os critérios do slice, mas confira no Git e nos ambientes o que de fato existe.
+  Se a branch consultada ainda não contiver a direção, procure o PR documental
+  vigente antes de confiar em um status antigo da `main`.
 - O Asana é o quadro de execução e pode estar desatualizado. Antes de criar
   tarefas ou pedir uma decisão, confronte o quadro com as decisões recentes da
   conversa, o plano vigente e o estado vivo. Após uma decisão nova, atualize o
