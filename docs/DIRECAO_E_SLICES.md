@@ -69,9 +69,9 @@ de saúde reais; o uso temporário não conclui C1 para operação clínica.
    paciente e histórico por agendamento sem misturar informações.
 2. **Aceite operacional dos testes:** executar caminhos permitidos e negados
    para administrador, médico, enfermagem e paciente com sessões reais;
-   conferir persistência,
-   revisão e publicação separadas. Registrar defeitos, correções e aceite
-   técnico do ambiente compartilhado. O Gate P permanece **não liberado**
+   conferir persistência e a separação entre revisão e publicação. Registrar
+   defeitos, correções e aceite técnico do ambiente compartilhado. O Gate P
+   permanece **não liberado**
    enquanto faltarem produção separada, backup/restauração e os demais
    critérios para dados reais.
 
