@@ -10,7 +10,7 @@ Fotografia técnica verificada em 28/09/2026. Para prioridades, leia [Direção 
 
 - A aplicação é `apps/web`; as migrations estão em `supabase/`. O protótipo da raiz não participa do deploy.
 - `main` local está em `5a64be9`, merge da PR #62; a PR #61 também está integrada. Esta revisão só altera documentação.
-- Em 28/09, `institutovivance.app` respondeu HTTP 200. A inspeção Vercel mostrou `dpl_3zS5YNhZZopKTVzaLuZ6p33rS6X2`, `production`, `READY`, com funções em `gru1`. Isso confirma alcance técnico, não aceite clínico.
+- Em 28/09, `institutovivance.app` respondeu HTTP 200. Nova inspeção pela CLI em 29/09 resolveu o domínio para `dpl_3zS5YNhZZopKTVzaLuZ6p33rS6X2`, `production`, `READY`, com funções em `gru1`. Isso confirma alcance técnico, não aceite clínico.
 - A variável pública de Supabase do deployment de produção aponta para `oxuwrdjojsmgxoljqkuk`, projeto chamado `instituto-vivance-dev`. A separação produção/desenvolvimento exigida pelo Gate P **não está demonstrada**. Outra variável de servidor aponta para projeto distinto; nunca inferir o destino de migrations por nome ou `.env`.
 - O histórico remoto de `oxuwrdjojsmgxoljqkuk` lista migrations até `20260926120000_clinic_patient_info`. A comparação completa com um banco de produção separado não foi feita nesta revisão.
 
