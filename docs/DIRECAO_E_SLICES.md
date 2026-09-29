@@ -34,7 +34,7 @@ de saúde reais; o uso temporário não conclui C1 para operação clínica.
 | Ordem | Slice | Entrega verificável | Estado em 29/09 |
 | --- | --- | --- | --- |
 | 1 | **C1 · Preparar o ambiente de teste** | Confirmar o ref do Supabase em cada comando e a configuração do app sem expor chaves; inventariar schema, migrations, backups, papéis e Storage. Registrar diferenças e um modo de reversão antes de qualquer carga. | Parcial: 56 versões de migration pareadas no histórico; backups físicos não listados e restauração não testada. |
-| 2 | **C2 · Completar a demonstração** | Executar as três etapas de C2 abaixo, preservando todos os registros de origem incerta. | Parcial: duas contas vinculadas e com histórico; terceira sem vínculo, 20 prontuários no banco e nenhuma consulta futura para o trio. |
+| 2 | **C2 · Completar a demonstração** | Usar somente as contas de Guilherme e Vitor; completar e conferir uma jornada longitudinal de demonstração no prontuário de Vitor. | Limpeza executada: 2 contas, 1 prontuário e 5 arquivos de Vitor. A jornada ainda não foi completada nem aceita pela interface. |
 | 3 | **C3 · Validar contexto e operação** | Executar as duas etapas de C3 abaixo com sessões reais de paciente e médico; registrar falhas e decisão de aceite **dos testes**. | Não validado neste ciclo. |
 | Paralelo | **IA1 · Governança e contrato** | Obter decisão sobre finalidade, fonte, fornecedor, privacidade, rastreabilidade e revisão médica no [contrato IA1](https://github.com/vitormilanez/instituto-vivance/pull/64). | Rascunho em revisão; nenhuma análise clínica por IA ativa. |
 | Depois | **IA2–IA3** | Extração conferível de poucos exames sintéticos e biblioteca versionada de fontes aprovadas. | Aguarda aceite de IA1. |
@@ -42,23 +42,20 @@ de saúde reais; o uso temporário não conclui C1 para operação clínica.
 
 ### Etapas de C2
 
-1. **Curadoria sem exclusão:** identificar as três contas indicadas no pedido
-   anterior e classificar os 20 prontuários como demonstração confirmada ou
-   origem incerta. Registrar vínculos, dependências e arquivos; não apagar nem
-   sobrescrever registros incertos. A meta de “apenas três pacientes” só pode
-   ser declarada após inventário e limpeza verificável dos registros que forem
-   comprovadamente fictícios.
-2. **História sintética coerente:** reaproveitar o que já existe sem duplicar;
-   vincular a terceira conta a um prontuário de teste e a Guilherme; completar
-   para cada paciente uma sequência identificável de pelo menos três marcos de
+1. **Curadoria concluída:** por decisão expressa de 29/09, manter apenas
+   Guilherme e Vitor. Foram removidas as outras seis contas, os outros 19
+   prontuários e os seis objetos do Storage associados ao prontuário de teste.
+   O usuário dispensou a manutenção de cópia. A verificação final encontrou
+   duas contas, um prontuário e cinco objetos vinculados a Vitor.
+2. **História sintética coerente:** reaproveitar o histórico de Vitor sem duplicar;
+   completar para ele uma sequência identificável de pelo menos três marcos de
    consulta, incluindo retorno, exames de amostra no Storage privado, medidas,
    check-ins e conversas com cronologia consistente. Novos dados devem estar
    marcados como demonstração; não atribuir decisão clínica ou nota assinada
    fictícia ao médico. A carga deve ser repetível sem duplicação.
 3. **Aceite da demonstração:** conferir contagens, chaves e ausência de órfãos;
    abrir os exames pela interface; entrar com sessões reais de paciente e
-   médico e percorrer consulta → registro → acompanhamento → retorno. Verificar
-   que um paciente não acessa o histórico de outro. Guardar evidência do
+   médico e percorrer consulta → registro → acompanhamento → retorno. Guardar evidência do
    ambiente e dos registros utilizados. Isso valida a demonstração, não IA
    clínica nem Gate P.
 
@@ -66,10 +63,13 @@ de saúde reais; o uso temporário não conclui C1 para operação clínica.
 
 1. **Contexto longitudinal:** em cada item, conferir origem, data, autoria,
    estado recebido/revisado/publicado e acesso ao original. Validar troca de
-   paciente e histórico por agendamento sem misturar informações.
-2. **Aceite operacional dos testes:** executar caminhos permitidos e negados
-   para administrador, médico, enfermagem e paciente com sessões reais;
-   conferir persistência e a separação entre revisão e publicação. Registrar
+   agendamento e navegação pelas abas do histórico de Vitor sem misturar
+   informações; a troca entre pacientes fica para outro ciclo.
+2. **Aceite operacional dos testes:** executar os caminhos de médico e paciente
+   com as duas contas mantidas; conferir persistência e a separação entre
+   revisão e publicação. Os testes de administrador, enfermagem e isolamento
+   entre pacientes exigem contas de teste em um ciclo posterior e não serão
+   declarados aceitos com este ambiente de duas contas. Registrar
    defeitos, correções e aceite técnico do ambiente compartilhado. O Gate P
    permanece **não liberado**
    enquanto faltarem produção separada, backup/restauração e os demais

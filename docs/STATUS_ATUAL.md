@@ -8,8 +8,8 @@ Fotografia técnica verificada entre 28 e 29/09/2026. Para prioridades, leia
 | Frente | Status atual | Próximo marco |
 | --- | --- | --- |
 | **C1 · Base operacional** | Projeto único de testes autorizado; 56 migrations pareadas no histórico do projeto atual. Sem restauração testada nem produção separada. | Confirmar destino de cada ferramenta antes de escrita e manter a separação como requisito prévio a dados reais. |
-| **C2 · Demonstração longitudinal** | Incompleto: duas das três contas têm prontuário e histórico parcial; a terceira só existe no Auth. O banco contém 20 prontuários. | Preservar/classificar registros existentes, completar as três jornadas sintéticas e verificar paciente ↔ médico pela interface. |
-| **C3 · Contexto e aceite operacional** | Não validado neste ciclo. | Exercitar origem, estado, original, papéis e negações com sessões reais; registrar aceite técnico dos testes. |
+| **C2 · Demonstração longitudinal** | Limpeza concluída; jornada incompleta. Restam apenas Guilherme e Vitor no Auth, um prontuário e cinco arquivos de Vitor no Storage. | Completar e verificar a jornada de Vitor com sessões reais de paciente e médico. |
+| **C3 · Contexto e aceite operacional** | Não validado neste ciclo. O ambiente agora tem apenas as contas de médico e paciente. | Exercitar esses dois papéis com sessões reais; planejar outro ciclo para admin, enfermagem e isolamento entre pacientes. |
 | **IA1 · Governança** | Contrato documental no [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64), ainda sem aprovação dos responsáveis. | Fechar finalidade, fonte, fornecedor, privacidade e revisão médica. |
 | **IA2–IA6** | Planejados; não há análise clínica por IA ativa. | Iniciar apenas após os gates próprios, com material sintético nas etapas iniciais. |
 | **Gate P** | Aberto. O deployment está tecnicamente `READY`, sem aceite clínico. | Separar produção, conferir migrations/backup/restauração, segurança e percursos antes de dados reais. |
@@ -18,7 +18,23 @@ As mudanças de direção e status estão no [PR #63](https://github.com/vitormi
 
 **Decisão de 29/09/2026:** o projeto `instituto-vivance-dev` será o ambiente único temporário para testes com dados sintéticos. A separação dos ambientes fica para antes de dados reais e do fechamento do Gate P; não foi dispensada.
 
-**Inventário C2, leitura de 29/09/2026:** o projeto tem 8 contas de Auth, 20 prontuários, 87 agendamentos e um médico ativo. Vitor já tem 5 agendamentos, 4 exames disponíveis com objeto no Storage, 2 check-ins diários e 5 mensagens. A conta de paciente de teste tem 7 agendamentos, 3 exames com objeto no Storage, 1 check-in diário e 5 mensagens. A terceira conta proposta existe no Auth, mas ainda não está vinculada a um prontuário e não tem histórico. Não há agendamento futuro para nenhuma das três. A solicitação anterior de três pacientes completos **não foi concluída**; nenhum dado foi alterado nesta verificação. Os demais prontuários permanecem preservados.
+**Decisão final de escopo em 29/09/2026:** o usuário substituiu a proposta de
+três sintéticos por **apenas Guilherme e Vitor** e dispensou manter cópia dos
+registros removidos. No projeto `oxuwrdjojsmgxoljqkuk`, a limpeza excluiu
+seis contas Auth, 19 prontuários e os respectivos registros dependentes; seis
+arquivos não vinculados a Vitor foram removidos pela API do Storage. A leitura
+após a operação confirmou duas contas ativas, dois memberships, um
+patient_account, um prontuário, cinco agendamentos, um atendimento, cinco
+documentos e cinco objetos no Storage. Todos os documentos têm objeto, e não
+há objeto órfão. Nenhuma tabela pública com `patient_id` mantém linha de
+outro paciente. Os registros técnicos de auditoria permanecem como trilha
+histórica; a limpeza não constitui aceite clínico.
+
+**Inventário C2 anterior à limpeza:** havia 8 contas Auth, 20 prontuários e 87
+agendamentos. Vitor já tinha 5 agendamentos, 4 exames disponíveis com objeto no
+Storage, 2 check-ins diários e 5 mensagens. A solicitação anterior de três
+pacientes completos **não foi concluída**. Esta fotografia foi superada pela
+decisão final de manter somente Vitor e Guilherme.
 
 ## Código e publicação
 
@@ -36,7 +52,9 @@ Há identidade por clínica e papel, vínculo de cuidado, agenda, atendimento ve
 
 1. Usar o projeto atual para testes sintéticos controlados; identificar e separar os ambientes, conferir migrations e testar restauração antes de dados reais.
 2. Fechar o [Gate P](GATE_P.md) com percursos autenticados por papel e negações entre pacientes/clínicas.
-3. Concluir C2 com o trio indicado na captura do pedido anterior: Vitor, a conta `paciente@test.com` e a conta `teste1@gmail.com`; Guilherme é o único médico ativo na leitura de 29/09. Apenas duas dessas contas estão vinculadas a prontuário. **Nenhuma exclusão ou carga foi executada nessa solicitação.** Não remover os demais prontuários, inclusive o registro de origem incerta identificado anteriormente, sem inventário e decisão específica.
+3. Concluir C2 somente com Vitor e Guilherme. A limpeza das demais contas e
+   prontuários foi executada e verificada, mas a carga longitudinal e o aceite
+   pela interface ainda estão pendentes.
 4. Definir finalidade, governança e avaliação regulatória da IA antes de qualquer análise clínica. Ver [Plano de IA clínica](PLANO_IA_CLINICA.md).
 
 `READY`, HTTP 200 e migrations listadas são evidências técnicas delimitadas. Não comprovam a jornada completa, nem autorizam dados de saúde reais.
