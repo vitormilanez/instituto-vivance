@@ -33,7 +33,7 @@ test("native runtime does not import the Cloudflare prototype or demonstration p
   ).dependencies;
   assert.equal(dependencies.vinext, undefined);
   assert.equal(dependencies.wrangler, undefined);
-  // Só a marca, os ícones do app instalado e o service worker dos lembretes.
+  // Marca, ícones, service worker e a landing pública aprovada do Virada 90.
   assert.deepEqual(readdirSync(join(root, "public")).sort(), [
     "apple-touch-icon.png",
     "brand",
@@ -41,6 +41,7 @@ test("native runtime does not import the Cloudflare prototype or demonstration p
     "icon-512.png",
     "manifest.webmanifest",
     "sw.js",
+    "virada90",
   ]);
   const worker = readFileSync(join(root, "public/sw.js"), "utf8");
   // O service worker não guarda páginas nem dados em cache.
