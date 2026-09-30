@@ -32,6 +32,14 @@ export type MeasurementSeries = {
 
 export type MeasurementPeriod = { from: string | null; to: string | null };
 
+// Historic onboarding could save metres in the height_cm column. Convert only
+// for presentation so those entries can be compared with later centimetres.
+export function displayedMeasurement(label: string, value: number, unit: string) {
+  if (label === "Altura" && unit === "cm" && value > 0 && value < 3)
+    return { value: Math.round(value * 10_000) / 100, unit };
+  return { value, unit };
+}
+
 export function measurementPageHref({
   base, patient, patientId, period, cursor,
 }: {
