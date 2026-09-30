@@ -113,5 +113,10 @@ Cada slice entrega contrato, migrations versionadas quando necessárias, testes 
 Publicação autorizada em `/virada90` no domínio Vivance para o Instituto
 Guilherme Martins. Página pública estática, com textos, vídeo, foto e três
 links de WhatsApp do material aprovado. Não altera autenticação clínica,
-banco, CRM ou regras de cuidado. Implementação e validação de release nesta
-branch; publicação técnica será confirmada pelo deployment e pela rota pública.
+banco, CRM ou regras de cuidado. Publicação técnica confirmada no PR #72, merge `1803dd1`, deployment
+`dpl_Gz8nJKSKPbXswJLFML47aYGsGBXc` promovido pela CLI. Ambos os domínios
+resolvem para esse artefato. `/virada90` e `/login` responderam HTTP 200.
+416 testes, lint, typecheck e build passaram no release `36755802273`;
+migrations não necessárias e promoção automática skipped. Navegador no
+domínio público confirmou vídeo de 38,3 s, FAQ, três links originais e ausência
+de overflow em 390 e 1440 px. Nenhum envio ao CRM realizado.
