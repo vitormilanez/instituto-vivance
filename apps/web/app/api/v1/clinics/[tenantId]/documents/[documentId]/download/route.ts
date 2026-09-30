@@ -11,7 +11,7 @@ export async function GET(
   try {
     const { tenantId, documentId } = await params;
     const document = await documentDownload(tenantId, documentId);
-    return documentDownloadResponse(document.url);
+    return documentDownloadResponse(document.file, document.filename, document.contentType);
   } catch (error) {
     return apiError(error);
   }
