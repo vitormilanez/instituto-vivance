@@ -1,6 +1,19 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { checkInSourceHref, displayedMeasurement, longitudinalPeriod, measurementPageHref, measurementSeries, onboardingSourceHref, paginateMeasurementPoints, patientMeasurementSourceHref } from "../modules/longitudinal/project.ts";
+import { checkInSourceHref, dailyCheckInTimelineEvent, displayedMeasurement, longitudinalPeriod, measurementPageHref, measurementSeries, onboardingSourceHref, paginateMeasurementPoints, patientMeasurementSourceHref } from "../modules/longitudinal/project.ts";
+
+test("daily timeline keeps reference and actual submission dates distinct", () => {
+  const event = dailyCheckInTimelineEvent({
+    id: "daily-1",
+    check_in_on: "2026-09-08",
+    submitted_at: "2026-09-29T23:15:00Z",
+    note: "DEMONSTRAÇÃO — relato retrospectivo fictício.",
+  });
+  assert.equal(event.at, "2026-09-29T23:15:00Z");
+  assert.equal(event.title, "Check-in de 08/09/2026");
+  assert.equal(event.meta, "Data de referência: 08/09/2026 · origem: paciente");
+  assert.match(event.body, /^DEMONSTRAÇÃO/);
+});
 
 test("shows legacy height in centimetres without changing the stored value", () => {
   assert.deepEqual(displayedMeasurement("Altura", 1.73, "cm"), { value: 173, unit: "cm" });

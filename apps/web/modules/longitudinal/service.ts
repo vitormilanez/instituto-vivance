@@ -179,6 +179,7 @@ export async function staffLongitudinal(
       patients,
       selectedPatient: null,
       checkIns: [],
+      dailyCheckIns: [],
       publications: [],
       measures: [],
       measurementPoints: [],
@@ -189,7 +190,7 @@ export async function staffLongitudinal(
       professionalNames: new Map<string, string>(),
     };
 
-  const [checkIns, publications, measurementSources] = await Promise.all([
+  const [checkIns, dailyCheckIns, publications, measurementSources] = await Promise.all([
     client
       .from("care_check_ins")
       .select("*")
@@ -198,6 +199,14 @@ export async function staffLongitudinal(
       .not("submitted_at", "is", null)
       .order("submitted_at", { ascending: false })
       .order("id")
+      .limit(51),
+    client
+      .from("patient_daily_check_ins")
+      .select("id,check_in_on,submitted_at,note")
+      .eq("tenant_id", tenant)
+      .eq("patient_id", selectedId)
+      .order("check_in_on", { ascending: false })
+      .order("submitted_at", { ascending: false })
       .limit(51),
     client
       .from("care_plan_publications")
@@ -211,7 +220,7 @@ export async function staffLongitudinal(
       .limit(21),
     persistedMeasurementSources(client, tenant, selectedId, period),
   ]);
-  if (checkIns.error || publications.error)
+  if (checkIns.error || dailyCheckIns.error || publications.error)
     throw new Error("Unable to load longitudinal history");
   const rows = (checkIns.data ?? []).slice(0, 50);
   const ids = rows.map((row) => row.id);
@@ -268,6 +277,7 @@ export async function staffLongitudinal(
     selectedPatient:
       patients.find((patient) => patient.id === selectedId) ?? null,
     checkIns: enriched,
+    dailyCheckIns: (dailyCheckIns.data ?? []).slice(0, 50),
     publications: (publications.data ?? []).slice(0, 20),
     measures,
     measurementPoints: page.points,
@@ -277,6 +287,7 @@ export async function staffLongitudinal(
     professionalNames,
     truncated:
       (checkIns.data?.length ?? 0) > 50 ||
+      (dailyCheckIns.data?.length ?? 0) > 50 ||
       (publications.data?.length ?? 0) > 20 || measurementSources.truncated,
   };
 }
@@ -296,19 +307,31 @@ export async function patientLongitudinal(id: string, input: LongitudinalInput =
     .eq("user_id", user.id)
     .maybeSingle();
   if (account.error || !account.data) throw new Error("Unable to load patient measurement context");
-  const sources = await persistedMeasurementSources(client, tenant, account.data.patient_id, period);
+  const [sources, dailyCheckIns] = await Promise.all([
+    persistedMeasurementSources(client, tenant, account.data.patient_id, period),
+    client
+      .from("patient_daily_check_ins")
+      .select("id,check_in_on,submitted_at,note")
+      .eq("tenant_id", tenant)
+      .eq("patient_id", account.data.patient_id)
+      .order("check_in_on", { ascending: false })
+      .order("submitted_at", { ascending: false })
+      .limit(51),
+  ]);
+  if (dailyCheckIns.error) throw new Error("Unable to load daily check-in history");
   const measures = measurementSeries(sources.rows, period);
   const page = measurementPage(measures, input.cursor);
   return {
     clinic: checkIns.clinic,
     checkIns: checkIns.checkIns.filter((item) => item.submission),
+    dailyCheckIns: (dailyCheckIns.data ?? []).slice(0, 50),
     publications: publications.publications,
     measures,
     measurementPoints: page.points,
     measurementNextCursor: page.nextCursor,
     measurementsTruncated: sources.truncated,
     period,
-    truncated: checkIns.hasNext || publications.hasNext || sources.truncated,
+    truncated: checkIns.hasNext || (dailyCheckIns.data?.length ?? 0) > 50 || publications.hasNext || sources.truncated,
   };
 }
 
