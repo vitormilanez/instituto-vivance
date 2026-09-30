@@ -9,7 +9,7 @@ Fotografia técnica verificada entre 28 e 29/09/2026. Para prioridades, leia
 | --- | --- | --- |
 | **C1 · Base operacional** | Projeto único de testes autorizado; 57 migrations pareadas no histórico do projeto atual. Sem restauração testada nem produção separada. | Confirmar destino de cada ferramenta antes de escrita e manter a separação como requisito prévio a dados reais. |
 | **C2 · Demonstração longitudinal** | Limpeza e carga histórica parcial executadas. Restam Guilherme e Vitor no Auth e um prontuário; Vitor tem 21 dias seguidos de check-in e 18 refeições fictícias. Quatro exames receberam títulos conferidos. A lista e um PDF original foram validados na sessão autenticada do médico. | Validar a sessão do paciente e completar consulta/retorno sem forjar conduta ou assinatura médica. |
-| **C3 · Contexto e aceite operacional** | Iniciado na sessão do médico: abas e fontes verificadas; unidade de altura legada corrigida e conferida. Linha do tempo vazia apesar dos check-ins em Evolução. Sem aceite operacional. | Corrigir a expectativa do feed e exercitar ambos os papéis; planejar outro ciclo para admin, enfermagem e isolamento entre pacientes. |
+| **C3 · Contexto e aceite operacional** | Iniciado na sessão do médico: abas e fontes verificadas; unidade de altura legada corrigida; check-ins diários agora visíveis em ordem de referência na Linha do tempo. Sem aceite operacional. | Exercitar a sessão do paciente, troca de agendamento, revisão/publicação e consulta/retorno; planejar outro ciclo para admin, enfermagem e isolamento entre pacientes. |
 | **IA1 · Governança** | Contrato documental no [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64), ainda sem aprovação dos responsáveis. | Fechar finalidade, fonte, fornecedor, privacidade e revisão médica. |
 | **IA2–IA6** | Planejados; não há análise clínica por IA ativa. | Iniciar apenas após os gates próprios, com material sintético nas etapas iniciais. |
 | **Gate P** | Aberto. O deployment está tecnicamente `READY`, sem aceite clínico. | Separar produção, conferir migrations/backup/restauração, segurança e percursos antes de dados reais. |
@@ -71,9 +71,14 @@ contexto. Evolução exibiu os check-ins retrospectivos marcados
 para `173 cm`, sem alterar o valor persistido. O merge `b4e8a42` teve CI
 completo aprovado e foi publicado em
 `dpl_FSM8Yof4tsz5SiTYgXyQ7PfhSoaT`; a sessão do médico confirmou
-`173 cm` no cartão e na tabela. A Linha do tempo mostrou estado vazio embora
-Evolução liste check-ins diários: o feed atual é delimitado a relatos
-solicitados e publicações. Essa discrepância exige um slice de contexto;
+`173 cm` no cartão e na tabela. A Linha do tempo inicialmente mostrou estado
+vazio embora Evolução listasse check-ins diários. Os PRs #69 e #70 incluíram
+esses relatos no feed de médico e paciente e os ordenaram pela data de
+referência, com a data técnica do envio visível. O merge `f81929f` teve CI
+completo aprovado e foi publicado no deployment
+`dpl_H9iT6aFsFm5B3W2egwdbymE8PEGn`. Na sessão do médico, a sequência
+28/09, 27/09, 26/09… apareceu com o marcador `DEMONSTRAÇÃO` e envio em
+29/09 nos registros retrospectivos. A sessão do paciente não foi testada;
 nenhum aceite operacional foi registrado.
 
 **Inventário C2 anterior à limpeza:** havia 8 contas Auth, 20 prontuários e 87
@@ -85,9 +90,10 @@ decisão final de manter somente Vitor e Guilherme.
 ## Código e publicação
 
 - A aplicação é `apps/web`; as migrations estão em `supabase/`. O protótipo da raiz não participa do deploy.
-- O código da aplicação foi verificado no merge `b4e8a42` do PR #67. O check do PR e `verify` do release passaram, incluindo testes, lint, typecheck e build. O PR #66 também passou pelos mesmos checks. Não houve nova migration nessas correções.
+- O código da aplicação foi verificado no merge `f81929f` do PR #70. Os checks de PR e `verify` do release passaram nos PRs #66, #67, #69 e #70, incluindo testes, lint, typecheck e build. Não houve nova migration nessas correções.
 - Pela CLI, a migration foi confirmada no Supabase de testes: 57 versões pareadas, cinco documentos disponíveis, quatro titulados e RLS ativa. A Vercel gerou `dpl_DLq5cWoGxkAw69BNzMZwyGv4Qmki`, `production`, `READY`, com `gitSource.sha=a1ba2e9`; a promoção manual apontou ambos os domínios ao mesmo deployment. Três chamadas a `/login` no domínio principal deram HTTP 200 (TTFB 1,03 s, 0,36 s e 0,11 s); três no secundário deram HTTP 307 para o principal. Isso comprova publicação técnica, não aceite clínico.
 - Para as correções sem migration, a Vercel gerou `dpl_EB7ddcDXVvbMj37WmWowkQmwvtAu` do merge `dacd3d3` e depois `dpl_FSM8Yof4tsz5SiTYgXyQ7PfhSoaT` do merge `b4e8a42`. A CLI confirmou `production`, `READY` e o `gitSource.sha` de cada um, promoveu após CI e verificou ambos os domínios no último deployment. O domínio principal respondeu HTTP 200 em `/login`. PDF e altura foram verificados em sessão autenticada do médico, sem constituir aceite clínico.
+- O feed longitudinal foi publicado em `dpl_CjcM8zQNy39B8LaCLqEwfJF7GMHe` (merge `85034cd`) e sua ordem corrigida em `dpl_H9iT6aFsFm5B3W2egwdbymE8PEGn` (merge `f81929f`). A CLI confirmou o último deployment `production`, `READY`, `gitSource.sha=f81929f` e ambos os domínios nele após promoção. A sessão autenticada do médico confirmou a ordem; a sessão do paciente ainda não.
 - A variável pública de Supabase do deployment de produção aponta para `oxuwrdjojsmgxoljqkuk`, projeto chamado `instituto-vivance-dev`. A separação produção/desenvolvimento exigida pelo Gate P **não está demonstrada**. Outra variável de servidor aponta para projeto distinto; nunca inferir o destino de migrations por nome ou `.env`.
 - O histórico remoto de `oxuwrdjojsmgxoljqkuk` lista migrations até `20260929234224_patient_document_display_title`. A comparação completa com um banco de produção separado não foi feita nesta revisão.
 
@@ -102,8 +108,7 @@ Há identidade por clínica e papel, vínculo de cuidado, agenda, atendimento ve
 3. Concluir C2 somente com Vitor e Guilherme. A limpeza e a carga de
    autorrelatos sintéticos foram executadas e verificadas no banco; marcos de
    consulta/retorno e aceite pela interface ainda estão pendentes.
-4. Continuar C3: esclarecer e corrigir o estado vazio da Linha do tempo diante
-   dos check-ins visíveis em Evolução, verificar a sessão de Vitor e a
+4. Continuar C3: verificar a sessão de Vitor, a troca de agendamento e a
    separação entre revisão e publicação. Com apenas duas contas, não aceitar
    admin, enfermagem ou isolamento entre pacientes.
 5. Definir finalidade, governança e avaliação regulatória da IA antes de qualquer análise clínica. Ver [Plano de IA clínica](PLANO_IA_CLINICA.md).
