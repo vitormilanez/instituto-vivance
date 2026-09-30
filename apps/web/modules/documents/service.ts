@@ -245,7 +245,7 @@ export async function documentDownload(id: string, document: string) {
   const { client } = await requireClinic(tenant, ["doctor", "nurse", "patient"]);
   const result = await client
     .from("patient_documents")
-    .select("id,original_filename,storage_path")
+    .select("id,original_filename,storage_path,content_type")
     .eq("tenant_id", tenant)
     .eq("id", documentUuid)
     .eq("status", "available")
@@ -256,17 +256,19 @@ export async function documentDownload(id: string, document: string) {
       "O documento não está disponível para esta conta.",
       404,
     );
-  const signed = await client.storage
+  const file = await client.storage
     .from(documentBucket)
-    .createSignedUrl(result.data.storage_path, 60, {
-      download: result.data.original_filename,
-    });
-  if (signed.error || !signed.data)
+    .download(result.data.storage_path, {}, { cache: "no-store" });
+  if (file.error || !file.data)
     throw new DocumentError(
-      "Não foi possível preparar o download do documento. Tente novamente.",
+      "Não foi possível abrir o documento. Tente novamente.",
       503,
     );
-  return { url: signed.data.signedUrl, filename: result.data.original_filename };
+  return {
+    file: file.data,
+    filename: result.data.original_filename,
+    contentType: result.data.content_type,
+  };
 }
 
 export type StaffDocuments = Awaited<ReturnType<typeof staffDocuments>>;
