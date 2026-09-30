@@ -34,8 +34,8 @@ de saúde reais; o uso temporário não conclui C1 para operação clínica.
 | Ordem | Slice | Entrega verificável | Estado em 29/09 |
 | --- | --- | --- | --- |
 | 1 | **C1 · Preparar o ambiente de teste** | Confirmar o ref do Supabase em cada comando e a configuração do app sem expor chaves; inventariar schema, migrations, backups, papéis e Storage. Registrar diferenças e um modo de reversão antes de qualquer carga. | Parcial: 57 versões de migration pareadas no histórico; backups físicos não listados e restauração não testada. |
-| 2 | **C2 · Completar a demonstração** | Usar somente as contas de Guilherme e Vitor; completar e conferir uma jornada longitudinal de demonstração no prontuário de Vitor. | Limpeza e carga histórica parcial executadas: 21 dias seguidos de check-in e 18 refeições fictícias. Quatro exames têm títulos conferidos. A lista foi publicada e conferida na sessão do médico; abertura do PDF, sessão do paciente, consulta/retorno e aceite da demonstração seguem pendentes. |
-| 3 | **C3 · Validar contexto e operação** | Executar as duas etapas de C3 abaixo com sessões reais de paciente e médico; registrar falhas e decisão de aceite **dos testes**. | Não validado neste ciclo. |
+| 2 | **C2 · Completar a demonstração** | Usar somente as contas de Guilherme e Vitor; completar e conferir uma jornada longitudinal de demonstração no prontuário de Vitor. | Limpeza e carga histórica parcial executadas: 21 dias seguidos de check-in e 18 refeições fictícias. Quatro exames têm títulos conferidos. A lista e um PDF original foram validados na sessão do médico; sessão do paciente, consulta/retorno e aceite da demonstração seguem pendentes. |
+| 3 | **C3 · Validar contexto e operação** | Executar as duas etapas de C3 abaixo com sessões reais de paciente e médico; registrar falhas e decisão de aceite **dos testes**. | Iniciado na sessão do médico: abas e fontes conferidas, altura legada corrigida na apresentação. A Linha do tempo não mostra os check-ins diários vistos em Evolução. Sem aceite operacional. |
 | Paralelo | **IA1 · Governança e contrato** | Obter decisão sobre finalidade, fonte, fornecedor, privacidade, rastreabilidade e revisão médica no [contrato IA1](https://github.com/vitormilanez/instituto-vivance/pull/64). | Rascunho em revisão; nenhuma análise clínica por IA ativa. |
 | Depois | **IA2–IA3** | Extração conferível de poucos exames sintéticos e biblioteca versionada de fontes aprovadas. | Aguarda aceite de IA1. |
 | Depois | **IA4–IA6** | Evidência aplicável, verificação independente, revisão médica e validação clínica com limites previamente definidos. | Aguarda IA1–IA3 e gates clínicos. |
@@ -60,7 +60,9 @@ de saúde reais; o uso temporário não conclui C1 para operação clínica.
    fiéis ao cabeçalho dos PDFs, sem modificar o arquivo original.
 3. **Aceite da demonstração:** conferir contagens, chaves e ausência de órfãos;
    a nova listagem já está publicada e foi conferida na sessão do médico.
-   Ainda é preciso abrir os PDFs até a visualização final, entrar na sessão real do paciente
+   O primeiro PDF original abriu no visualizador do Chrome pelo domínio do app
+   após o [PR #66](https://github.com/vitormilanez/instituto-vivance/pull/66).
+   Ainda é preciso validar a sessão real do paciente
    e percorrer consulta → registro → acompanhamento → retorno. Guardar evidência do
    ambiente e dos registros utilizados. Isso valida a demonstração, não IA
    clínica nem Gate P.
@@ -70,7 +72,12 @@ de saúde reais; o uso temporário não conclui C1 para operação clínica.
 1. **Contexto longitudinal:** em cada item, conferir origem, data, autoria,
    estado recebido/revisado/publicado e acesso ao original. Validar troca de
    agendamento e navegação pelas abas do histórico de Vitor sem misturar
-   informações; a troca entre pacientes fica para outro ciclo.
+   informações; a troca entre pacientes fica para outro ciclo. Na primeira
+   passagem autenticada do médico, a altura legada de `1,73` apareceu como
+   `1,73 cm` em Evolução; o [PR #67](https://github.com/vitormilanez/instituto-vivance/pull/67)
+   corrigiu somente a apresentação para `173 cm`, conferida no app publicado.
+   A Linha do tempo ainda exibe estado vazio embora Evolução liste check-ins
+   diários. Delimitar o feed e sua mensagem vazia no próximo slice C3.
 2. **Aceite operacional dos testes:** executar os caminhos de médico e paciente
    com as duas contas mantidas; conferir persistência e a separação entre
    revisão e publicação. Os testes de administrador, enfermagem e isolamento
