@@ -43,10 +43,12 @@ export function dailyCheckInTimelineEvent(row: {
   return {
     id: `daily-check-in-${row.id}`,
     at: row.submitted_at,
+    sortAt: row.check_in_on,
+    when: referenceDate,
     kind: "Check-in diário",
     title: `Check-in de ${referenceDate}`,
     body: row.note?.trim() || "Sem recado adicional.",
-    meta: `Data de referência: ${referenceDate} · origem: paciente`,
+    meta: "Origem: paciente",
     review: null,
   };
 }

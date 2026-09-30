@@ -122,10 +122,12 @@ export function StaffLongitudinalWorkspace({
             {
               id: `check-in-${item.id}`,
               at: item.submission.submitted_at,
+              sortAt: item.submission.reported_on,
+              when: date(item.submission.reported_on),
               kind: "Relato do paciente",
               title: item.prompt,
               body: item.submission.report,
-              meta: `${date(item.submission.reported_on)} · solicitado por ${initial.professionalNames.get(item.requested_by) ?? "profissional vinculado"}`,
+              meta: `Solicitado por ${initial.professionalNames.get(item.requested_by) ?? "profissional vinculado"} · enviado em ${instant(item.submission.submitted_at)}`,
               review: item.review
                 ? `${initial.professionalNames.get(item.review.reviewer_id) ?? "Equipe vinculada"} · ${item.review.note}`
                 : null,
@@ -136,13 +138,15 @@ export function StaffLongitudinalWorkspace({
     ...initial.publications.map((item) => ({
       id: `publication-${item.id}`,
       at: item.published_at,
+      sortAt: item.published_at.slice(0, 10),
+      when: instant(item.published_at),
       kind: "Publicação médica",
       title: item.title,
       body: `Revisão ${item.revision} · ${item.status === "published" ? "vigente" : "histórico preservado"}`,
       meta: `${instant(item.published_at)} · ${item.doctor_display_name}`,
       review: null,
     })),
-  ].sort((a, b) => b.at.localeCompare(a.at) || a.id.localeCompare(b.id)).slice(0, 50);
+  ].sort((a, b) => b.sortAt.localeCompare(a.sortAt) || b.at.localeCompare(a.at) || a.id.localeCompare(b.id)).slice(0, 50);
 
   if (!initial.selectedPatient)
     return (
@@ -186,12 +190,12 @@ export function StaffLongitudinalWorkspace({
           <ol className="longitudinal-timeline">
             {events.map((event) => (
               <li key={event.id}>
-                <time dateTime={event.at}>{instant(event.at)}</time>
+                <time dateTime={event.sortAt}>{event.when}</time>
                 <div>
                   <span>{event.kind}</span>
                   <h3>{event.title}</h3>
                   <p>{event.body}</p>
-                  <small>{event.meta}</small>
+                  <small>{event.meta}{event.kind === "Check-in diário" ? ` · enviado em ${instant(event.at)}` : ""}</small>
                   {event.review && (
                     <div className="timeline-internal-note">
                       <strong>Revisão interna</strong>
@@ -236,10 +240,12 @@ export function PatientLongitudinalWorkspace({
             {
               id: `check-in-${item.id}`,
               at: item.submission.submitted_at,
+              sortAt: item.submission.reported_on,
+              when: date(item.submission.reported_on),
               kind: "Seu relato",
               title: item.prompt,
               body: item.submission.report,
-              meta: `${date(item.submission.reported_on)} · origem: você`,
+              meta: `Origem: você · enviado em ${instant(item.submission.submitted_at)}`,
             },
           ]
         : [],
@@ -247,12 +253,14 @@ export function PatientLongitudinalWorkspace({
     ...initial.publications.map((item) => ({
       id: `publication-${item.id}`,
       at: item.published_at,
+      sortAt: item.published_at.slice(0, 10),
+      when: instant(item.published_at),
       kind: "Orientação publicada",
       title: item.title,
       body: `Revisão ${item.revision} publicada por ${item.doctor_display_name}`,
       meta: `${instant(item.published_at)} · origem: equipe médica`,
     })),
-  ].sort((a, b) => b.at.localeCompare(a.at) || a.id.localeCompare(b.id)).slice(0, 50);
+  ].sort((a, b) => b.sortAt.localeCompare(a.sortAt) || b.at.localeCompare(a.at) || a.id.localeCompare(b.id)).slice(0, 50);
   return (
     <div className="longitudinal-workspace patient-longitudinal">
       <Measures measures={initial.measures} points={initial.measurementPoints} nextCursor={initial.measurementNextCursor} period={initial.period} base={base} patient truncated={initial.measurementsTruncated} onboardingHref={onboardingSourceHref(base, true)} />
@@ -270,12 +278,12 @@ export function PatientLongitudinalWorkspace({
           <ol className="longitudinal-timeline">
             {events.map((event) => (
               <li key={event.id}>
-                <time dateTime={event.at}>{instant(event.at)}</time>
+                <time dateTime={event.sortAt}>{event.when}</time>
                 <div>
                   <span>{event.kind}</span>
                   <h3>{event.title}</h3>
                   <p>{event.body}</p>
-                  <small>{event.meta}</small>
+                  <small>{event.meta}{event.kind === "Check-in diário" ? ` · enviado em ${instant(event.at)}` : ""}</small>
                 </div>
               </li>
             ))}

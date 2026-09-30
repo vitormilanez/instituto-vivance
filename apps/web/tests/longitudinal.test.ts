@@ -10,8 +10,10 @@ test("daily timeline keeps reference and actual submission dates distinct", () =
     note: "DEMONSTRAÇÃO — relato retrospectivo fictício.",
   });
   assert.equal(event.at, "2026-09-29T23:15:00Z");
+  assert.equal(event.sortAt, "2026-09-08");
+  assert.equal(event.when, "08/09/2026");
   assert.equal(event.title, "Check-in de 08/09/2026");
-  assert.equal(event.meta, "Data de referência: 08/09/2026 · origem: paciente");
+  assert.equal(event.meta, "Origem: paciente");
   assert.match(event.body, /^DEMONSTRAÇÃO/);
 });
 
