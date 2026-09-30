@@ -1114,6 +1114,7 @@ export type Database = {
           category: string;
           content_type: string;
           created_at: string;
+          display_title: string | null;
           id: string;
           original_filename: string;
           patient_id: string;

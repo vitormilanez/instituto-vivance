@@ -10,6 +10,8 @@ import type { Appointment } from "@/modules/agenda/service";
 import type { PatientCareContext } from "@/modules/workspace/today";
 import { staffActions } from "@/modules/workspace/navigation";
 import { clinicDate } from "@/modules/agenda/validation";
+import { StaffPatientDocumentsPanel } from "@/components/documents-workspace";
+import type { StaffDocuments } from "@/modules/documents/service";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +54,20 @@ export default async function RefinementsPreview({ searchParams }: {
     intake: { hasGoal: true, updatedAt: instant(-90) }, requests: [],
   };
   const dates = [-14, -7, 0].map(days => new Date(now.getTime() + days * 86_400_000).toISOString().slice(0, 10));
+  const demoDocuments = [
+    { id: "00000000-0000-4000-8000-000000000021", display_title: "Ultrassonografia da tireoide e região cervical", category: "exam", original_filename: "f1a2b3c4-1111-4222-8333-123456789abc.pdf", content_type: "application/pdf", created_at: instant(-360), available_at: instant(-360) },
+    { id: "00000000-0000-4000-8000-000000000022", display_title: "Ultrassonografia do abdome total", category: "exam", original_filename: "f1a2b3c4-1111-4222-8333-123456789abd.pdf", content_type: "application/pdf", created_at: instant(-420), available_at: instant(-420) },
+    { id: "00000000-0000-4000-8000-000000000023", display_title: "Ultrassonografia da tireoide e região cervical", category: "exam", original_filename: "f1a2b3c4-1111-4222-8333-123456789abe.pdf", content_type: "application/pdf", created_at: instant(-1440), available_at: instant(-1440) },
+    { id: "00000000-0000-4000-8000-000000000024", display_title: null, category: "clinical_document", original_filename: "Captura de Tela 2026-09-22 às 12.35.25.png", content_type: "image/png", created_at: instant(-2880), available_at: instant(-2880) },
+  ];
+  const documentPreview = {
+    clinic: { id: tenant, name: "Clínica demonstrativa", role: "doctor", displayName: "Dra. Marina · FICTÍCIO" },
+    documents: demoDocuments.map((item) => ({ ...item, tenant_id: tenant, patient_id: patient, uploaded_by: patient,
+      storage_path: `patient-documents/${item.id}`, byte_size: 180000, visibility: "shared", status: "available",
+      rejected_at: null, attached_to: "documents", patients: { display_name: "Ana Souza · FICTÍCIO" } })),
+    reviews: [], canReview: true, patients: [{ id: patient, display_name: "Ana Souza · FICTÍCIO" }],
+    patient, page: 1, hasNext: false,
+  } as unknown as StaffDocuments;
   return <DoctorShell clinic={{ id: tenant, name: "Clínica demonstrativa", role: "doctor", displayName: "Dra. Marina · FICTÍCIO" }} active={tela === "agenda" ? "agenda" : tela === "mensagens" ? "mensagens" : "home"} notificationCount={0}>
     <section className="notice" aria-label="Prévia local">
       <strong>Prévia local · dados fictícios</strong>
@@ -62,6 +78,7 @@ export default async function RefinementsPreview({ searchParams }: {
         <Link href="/refinamentos-preview?tela=convite">Convite</Link>
         <Link href="/refinamentos-preview?tela=onboarding">Onboarding</Link>
         <Link href="/refinamentos-preview?tela=mensagens">Mensagens</Link>
+        <Link href="/refinamentos-preview?tela=documentos">Documentos</Link>
       </nav>
     </section>
     {tela === "agenda" ? <Agenda tenantId={tenant} today={today} date={today} currentTime={now.toISOString()} canStart canManage truncated={false}
@@ -84,6 +101,7 @@ export default async function RefinementsPreview({ searchParams }: {
           weight: { state: "ready", points: [{ value: 82, date: dates[0] }, { value: 80.5, date: dates[1] }, { value: 78.8, date: dates[2] }] },
         },
       }} />
+      : tela === "documentos" ? <StaffPatientDocumentsPanel initial={documentPreview} base={`${base}/pacientes/${patient}?aba=Documentos`} />
       : tela === "convite" ? <PatientInvitationForm tenantId={tenant} role="admin" doctors={[{ id: doctor, displayName: "Dra. Marina · FICTÍCIO" }]} />
       : tela === "onboarding" ? <OnboardingWorkspace tenantId={tenant} clinicName="Clínica demonstrativa" doctorName="Dra. Marina" initial={draft} />
       : <div className="doctor-home-overview"><aside className="doctor-home-focus"><ConsultationBlock compact base={base} tenantId={tenant} today={today} now={now.toISOString()} appointment={{ ...appointment, teleconsultation: { delivery_mode: "video", join_url: "https://meet.google.com/abc-defg-hij" } }} eyebrow="Próxima consulta" link={{ status: "active" }} context={context} weight={[{ value: 82, date: dates[0] }, { value: 80.5, date: dates[1] }, { value: 78.8, date: dates[2] }]} draft={null} received={{ visible: [], more: [], total: 0, empty: "Nenhum novo envio desde a última consulta.", failedLabels: [] }} /><section className="doctor-shortcuts panel"><h2>Ações rápidas</h2><ul className="more-tools-list">{staffActions(base).map(action => <li key={action.title}><Link className="more-tools-link" href={action.href}><strong>{action.title}</strong></Link></li>)}</ul></section></aside><aside className="panel"><h2>Para revisar</h2><p>Nenhum envio pendente nesta demonstração.</p></aside></div>}

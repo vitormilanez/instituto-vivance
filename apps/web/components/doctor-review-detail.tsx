@@ -6,6 +6,7 @@ import { receivedItemLabels } from "@/modules/workspace/received-items";
 import { staffReturnPreparations } from "@/modules/return-preparation/service";
 import { StaffReturnPreparationWorkspace } from "./return-preparation-workspace";
 import { checkInSummary, type CheckInAnswers } from "@/modules/daily-check-ins/model";
+import { documentTitle } from "@/modules/documents/title";
 
 // The caller resolves the selection from receivedForPatients, after the active
 // relationship and per-patient cutoff checks. Queries retain tenant/patient/id
@@ -42,9 +43,9 @@ async function loadContent(tenantId: string, patientId: string, item: ReceivedIt
     return error || !data ? null : <blockquote>{data.content}</blockquote>;
   }
   if (item.kind === "documents") {
-    const { data, error } = await client.from("patient_documents").select("original_filename,content_type,byte_size")
+    const { data, error } = await client.from("patient_documents").select("original_filename,display_title,created_at,category,content_type,byte_size")
       .eq("tenant_id", tenantId).eq("patient_id", patientId).eq("id", item.id).eq("status", "available").eq("attached_to", "documents").maybeSingle();
-    return error || !data ? null : <div className="dv-document-original"><FileText size={40} strokeWidth={1.3} aria-hidden="true" /><div><h3>{data.original_filename}</h3><p>{data.content_type} · {Math.ceil(data.byte_size / 1024)} KB</p><a className="button secondary" href={`/api/v1/clinics/${tenantId}/documents/${item.id}/download`} target="_blank" rel="noreferrer">Abrir original</a></div></div>;
+    return error || !data ? null : <div className="dv-document-original"><FileText size={40} strokeWidth={1.3} aria-hidden="true" /><div><h3>{documentTitle(data)}</h3><p>{data.content_type} · {Math.ceil(data.byte_size / 1024)} KB</p><a className="button secondary" href={`/api/v1/clinics/${tenantId}/documents/${item.id}/download`} target="_blank" rel="noreferrer">Abrir original</a></div></div>;
   }
   if (item.kind === "measurements") {
     const { data, error } = await client.from("patient_measurements").select("measure_label,measure_value,measure_unit,reported_on")

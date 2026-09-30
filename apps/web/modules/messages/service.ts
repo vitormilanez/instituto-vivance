@@ -98,7 +98,7 @@ async function staffMessageContext(
 ): Promise<SelectedPatientMessageContext> {
   const documents = client
     .from("patient_documents")
-    .select("id,original_filename,content_type,category,created_at,available_at", { count: "exact" })
+    .select("id,original_filename,display_title,content_type,category,created_at,available_at", { count: "exact" })
     .eq("tenant_id", tenant)
     .eq("patient_id", patientId)
     .eq("status", "available")
@@ -108,7 +108,7 @@ async function staffMessageContext(
     .limit(1);
   const exams = client
     .from("patient_documents")
-    .select("id,original_filename,content_type,category,created_at,available_at", { count: "exact" })
+    .select("id,original_filename,display_title,content_type,category,created_at,available_at", { count: "exact" })
     .eq("tenant_id", tenant)
     .eq("patient_id", patientId)
     .eq("status", "available")
@@ -136,6 +136,7 @@ async function staffMessageContext(
       data: {
         id?: string;
         original_filename?: string;
+        display_title?: string | null;
         content_type?: string | null;
         category?: string | null;
         created_at?: string;
@@ -160,6 +161,7 @@ async function staffMessageContext(
         title: latest.original_filename
           ? documentTitle({
               original_filename: latest.original_filename,
+              display_title: latest.display_title,
               content_type: latest.content_type,
               category: latest.category,
               created_at: latest.created_at ?? at,
@@ -274,7 +276,7 @@ async function history(
     documentIds.length
       ? client
           .from("patient_documents")
-          .select("id,original_filename")
+          .select("id,original_filename,display_title,created_at,content_type,category")
           .eq("tenant_id", tenant)
           .eq("patient_id", selected.patientId)
           .eq("status", "available")
@@ -320,7 +322,7 @@ async function history(
             ? {
                 available: true as const,
                 type: "document" as const,
-                label: document.original_filename,
+                label: documentTitle(document),
                 href: `/api/v1/clinics/${tenant}/documents/${document.id}/download`,
               }
             : { available: false as const, label: "Conteúdo compartilhado indisponível" as const };
@@ -355,7 +357,7 @@ async function referenceOptions(
   const [documents, publications] = await Promise.all([
     client
       .from("patient_documents")
-      .select("id,original_filename")
+      .select("id,original_filename,display_title,created_at,content_type,category")
       .eq("tenant_id", tenant)
       .eq("patient_id", patientId)
       .eq("status", "available")
@@ -383,7 +385,7 @@ async function referenceOptions(
     ...(documents.data ?? []).map((document) => ({
       type: "document" as const,
       id: document.id,
-      label: document.original_filename,
+      label: documentTitle(document),
       group: "Documentos compartilhados" as const,
     })),
   ];

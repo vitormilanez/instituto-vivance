@@ -3052,19 +3052,12 @@ button.calendar-day[aria-pressed="true"] {
 .document-board { margin-top:28px; }
 .document-board > .section-heading { margin-bottom:18px; }
 .document-board > .section-heading p { margin:5px 0 0; font-size:14px; }
-.document-list { border-top:1px solid var(--border); }
-.document-row { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:20px 0; border-bottom:1px solid var(--border); }
-.document-row > div { min-width:0; }
-.document-summary { flex:1 1 320px; }
-.document-actions { display:flex; align-items:flex-end; flex:0 1 420px; flex-direction:column; gap:10px; }
-.document-review-status { display:block; width:max-content; max-width:100%; margin-top:10px; padding:5px 9px; border-radius:999px; background:var(--blue-soft); color:var(--navy); font-size:12px; font-weight:700; }
-.document-review-panel { width:min(100%, 420px); border:1px solid var(--border); border-radius:10px; background:#fff; }
-.document-review-panel summary { min-height:44px; padding:12px 14px; color:var(--navy); cursor:pointer; font-weight:700; }
-.document-review-form { display:grid; gap:12px; padding:0 14px 14px; }
-.document-review-form textarea { min-height:110px; resize:vertical; }
+.document-review-form { display:grid; gap:12px; max-width:700px; }
+.document-review-form .field { display: grid; gap: 6px; margin: 0; color: var(--ink); font-size: 13px; font-weight: 650; }
+.document-review-form textarea { width: 100%; min-height: 110px; padding: 12px; border: 1px solid var(--input-border, #98a9bf); border-radius: 10px; color: var(--ink); font: inherit; font-size: 14px; resize: vertical; }
 .document-review-form button { justify-self:start; }
-.document-review-history { display:grid; gap:10px; margin:0 14px 16px; padding:0; list-style:none; }
-.document-review-history li { padding:12px; border-radius:8px; background:var(--surface-subtle); }
+.document-review-history { display:grid; gap:10px; max-width:700px; margin:0 0 18px; padding:0; list-style:none; }
+.document-review-history li { padding:12px; border-radius:8px; background:var(--surface); }
 .document-review-history span { display:block; margin-top:3px; color:var(--muted); font-size:12px; }
 .document-review-history p { margin:8px 0 0; color:var(--ink); white-space:pre-wrap; }
 .report-create-panel summary { min-height:44px; color:var(--navy); cursor:pointer; font-size:17px; font-weight:700; }
@@ -3098,16 +3091,9 @@ button.calendar-day[aria-pressed="true"] {
 .report-history ol { display:grid; gap:10px; padding:0; list-style:none; }
 .report-history li { display:grid; gap:4px; padding:14px 16px; border:1px solid var(--border); border-radius:10px; background:#fff; }
 .report-history span, .report-history small { color:var(--muted); font-size:13px; }
-.document-row h3 { margin:0; overflow-wrap:anywhere; font-size:17px; }
-.document-row p { margin:6px 0; color:var(--muted); font-size:14px; }
-.document-row small { color:#526782; font-size:12px; }
-.document-row .button { flex:0 0 auto; }
 @media (max-width:650px) {
   .check-in-measure { grid-template-columns:1fr; }
   .check-in-card .section-heading,.patient-check-ins .section-heading { align-items:flex-start; }
-  .document-row { align-items:flex-start; flex-direction:column; }
-  .document-row .button { width:100%; text-align:center; }
-  .document-actions, .document-review-panel { width:100%; }
   .report-create-form { grid-template-columns:1fr; }
   .report-row { align-items:flex-start; flex-direction:column; }
   .report-row .button { width:100%; text-align:center; }
@@ -4128,20 +4114,118 @@ a.more-tools-card:hover {
 .plan-workflow + .encounter-record {
   margin-top: 0;
 }
+.document-list {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.document-list-head,
 .document-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    "summary actions"
-    "review review";
-  align-items: start;
+  grid-template-columns: minmax(230px, 1fr) minmax(148px, .44fr) minmax(174px, .48fr) auto;
+  align-items: center;
+  gap: 12px 20px;
 }
-.document-summary { grid-area: summary; }
-.document-actions { grid-area: actions; align-items: flex-end; }
+.document-list[data-reviewable="false"] .document-list-head,
+.document-list[data-reviewable="false"] .document-row {
+  grid-template-columns: minmax(230px, 1fr) minmax(148px, .44fr) auto;
+}
+.document-list-head {
+  min-height: 42px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--canvas);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.document-list-head span:last-child { text-align: right; }
+.document-row {
+  padding: 14px 20px;
+  background: var(--surface);
+  transition: background-color .16s ease-out;
+}
+.document-row + .document-row { border-top: 1px solid var(--border); }
+.document-row:hover { background: #fafcff; }
+.document-row > * { min-width: 0; }
+.document-summary h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.35;
+  letter-spacing: -.015em;
+  overflow-wrap: anywhere;
+}
+.document-summary .document-meta { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.document-summary > small { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+.document-date { color: var(--ink); font-size: 13px; font-variant-numeric: tabular-nums; }
+.document-mobile-label { display: none; }
+.document-review-state { display: grid; justify-items: start; gap: 4px; }
+.document-review-status {
+  display: inline-block;
+  max-width: 100%;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--attention-surface);
+  color: var(--attention);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.document-review-status[data-reviewed="true"] { background: var(--blue-soft); color: var(--navy); }
+.document-review-state small { color: var(--muted); font-size: 12px; }
+.document-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; white-space: nowrap; }
+.document-actions .button { min-height: 44px; padding: 10px 12px; font-size: 13px; }
+.document-review-toggle {
+  min-height: 44px;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--blue);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.document-review-toggle:hover,
+.document-review-toggle[aria-expanded="true"] { background: var(--blue-soft); }
 .document-review-panel {
-  grid-area: review;
-  width: 100%;
-  margin-top: 6px;
+  grid-column: 1 / -1;
+  margin: 2px -20px -14px;
+  padding: 20px;
+  border-top: 1px solid var(--border);
+  background: var(--canvas);
+}
+.document-review-heading h4 { margin: 0; color: var(--ink); font-size: 16px; }
+.document-review-heading p { margin: 4px 0 16px; color: var(--muted); font-size: 13px; }
+.document-review-heading .document-original-filename { margin-top: -10px; overflow-wrap: anywhere; font-size: 12px; }
+@media (max-width: 1050px) {
+  .document-list-head { display: none; }
+  .document-row,
+  .document-list[data-reviewable="false"] .document-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 20px;
+  }
+  .document-summary { grid-column: 1; grid-row: 1; }
+  .document-actions { grid-column: 2; grid-row: 1 / span 2; }
+  .document-date { grid-column: 1; grid-row: 2; }
+  .document-review-state { grid-column: 1; grid-row: 3; }
+  .document-mobile-label { display: inline; margin-right: 5px; color: var(--muted); font-size: 12px; }
+}
+@media (max-width: 650px) {
+  .document-row,
+  .document-list[data-reviewable="false"] .document-row { grid-template-columns: minmax(0, 1fr); }
+  .document-summary,
+  .document-date,
+  .document-review-state,
+  .document-actions { grid-column: 1; grid-row: auto; }
+  .document-actions { justify-content: flex-start; flex-wrap: wrap; }
+  .document-review-panel { padding: 18px 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .document-row { transition: none; }
 }
 .timeline-internal-note {
   border-left: 0;
@@ -4185,9 +4269,6 @@ a.more-tools-card:hover {
   .encounter-journey small { overflow: visible; text-overflow: clip; white-space: normal; }
   .check-in-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .check-in-summary > div { padding-inline: 10px; }
-  .document-row { grid-template-columns: 1fr; grid-template-areas: "summary" "actions" "review"; }
-  .document-actions { width: 100%; align-items: stretch; }
-  .document-review-panel { margin-top: 0; }
   .plan-workflow,
   .report-workflow { grid-template-columns: 1fr; }
   .plan-workflow > div + div,

@@ -1,121 +1,84 @@
 # Estado atual do Vivance
 
-Atualizado em 22/09/2026.
+Fotografia técnica verificada entre 28 e 29/09/2026. Para prioridades, leia
+[Direção e slices](DIRECAO_E_SLICES.md). Este arquivo não autoriza uso clínico.
+
+## Resumo executivo — 29/09/2026
+
+| Frente | Status atual | Próximo marco |
+| --- | --- | --- |
+| **C1 · Base operacional** | Projeto único de testes autorizado; 57 migrations pareadas no histórico do projeto atual. Sem restauração testada nem produção separada. | Confirmar destino de cada ferramenta antes de escrita e manter a separação como requisito prévio a dados reais. |
+| **C2 · Demonstração longitudinal** | Limpeza e carga histórica parcial executadas. Restam apenas Guilherme e Vitor no Auth e um prontuário; Vitor tem 21 dias seguidos de check-in e 18 refeições fictícias. Quatro exames receberam títulos descritivos verificados nos PDFs, preservando os nomes originais. A nova lista de documentos foi validada somente em prévia local. | Publicar e verificar a interface autenticada; completar consulta/retorno sem forjar conduta ou assinatura médica. |
+| **C3 · Contexto e aceite operacional** | Não validado neste ciclo. O ambiente agora tem apenas as contas de médico e paciente. | Exercitar esses dois papéis com sessões reais; planejar outro ciclo para admin, enfermagem e isolamento entre pacientes. |
+| **IA1 · Governança** | Contrato documental no [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64), ainda sem aprovação dos responsáveis. | Fechar finalidade, fonte, fornecedor, privacidade e revisão médica. |
+| **IA2–IA6** | Planejados; não há análise clínica por IA ativa. | Iniciar apenas após os gates próprios, com material sintético nas etapas iniciais. |
+| **Gate P** | Aberto. O deployment está tecnicamente `READY`, sem aceite clínico. | Separar produção, conferir migrations/backup/restauração, segurança e percursos antes de dados reais. |
+
+As mudanças de direção e status estão no [PR #63](https://github.com/vitormilanez/instituto-vivance/pull/63), ainda em rascunho; a `main` permanece em `5a64be9` até integração.
+
+**Decisão de 29/09/2026:** o projeto `instituto-vivance-dev` será o ambiente único temporário para testes com dados sintéticos. A separação dos ambientes fica para antes de dados reais e do fechamento do Gate P; não foi dispensada.
+
+**Decisão final de escopo em 29/09/2026:** o usuário substituiu a proposta de
+três sintéticos por **apenas Guilherme e Vitor** e dispensou manter cópia dos
+registros removidos. No projeto `oxuwrdjojsmgxoljqkuk`, a limpeza excluiu
+seis contas Auth, 19 prontuários e os respectivos registros dependentes; seis
+arquivos não vinculados a Vitor foram removidos pela API do Storage. A leitura
+após a operação confirmou duas contas ativas, dois memberships, um
+patient_account, um prontuário, cinco agendamentos, um atendimento, cinco
+documentos e cinco objetos no Storage. Todos os documentos têm objeto, e não
+há objeto órfão. Nenhuma tabela pública com `patient_id` mantém linha de
+outro paciente. Os registros técnicos de auditoria permanecem como trilha
+histórica; a limpeza não constitui aceite clínico.
+
+**Carga histórica C2 em 29/09/2026:** o script repetível
+[`seed_vitor_history.sql`](../scripts/demo/seed_vitor_history.sql) acrescentou
+19 check-ins retrospectivos (08–28/09, sem duplicar 23 e 24/09) e 18
+refeições fictícias (19–28/09). Todos os textos novos têm marcador
+`DEMONSTRAÇÃO`; as datas técnicas de criação refletem a carga, enquanto a
+data de referência representa o histórico simulado. Um ensaio com
+`ROLLBACK`, a execução e uma segunda execução sem novas linhas passaram.
+Contagem após a carga: 21 check-ins e 18 refeições para Vitor, duas contas
+Auth e um prontuário. Agendamentos, atendimento, mensagens, documentos,
+medidas e Storage existentes não foram alterados pelo script. A visualização
+autenticada e o aceite médico seguem pendentes.
+
+**Documentos C2 em 29/09/2026:** a migration
+`20260929234224_patient_document_display_title` acrescentou um título de
+exibição opcional, sem sobrescrever `original_filename` nem ampliar permissão
+de escrita. No projeto de teste `oxuwrdjojsmgxoljqkuk`, os quatro PDFs de exame
+de Vitor receberam títulos conferidos contra o cabeçalho dos próprios laudos;
+o quinto documento permanece com título genérico. A leitura de controle
+encontrou 57 versões de migration, cinco documentos disponíveis, quatro com
+título e RLS ainda ativa. A listagem compacta e a revisão em linha passaram
+por prévia local com dados fictícios em desktop e celular, além de build,
+typecheck, lint e testes. **A interface nova ainda não foi publicada nem aceita
+em sessão autenticada.** Nenhum resultado de exame foi interpretado.
+
+**Inventário C2 anterior à limpeza:** havia 8 contas Auth, 20 prontuários e 87
+agendamentos. Vitor já tinha 5 agendamentos, 4 exames disponíveis com objeto no
+Storage, 2 check-ins diários e 5 mensagens. A solicitação anterior de três
+pacientes completos **não foi concluída**. Esta fotografia foi superada pela
+decisão final de manter somente Vitor e Guilherme.
 
 ## Código e publicação
 
-- Repositório principal: `main`.
-- Commit publicado: `bcd13c6920bc471b81bef225a5c8d691eb0198e4`.
-- Aplicação atual: `apps/web`, Next.js 16, Node.js 24.
-- Domínio: [institutovivance.app](https://institutovivance.app).
-- Deployment Vercel: `dpl_5smEofZ8GUB2shcvzDxdK5LbPHSr`, estado `READY`.
-- Validação do lote: 207 testes, lint, TypeScript e build aprovados localmente;
-  os checks da PR #34 também passaram.
-- Validação do diário alimentar integrado: 219 testes, lint, TypeScript, build e
-  `git diff --check` aprovados localmente.
+- A aplicação é `apps/web`; as migrations estão em `supabase/`. O protótipo da raiz não participa do deploy.
+- `main` local está em `5a64be9`, merge da PR #62; a PR #61 também está integrada. O [PR #63](https://github.com/vitormilanez/instituto-vivance/pull/63) reúne documentação, carga C2 e a interface de documentos, ainda em rascunho.
+- Em 28/09, `institutovivance.app` respondeu HTTP 200. Nova inspeção pela CLI em 29/09 resolveu o domínio para `dpl_3zS5YNhZZopKTVzaLuZ6p33rS6X2`, `production`, `READY`, com funções em `gru1`. Isso confirma alcance técnico, não aceite clínico.
+- A variável pública de Supabase do deployment de produção aponta para `oxuwrdjojsmgxoljqkuk`, projeto chamado `instituto-vivance-dev`. A separação produção/desenvolvimento exigida pelo Gate P **não está demonstrada**. Outra variável de servidor aponta para projeto distinto; nunca inferir o destino de migrations por nome ou `.env`.
+- O histórico remoto de `oxuwrdjojsmgxoljqkuk` lista migrations até `20260929234224_patient_document_display_title`. A comparação completa com um banco de produção separado não foi feita nesta revisão.
 
-## O que está confirmado
+## Consolidado na aplicação
 
-- O código da pré-consulta obrigatória e a pipeline de publicação estão em
-  `main`.
-- O diário alimentar está integrado na `main` (PR #36) e a correção do
-  cabeçalho do check-in em telas estreitas está na PR #37.
-- A tela "Meu diário" foi exercitada com sessão autenticada real, usando as
-  contas de demonstração do ambiente de desenvolvimento: em 320px, 390px e
-  1440px, sem rolagem horizontal e sem conteúdo encoberto pelo dock fixo. A
-  visão da equipe ("Refeições registradas", em Acompanhamento) foi conferida com
-  a conta de médico nas mesmas larguras.
-- O envio real também foi exercitado: um relato gravado pelo formulário apareceu
-  no histórico, e duas chamadas à API com a mesma `request_key` devolveram o
-  mesmo `id` e produziram **um único** registro — idempotência confirmada no
-  banco, não apenas no teste.
-- Essa conferência encontrou um defeito e ele foi corrigido: em 320px o selo de
-  status do check-in escapava do card e era recortado; o card do paciente passou
-  a empilhar o cabeçalho como o card da equipe já fazia.
-- A Vercel serve o mesmo commit informado acima e o domínio público responde.
-- A migration `20260922190000_patient_care_requests.sql` (solicitação de
-  informação ao paciente) está aplicada no Supabase de desenvolvimento e os
-  objetos foram conferidos no destino. A versão `20260922190000` foi registrada
-  em `supabase_migrations.schema_migrations`, sem reaplicar o SQL. O smoke test
-  da RPC rodou ali dentro de uma transação revertida, sem resíduo, e confirmou
-  idempotência pela mesma chave, deduplicação por tipo, uma única pendência
-  aberta, histórico com a anterior cancelada e a nota preservada, e uma mensagem
-  com um aviso por pedido criado.
-- A entrega agora inclui a rota autenticada, o serviço, a validação do payload e
-  a ação “Solicitar” nos quatro cards que dependem de informação do paciente.
-- A migration `20260923120000_patient_item_reads.sql` (estado de "não visto"
-  por profissional) foi aplicada em 22/09/2026 no Supabase de desenvolvimento
-  com `db query --file`, a partir do Mac. Tabela `patient_item_reads` e função
-  `mark_patient_item_read(uuid,text,uuid)` conferidas no destino. O
-  `migration repair` falhou ("Cannot find project ref"); a versão
-  `20260923120000` foi registrada em `supabase_migrations.schema_migrations`
-  por `insert` direto, sem reaplicar o SQL, e conferida por `select`. Na Home,
-  com sessão real do médico, abrir um item novo reduziu "novos" de 2 para 1 —
-  isso deixou uma leitura real na conta de demonstração do médico (a
-  pré-consulta de 21/09 de Vitor Milanez), que não pode ser desfeita pela
-  aplicação.
-- MVP com um médico: a migration `20260923130000_single_doctor_care.sql` foi
-  aplicada e registrada no dev em 22/09/2026. Como a clínica tinha dois
-  médicos ativos, o membro "Médico QA Slice 7B.1" foi suspenso (reversível) e
-  o backfill foi rodado de novo. Resultado: Dr. Guilherme Martins com 20
-  vínculos ativos e nenhum aguardando aceite; os 12 `assigned` restantes são
-  do médico de QA suspenso e não dão acesso. Na Home, os 6 pacientes do dia
-  passaram de "Sem vínculo ativo" para "Nada recebido".
-- A aplicação preserva separação por clínica, papéis, vínculo de cuidado, RLS,
-  versionamento, auditoria e ações clínicas explícitas conforme os testes.
+Há identidade por clínica e papel, vínculo de cuidado, agenda, atendimento versionado, pré-consulta, onboarding, contexto em abas, evolução, check-ins, diário alimentar, documentos privados, conversas, pedidos ao paciente, receitas anteriores, teleconsulta por link externo e relatórios manuais. A fundação de tarefas de processamento existe; **não há worker de OCR/IA clínica ativo**, biblioteca médica controlada ou análise automática liberada. Os contratos e limites estão em [Funcionalidades](FUNCIONALIDADES.md).
 
-## O que ainda não está confirmado
+## Pendências que governam os próximos slices
 
-- A migration `20260921185603_required_preconsultation.sql` não foi confirmada
-  em um Supabase de produção.
-- A migration `20260921191924_patient_meal_logs.sql`, do diário alimentar, está
-  aplicada no Supabase de desenvolvimento. A tabela e a função que já existiam
-  naquele destino estavam em versão anterior ao ajuste de preservação literal.
-- A correção do relato literal vem em
-  `20260922015500_patient_meal_literal_description.sql`, que recria o CHECK e a
-  função para bancos onde a migration anterior já rodou. Ela foi aplicada em
-  22/09/2026 no projeto de desenvolvimento `instituto-vivance-dev`
-  (`oxuwrdjojsmgxoljqkuk`); segue pendente somente em um eventual destino de
-  produção, que não foi definido neste trabalho.
-- O diário alimentar não foi homologado em produção nem em Preview.
-- **Medição de 22/09/2026 no ambiente de desenvolvimento: a correção do relato
-  literal ainda não está em vigor ali.** Um relato enviado com espaços nas
-  extremidades voltou normalizado — `"  texto  "` foi gravado como `"texto"` —,
-  o que confirma que a função em uso é a anterior a
-  `20260922015500_patient_meal_literal_description.sql`. A migration foi aplicada
-  depois dessa medição; falta repetir o envio autenticado para confirmar o texto
-  literal no histórico atualizado.
-- O `.env.local` de `apps/web` mistura credenciais de **dois** projetos Supabase:
-  o app usa `oxuwrdjojsmgxoljqkuk` (`instituto-vivance-dev`, o mesmo do link em
-  `supabase/.temp/`), enquanto `POSTGRES_HOST`/`POSTGRES_URL` apontam para
-  `azgtefhfduvtlxqfikzm`. Aplicar migration por essas variáveis atingiria o
-  projeto errado; conferir o destino antes de qualquer `db push`.
-- Na execução de publicação da PR #34, as etapas de Supabase e promoção Vercel
-  do GitHub foram ignoradas porque os segredos/variáveis de produção não estavam
-  configurados. A promoção Vercel foi concluída depois pela CLI local.
-- Não houve aceite autenticado completo do fluxo médico/paciente nesse artefato
-  de produção.
-- O Gate P permanece aberto; dados clínicos reais continuam bloqueados.
+1. Usar o projeto atual para testes sintéticos controlados; identificar e separar os ambientes, conferir migrations e testar restauração antes de dados reais.
+2. Fechar o [Gate P](GATE_P.md) com percursos autenticados por papel e negações entre pacientes/clínicas.
+3. Concluir C2 somente com Vitor e Guilherme. A limpeza e a carga de
+   autorrelatos sintéticos foram executadas e verificadas no banco; marcos de
+   consulta/retorno e aceite pela interface ainda estão pendentes.
+4. Definir finalidade, governança e avaliação regulatória da IA antes de qualquer análise clínica. Ver [Plano de IA clínica](PLANO_IA_CLINICA.md).
 
-## Próximo passo operacional
-
-1. Definir o projeto Supabase de produção, separado do desenvolvimento.
-2. Configurar os segredos e variáveis protegidos do ambiente `production` no
-   GitHub, sem gravá-los no repositório.
-3. Aplicar e conferir o histórico de migrations no destino.
-4. Reexecutar a pipeline para provar banco e Vercel no mesmo commit.
-5. Validar com contas e dados sintéticos autorizados os caminhos de médico e
-   paciente e registrar o aceite do Gate P.
-
-## Trabalho preservado fora da `main`
-
-- O diário alimentar saiu do trabalho isolado: os dois commits originais foram
-  integrados sobre a `main` atual em
-  `codex/patient-meal-diary-integration` e validados localmente. A branch ainda
-  não foi publicada nem mesclada, então o recurso não é funcionalidade de
-  produção.
-- Dois stashes locais preservam alterações de ferramentas e cópias concorrentes;
-  não fazem parte do artefato publicado.
-
-Este documento registra estado técnico. Ele não é autorização clínica nem
-substitui homologação do responsável pelo serviço.
+`READY`, HTTP 200 e migrations listadas são evidências técnicas delimitadas. Não comprovam a jornada completa, nem autorizam dados de saúde reais.

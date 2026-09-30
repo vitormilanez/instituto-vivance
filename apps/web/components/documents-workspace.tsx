@@ -5,6 +5,7 @@ import { useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { maxDocumentBytes } from "@/modules/documents/validation";
+import { documentTitle } from "@/modules/documents/title";
 import { uploadDocument } from "@/lib/document-upload";
 import { uploadPatientDocumentBatch } from "@/modules/documents/batch";
 import {
@@ -284,6 +285,7 @@ function DocumentList({
   reviews?: StaffDocuments["reviews"];
   canReview?: boolean;
 }) {
+  const [openReviewId, setOpenReviewId] = useState<string | null>(null);
   if (!documents.length)
     return (
       <section className="panel empty">
@@ -292,49 +294,74 @@ function DocumentList({
       </section>
     );
   return (
-    <div className="document-list" aria-label="Documentos disponíveis">
+    <div className="document-list" data-reviewable={canReview} aria-label="Documentos disponíveis">
+      <div className="document-list-head" aria-hidden="true">
+        <span>Documento</span>
+        <span>Disponibilizado</span>
+        {canReview && <span>Revisão médica</span>}
+        <span>Ações</span>
+      </div>
       {documents.map((document) => {
         const staffDocument = document as StaffDocuments["documents"][number];
+        const title = documentTitle(document);
         const documentReviews = reviews.filter(
           (review) => review.document_id === document.id,
         );
+        const reviewOpen = openReviewId === document.id;
+        const availableAt = document.available_at ?? document.created_at;
         return (
           <article className="document-row" key={document.id}>
             <div className="document-summary">
-              <h3>{document.original_filename}</h3>
-              <p>
+              <h3>{title}</h3>
+              <p className="document-meta">
                 {categoryLabels[document.category] ?? "Documento"}
                 {showPatient && staffDocument.patients
                   ? ` · ${staffDocument.patients.display_name}`
                   : ""}
+                {` · ${document.content_type === "application/pdf" ? "PDF" : "Imagem"}`}
               </p>
-              <small>
-                Disponibilizado em {clinicalTime(document.available_at ?? document.created_at)}
-                {showPatient && document.visibility
-                  ? ` · ${visibilityLabels[document.visibility] ?? document.visibility}`
-                  : ""}
-              </small>
-              {canReview && (
-                <span className="document-review-status">
-                  {documentReviews.length
-                    ? `${reviewLabels[documentReviews[0].decision] ?? "Revisado"} · ${documentReviews.length} ${documentReviews.length === 1 ? "revisão" : "revisões"}`
-                    : "Aguardando revisão médica"}
-                </span>
-              )}
+              {showPatient && document.visibility && <small>
+                {visibilityLabels[document.visibility] ?? document.visibility}
+              </small>}
             </div>
+            <div className="document-date">
+              <span className="document-mobile-label">Disponibilizado</span>
+              <time dateTime={availableAt}>{clinicalTime(availableAt)}</time>
+            </div>
+            {canReview && <div className="document-review-state">
+              <span className="document-mobile-label">Revisão médica</span>
+              <span className="document-review-status" data-reviewed={documentReviews.length > 0}>
+                {documentReviews.length
+                  ? reviewLabels[documentReviews[0].decision] ?? "Revisado"
+                  : "Sem revisão registrada"}
+              </span>
+              {documentReviews.length > 1 && <small>{documentReviews.length} registros</small>}
+            </div>}
             <div className="document-actions">
               <a
                 className="button secondary"
                 href={`/api/v1/clinics/${tenant}/documents/${document.id}/download`}
+                aria-label={`Abrir arquivo original de ${title}`}
               >
-                Abrir original
+                Abrir arquivo
               </a>
+              {canReview && <button
+                type="button"
+                className="document-review-toggle"
+                aria-expanded={reviewOpen}
+                aria-controls={reviewOpen ? `document-review-${document.id}` : undefined}
+                onClick={() => setOpenReviewId(reviewOpen ? null : document.id)}
+              >
+                {reviewOpen ? "Fechar revisão" : documentReviews.length ? "Ver revisões" : "Revisar"}
+              </button>}
             </div>
-            {canReview && (
+            {canReview && reviewOpen && (
               <DocumentReviewPanel
                 tenant={tenant}
                 documentId={document.id}
                 reviews={documentReviews}
+                title={title}
+                originalFilename={document.original_filename}
               />
             )}
           </article>
@@ -348,10 +375,14 @@ function DocumentReviewPanel({
   tenant,
   documentId,
   reviews,
+  title,
+  originalFilename,
 }: {
   tenant: string;
   documentId: string;
   reviews: StaffDocuments["reviews"];
+  title: string;
+  originalFilename: string;
 }) {
   const router = useRouter();
   const busy = useRef(false);
@@ -401,8 +432,12 @@ function DocumentReviewPanel({
   }
 
   return (
-    <details className="document-review-panel">
-      <summary>{reviews.length ? "Ver histórico e revisar" : "Registrar revisão"}</summary>
+    <section className="document-review-panel" id={`document-review-${documentId}`} aria-label={`Revisão de ${title}`}>
+      <div className="document-review-heading">
+        <h4>Revisão de {title}</h4>
+        <p>Confira o arquivo original antes de registrar uma nota interna.</p>
+        <p className="document-original-filename">Nome original: {originalFilename}</p>
+      </div>
       {reviews.length > 0 && (
         <ol className="document-review-history" aria-label="Histórico de revisões">
           {reviews.map((review) => (
@@ -448,7 +483,7 @@ function DocumentReviewPanel({
           {pending ? "Registrando…" : "Registrar no histórico"}
         </button>
       </form>
-    </details>
+    </section>
   );
 }
 
@@ -464,10 +499,10 @@ export function StaffPatientDocumentsPanel({
     <section className="document-board" aria-labelledby="patient-documents-title">
       <div className="section-heading">
         <div>
-          <h2 id="patient-documents-title">Documentos privados</h2>
-          <p>Arquivos disponíveis para este paciente e seu vínculo de cuidado.</p>
+          <h2 id="patient-documents-title">Documentos do paciente</h2>
+          <p>Exames e arquivos enviados, com acesso ao original e ao histórico de revisão.</p>
         </div>
-        <span className="quiet-label">{initial.documents.length} nesta página</span>
+        <span className="quiet-label">{initial.documents.length} {initial.documents.length === 1 ? "documento" : "documentos"} nesta página</span>
       </div>
       <DocumentList
         documents={initial.documents}
@@ -521,9 +556,9 @@ export function StaffDocumentsWorkspace({ initial }: { initial: StaffDocuments }
         <div className="section-heading">
           <div>
             <h2>Documentos disponíveis</h2>
-            <p>Somente arquivos dos pacientes sob sua responsabilidade ativa.</p>
+            <p>Arquivos dos pacientes sob seu cuidado, com acesso ao original e à revisão.</p>
           </div>
-          <span className="quiet-label">{initial.documents.length} nesta página</span>
+          <span className="quiet-label">{initial.documents.length} {initial.documents.length === 1 ? "documento" : "documentos"} nesta página</span>
         </div>
         <DocumentList
           documents={initial.documents}
