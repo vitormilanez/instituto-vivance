@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { checkInSourceHref, longitudinalPeriod, measurementPageHref, measurementSeries, onboardingSourceHref, paginateMeasurementPoints, patientMeasurementSourceHref } from "../modules/longitudinal/project.ts";
+import { checkInSourceHref, displayedMeasurement, longitudinalPeriod, measurementPageHref, measurementSeries, onboardingSourceHref, paginateMeasurementPoints, patientMeasurementSourceHref } from "../modules/longitudinal/project.ts";
+
+test("shows legacy height in centimetres without changing the stored value", () => {
+  assert.deepEqual(displayedMeasurement("Altura", 1.73, "cm"), { value: 173, unit: "cm" });
+  assert.deepEqual(displayedMeasurement("Altura", 173, "cm"), { value: 173, unit: "cm" });
+  assert.deepEqual(displayedMeasurement("Peso", 1.73, "kg"), { value: 1.73, unit: "kg" });
+});
 
 test("groups persisted measures by label and unit without deriving a trend", () => {
   const series = measurementSeries([

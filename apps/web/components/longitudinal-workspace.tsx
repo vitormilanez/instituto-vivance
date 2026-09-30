@@ -3,7 +3,9 @@ import type {
   PatientLongitudinal,
   StaffLongitudinal,
 } from "@/modules/longitudinal/service";
-import { checkInSourceHref, measurementPageHref, onboardingSourceHref, patientMeasurementSourceHref, type MeasurementPoint, type MeasurementSeries } from "@/modules/longitudinal/project";
+import { checkInSourceHref, displayedMeasurement, measurementPageHref, onboardingSourceHref, patientMeasurementSourceHref, type MeasurementPoint, type MeasurementSeries } from "@/modules/longitudinal/project";
+
+const number = (value: number) => value.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 
 const date = (value: string) =>
   new Date(`${value.slice(0, 10)}T12:00:00Z`).toLocaleDateString("pt-BR", {
@@ -67,7 +69,7 @@ function Measures({
             {measures.map((measure) => (
               <article className="measurement-card" key={measure.key}>
                 <span>{measure.label}</span>
-                <strong>{measure.latestValue} {measure.unit}</strong>
+                <strong>{number(displayedMeasurement(measure.label, measure.latestValue, measure.unit).value)} {measure.unit}</strong>
                 <p>{measure.count} {measure.count === 1 ? "registro" : "registros"} · {date(measure.firstOn)}{measure.firstOn !== measure.lastOn ? ` a ${date(measure.lastOn)}` : ""}</p>
                 <small>Série separada em {measure.unit}</small>
               </article>
@@ -75,13 +77,13 @@ function Measures({
           </div>
           <div className="measurement-charts" aria-label="Gráficos de medidas registradas">
             {measures.map((measure) => {
-              const values = measure.entries.map((entry) => entry.value);
+              const values = measure.entries.map((entry) => displayedMeasurement(measure.label, entry.value, measure.unit).value);
               const min = Math.min(...values), max = Math.max(...values), range = max - min || 1;
-              const path = measure.entries.map((entry, index) => `${16 + (index * 268) / Math.max(measure.entries.length - 1, 1)},${96 - ((entry.value - min) / range) * 72}`).join(" ");
-              return <figure className="measurement-chart" key={measure.key}><figcaption>{measure.label} · {measure.unit}</figcaption><svg viewBox="0 0 300 112" role="img" aria-label={`${measure.label} em ${measure.unit}`}><line x1="16" y1="96" x2="284" y2="96" /><polyline points={path} /><text x="16" y="109">{date(measure.firstOn)}</text><text x="220" y="109">{date(measure.lastOn)}</text>{measure.entries.map((entry, index) => <circle key={entry.id} cx={16 + (index * 268) / Math.max(measure.entries.length - 1, 1)} cy={96 - ((entry.value - min) / range) * 72} r="4"><title>{`${entry.value} ${measure.unit} · ${date(entry.reportedOn)} · ${entry.sourceLabel}`}</title></circle>)}</svg></figure>;
+              const path = values.map((value, index) => `${16 + (index * 268) / Math.max(values.length - 1, 1)},${96 - ((value - min) / range) * 72}`).join(" ");
+              return <figure className="measurement-chart" key={measure.key}><figcaption>{measure.label} · {measure.unit}</figcaption><svg viewBox="0 0 300 112" role="img" aria-label={`${measure.label} em ${measure.unit}`}><line x1="16" y1="96" x2="284" y2="96" /><polyline points={path} /><text x="16" y="109">{date(measure.firstOn)}</text><text x="220" y="109">{date(measure.lastOn)}</text>{measure.entries.map((entry, index) => <circle key={entry.id} cx={16 + (index * 268) / Math.max(measure.entries.length - 1, 1)} cy={96 - ((values[index] - min) / range) * 72} r="4"><title>{`${number(values[index])} ${measure.unit} · ${date(entry.reportedOn)} · ${entry.sourceLabel}`}</title></circle>)}</svg></figure>;
             })}
           </div>
-          <div className="measurement-table-wrap"><table className="measurement-table"><caption>Registros no período selecionado</caption><thead><tr><th>Data</th><th>Medida</th><th>Valor</th><th>Fonte</th></tr></thead><tbody>{points.map((point) => { const series = measures.find((item) => item.entries.some((entry) => entry.id === point.id)); return <tr key={point.id}><td>{date(point.reportedOn)}</td><td>{series?.label}</td><td>{point.value} {series?.unit}</td><td><Link href={measureHref(base, point, patient, onboardingHref)}>{point.sourceLabel}</Link></td></tr>; })}</tbody></table></div>
+          <div className="measurement-table-wrap"><table className="measurement-table"><caption>Registros no período selecionado</caption><thead><tr><th>Data</th><th>Medida</th><th>Valor</th><th>Fonte</th></tr></thead><tbody>{points.map((point) => { const series = measures.find((item) => item.entries.some((entry) => entry.id === point.id)); const shown = series ? displayedMeasurement(series.label, point.value, series.unit) : null; return <tr key={point.id}><td>{date(point.reportedOn)}</td><td>{series?.label}</td><td>{shown ? `${number(shown.value)} ${shown.unit}` : number(point.value)}</td><td><Link href={measureHref(base, point, patient, onboardingHref)}>{point.sourceLabel}</Link></td></tr>; })}</tbody></table></div>
           {nextHref && <nav className="agenda-actions" aria-label="Mais medidas"><Link href={nextHref}>Ver mais registros</Link></nav>}
           {truncated && <p className="notice">Foram carregadas até 500 medidas para este período. Refine o período para consultar registros anteriores.</p>}
         </>
