@@ -34,7 +34,7 @@ de saúde reais; o uso temporário não conclui C1 para operação clínica.
 | Ordem | Slice | Entrega verificável | Estado em 29/09 |
 | --- | --- | --- | --- |
 | 1 | **C1 · Preparar o ambiente de teste** | Confirmar o ref do Supabase em cada comando e a configuração do app sem expor chaves; inventariar schema, migrations, backups, papéis e Storage. Registrar diferenças e um modo de reversão antes de qualquer carga. | Parcial: 57 versões de migration pareadas no histórico; backups físicos não listados e restauração não testada. |
-| 2 | **C2 · Completar a demonstração** | Usar somente as contas de Guilherme e Vitor; completar e conferir uma jornada longitudinal de demonstração no prontuário de Vitor. | Limpeza executada. Carga histórica parcial: 19 check-ins retrospectivos e 18 refeições fictícias; há 21 dias seguidos de check-in. Quatro exames têm títulos de exibição conferidos; a nova lista foi validada em prévia local. Publicação, consulta/retorno e aceite autenticado pendentes. |
+| 2 | **C2 · Completar a demonstração** | Usar somente as contas de Guilherme e Vitor; completar e conferir uma jornada longitudinal de demonstração no prontuário de Vitor. | Limpeza e carga histórica parcial executadas: 21 dias seguidos de check-in e 18 refeições fictícias. Quatro exames têm títulos conferidos. A lista foi publicada e conferida na sessão do médico; abertura do PDF, sessão do paciente, consulta/retorno e aceite da demonstração seguem pendentes. |
 | 3 | **C3 · Validar contexto e operação** | Executar as duas etapas de C3 abaixo com sessões reais de paciente e médico; registrar falhas e decisão de aceite **dos testes**. | Não validado neste ciclo. |
 | Paralelo | **IA1 · Governança e contrato** | Obter decisão sobre finalidade, fonte, fornecedor, privacidade, rastreabilidade e revisão médica no [contrato IA1](https://github.com/vitormilanez/instituto-vivance/pull/64). | Rascunho em revisão; nenhuma análise clínica por IA ativa. |
 | Depois | **IA2–IA3** | Extração conferível de poucos exames sintéticos e biblioteca versionada de fontes aprovadas. | Aguarda aceite de IA1. |
@@ -59,8 +59,9 @@ de saúde reais; o uso temporário não conclui C1 para operação clínica.
    já existentes. Os quatro exames existentes receberam títulos de exibição
    fiéis ao cabeçalho dos PDFs, sem modificar o arquivo original.
 3. **Aceite da demonstração:** conferir contagens, chaves e ausência de órfãos;
-   publicar a nova listagem, abrir os exames pela interface; entrar com sessões reais de paciente e
-   médico e percorrer consulta → registro → acompanhamento → retorno. Guardar evidência do
+   a nova listagem já está publicada e foi conferida na sessão do médico.
+   Ainda é preciso abrir os PDFs até a visualização final, entrar na sessão real do paciente
+   e percorrer consulta → registro → acompanhamento → retorno. Guardar evidência do
    ambiente e dos registros utilizados. Isso valida a demonstração, não IA
    clínica nem Gate P.
 
