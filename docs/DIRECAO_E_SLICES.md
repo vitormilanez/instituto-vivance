@@ -107,3 +107,11 @@ próprios e mantém o fluxo manual.
 5. O piloto começa pequeno, com dados sintéticos e casos anonimizados revisados; expansão depende de métricas aceitas pelo médico.
 
 Cada slice entrega contrato, migrations versionadas quando necessárias, testes de autorização e falha, interface verificável e evidência no ambiente correto. Implementação local, Preview, publicação técnica e aceite clínico são marcos separados.
+
+## Landing Virada 90 — 30/09/2026
+
+Publicação autorizada em `/virada90` no domínio Vivance para o Instituto
+Guilherme Martins. Página pública estática, com textos, vídeo, foto e três
+links de WhatsApp do material aprovado. Não altera autenticação clínica,
+banco, CRM ou regras de cuidado. Implementação e validação de release nesta
+branch; publicação técnica será confirmada pelo deployment e pela rota pública.

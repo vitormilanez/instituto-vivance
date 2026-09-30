@@ -114,3 +114,11 @@ Há identidade por clínica e papel, vínculo de cuidado, agenda, atendimento ve
 5. Definir finalidade, governança e avaliação regulatória da IA antes de qualquer análise clínica. Ver [Plano de IA clínica](PLANO_IA_CLINICA.md).
 
 `READY`, HTTP 200 e migrations listadas são evidências técnicas delimitadas. Não comprovam a jornada completa, nem autorizam dados de saúde reais.
+
+## Landing Virada 90 — 30/09/2026
+
+Publicação autorizada em `/virada90` no domínio Vivance para o Instituto
+Guilherme Martins. Página pública estática, com textos, vídeo, foto e três
+links de WhatsApp do material aprovado. Não altera autenticação clínica,
+banco, CRM ou regras de cuidado. Implementação e validação de release nesta
+branch; publicação técnica será confirmada pelo deployment e pela rota pública.

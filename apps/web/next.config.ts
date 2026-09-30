@@ -5,6 +5,9 @@ import { fileURLToPath } from "node:url";
 const config: NextConfig = {
   turbopack: { root: dirname(fileURLToPath(import.meta.url)) },
   poweredByHeader: false,
+  async rewrites() {
+    return [{ source: "/virada90", destination: "/virada90/index.html" }];
+  },
   async headers() {
     return [
       {

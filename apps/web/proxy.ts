@@ -4,7 +4,11 @@ import { supabaseConfig } from "./lib/supabase/config";
 import type { Database } from "./lib/supabase/database.types";
 
 export async function proxy(request: NextRequest) {
-  if (request.nextUrl.pathname === "/") return NextResponse.next({ request });
+  if (
+    request.nextUrl.pathname === "/" ||
+    request.nextUrl.pathname === "/virada90" ||
+    request.nextUrl.pathname.startsWith("/virada90/")
+  ) return NextResponse.next({ request });
   let response = NextResponse.next({ request });
   const { url, key } = supabaseConfig();
   const supabase = createServerClient<Database>(url, key, {
