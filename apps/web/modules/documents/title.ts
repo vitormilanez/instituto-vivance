@@ -5,6 +5,7 @@ const technical = [
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
   /^(img|image|photo|foto|pxl|dsc|file|arquivo|document|documento|scan)[-_ ]?\d*(\.\w{2,5})?$/i,
   /^(img|pxl|dsc)[-_]\d{8}[-_]\w+(\.\w{2,5})?$/i,
+  /^(captura de tela|screenshot)(\s|[-_]).*\.(png|jpe?g)$/i,
 ];
 
 export function isTechnicalFilename(name: string) {
@@ -18,15 +19,18 @@ const brDate = (iso: string) =>
 export function documentTitle(document: {
   original_filename: string;
   created_at: string;
+  display_title?: string | null;
   content_type?: string | null;
   category?: string | null;
 }) {
+  const verifiedTitle = document.display_title?.trim();
+  if (verifiedTitle) return verifiedTitle;
   if (!isTechnicalFilename(document.original_filename)) return document.original_filename;
   const kind =
     document.category === "exam"
       ? "Exame"
       : document.content_type?.startsWith("image/")
-        ? "Foto"
+        ? "Imagem"
         : document.content_type === "application/pdf"
           ? "PDF"
           : "Documento";

@@ -7,8 +7,8 @@ Fotografia técnica verificada entre 28 e 29/09/2026. Para prioridades, leia
 
 | Frente | Status atual | Próximo marco |
 | --- | --- | --- |
-| **C1 · Base operacional** | Projeto único de testes autorizado; 56 migrations pareadas no histórico do projeto atual. Sem restauração testada nem produção separada. | Confirmar destino de cada ferramenta antes de escrita e manter a separação como requisito prévio a dados reais. |
-| **C2 · Demonstração longitudinal** | Limpeza concluída; carga histórica parcial executada. Restam apenas Guilherme e Vitor no Auth e um prontuário. Vitor tem 21 dias seguidos de check-in (19 de demonstração) e 18 refeições fictícias. | Verificar a jornada na interface e completar consulta/retorno sem forjar conduta ou assinatura médica. |
+| **C1 · Base operacional** | Projeto único de testes autorizado; 57 migrations pareadas no histórico do projeto atual. Sem restauração testada nem produção separada. | Confirmar destino de cada ferramenta antes de escrita e manter a separação como requisito prévio a dados reais. |
+| **C2 · Demonstração longitudinal** | Limpeza e carga histórica parcial executadas. Restam apenas Guilherme e Vitor no Auth e um prontuário; Vitor tem 21 dias seguidos de check-in e 18 refeições fictícias. Quatro exames receberam títulos descritivos verificados nos PDFs, preservando os nomes originais. A nova lista de documentos foi validada somente em prévia local. | Publicar e verificar a interface autenticada; completar consulta/retorno sem forjar conduta ou assinatura médica. |
 | **C3 · Contexto e aceite operacional** | Não validado neste ciclo. O ambiente agora tem apenas as contas de médico e paciente. | Exercitar esses dois papéis com sessões reais; planejar outro ciclo para admin, enfermagem e isolamento entre pacientes. |
 | **IA1 · Governança** | Contrato documental no [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64), ainda sem aprovação dos responsáveis. | Fechar finalidade, fonte, fornecedor, privacidade e revisão médica. |
 | **IA2–IA6** | Planejados; não há análise clínica por IA ativa. | Iniciar apenas após os gates próprios, com material sintético nas etapas iniciais. |
@@ -42,6 +42,18 @@ Auth e um prontuário. Agendamentos, atendimento, mensagens, documentos,
 medidas e Storage existentes não foram alterados pelo script. A visualização
 autenticada e o aceite médico seguem pendentes.
 
+**Documentos C2 em 29/09/2026:** a migration
+`20260929234224_patient_document_display_title` acrescentou um título de
+exibição opcional, sem sobrescrever `original_filename` nem ampliar permissão
+de escrita. No projeto de teste `oxuwrdjojsmgxoljqkuk`, os quatro PDFs de exame
+de Vitor receberam títulos conferidos contra o cabeçalho dos próprios laudos;
+o quinto documento permanece com título genérico. A leitura de controle
+encontrou 57 versões de migration, cinco documentos disponíveis, quatro com
+título e RLS ainda ativa. A listagem compacta e a revisão em linha passaram
+por prévia local com dados fictícios em desktop e celular, além de build,
+typecheck, lint e testes. **A interface nova ainda não foi publicada nem aceita
+em sessão autenticada.** Nenhum resultado de exame foi interpretado.
+
 **Inventário C2 anterior à limpeza:** havia 8 contas Auth, 20 prontuários e 87
 agendamentos. Vitor já tinha 5 agendamentos, 4 exames disponíveis com objeto no
 Storage, 2 check-ins diários e 5 mensagens. A solicitação anterior de três
@@ -51,10 +63,10 @@ decisão final de manter somente Vitor e Guilherme.
 ## Código e publicação
 
 - A aplicação é `apps/web`; as migrations estão em `supabase/`. O protótipo da raiz não participa do deploy.
-- `main` local está em `5a64be9`, merge da PR #62; a PR #61 também está integrada. Esta revisão só altera documentação.
+- `main` local está em `5a64be9`, merge da PR #62; a PR #61 também está integrada. O [PR #63](https://github.com/vitormilanez/instituto-vivance/pull/63) reúne documentação, carga C2 e a interface de documentos, ainda em rascunho.
 - Em 28/09, `institutovivance.app` respondeu HTTP 200. Nova inspeção pela CLI em 29/09 resolveu o domínio para `dpl_3zS5YNhZZopKTVzaLuZ6p33rS6X2`, `production`, `READY`, com funções em `gru1`. Isso confirma alcance técnico, não aceite clínico.
 - A variável pública de Supabase do deployment de produção aponta para `oxuwrdjojsmgxoljqkuk`, projeto chamado `instituto-vivance-dev`. A separação produção/desenvolvimento exigida pelo Gate P **não está demonstrada**. Outra variável de servidor aponta para projeto distinto; nunca inferir o destino de migrations por nome ou `.env`.
-- O histórico remoto de `oxuwrdjojsmgxoljqkuk` lista migrations até `20260926120000_clinic_patient_info`. A comparação completa com um banco de produção separado não foi feita nesta revisão.
+- O histórico remoto de `oxuwrdjojsmgxoljqkuk` lista migrations até `20260929234224_patient_document_display_title`. A comparação completa com um banco de produção separado não foi feita nesta revisão.
 
 ## Consolidado na aplicação
 

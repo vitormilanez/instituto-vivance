@@ -1,6 +1,7 @@
 import { DomainError, databaseFailure } from "@/lib/errors";
 import "server-only";
 import { requireClinic } from "@/modules/identity/service";
+import { documentTitle } from "@/modules/documents/title";
 import { pageNumber, tenantId } from "@/lib/validation";
 import {
   reportApprovalInput,
@@ -125,13 +126,13 @@ async function sourceCandidates(
   const documents = documentIds.length
     ? await client
         .from("patient_documents")
-        .select("id,original_filename")
+        .select("id,original_filename,display_title,created_at,content_type,category")
         .eq("tenant_id", tenant)
         .in("id", documentIds)
     : { data: [], error: null };
   if (documents.error) failed(documents.error.code);
   const filenames = new Map(
-    (documents.data ?? []).map((row) => [row.id, row.original_filename]),
+    (documents.data ?? []).map((row) => [row.id, documentTitle(row)]),
   );
   const candidates: SourceCandidate[] = [
     ...(checkIns.data ?? []).map((row) => ({

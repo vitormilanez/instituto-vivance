@@ -15,7 +15,7 @@ type Publication = {
   care_plan_receipts: { acknowledged_at: string | null }[];
 };
 
-type DocumentRow = { id: string; original_filename: string; created_at: string };
+type DocumentRow = { id: string; original_filename: string; display_title?: string | null; created_at: string; category?: string | null; content_type?: string | null };
 
 const dayMonth = (at: string) =>
   new Date(at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" });
