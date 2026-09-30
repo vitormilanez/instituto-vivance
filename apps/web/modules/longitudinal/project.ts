@@ -32,6 +32,25 @@ export type MeasurementSeries = {
 
 export type MeasurementPeriod = { from: string | null; to: string | null };
 
+export function dailyCheckInTimelineEvent(row: {
+  id: string;
+  check_in_on: string;
+  submitted_at: string;
+  note: string | null;
+}) {
+  const [year, month, day] = row.check_in_on.split("-");
+  const referenceDate = `${day}/${month}/${year}`;
+  return {
+    id: `daily-check-in-${row.id}`,
+    at: row.submitted_at,
+    kind: "Check-in diário",
+    title: `Check-in de ${referenceDate}`,
+    body: row.note?.trim() || "Sem recado adicional.",
+    meta: `Data de referência: ${referenceDate} · origem: paciente`,
+    review: null,
+  };
+}
+
 // Historic onboarding could save metres in the height_cm column. Convert only
 // for presentation so those entries can be compared with later centimetres.
 export function displayedMeasurement(label: string, value: number, unit: string) {

@@ -3,7 +3,7 @@ import type {
   PatientLongitudinal,
   StaffLongitudinal,
 } from "@/modules/longitudinal/service";
-import { checkInSourceHref, displayedMeasurement, measurementPageHref, onboardingSourceHref, patientMeasurementSourceHref, type MeasurementPoint, type MeasurementSeries } from "@/modules/longitudinal/project";
+import { checkInSourceHref, dailyCheckInTimelineEvent, displayedMeasurement, measurementPageHref, onboardingSourceHref, patientMeasurementSourceHref, type MeasurementPoint, type MeasurementSeries } from "@/modules/longitudinal/project";
 
 const number = (value: number) => value.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 
@@ -115,6 +115,7 @@ export function StaffLongitudinalWorkspace({
   backLabel?: string;
 }) {
   const events = [
+    ...initial.dailyCheckIns.map(dailyCheckInTimelineEvent),
     ...initial.checkIns.flatMap((item) =>
       item.submission
         ? [
@@ -141,7 +142,7 @@ export function StaffLongitudinalWorkspace({
       meta: `${instant(item.published_at)} · ${item.doctor_display_name}`,
       review: null,
     })),
-  ].sort((a, b) => b.at.localeCompare(a.at));
+  ].sort((a, b) => b.at.localeCompare(a.at) || a.id.localeCompare(b.id)).slice(0, 50);
 
   if (!initial.selectedPatient)
     return (
@@ -177,7 +178,7 @@ export function StaffLongitudinalWorkspace({
           <div className="section-heading">
           <div>
             <h2 id="staff-timeline-title">Linha do tempo</h2>
-            <p>Registros de {initial.selectedPatient.display_name}, com data e origem.</p>
+            <p>Check-ins diários, relatos solicitados e publicações de {initial.selectedPatient.display_name}, com data e origem.</p>
           </div>
           <span className="quiet-label">Até 50 registros recentes</span>
         </div>
@@ -203,8 +204,8 @@ export function StaffLongitudinalWorkspace({
           </ol>
         ) : (
           <div className="empty longitudinal-empty">
-            <h3>Nenhum registro longitudinal</h3>
-            <p>Relatos enviados e publicações aparecerão aqui.</p>
+            <h3>Nenhum relato ou publicação</h3>
+            <p>Check-ins enviados, relatos solicitados e publicações aparecerão aqui.</p>
           </div>
         )}
         {initial.truncated && (
@@ -228,6 +229,7 @@ export function PatientLongitudinalWorkspace({
   base: string;
 }) {
   const events = [
+    ...initial.dailyCheckIns.map(dailyCheckInTimelineEvent),
     ...initial.checkIns.flatMap((item) =>
       item.submission
         ? [
@@ -250,7 +252,7 @@ export function PatientLongitudinalWorkspace({
       body: `Revisão ${item.revision} publicada por ${item.doctor_display_name}`,
       meta: `${instant(item.published_at)} · origem: equipe médica`,
     })),
-  ].sort((a, b) => b.at.localeCompare(a.at));
+  ].sort((a, b) => b.at.localeCompare(a.at) || a.id.localeCompare(b.id)).slice(0, 50);
   return (
     <div className="longitudinal-workspace patient-longitudinal">
       <Measures measures={initial.measures} points={initial.measurementPoints} nextCursor={initial.measurementNextCursor} period={initial.period} base={base} patient truncated={initial.measurementsTruncated} onboardingHref={onboardingSourceHref(base, true)} />
@@ -261,7 +263,7 @@ export function PatientLongitudinalWorkspace({
         <div className="section-heading">
           <div>
             <h2 id="patient-timeline-title">Sua linha do tempo</h2>
-            <p>Registros enviados por você e orientações disponíveis.</p>
+            <p>Seus check-ins diários, relatos solicitados e orientações disponíveis.</p>
           </div>
         </div>
         {events.length ? (
