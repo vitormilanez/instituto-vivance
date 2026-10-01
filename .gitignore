@@ -55,3 +55,9 @@ supabase/.temp/
 .impeccable/review/dashboard-mobile.png
 .impeccable/review/dashboard-mobile-final.png
 .impeccable/review/patients-mobile.png
+
+# Cópias de conflito do iCloud ("arquivo 2.md", ".gitignore 2"). O projeto
+# não deve ficar em pasta sincronizada; isto impede que uma cópia vá para um
+# commit — uma migration duplicada quebraria o release.
+* [0-9].*
+* [0-9]
