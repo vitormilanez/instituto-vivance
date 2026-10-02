@@ -1,11 +1,12 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-02T16:29:56Z",
+  "generatedAt": "2026-10-02T19:29:21Z",
   "title": "Design System: Virada 90 — Instituto Guilherme Martins",
   "extensions": {
     "colorMeta": {
       "navy": { "role": "primary", "displayName": "Clinical Navy", "canonical": "#0b1d35", "tonalRamp": ["#07101d", "#0b1d35", "#173452", "#31506d", "#5d748d", "#91a1b1", "#c7ced5", "#eef1f3"] },
       "ink": { "role": "neutral", "displayName": "Deep Ink", "canonical": "#152b45", "tonalRamp": ["#0b1725", "#152b45", "#294763", "#49647e", "#71879a", "#9eacb8", "#ccd2d8", "#f0f2f4"] },
+      "muted": { "role": "neutral", "displayName": "Muted Clinical Copy", "canonical": "#596573", "tonalRamp": ["#171a1e", "#2f363d", "#46515b", "#596573", "#798591", "#a0a8b0", "#cbd0d4", "#f0f2f3"] },
       "gold": { "role": "primary", "displayName": "Warm Gold", "canonical": "#d8b06b", "tonalRamp": ["#2d210d", "#503b18", "#765925", "#9d7936", "#c09a50", "#d8b06b", "#ead2a8", "#f8f0df"] },
       "gold-ink": { "role": "primary", "displayName": "Gold Ink", "canonical": "#85622c", "tonalRamp": ["#281b08", "#493313", "#684a20", "#85622c", "#aa8548", "#cbb078", "#e5d4ae", "#f7f0df"] },
       "ivory": { "role": "neutral", "displayName": "Ivory Reading Field", "canonical": "#f7f5ef", "tonalRamp": ["#282722", "#4a4942", "#706e65", "#97958c", "#bdbbb3", "#dbd9d2", "#eeece6", "#f7f5ef"] },
@@ -14,73 +15,70 @@
       "sage": { "role": "secondary", "displayName": "Sage Check-in", "canonical": "#e9eeea", "tonalRamp": ["#202722", "#3d4840", "#5d6b61", "#829087", "#a8b3ac", "#c8d0cb", "#e0e6e1", "#f3f6f4"] }
     },
     "typographyMeta": {
-      "display": { "displayName": "Measured Display", "purpose": "Hero and guided-step headings." },
-      "body": { "displayName": "Clinical Body", "purpose": "Program explanation, labels, fields, and supporting copy." },
-      "serif-emphasis": { "displayName": "Warm Serif Inflection", "purpose": "Short italic program or emotional emphasis only." }
+      "display": { "displayName": "Measured Display", "purpose": "Landing and topic headings." },
+      "body": { "displayName": "Clinical Body", "purpose": "Reading, controls, prices, and caveats." },
+      "serif-emphasis": { "displayName": "Warm Serif Inflection", "purpose": "Short italic 90 brand inflection only." }
     },
     "shadows": [
-      { "name": "video-lift", "value": "0 20px 60px #0003", "purpose": "Primary landing-page video." },
-      { "name": "reserved-media-lift", "value": "0 14px 30px #0002", "purpose": "Compact desktop video placeholders in the guided journey." },
-      { "name": "action-hover", "value": "0 8px 22px #0b1d3515", "purpose": "Subtle feedback for the landing primary action." }
+      { "name": "landing-video-lift", "value": "0 20px 60px #0003", "purpose": "Real landing video." },
+      { "name": "action-hover", "value": "0 8px 22px #0b1d3515", "purpose": "Final WhatsApp action hover." }
     ],
     "motion": [
-      { "name": "control-state", "value": "0.2s ease", "purpose": "Quiet state changes." },
-      { "name": "progress-state", "value": "width 0.3s ease", "purpose": "Six-step progress update." }
+      { "name": "control-state", "value": "0.18s ease", "purpose": "Selection and button state changes." },
+      { "name": "topic-progress", "value": "transform 0.28s cubic-bezier(.16,1,.3,1)", "purpose": "Ten-topic progress." }
     ],
-    "breakpoints": [
-      { "name": "mobile", "value": "760px" },
-      { "name": "narrow-mobile", "value": "360px" }
-    ]
+    "breakpoints": [{ "name": "reading-narrow", "value": "900px" }, { "name": "mobile", "value": "760px" }, { "name": "narrow-mobile", "value": "360px" }]
   },
   "components": [
     {
-      "name": "Primary Button", "kind": "button", "refersTo": "button-primary", "description": "The direct next-step action.",
-      "html": "<button class=\"ds-btn-primary\">Continuar</button>",
-      "css": ".ds-btn-primary{min-height:56px;padding:15px 23px;border:1px solid #0b1d35;border-radius:6px;background:#0b1d35;color:#fffefa;font:700 14px/1.5 Manrope,sans-serif;cursor:pointer;transition:background .2s}.ds-btn-primary:hover{background:#183756}.ds-btn-primary:focus-visible{outline:3px solid #85622c;outline-offset:4px}.ds-btn-primary:active{background:#152b45}"
+      "name": "Primary Button", "kind": "button", "refersTo": "button-primary", "description": "Forward action between reading topics.",
+      "html": "<button class=\"ds-primary\">Continuar</button>",
+      "css": ".ds-primary{min-width:153px;min-height:56px;padding:15px 23px;border:1px solid #0b1d35;border-radius:6px;background:#0b1d35;color:#fffefa;font:700 14px/1.5 Manrope,sans-serif;cursor:pointer;transition:background .18s}.ds-primary:hover{background:#183756}.ds-primary:focus-visible{outline:3px solid #85622c;outline-offset:4px}.ds-primary:active{background:#152b45}"
     },
     {
-      "name": "Back Button", "kind": "button", "description": "A quiet ruled control that preserves context.",
-      "html": "<button class=\"ds-btn-back\">Voltar</button>",
-      "css": ".ds-btn-back{min-height:56px;padding:15px 23px;border:1px solid #dcded9;border-radius:6px;background:transparent;color:#152b45;font:700 14px/1.5 Manrope,sans-serif;cursor:pointer}.ds-btn-back:hover{border-color:#b8a98b}.ds-btn-back:focus-visible{outline:3px solid #85622c;outline-offset:4px}.ds-btn-back:active{background:#f7f5ef}"
+      "name": "WhatsApp Action", "kind": "button", "refersTo": "button-contact", "description": "Only external action, shown in topic ten.",
+      "html": "<a class=\"ds-whatsapp\" href=\"#\">Conversar pelo WhatsApp</a>",
+      "css": ".ds-whatsapp{display:inline-flex;align-items:center;justify-content:center;min-height:56px;padding:15px 25px;border-radius:6px;background:#d8b06b;color:#0b1d35;font:700 14px/1.5 Manrope,sans-serif;text-decoration:none;transition:background .18s,box-shadow .18s}.ds-whatsapp:hover{background:#e2bd7b;box-shadow:0 8px 22px #0b1d3515}.ds-whatsapp:focus-visible{outline:3px solid #85622c;outline-offset:4px}.ds-whatsapp:active{background:#cda45e}"
     },
     {
-      "name": "Choice Row", "kind": "input", "refersTo": "choice-row", "description": "A native radio choice inside a flat paper row.",
-      "html": "<label class=\"ds-choice\"><input type=\"radio\" name=\"choice\"><span>Uma escolha clara</span></label>",
-      "css": ".ds-choice{display:flex;gap:15px;align-items:flex-start;min-height:58px;padding:16px 18px;border:1px solid #dcded9;border-radius:6px;background:#fffefa;color:#152b45;font:400 16px/1.5 Manrope,sans-serif;cursor:pointer;transition:border-color .2s,background .2s}.ds-choice:hover{border-color:#b8a98b}.ds-choice:has(input:checked){border-color:#85622c;background:#f3eddf}.ds-choice input{width:20px;height:20px;margin:1px 0 0;accent-color:#0b1d35}.ds-choice:focus-within{outline:3px solid #85622c;outline-offset:4px}"
+      "name": "Topic Selector", "kind": "input", "refersTo": "topic-select", "description": "Native direct navigation across ten topics.",
+      "html": "<label class=\"ds-topic\"><span>Ir direto para um tema</span><select><option>1. Uma nova relação com sua rotina</option><option>10. Valores e conversa</option></select></label>",
+      "css": ".ds-topic{display:grid;gap:7px;color:#596573;font:700 11px/1.5 Manrope,sans-serif}.ds-topic select{width:100%;min-height:48px;padding:10px 36px 10px 12px;border:1px solid #dcded9;border-radius:6px;background:#fffefa;color:#152b45;font:400 13px/1.5 Manrope,sans-serif}.ds-topic select:hover{border-color:#b8a98b}.ds-topic select:focus-visible{outline:3px solid #85622c;outline-offset:4px}"
     },
     {
-      "name": "Text Field", "kind": "input", "refersTo": "text-input", "description": "Native contact input with visible keyboard focus.",
-      "html": "<label class=\"ds-field\">Nome<input type=\"text\" placeholder=\"Seu nome\"></label>",
-      "css": ".ds-field{display:grid;gap:7px;color:#152b45;font:700 13px/1.5 Manrope,sans-serif}.ds-field input{width:100%;padding:14px 15px;border:1px solid #dcded9;border-radius:6px;background:#fffefa;color:#152b45;font:400 16px/1.5 Manrope,sans-serif}.ds-field input:hover{border-color:#b8a98b}.ds-field input:focus-visible{outline:3px solid #85622c;outline-offset:4px}"
+      "name": "Optional Choice", "kind": "input", "refersTo": "choice-row", "description": "Native optional choice retained in page memory.",
+      "html": "<label class=\"ds-choice\"><input type=\"radio\" name=\"choice\"><span>Uma escolha opcional</span></label>",
+      "css": ".ds-choice{display:flex;gap:14px;min-height:56px;padding:15px 17px;border:1px solid #dcded9;border-radius:6px;background:#fffefa;color:#152b45;font:400 16px/1.5 Manrope,sans-serif;cursor:pointer;transition:border-color .18s,background .18s}.ds-choice:hover{border-color:#b8a98b}.ds-choice:has(input:checked){border-color:#85622c;background:#f3eddf}.ds-choice input{width:20px;height:20px;accent-color:#0b1d35}.ds-choice:focus-within{outline:3px solid #85622c;outline-offset:4px}"
     },
     {
-      "name": "Step Progress", "kind": "custom", "description": "Explicit six-step form status.",
-      "html": "<div class=\"ds-progress-wrap\"><span>Etapa 2 de 6</span><div class=\"ds-progress\"><i></i></div></div>",
-      "css": ".ds-progress-wrap{display:flex;align-items:center;gap:20px;max-width:640px;color:#596573;font:700 12px/1.5 Manrope,sans-serif;font-variant-numeric:tabular-nums}.ds-progress{height:2px;flex:1;background:#dcded9}.ds-progress i{display:block;width:33.333%;height:100%;background:#85622c;transition:width .3s ease}"
+      "name": "Topic Progress", "kind": "custom", "description": "Status and current title for ten topics.",
+      "html": "<div class=\"ds-wrap\"><div class=\"ds-copy\"><span>Etapa 3 de 10</span><span>A avaliação</span></div><div class=\"ds-progress\"><i></i></div></div>",
+      "css": ".ds-wrap{max-width:700px;color:#596573;font-family:Manrope,sans-serif}.ds-copy{display:flex;justify-content:space-between;gap:18px;margin-bottom:10px;font-size:12px;font-weight:700}.ds-progress{height:2px;background:#dcded9}.ds-progress i{display:block;width:100%;height:100%;background:#85622c;transform:scaleX(.3);transform-origin:left;transition:transform .28s cubic-bezier(.16,1,.3,1)}"
     },
     {
-      "name": "Offer Review", "kind": "card", "description": "A flat, warm review panel for the chosen format.",
-      "html": "<div class=\"ds-offer\"><strong>Formato escolhido</strong><p>O que está incluído</p><b>Valor confirmado</b></div>",
-      "css": ".ds-offer{padding:22px 24px;border-top:1px solid #c5b995;background:#eee7d8;color:#152b45;font:400 14px/1.6 Manrope,sans-serif}.ds-offer p{margin:5px 0 12px;color:#596573}.ds-offer b{display:block;color:#0b1d35;font-size:20px}.ds-offer:focus-within{outline:3px solid #85622c;outline-offset:4px}"
+      "name": "Editorial Figure", "kind": "custom", "description": "Natural 3:2 illustrative photography with muted caption.",
+      "html": "<figure class=\"ds-figure\"><img class=\"ds-media\" src=\"/virada90/assets/journey/avaliacao.jpg\" width=\"1200\" height=\"800\" alt=\"Pessoa em conversa de avaliação individual com um profissional de saúde\"><figcaption>Imagem ilustrativa. Cada cuidado considera o contexto individual.</figcaption></figure>",
+      "css": ".ds-figure{margin:32px 0}.ds-media{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:6px}.ds-figure figcaption{margin-top:8px;color:#596573;font:400 11px/1.5 Manrope,sans-serif}"
     },
     {
-      "name": "FAQ Disclosure", "kind": "custom", "description": "Native disclosure row structured by fine rules.",
-      "html": "<details class=\"ds-faq\"><summary>Como funciona?</summary><p>A equipe esclarece os próximos passos.</p></details>",
-      "css": ".ds-faq{border-top:1px solid #dcded9;color:#152b45;font-family:Manrope,sans-serif}.ds-faq summary{padding:19px 35px 19px 0;cursor:pointer;font-weight:600}.ds-faq summary:hover{color:#85622c}.ds-faq summary:focus-visible{outline:3px solid #85622c;outline-offset:4px}.ds-faq p{margin:0;padding:0 0 20px;color:#596573;font-size:14px;line-height:1.8}"
+      "name": "Offer Comparison", "kind": "card", "description": "Two three-month formats reserved for topic ten.",
+      "html": "<div class=\"ds-offers\"><article><b>Presencial</b><strong>12× R$ 1.000</strong></article><article><b>Online</b><strong>R$ 6.500 no total</strong></article></div>",
+      "css": ".ds-offers{display:grid;grid-template-columns:1fr 1fr;border:1px solid #dcded9;border-radius:8px;overflow:hidden;background:#fffefa;color:#152b45;font-family:Manrope,sans-serif}.ds-offers article{padding:27px 25px}.ds-offers article+article{border-left:1px solid #dcded9}.ds-offers strong{display:block;margin-top:18px;padding-top:19px;border-top:1px solid #dcded9;font-size:20px;font-variant-numeric:tabular-nums}"
     }
   ],
   "narrative": {
     "northStar": "The Measured Clinical Prospectus",
-    "overview": "The system makes a physician-led program feel calm, legible, and personal. An ivory reading field, dark navy passages, and a restrained warm-metal accent establish clinical authority without promising an outcome. The practical signature is measured structure. The guided journey reuses the editorial world in an Operate mode: six focused steps, native controls, visible progress, and a restrained review handoff.",
-    "keyCharacteristics": ["Navy authority on warm paper, with gold reserved for emphasis and action.", "Manrope supplies clear informational text; Instrument Serif appears only as a warm italic inflection.", "Fine rules and small markers organize the journey instead of decorative ornaments.", "Responsive layouts preserve one clear contact action while collapsing multi-column material into a single reading flow.", "The guided journey reuses the editorial world in an Operate mode: six focused steps, native controls, visible progress, and a restrained review handoff."],
+    "overview": "The system makes a physician-led program feel calm, legible, and personal. Ivory reading fields, dark navy passages, and restrained warm gold establish authority without promising outcomes. The landing remains a long-form prospectus with its real video; the companion presentation is a complete ten-topic reading experience.\n\nFine rules, compact numerals, native controls, and three natural editorial photographs organize detailed information without turning it into a dashboard. Photography supports assessment, flexible nutrition, and everyday maintenance. It is illustrative and never represents the doctor, clinic, patients, facilities, or results.",
+    "keyCharacteristics": ["Navy authority on warm paper, with gold reserved for emphasis and action.", "Manrope carries information; Instrument Serif appears only as a short italic inflection.", "Fine rules, numerals, and native controls organize the ten-topic journey.", "Three natural 3:2 photographs punctuate assessment, nutrition, and maintenance.", "Responsive layouts preserve readable prose and one final WhatsApp handoff."],
     "rules": [
-      { "name": "The Gold Is a Signal Rule", "body": "Use gold and gold-ink for emphasis, markers, and high-intent contact treatment; let navy and paper carry the page's large surfaces.", "section": "colors" },
-      { "name": "The Rule Before Ornament Rule", "body": "Use the existing fine line, marker, or timeline treatment to structure information before introducing a decorative device.", "section": "colors" },
-      { "name": "The Italic Inflection Rule", "body": "Instrument Serif is used for a short word, phrase, or numerical emphasis within a Manrope hierarchy; do not set full informational blocks in the serif.", "section": "typography" },
-      { "name": "The One Decision Per Step Rule", "body": "In Operate mode, each viewport advances one clear choice or reading task. Preserve Back and Continue controls, step count, native field semantics, and focus movement between steps.", "section": "layout" },
-      { "name": "The Flat Clinical Surface Rule", "body": "Keep information containers flat and use rules, tonal fills, and typography for hierarchy; reserve shadows for media or an interaction state.", "section": "elevation" }
+      { "name": "The Gold Is a Signal Rule", "body": "Use gold for emphasis, progress, focus, and high-intent contact; let navy and paper carry large surfaces.", "section": "colors" },
+      { "name": "The Rule Before Ornament Rule", "body": "Structure information with a fine line, number, or measured grid before adding decoration.", "section": "colors" },
+      { "name": "The Italic Inflection Rule", "body": "Never set informational blocks in Instrument Serif.", "section": "typography" },
+      { "name": "The Read Before Handoff Rule", "body": "Keep all ten topics navigable, choices optional, and the only external action in topic ten.", "section": "layout" },
+      { "name": "The Final-Step Price Rule", "body": "Prices belong only in topic ten, after program, limits, and formats are explained.", "section": "layout" },
+      { "name": "The Flat Clinical Surface Rule", "body": "Reserve shadows for the landing's real video or an interaction state.", "section": "elevation" }
     ],
-    "dos": ["Do keep major light surfaces in ivory or paper and reserve navy for the program's strongest passages.", "Do use gold-ink for small emphases, visible focus, serif accents, and structural markers.", "Do use Instrument Serif only as italic emphasis inside an otherwise Manrope hierarchy.", "Do preserve actual day labels, fine rules, and the ruler layout when expressing a sequential program.", "Do respect prefers-reduced-motion: reduce by removing animation and transitions.", "Do keep guided forms native, keyboard-visible, and explicit about progress, validation, persistence, and external handoff.", "Do preserve the desktop video region as reserved media space and remove it from the mobile task flow."],
-    "donts": ["Don't introduce bold color fields beyond the established navy, sage, ivory, and paper surfaces.", "Don't turn every container into an elevated card; use the documented flat structure first.", "Don't replace the day-based timeline with generic progress decoration.", "Don't add clinical result claims, prices, testimonials, or invented proof to the visual system.", "Don't turn the guided journey into a dashboard, a dense multi-question page, or a stack of elevated cards.", "Don't treat an unavailable checkout as a completed payment path; keep the unavailable state explicit."]
+    "dos": ["Do preserve ten-topic status, selector, Back, and Continue as equivalent navigation paths.", "Do keep choices native, reversible, optional, and local to page memory.", "Do use the three editorial photographs only in their established topics with illustrative captions.", "Do reveal both three-month offers and prices only in topic ten, followed by one WhatsApp action.", "Do maintain visible focus, 44px-plus targets, and reduced-motion support."],
+    "donts": ["Don't turn ruled information into elevated card stacks.", "Don't add video placeholders, avatar slots, contact collection, checkout, or payment controls to the presentation.", "Don't imply interest-free installments, a fixed consultation count, guaranteed results, or automatic prescriptions.", "Don't present generated images as real people, facilities, or outcome evidence.", "Don't replace or remove the real video on /virada90."]
   }
 }

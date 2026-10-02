@@ -1,0 +1,47 @@
+{
+  "method": "WCAG relative-luminance calculation for scoped solid-color pairs; not a full accessibility audit",
+  "pairs": [
+    {
+      "pair": "Corpo / marfim",
+      "foreground": "#152b45",
+      "background": "#f7f5ef",
+      "ratio": 13.16,
+      "aa_normal_text": true
+    },
+    {
+      "pair": "Texto secundário / marfim",
+      "foreground": "#596573",
+      "background": "#f7f5ef",
+      "ratio": 5.45,
+      "aa_normal_text": true
+    },
+    {
+      "pair": "Dourado textual / marfim",
+      "foreground": "#85622c",
+      "background": "#f7f5ef",
+      "ratio": 5.09,
+      "aa_normal_text": true
+    },
+    {
+      "pair": "Botão avançar",
+      "foreground": "#fffefa",
+      "background": "#0b1d35",
+      "ratio": 16.76,
+      "aa_normal_text": true
+    },
+    {
+      "pair": "Botão WhatsApp",
+      "foreground": "#0b1d35",
+      "background": "#d8b06b",
+      "ratio": 8.33,
+      "aa_normal_text": true
+    },
+    {
+      "pair": "Nota clínica",
+      "foreground": "#334b3c",
+      "background": "#e9eeea",
+      "ratio": 8.08,
+      "aa_normal_text": true
+    }
+  ]
+}

@@ -123,8 +123,8 @@ de overflow em 390 e 1440 px. Nenhum envio ao CRM realizado.
 
 ## Jornada comercial Virada 90 — 02/10/2026
 
-O CTA final agora abre `/virada90/conhecer`, com seis etapas, espaços “video”, dúvidas, contato e escolha final entre pagamento e equipe. [Contrato](VIRADA90_JORNADA.md).
+Revisão de 02/10: após apontar conteúdo incompleto, o usuário forneceu as doze telas do protocolo. A apresentação em `/virada90/conhecer` passa a dez tópicos cobrindo pilares, avaliação, plano, acompanhamento, manutenção, exames, suplementos, dúvidas e formatos. [Contrato](VIRADA90_JORNADA.md) e [cobertura das telas](virada90/CONTEUDO_E_IMAGENS.md).
 
-Ambos os programas duram três meses. Presencial com aplicações e medições: 12× R$ 1.000 (total R$ 12.000). Online com acompanhamento e plano alimentar: R$ 6.500 no total em 12×. Valores informados pelo usuário, sem limitação a três consultas.
+Ambos os programas duram três meses. Presencial com aplicações e medições quando indicadas: 12× R$ 1.000 (total R$ 12.000). Online com acompanhamento e plano alimentar: R$ 6.500 no total em 12×. Valores apenas no último tópico; não há limite de três consultas ou promessa de parcelamento sem juros.
 
-Implementação local na branch `codex/virada90-guided-form`; 416 testes, lint, tipos e build passaram. Navegação, voltar, validações e ausência de cobrança conferidos com dados sintéticos. Capturas e medições de layout em contextos de 320/390/1440 px, sem overflow horizontal. Publicação desta jornada ainda não realizada. Links reais de checkout e integração de CRM permanecem pendentes; a saída disponível prepara mensagem revisável no WhatsApp, sem registro de lead no banco.
+A única saída comercial final prepara mensagem revisável no WhatsApp. Cadastro intermediário, checkout e espaços “video” foram retirados; três imagens editoriais substituem a mídia reservada. Objetivo e formato são opcionais, sem armazenamento. Não há CRM, gravação no banco ou envio automático. Revisão local na branch `codex/virada90-guided-form`, PR #74: 416 testes, lint, typecheck e build passaram com Node 24. Navegação, imagens, valores finais e enquadramentos de 320/390/1440 px foram conferidos; [evidências e limites](../apps/web/.impeccable/review/virada90-complete/evidence.md). Publicação desta jornada ainda não realizada.

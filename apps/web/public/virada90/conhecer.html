@@ -1,49 +1,213 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b1d35">
   <title>Conheça o Virada 90 · Instituto Guilherme Martins</title>
-  <meta name="description" content="Conheça os próximos passos do Virada 90 com o Instituto Guilherme Martins.">
+  <meta name="description" content="Uma apresentação do acompanhamento médico individual do Virada 90.">
   <link rel="icon" href="/virada90/assets/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="/virada90/assets/manrope.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="/virada90/guided.css"><script src="/virada90/guided.js" defer></script>
+  <link rel="stylesheet" href="/virada90/guided.css">
+  <script src="/virada90/guided.js" defer></script>
 </head>
 <body>
-<a class="skip" href="#journey">Ir para a jornada</a>
-<header class="guided-header"><a class="brand" href="/virada90" aria-label="Instituto Guilherme Martins, voltar à página inicial"><span class="brand-symbol" aria-hidden="true">GM</span><span>Instituto<strong>Guilherme Martins</strong></span></a><a class="return" href="/virada90">Voltar à página</a></header>
-<main id="journey" class="shell">
-  <div class="progress-wrap" aria-label="Progresso da jornada"><span id="progress-label">Etapa 1 de 6</span><div class="progress" aria-hidden="true"><i id="progress-bar"></i></div></div>
-  <section class="journey-grid">
-    <form id="guided-form" novalidate>
-      <div class="step active" data-step="1">
-        <p class="program-mark">Virada<span>90<span>.</span></span></p><h1 id="step-title" tabindex="-1">Vamos começar pelo que você quer cuidar agora.</h1><p class="lead">Esta conversa ajuda a apresentar o programa e o melhor caminho para falar com a equipe.</p>
-        <fieldset><legend>O que mais aproxima você desta conversa?</legend><label class="choice"><input type="radio" name="goal" value="Quero organizar um acompanhamento para emagrecer com constância"><span>Quero organizar um acompanhamento para emagrecer com constância</span></label><label class="choice"><input type="radio" name="goal" value="Quero cuidar da composição corporal e da minha rotina"><span>Quero cuidar da composição corporal e da minha rotina</span></label><label class="choice"><input type="radio" name="goal" value="Quero entender se o programa combina com meu momento"><span>Quero entender se o programa combina com meu momento</span></label></fieldset>
+  <a class="skip" href="#presentation">Ir para a apresentação</a>
+  <header class="guided-header">
+    <a class="brand" href="/virada90" aria-label="Instituto Guilherme Martins, voltar à página inicial">
+      <span class="brand-symbol" aria-hidden="true">GM</span>
+      <span>Instituto<strong>Guilherme Martins</strong></span>
+    </a>
+    <a class="return" href="/virada90">Voltar à página</a>
+  </header>
+
+  <main id="presentation" class="shell">
+    <div class="journey-tools">
+      <div class="progress-copy">
+        <span id="progress-label">Etapa 1 de 10</span>
+        <span id="progress-title">Uma nova relação com sua rotina</span>
       </div>
-      <div class="step" data-step="2" hidden>
-        <h1 tabindex="-1">Um acompanhamento organizado ao longo de 90 dias.</h1><p class="lead">O programa parte de avaliação e anamnese, organiza um plano individualizado e mantém acompanhamento e revisões ao longo do caminho. O que fizer sentido para você é definido na consulta.</p>
-        <div class="method-video"><ol class="method-list"><li><b>Começo</b><span>Avaliação e conversa sobre o seu contexto.</span></li><li><b>Caminho</b><span>Plano individualizado e acompanhamento periódico.</span></li><li><b>Revisão</b><span>Evolução e manutenção orientadas pela avaliação médica.</span></li></ol><aside class="video-main" aria-label="Espaço reservado para vídeo">video</aside></div>
+      <div class="progress" id="progress-track" role="progressbar" aria-label="Progresso da apresentação" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1" aria-valuetext="Etapa 1 de 10: Uma nova relação com sua rotina">
+        <i id="progress-bar"></i>
       </div>
-      <div class="step" data-step="3" hidden>
-        <h1 tabindex="-1">Como seria mais viável para você?</h1><p class="lead">Você pode mudar essa escolha antes de falar com a equipe.</p>
-        <fieldset><legend>Formato de interesse</legend><label class="choice"><input type="radio" name="modality" value="Presencial em Presidente Prudente"><span><strong>Presencial em Presidente Prudente</strong><small>3 meses · Aplicações e medições</small><b class="offer-price">12× de R$ 1.000</b><small>Total: R$ 12.000</small></span></label><label class="choice"><input type="radio" name="modality" value="Online"><span><strong>Online</strong><small>Acompanhamento por 3 meses + plano alimentar</small><b class="offer-price">R$ 6.500 em até 12×</b><small>Valor total do programa</small></span></label><label class="choice"><input type="radio" name="modality" value="Ainda não sei"><span>Ainda não sei</span></label></fieldset>
-      </div>
-      <div class="step" data-step="4" hidden>
-        <h1 tabindex="-1">Alguma dúvida antes de seguir?</h1><p class="lead">Algumas respostas diretas para orientar a conversa inicial.</p>
-        <div class="faq-video"><div class="faq-list"><details><summary>Quanto vou emagrecer?</summary><p>Não há como antecipar um resultado. A avaliação e os próximos passos são individualizados.</p></details><details><summary>Vou precisar de medicação?</summary><p>Essa decisão depende de avaliação médica individual; ela não é definida nesta jornada.</p></details><details><summary>Como funcionam os formatos?</summary><p>O presencial, em Presidente Prudente, inclui aplicações e medições. O online inclui acompanhamento por três meses e plano alimentar. A equipe esclarece o que está incluído e os próximos passos.</p></details></div><aside class="video-rail" aria-label="Espaços reservados para vídeos"><div>video</div><div>video</div><div>video</div></aside></div>
-      </div>
-      <div class="step" data-step="5" hidden>
-        <h1 tabindex="-1">Deixe um contato para preparar sua mensagem.</h1><p class="lead">Compartilhe apenas informações de contato e dúvidas gerais. Esta etapa não envia nem salva dados.</p>
-        <div class="fields"><label>Nome<input name="name" autocomplete="name" maxlength="80" required></label><fieldset class="channel"><legend>Como prefere receber uma resposta?</legend><label class="choice"><input type="radio" name="channel" value="WhatsApp"><span>WhatsApp</span></label><label class="choice"><input type="radio" name="channel" value="E-mail"><span>E-mail</span></label></fieldset><label id="contact-label">Contato<input id="contact" name="contact" autocomplete="tel" maxlength="120" required></label><label>Sua pergunta, se quiser<textarea name="question" maxlength="600" rows="4" aria-describedby="question-help"></textarea><small id="question-help">Até 600 caracteres. Não inclua informações clínicas.</small></label></div>
-      </div>
-      <div class="step" data-step="6" hidden>
-        <h1 tabindex="-1">Seu próximo passo, do seu jeito.</h1><p class="lead">Confira suas escolhas. Você pode seguir para o pagamento ou tirar suas dúvidas com a equipe.</p><div id="selected-offer" class="selected-offer"></div><dl class="summary" id="summary"></dl><p class="payment-status" id="payment-status" role="status" hidden></p><a id="talk-team" class="team-action" href="https://wa.me/5518997551234" target="_blank" rel="noopener">Falar com a equipe pelo WhatsApp</a><small class="handoff-note">A mensagem será aberta para você revisar e enviar. Nenhum dado foi enviado ou salvo nesta jornada.</small>
-      </div>
-      <p class="error" id="form-error" role="alert" hidden></p>
-      <div class="actions"><button class="back" id="back" type="button">Voltar</button><button class="next" id="next" type="button">Continuar</button></div>
-    </form>
-    <aside class="journey-aside"><div class="aside-video" aria-label="Espaço reservado para vídeo de avatar">video</div><p>Virada <em>90</em></p><div class="aside-rule"></div><span>Instituto Guilherme Martins</span><span>Dr. Guilherme Martins</span><small>Uma apresentação do programa. A indicação e as decisões de cuidado dependem de avaliação individual.</small></aside>
-  </section>
-</main>
-<noscript><p class="noscript">Para conversar com a equipe, <a href="https://wa.me/5518997551234?text=Ol%C3%A1%21%20Quero%20saber%20mais%20sobre%20o%20Virada%2090." target="_blank" rel="noopener">envie uma mensagem pelo WhatsApp</a>.</p></noscript>
-</body></html>
+      <label class="topic-picker" for="topic-select">
+        <span>Ir direto para um tema</span>
+        <select id="topic-select" name="topic">
+          <option value="1">1. Uma nova relação com sua rotina</option>
+          <option value="2">2. Os quatro pilares</option>
+          <option value="3">3. A avaliação</option>
+          <option value="4">4. O plano individual</option>
+          <option value="5">5. O acompanhamento</option>
+          <option value="6">6. Depois dos 90 dias</option>
+          <option value="7">7. Exames e suplementos</option>
+          <option value="8">8. Dúvidas frequentes</option>
+          <option value="9">9. Os dois formatos</option>
+          <option value="10">10. Valores e conversa</option>
+        </select>
+      </label>
+    </div>
+
+    <section class="journey-grid" aria-label="Apresentação Virada 90">
+      <form id="guided-form" novalidate>
+        <section class="step active" data-step="1" data-title="Uma nova relação com sua rotina">
+          <h1 tabindex="-1">Uma nova relação com sua rotina.</h1>
+          <p class="lead">O Virada 90 é um acompanhamento médico individual com o Dr. Guilherme Martins para cuidar do emagrecimento de forma sustentável ao longo de três meses.</p>
+          <p>O plano começa pela sua história, rotina e desafios. A partir daí, vocês constroem mudanças possíveis, sem extremismos, pensando na saúde e na preservação muscular — além do número na balança.</p>
+          <fieldset class="optional-choice">
+            <legend>O que mais trouxe você até aqui? <span>Opcional</span></legend>
+            <label class="choice"><input type="radio" name="goal" value="Emagrecer com constância"><span>Emagrecer com constância</span></label>
+            <label class="choice"><input type="radio" name="goal" value="Cuidar da composição corporal e da rotina"><span>Cuidar da composição corporal e da rotina</span></label>
+            <label class="choice"><input type="radio" name="goal" value="Entender como o programa funciona"><span>Entender como o programa funciona</span></label>
+          </fieldset>
+          <p class="optional-note">Você pode seguir sem escolher. Sua resposta fica apenas nesta página e pode compor a mensagem do WhatsApp.</p>
+        </section>
+
+        <section class="step" data-step="2" data-title="Os quatro pilares" hidden>
+          <h1 tabindex="-1">Quatro pilares que trabalham juntos.</h1>
+          <p class="lead">Nenhum elemento funciona isolado. O acompanhamento combina quatro frentes, revistas de acordo com o seu contexto.</p>
+          <div class="ruled-list">
+            <article><h2>Nutrição</h2><p>Reeducação alimentar flexível, com atenção à saciedade, aos nutrientes e à energia para a rotina.</p></article>
+            <article><h2>Comportamento</h2><p>Relação com a comida, gatilhos emocionais, sono e estresse entram na conversa para que o plano seja viável.</p></article>
+            <article><h2>Movimento</h2><p>Atividade compatível com seu momento de vida e sua capacidade, com foco também na preservação muscular.</p></article>
+            <article><h2>Acompanhamento médico</h2><p>Exames quando necessários, monitoramento e ajustes revistos pelo médico ao longo do programa.</p></article>
+          </div>
+        </section>
+
+        <section class="step" data-step="3" data-title="A avaliação" hidden>
+          <h1 tabindex="-1">Antes do plano, conhecer você.</h1>
+          <p class="lead">A jornada segue um ciclo claro, com um ritmo definido pela resposta de cada pessoa: avaliação, plano, acompanhamento e manutenção.</p>
+          <ol class="phase-line" aria-label="Fases do acompanhamento">
+            <li><span>1</span>Avaliação</li><li><span>2</span>Plano</li><li><span>3</span>Acompanhamento</li><li><span>4</span>Manutenção</li>
+          </ol>
+          <figure class="editorial-figure">
+            <img src="/virada90/assets/journey/avaliacao.jpg" width="1200" height="800" alt="Pessoa em conversa de avaliação individual com um profissional de saúde">
+            <figcaption>Imagem ilustrativa. Cada avaliação considera o contexto individual.</figcaption>
+          </figure>
+          <div class="detail-list">
+            <article><h2>História e exame clínico</h2><p>Queixas, histórico familiar, medicamentos usados anteriormente e outros aspectos relevantes para compreender o ponto de partida.</p></article>
+            <article><h2>Exames, quando necessários</h2><p>Seleção conforme a avaliação para observar o contexto metabólico, glicêmico, hormonal e de nutrientes.</p></article>
+            <article><h2>Composição corporal</h2><p>Estimativas de gordura, massa muscular, hidratação e gordura visceral quando indicadas e disponíveis no formato. No presencial, pode incluir bioimpedância.</p></article>
+            <article><h2>Hábitos e rotina</h2><p>Preferências e horários alimentares, trabalho, sono e momentos de maior vulnerabilidade entram no mapeamento.</p></article>
+          </div>
+          <p class="clinical-note">O ritmo é adaptado à pessoa. Não existe um prazo padronizado para resultado.</p>
+        </section>
+
+        <section class="step" data-step="4" data-title="O plano individual" hidden>
+          <h1 tabindex="-1">Um plano que cabe na sua vida.</h1>
+          <p class="lead">Os dados da avaliação ajudam a definir uma estratégia possível de manter no dia a dia.</p>
+          <figure class="editorial-figure editorial-figure--wide">
+            <img src="/virada90/assets/journey/alimentacao.jpg" width="1200" height="800" alt="Refeição variada preparada para uma rotina alimentar flexível">
+            <figcaption>Imagem ilustrativa. Seu plano considera preferências, rotina e necessidades individuais.</figcaption>
+          </figure>
+          <div class="ruled-list compact">
+            <article><h2>Metas individuais</h2><p>Objetivos realistas e mensuráveis para peso e composição corporal, definidos com você.</p></article>
+            <article><h2>Alimentação flexível</h2><p>Uma estratégia que considera preferências, horários e rotina, sem regras extremas ou listas universais de proibições.</p></article>
+            <article><h2>Suplementação criteriosa</h2><p>Somente quando a avaliação indicar uma necessidade e após decisão médica.</p></article>
+            <article><h2>Movimento possível</h2><p>Orientação compatível com articulações, capacidade, condicionamento e disponibilidade.</p></article>
+          </div>
+        </section>
+
+        <section class="step" data-step="5" data-title="O acompanhamento" hidden>
+          <h1 tabindex="-1">Acompanhar, escutar e ajustar.</h1>
+          <p class="lead">O plano não fica congelado. Consultas periódicas permitem entender a adaptação, a resposta do corpo e as dificuldades que aparecem no caminho.</p>
+          <div class="sequence">
+            <article><h2>Revisar a adaptação</h2><p>A conversa considera como o plano se encaixou na rotina e o que precisa ser revisto.</p></article>
+            <article><h2>Ajustar plano e metas</h2><p>A estratégia alimentar e os objetivos podem mudar conforme a evolução individual.</p></article>
+            <article><h2>Apoiar dificuldades e platôs</h2><p>Momentos de desaceleração são analisados para orientar próximos passos possíveis.</p></article>
+            <article><h2>Monitorar exames e composição</h2><p>Novas avaliações podem ser usadas quando fizerem sentido e quando o formato permitir.</p></article>
+          </div>
+        </section>
+
+        <section class="step" data-step="6" data-title="Depois dos 90 dias" hidden>
+          <h1 tabindex="-1">Evolução que continua depois dos 90 dias.</h1>
+          <p class="lead">A etapa final prepara a continuidade: consolidar hábitos, planejar a manutenção e reduzir o risco de reganho de peso.</p>
+          <figure class="editorial-figure">
+            <img src="/virada90/assets/journey/evolucao.jpg" width="1200" height="800" alt="Duas pessoas caminhando ao ar livre como parte de uma rotina sustentável">
+            <figcaption>Imagem ilustrativa. A evolução e os resultados variam de pessoa para pessoa.</figcaption>
+          </figure>
+          <div class="editorial-columns">
+            <div><h2>Vida real faz parte</h2><p>Viagens, celebrações e mudanças de rotina são consideradas para construir flexibilidade sem abandonar o cuidado.</p></div>
+            <div><h2>Além da balança</h2><p>Exames, roupas, energia, sono e bem-estar ajudam a observar a evolução de forma mais ampla.</p></div>
+          </div>
+          <p class="clinical-note">Os resultados são individuais e não podem ser garantidos.</p>
+        </section>
+
+        <section class="step" data-step="7" data-title="Exames e suplementos" hidden>
+          <h1 tabindex="-1">Exames e suplementos, quando fazem sentido.</h1>
+          <p class="lead">Avaliar é diferente de prescrever. O médico seleciona o que é pertinente para cada pessoa; não existe um painel ou uma suplementação automática para todos.</p>
+          <div class="disclosures">
+            <details>
+              <summary>Exemplos de exames que podem ajudar na avaliação</summary>
+              <div><p><strong>Contexto glicêmico:</strong> glicemia, insulina e hemoglobina glicada (HbA1c).</p><p><strong>Perfil lipídico:</strong> colesterol total e frações, além de triglicerídeos.</p><p><strong>Tireoide:</strong> TSH e T4 livre.</p><p><strong>Micronutrientes:</strong> vitamina D, vitamina B12, ferritina e outros, conforme a necessidade.</p><p>Esses exemplos ajudam a investigar o contexto de saúde. Eles não formam um pedido universal.</p></div>
+            </details>
+            <details>
+              <summary>Quando a suplementação pode ser considerada</summary>
+              <div><p>Vitaminas e minerais podem ser usados para necessidades identificadas. Probióticos podem ser avaliados quando houver indicação.</p><p>Complementos nutricionais ou substitutos de refeição podem ser considerados para praticidade e aporte proteico, se forem clinicamente adequados.</p><p>Eles não substituem uma alimentação variada e não são necessários para todas as pessoas. A seleção é médica e individual.</p></div>
+            </details>
+          </div>
+        </section>
+
+        <section class="step" data-step="8" data-title="Dúvidas frequentes" hidden>
+          <h1 tabindex="-1">Dúvidas que costumam aparecer.</h1>
+          <p class="lead">Respostas diretas para algumas perguntas comuns antes de começar.</p>
+          <div class="faq-list">
+            <details><summary>Vou passar fome?</summary><p>O plano busca saciedade e nutrição adequada, com atenção a proteínas, fibras e escolhas compatíveis com a sua necessidade. A estratégia é individual.</p></details>
+            <details><summary>Preciso cortar carboidratos?</summary><p>Não existe uma eliminação geral de carboidratos. Quantidades e escolhas dependem do contexto, da rotina e da estratégia definida para você.</p></details>
+            <details><summary>Quanto tempo leva para ver resultados?</summary><p>O acompanhamento considera a evolução gradual do peso e da composição corporal. A resposta varia de pessoa para pessoa, sem promessa de resultado ou prazo fixo.</p></details>
+            <details><summary>Vou precisar de remédios?</summary><p>Não necessariamente. Medicamentos só são considerados quando existe necessidade clínica, com decisão médica baseada em evidências e conhecimento e consentimento do paciente. Quando indicados, são uma ferramenta adicional e não substituem alimentação, movimento e mudança de hábitos.</p></details>
+          </div>
+        </section>
+
+        <section class="step" data-step="9" data-title="Os dois formatos" hidden>
+          <h1 tabindex="-1">Dois formatos. O mesmo tempo de cuidado.</h1>
+          <p class="lead">Presencial e online têm três meses de duração. Você pode indicar uma preferência agora ou conversar com a equipe antes de decidir.</p>
+          <fieldset class="format-choice">
+            <legend>Qual formato combina mais com seu momento? <span>Opcional</span></legend>
+            <label class="choice"><input type="radio" name="modality" value="Presencial em Presidente Prudente"><span><strong>Presencial em Presidente Prudente</strong><small>Três meses de acompanhamento, com aplicações e medições quando houver indicação clínica.</small></span></label>
+            <label class="choice"><input type="radio" name="modality" value="Online"><span><strong>Online</strong><small>Três meses de acompanhamento online e plano alimentar individualizado.</small></span></label>
+            <label class="choice"><input type="radio" name="modality" value="Ainda estou decidindo"><span><strong>Ainda estou decidindo</strong><small>A equipe pode esclarecer as diferenças antes da sua escolha.</small></span></label>
+          </fieldset>
+          <p class="optional-note">A escolha fica nesta página e pode ser alterada a qualquer momento.</p>
+        </section>
+
+        <section class="step final-step" data-step="10" data-title="Valores e conversa" hidden>
+          <h1 tabindex="-1">Faz sentido para você? Vamos conversar.</h1>
+          <p class="lead">A equipe pode esclarecer a avaliação, o que tem indicação para o seu caso e os próximos passos.</p>
+          <div class="offer-comparison" aria-label="Valores e itens dos formatos Virada 90">
+            <article>
+              <h2>Presencial</h2>
+              <p>Presidente Prudente · três meses</p>
+              <p class="price"><strong>12× R$ 1.000</strong><span>Total de R$ 12.000</span></p>
+              <p>Acompanhamento presencial, com aplicações e medições quando houver indicação clínica.</p>
+            </article>
+            <article>
+              <h2>Online</h2>
+              <p>Atendimento online · três meses</p>
+              <p class="price"><strong>R$ 6.500 no total</strong><span>Em 12 parcelas</span></p>
+              <p>Acompanhamento por três meses e plano alimentar.</p>
+            </article>
+          </div>
+          <div class="interest-summary" id="interest-summary" aria-live="polite"></div>
+          <a id="talk-team" class="team-action" href="https://wa.me/5518997551234?text=Ol%C3%A1%21%20Quero%20saber%20mais%20sobre%20o%20Virada%2090%20do%20Dr.%20Guilherme%20Martins." target="_blank" rel="noopener">Conversar pelo WhatsApp</a>
+          <p class="handoff-note">O WhatsApp abrirá uma mensagem curta para você revisar, editar e enviar. Nenhum dado é salvo nesta apresentação.</p>
+        </section>
+
+        <div class="actions">
+          <button class="back" id="back" type="button">Voltar</button>
+          <button class="next" id="next" type="button">Continuar</button>
+        </div>
+      </form>
+
+      <aside class="journey-aside" aria-label="Sobre a apresentação">
+        <p>Virada <em>90</em></p>
+        <div class="aside-rule"></div>
+        <strong>Instituto Guilherme Martins</strong>
+        <span>Com Dr. Guilherme Martins</span>
+        <small>Esta apresentação explica o programa. Indicações e decisões de cuidado dependem de avaliação individual.</small>
+      </aside>
+    </section>
+  </main>
+
+  <noscript><p class="noscript">Para conversar com a equipe, <a href="https://wa.me/5518997551234?text=Ol%C3%A1%21%20Quero%20saber%20mais%20sobre%20o%20Virada%2090%20do%20Dr.%20Guilherme%20Martins." target="_blank" rel="noopener">envie uma mensagem pelo WhatsApp</a>.</p></noscript>
+</body>
+</html>
