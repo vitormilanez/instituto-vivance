@@ -1,0 +1,117 @@
+{
+  "mobile": [
+    {
+      "bottom": 1149.903839111328,
+      "clientWidth": 390,
+      "photos": [],
+      "price": false,
+      "scrollWidth": 390,
+      "step": "1"
+    },
+    {
+      "bottom": 1233.7019348144531,
+      "clientWidth": 390,
+      "photos": [],
+      "price": false,
+      "scrollWidth": 390,
+      "step": "2"
+    },
+    {
+      "bottom": 1741.0697326660156,
+      "clientWidth": 390,
+      "photos": [
+        {
+          "loaded": true,
+          "width": 350
+        }
+      ],
+      "price": false,
+      "scrollWidth": 390,
+      "step": "3"
+    },
+    {
+      "bottom": 1457.8365783691406,
+      "clientWidth": 390,
+      "photos": [
+        {
+          "loaded": true,
+          "width": 350
+        }
+      ],
+      "price": false,
+      "scrollWidth": 390,
+      "step": "4"
+    },
+    {
+      "bottom": 1123.6297912597656,
+      "clientWidth": 390,
+      "photos": [],
+      "price": false,
+      "scrollWidth": 390,
+      "step": "5"
+    },
+    {
+      "bottom": 1337.8966369628906,
+      "clientWidth": 390,
+      "photos": [
+        {
+          "loaded": true,
+          "width": 350
+        }
+      ],
+      "price": false,
+      "scrollWidth": 390,
+      "step": "6"
+    },
+    {
+      "bottom": 922.4880065917968,
+      "clientWidth": 390,
+      "photos": [],
+      "price": false,
+      "scrollWidth": 390,
+      "step": "7"
+    },
+    {
+      "bottom": 851.4543151855469,
+      "clientWidth": 390,
+      "photos": [],
+      "price": false,
+      "scrollWidth": 390,
+      "step": "8"
+    },
+    {
+      "bottom": 1131.5265197753906,
+      "clientWidth": 390,
+      "photos": [],
+      "price": false,
+      "scrollWidth": 390,
+      "step": "9"
+    },
+    {
+      "bottom": 1472.5721740722656,
+      "clientWidth": 390,
+      "photos": [],
+      "price": true,
+      "scrollWidth": 390,
+      "step": "10"
+    }
+  ],
+  "desktop": [
+    {
+      "bottom": 1673.5817031860352,
+      "scrollWidth": 1440,
+      "step": "3",
+      "width": 1440
+    },
+    {
+      "bottom": 1189.6034317016602,
+      "scrollWidth": 1440,
+      "step": "10",
+      "width": 1440
+    }
+  ],
+  "source": "Same HTML/CSS/JS in local srcdoc frames, not physical device validation",
+  "nativeCaptureWidth": 3029,
+  "parentCssWidth": 1969,
+  "captureMethod": "Browser screenshot includes the native outer surface; crop to the fixed iframe width and measured main bottom, at 1:1 rendered pixels. No rescaling."
+}
