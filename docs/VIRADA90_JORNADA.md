@@ -20,8 +20,8 @@ Três imagens editoriais ilustram avaliação, alimentação e manutenção. Os 
 
 ## Entrega e evidências
 
-Branch `codex/virada90-guided-form`; [PR #74](https://github.com/vitormilanez/instituto-vivance/pull/74) para revisão. A passagem local percorreu os dez tópicos sem preencher escolhas, confirmou voltar/ir direto para um tema, preservação das escolhas e preços exclusivamente no final. As três imagens carregaram. Não houve rolagem horizontal nos enquadramentos de 320, 390 e 1440 px; os estreitos foram verificados no mesmo HTML/CSS/JS em quadros locais, não em dispositivo físico.
+Branch `codex/virada90-guided-form`; [PR #74](https://github.com/vitormilanez/instituto-vivance/pull/74) mesclado e publicado em 02/10/2026. A passagem local percorreu os dez tópicos sem preencher escolhas, confirmou voltar/ir direto para um tema, preservação das escolhas e preços exclusivamente no final. As três imagens carregaram. Não houve rolagem horizontal nos enquadramentos de 320, 390 e 1440 px; os estreitos foram verificados no mesmo HTML/CSS/JS em quadros locais, não em dispositivo físico.
 
-Na revisão atual, **416 testes, lint, typecheck e build passaram com Node 24**. As capturas, métricas, limites da verificação e parecer Impeccable estão em [evidências](../apps/web/.impeccable/review/virada90-complete/evidence.md). Não houve publicação desta jornada em produção.
+Na revisão local, **416 testes, lint, typecheck e build passaram com Node 24**. As capturas, métricas, limites da verificação e parecer Impeccable estão em [evidências locais](../apps/web/.impeccable/review/virada90-complete/evidence.md). A verificação da main também passou no release `37056735229`. O deployment do merge `5d6fe4c`, `dpl_51T4TDH34NRadvymSWK3XbCBsm5x`, foi promovido manualmente e conferido nos domínios públicos. O navegador validou a entrada pela landing, dez tópicos, imagens, valores finais, navegação e escolhas opcionais no link de WhatsApp. [Registro e capturas da publicação](virada90/releases/2026-10-02/README.md).
 
 Nenhuma integração de CRM, banco, API de WhatsApp ou pagamento foi implementada. Nenhuma mensagem foi enviada a clientes ou equipe.
