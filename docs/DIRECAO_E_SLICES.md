@@ -120,3 +120,11 @@ resolvem para esse artefato. `/virada90` e `/login` responderam HTTP 200.
 migrations não necessárias e promoção automática skipped. Navegador no
 domínio público confirmou vídeo de 38,3 s, FAQ, três links originais e ausência
 de overflow em 390 e 1440 px. Nenhum envio ao CRM realizado.
+
+## Jornada comercial Virada 90 — 02/10/2026
+
+O CTA final agora abre `/virada90/conhecer`, com seis etapas, espaços “video”, dúvidas, contato e escolha final entre pagamento e equipe. [Contrato](VIRADA90_JORNADA.md).
+
+Ambos os programas duram três meses. Presencial com aplicações e medições: 12× R$ 1.000 (total R$ 12.000). Online com acompanhamento e plano alimentar: R$ 6.500 no total em 12×. Valores informados pelo usuário, sem limitação a três consultas.
+
+Implementação local na branch `codex/virada90-guided-form`; 416 testes, lint, tipos e build passaram. Navegação, voltar, validações e ausência de cobrança conferidos com dados sintéticos. Capturas e medições de layout em contextos de 320/390/1440 px, sem overflow horizontal. Publicação desta jornada ainda não realizada. Links reais de checkout e integração de CRM permanecem pendentes; a saída disponível prepara mensagem revisável no WhatsApp, sem registro de lead no banco.

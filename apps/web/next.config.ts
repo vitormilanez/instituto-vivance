@@ -6,7 +6,10 @@ const config: NextConfig = {
   turbopack: { root: dirname(fileURLToPath(import.meta.url)) },
   poweredByHeader: false,
   async rewrites() {
-    return [{ source: "/virada90", destination: "/virada90/index.html" }];
+    return [
+      { source: "/virada90", destination: "/virada90/index.html" },
+      { source: "/virada90/conhecer", destination: "/virada90/conhecer.html" },
+    ];
   },
   async headers() {
     return [
