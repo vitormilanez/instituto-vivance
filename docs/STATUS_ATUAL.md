@@ -135,3 +135,5 @@ O CTA final agora abre `/virada90/conhecer`, com seis etapas, espaços “video�
 Ambos os programas duram três meses. Presencial com aplicações e medições: 12× R$ 1.000 (total R$ 12.000). Online com acompanhamento e plano alimentar: R$ 6.500 no total em 12×. Valores informados pelo usuário, sem limitação a três consultas.
 
 Implementação local na branch `codex/virada90-guided-form`; 416 testes, lint, tipos e build passaram. Navegação, voltar, validações e ausência de cobrança conferidos com dados sintéticos. Capturas e medições de layout em contextos de 320/390/1440 px, sem overflow horizontal. Publicação desta jornada ainda não realizada. Links reais de checkout e integração de CRM permanecem pendentes; a saída disponível prepara mensagem revisável no WhatsApp, sem registro de lead no banco.
+
+PR de revisão: [#74](https://github.com/vitormilanez/instituto-vivance/pull/74). Não mesclado nem promovido em produção.

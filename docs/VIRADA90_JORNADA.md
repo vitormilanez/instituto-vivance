@@ -23,3 +23,5 @@ Nova branch `codex/virada90-guided-form`. Implementação local e PR para revis�
 416 testes, lint, typecheck e build passaram em Node 24. Detector Impeccable em modo degradado por falta dos módulos HTML retornou zero achados de regex; não comprova contraste computado. Revisão visual independente solicitou dois ajustes, ambos resolvidos no verdict pass `ship`: espaço de avatar na lateral do desktop e remoção da faixa de preço. [Evidências](../apps/web/.impeccable/review/virada90-form/evidence.md).
 
 Pagamento real e captura persistente/CRM não foram testados nem implementados. Ambas as URLs de checkout estão nulas. A pessoa deve enviar a mensagem no WhatsApp para iniciar o contato com a equipe.
+
+PR de revisão: [#74](https://github.com/vitormilanez/instituto-vivance/pull/74). Não mesclado nem promovido em produção.

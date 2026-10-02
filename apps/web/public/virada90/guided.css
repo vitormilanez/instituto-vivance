@@ -134,4 +134,3 @@ h1{font-size:33px}
 
 
 .aside-video{display:grid;place-items:center;width:min(260px,100%);aspect-ratio:4/3;background:var(--navy);color:var(--gold);border-radius:var(--radius);margin-bottom:14px;font-size:13px}
-
