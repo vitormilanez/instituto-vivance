@@ -130,3 +130,14 @@ Ambos os programas duram três meses. Presencial com aplicações e medições q
 A única saída comercial final prepara mensagem revisável no WhatsApp. Cadastro intermediário, checkout e espaços “video” foram retirados; três imagens editoriais substituem a mídia reservada. Objetivo e formato são opcionais, sem armazenamento. Não há CRM, gravação no banco ou envio automático. Revisão local na branch `codex/virada90-guided-form`, PR #74: 416 testes, lint, typecheck e build passaram com Node 24. Navegação, imagens, valores finais e enquadramentos de 320/390/1440 px foram conferidos; [evidências e limites locais](../apps/web/.impeccable/review/virada90-complete/evidence.md).
 
 Publicação autorizada e realizada em 02/10: PR #74 mesclado em `5d6fe4c`; verificação da main aprovada e deployment `dpl_51T4TDH34NRadvymSWK3XbCBsm5x` promovido manualmente. Os dois domínios apontam para esse artefato. O navegador percorreu a apresentação pública, confirmou as três imagens, escolhas opcionais, navegação e valores apenas no final, com destino ao WhatsApp existente. [Registro de publicação](virada90/releases/2026-10-02/README.md). Isso publica a jornada comercial; os gates clínicos e operacionais permanecem separados.
+
+### Medição da campanha — 03/10/2026
+
+Pedido aprovado: adicionar GA4 e Google Ads usando os destinos existentes do
+Instituto Guilherme Martins. Medir visitas, etapas e clique em WhatsApp somente
+nas duas páginas públicas e após aceite de cookies. Não enviar objetivo de
+saúde nem importar o container inteiro (widget/Meta). [Contrato e IDs conferidos](virada90/MEDICAO_GOOGLE.md).
+
+O Pulse oferece Webhooks de mensagem recebida e widget com origem de visita.
+A integração de conversa recebida permanece um próximo slice, dependente de
+atribuição consentida e deduplicação; clique não equivale a contato recebido.

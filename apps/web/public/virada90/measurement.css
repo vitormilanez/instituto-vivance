@@ -1,0 +1,11 @@
+.measurement-banner[hidden] { display: none; }
+.measurement-banner { position: fixed; z-index: 100; bottom: 16px; left: 16px; right: 16px; max-width: 720px; margin-inline: auto; padding: 22px; border: 1px solid #d7c18f; border-radius: 16px; background: #fffdf8; color: #0b1d35; box-shadow: 0 8px 40px #0b1d3526; font: 14px/1.6 'Manrope', sans-serif; }
+.measurement-banner strong { font-size: 17px; }
+.measurement-banner p { margin: 8px 0 16px; }
+.measurement-actions { display: flex; gap: 10px; }
+.measurement-actions button { flex: 1; padding: 12px 14px; min-height: 46px; border: 1px solid #0b1d35; border-radius: 8px; background: #fffdf8; color: #0b1d35; font: inherit; font-weight: 700; cursor: pointer; }
+.measurement-actions button[data-consent='granted'] { background: #0b1d35; color: white; }
+.measurement-actions button:focus-visible, .measurement-preferences button:focus-visible { outline: 3px solid #cba65d; outline-offset: 3px; }
+.measurement-preferences { padding: 18px 24px; text-align: center; }
+.measurement-preferences button { min-height: 44px; border: 0; background: transparent; font: 13px/1.5 'Manrope', sans-serif; color: #42516a; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+@media (max-width: 480px) { .measurement-banner { padding: 18px; bottom: 10px; left: 10px; right: 10px; } .measurement-actions { flex-direction: column; } }

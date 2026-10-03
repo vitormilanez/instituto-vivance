@@ -13,6 +13,7 @@
   const presentation = document.querySelector('#presentation');
   const total = steps.length;
   let current = 1;
+  let handoffUrl = 'https://wa.me/5518997551234?text=Ol%C3%A1%21%20Quero%20saber%20mais%20sobre%20o%20Virada%2090%20do%20Dr.%20Guilherme%20Martins.';
 
   const selectedValue = name => new FormData(form).get(name)?.trim() || '';
 
@@ -34,7 +35,9 @@
       modality ? `Meu formato de interesse: ${modality}.` : ''
     ].filter(Boolean).join('\n');
 
-    talkTeam.href = `https://wa.me/5518997551234?text=${encodeURIComponent(message)}`;
+    // A mensagem fica fora do DOM: a medição automática não recebe o objetivo.
+    // O botão só abre a mensagem na ação explícita da pessoa.
+    handoffUrl = `https://wa.me/5518997551234?text=${encodeURIComponent(message)}`;
   };
 
   const keepToolsVisible = () => {
@@ -65,6 +68,7 @@
     next.textContent = current === total - 1 ? 'Ver valores e conversar' : 'Continuar';
 
     if (current === total) updateHandoff();
+    document.dispatchEvent(new CustomEvent('virada90:step', { detail: { step: current } }));
 
     if (moveFocus) {
       window.requestAnimationFrame(() => {
@@ -88,6 +92,10 @@
   next.addEventListener('click', () => goTo(current + 1));
   back.addEventListener('click', () => goTo(current - 1));
   topicSelect.addEventListener('change', event => goTo(event.target.value));
+  talkTeam.addEventListener('click', event => {
+    event.preventDefault();
+    window.open(handoffUrl, '_blank', 'noopener,noreferrer');
+  });
 
   document.addEventListener('keydown', event => {
     const target = event.target;
