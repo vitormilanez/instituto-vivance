@@ -137,3 +137,19 @@ Ambos os programas duram três meses. Presencial com aplicações e medições q
 A única saída comercial final prepara mensagem revisável no WhatsApp. Cadastro intermediário, checkout e espaços “video” foram retirados; três imagens editoriais substituem a mídia reservada. Objetivo e formato são opcionais, sem armazenamento. Não há CRM, gravação no banco ou envio automático. Revisão local na branch `codex/virada90-guided-form`, PR #74: 416 testes, lint, typecheck e build passaram com Node 24. Navegação, imagens, valores finais e enquadramentos de 320/390/1440 px foram conferidos; [evidências e limites locais](../apps/web/.impeccable/review/virada90-complete/evidence.md).
 
 [PR #74](https://github.com/vitormilanez/instituto-vivance/pull/74) mesclado e publicado em 02/10/2026. Commit da aplicação `5d6fe4c02fbd9bbb65d0a9b5abf4146b4c95c99d`, deployment `dpl_51T4TDH34NRadvymSWK3XbCBsm5x`, execução `gru1`. O release `37056735229` aprovou testes, lint, typecheck e build; as etapas efetivas de migration e promoção automática foram skipped. Não há mudança de banco neste lote; a promoção foi realizada pela CLI após os checks. Ambos os domínios foram conferidos no mesmo artefato. `/virada90`, `/virada90/conhecer`, CSS, JS e três imagens responderam HTTP 200 e corresponderam byte a byte ao código publicado. O navegador público confirmou os dez tópicos, valores finais, escolhas opcionais e destino de WhatsApp, sem enviar mensagem. [Evidências e limites da publicação](virada90/releases/2026-10-02/README.md).
+
+### Medição Google — 03/10/2026
+
+Branch `codex/virada90-google-tags`: GA4 `G-L8QMHVRV68`, Ads `AW-818747876`
+e conversão WhatsApp `AW-818747876/zzjqCNb0r4wYEOSztIYD` conferidos no
+container público do site do Instituto Guilherme Martins. Implementação
+restrita às duas páginas de campanha no domínio principal, após consentimento,
+sem respostas de saúde nos eventos. 424 testes, lint, typecheck e build aprovados
+localmente. Navegador conferiu recusa, continuidade da atribuição, etapa final,
+aviso em 390 px e abertura da mensagem preparada no WhatsApp sem Google.
+Publicação ainda em verificação. [Contrato](virada90/MEDICAO_GOOGLE.md).
+
+Pulse `/integration` foi consultado na sessão autenticada: Webhooks incluem
+mensagens recebidas; widget registra origem da visita. Nenhuma configuração
+foi alterada. Recebimento no Google, conversão primária da campanha e integração
+de conversa efetiva no CRM não foram validados.

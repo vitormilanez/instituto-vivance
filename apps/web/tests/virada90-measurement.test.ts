@@ -1,0 +1,139 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+import { campaignUrl, campaignReferrer, createMeasurement, GOOGLE } from '../public/virada90/measurement-core.js';
+
+function fixture(url = 'https://institutovivance.app/virada90') {
+  const calls: unknown[][] = [];
+  let loads = 0;
+  const measurement = createMeasurement({ url, command: (...args) => calls.push(args), load: () => { loads++; } });
+  return { measurement, calls, loads: () => loads, events: () => calls.filter(args => args[0] === 'event') };
+}
+
+test('Google stays unloaded before consent, after refusal, and on clinical or Preview URLs', () => {
+  const publicPage = fixture();
+  publicPage.measurement.whatsapp('presentation');
+  publicPage.measurement.consent(false);
+  assert.equal(publicPage.loads(), 0);
+  assert.equal(publicPage.events().length, 0);
+  for (const url of [
+    'https://institutovivance.app/login',
+    'https://institutovivance.app/clinicas/tenant/pacientes/patient',
+    'https://institutovivance.app/virada90/assets/anything',
+    'https://instituto-vivance-preview.vercel.app/virada90',
+    'http://localhost:4182/virada90'
+  ]) {
+    const blocked = fixture(url);
+    blocked.measurement.consent(true);
+    blocked.measurement.whatsapp('presentation');
+    assert.equal(blocked.loads(), 0, url);
+    assert.deepEqual(blocked.calls, [], url);
+  }
+});
+
+test('accepted visitors initialize both verified destinations once, without ad personalization', () => {
+  const f = fixture();
+  f.measurement.consent(true);
+  f.measurement.consent(true);
+  assert.equal(f.loads(), 1);
+  const configs = f.calls.filter(args => args[0] === 'config');
+  assert.deepEqual(configs.map(args => args[1]), ['G-L8QMHVRV68', 'AW-818747876']);
+  for (const args of configs) {
+    const data = args[2] as Record<string, unknown>;
+    assert.equal(data.cookie_path, '/virada90');
+    assert.equal(data.allow_google_signals, false);
+    assert.equal(data.send_page_view, false);
+  }
+  assert.equal(f.events().filter(args => args[1] === 'page_view').length, 1);
+});
+
+test('only an explicit WhatsApp action fires the existing Ads click conversion', () => {
+  const f = fixture('https://institutovivance.app/virada90/conhecer');
+  f.measurement.consent(true);
+  f.measurement.viewStep(10);
+  f.measurement.viewStep(10);
+  assert.equal(f.events().filter(args => args[1] === 'conversion').length, 0);
+  f.measurement.whatsapp('unknown');
+  f.measurement.whatsapp('presentation');
+  assert.equal(f.events().filter(args => args[1] === 'conversion').length, 1);
+  assert.deepEqual(f.events().find(args => args[1] === 'conversion')?.[2], { send_to: 'AW-818747876/zzjqCNb0r4wYEOSztIYD' });
+  assert.equal(f.events().filter(args => args[1] === 'whatsapp_click').length, 1);
+  assert.equal(f.events().filter(args => args[1] === 'virada90_presentation_complete').length, 1);
+  assert.equal(f.events().some(args => args[1] === 'generate_lead' || args[1] === 'purchase'), false);
+  f.measurement.consent(false);
+  f.measurement.whatsapp('presentation');
+  f.measurement.viewStep(5);
+  assert.equal(f.events().filter(args => args[1] === 'conversion').length, 1);
+});
+
+test('page URLs keep campaign attribution and exclude arbitrary contact or health parameters', () => {
+  const input = 'https://institutovivance.app/virada90?utm_source=google&utm_campaign=Virada90&gclid=abc_123&goal=emagrecer&email=pessoa%40example.com&patient_id=private#contato';
+  assert.equal(campaignUrl(input), 'https://institutovivance.app/virada90?utm_source=google&utm_campaign=Virada90&gclid=abc_123');
+  assert.equal(campaignUrl('https://institutovivance.app/virada90?utm_source=pessoa%40example.com'), 'https://institutovivance.app/virada90');
+  assert.equal(campaignReferrer('https://institutovivance.app/clinicas/t/pacientes/p?segredo=valor'), '');
+  assert.equal(campaignReferrer('https://google.com/search?q=informacao+de+saude'), 'https://google.com/');
+  assert.equal(campaignReferrer('https://institutovivance.app/virada90?goal=private'), 'https://institutovivance.app/virada90');
+});
+
+test('no funnel or event payload can receive a health answer or a WhatsApp URL', () => {
+  const f = fixture('https://institutovivance.app/virada90/conhecer?goal=private-health-answer');
+  f.measurement.viewStep(4);
+  f.measurement.consent(true);
+  for (const step of [0, NaN, 11, 7, 10]) f.measurement.viewStep(step);
+  f.measurement.whatsapp('presentation');
+  assert.doesNotMatch(JSON.stringify(f.calls), /private-health-answer|wa\.me|5518997551234|generate_lead/);
+  assert.deepEqual(f.events().filter(args => args[1] === 'virada90_step_view').map(args => (args[2] as Record<string, unknown>).step_number), [4, 7, 10]);
+});
+
+test('a blocked Google loader does not throw or produce a false conversion', () => {
+  const calls: unknown[][] = [];
+  const measurement = createMeasurement({ url: 'https://institutovivance.app/virada90', command: (...args) => calls.push(args), load: () => { throw new Error('blocked'); } });
+  assert.doesNotThrow(() => measurement.consent(true));
+  assert.doesNotThrow(() => measurement.whatsapp('presentation'));
+  assert.equal(calls.some(args => args[0] === 'event'), false);
+});
+
+test('the guided handoff keeps health choices in memory and opens WhatsApp without relying on Google', () => {
+  const listeners = new Map<string, (event: unknown) => void>();
+  const makeControl = (key: string) => ({
+    href: 'https://wa.me/5518997551234?text=generic', dataset: { title: 'Topic' }, hidden: false,
+    classList: { toggle() {} }, style: {}, setAttribute() {},
+    addEventListener(type: string, fn: (event: unknown) => void) { listeners.set(key + ':' + type, fn); },
+    querySelector() { return null; }
+  });
+  const controls = new Map<string, ReturnType<typeof makeControl>>();
+  const steps = Array.from({ length: 10 }, (_, n) => makeControl('step' + n));
+  const form = { ...makeControl('form'), querySelectorAll: () => steps };
+  const opened: string[] = [];
+  vm.runInNewContext(readFileSync(new URL('../public/virada90/guided.js', import.meta.url), 'utf8'), {
+    document: {
+      querySelector(key: string) {
+        if (key === '#guided-form') return form;
+        if (!controls.has(key)) controls.set(key, makeControl(key));
+        return controls.get(key);
+      },
+      addEventListener() {}, dispatchEvent() {}
+    },
+    FormData: class { get(name: string) { return name === 'goal' ? 'private-health-answer' : 'Online'; } },
+    CustomEvent: class {}, window: { requestAnimationFrame() {}, open(url: string) { opened.push(url); } }
+  });
+  const generic = controls.get('#talk-team')?.href;
+  listeners.get('#topic-select:change')?.({ target: { value: '10' } });
+  assert.equal(controls.get('#talk-team')?.href, generic);
+  listeners.get('#talk-team:click')?.({ preventDefault() {} });
+  assert.equal(opened.length, 1);
+  assert.match(decodeURIComponent(opened[0]), /private-health-answer/);
+  assert.match(decodeURIComponent(opened[0]), /Online/);
+});
+
+test('tags are included only by the two public campaign documents', () => {
+  for (const page of ['index.html', 'conhecer.html']) {
+    const code = readFileSync(new URL('../public/virada90/' + page, import.meta.url), 'utf8');
+    assert.match(code, /type="module" src="\/virada90\/measurement\.js"/);
+    assert.doesNotMatch(code, /GTM-W582L6XS|h-widget|fbevents/);
+  }
+  const appLayout = readFileSync(new URL('../app/layout.tsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(appLayout, /measurement|googletagmanager|gtag/);
+  assert.equal(GOOGLE.whatsapp, 'AW-818747876/zzjqCNb0r4wYEOSztIYD');
+});

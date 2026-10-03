@@ -25,3 +25,12 @@ Branch `codex/virada90-guided-form`; [PR #74](https://github.com/vitormilanez/in
 Na revisão local, **416 testes, lint, typecheck e build passaram com Node 24**. As capturas, métricas, limites da verificação e parecer Impeccable estão em [evidências locais](../apps/web/.impeccable/review/virada90-complete/evidence.md). A verificação da main também passou no release `37056735229`. O deployment do merge `5d6fe4c`, `dpl_51T4TDH34NRadvymSWK3XbCBsm5x`, foi promovido manualmente e conferido nos domínios públicos. O navegador validou a entrada pela landing, dez tópicos, imagens, valores finais, navegação e escolhas opcionais no link de WhatsApp. [Registro e capturas da publicação](virada90/releases/2026-10-02/README.md).
 
 Nenhuma integração de CRM, banco, API de WhatsApp ou pagamento foi implementada. Nenhuma mensagem foi enviada a clientes ou equipe.
+
+## Medição da campanha — 03/10/2026
+
+[Contrato Google](virada90/MEDICAO_GOOGLE.md): tags existentes do Instituto
+Guilherme Martins, restritas às páginas públicas e condicionadas ao aceite.
+A página mede visitas/etapas e a ativação de WhatsApp. As escolhas opcionais
+continuam só em memória e não são enviadas ao Google. O botão final abre a
+mensagem personalizada; o fallback sem JavaScript permanece genérico.
+Recebimento de conversa pelo Pulse e importação de conversão são outro slice.

@@ -90,7 +90,7 @@ details>div p{margin:0 0 9px}
 .price span{margin-top:5px;color:var(--gold-ink);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
 .interest-summary{margin:18px 0 0;padding:14px 16px;background:var(--sage);font-size:13px;line-height:1.6}
 .interest-summary:empty{display:none}
-.team-action{display:inline-flex;align-items:center;justify-content:center;min-height:56px;margin-top:25px;padding:15px 25px;border-radius:var(--radius);background:var(--gold);color:var(--navy);font-size:14px;font-weight:700;text-decoration:none;transition:background .18s,box-shadow .18s}
+.team-action{display:inline-flex;align-items:center;justify-content:center;min-height:56px;margin-top:25px;padding:15px 25px;border:0;border-radius:var(--radius);background:var(--gold);color:var(--navy);font-size:14px;font-weight:700;text-decoration:none;cursor:pointer;transition:background .18s,box-shadow .18s}
 .team-action:hover{background:#e2bd7b;box-shadow:0 8px 22px #0b1d3515}
 .actions{display:flex;justify-content:space-between;gap:16px;padding-top:34px}
 .actions button{min-height:56px;border-radius:var(--radius);padding:15px 23px;font-size:14px;font-weight:700;cursor:pointer}
