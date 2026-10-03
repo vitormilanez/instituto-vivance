@@ -147,7 +147,13 @@ restrita às duas páginas de campanha no domínio principal, após consentiment
 sem respostas de saúde nos eventos. 424 testes, lint, typecheck e build aprovados
 localmente. Navegador conferiu recusa, continuidade da atribuição, etapa final,
 aviso em 390 px e abertura da mensagem preparada no WhatsApp sem Google.
-Publicação ainda em verificação. [Contrato](virada90/MEDICAO_GOOGLE.md).
+Publicado pelo [PR #76](https://github.com/vitormilanez/instituto-vivance/pull/76),
+merge `a97f94d`; release `37132467559` aprovado. Promoção automática skipped;
+deployment `dpl_GG3xheoUfPTYcjjoxfCz2kHbxVxy` promovido manualmente e
+conferido em ambos os domínios. Arquivos públicos corresponderam ao checkout;
+o navegador mostrou SDK somente após aceite e retirou seu carregamento após
+revogação. [Registro](virada90/releases/2026-10-03/README.md),
+[contrato](virada90/MEDICAO_GOOGLE.md).
 
 Pulse `/integration` foi consultado na sessão autenticada: Webhooks incluem
 mensagens recebidas; widget registra origem da visita. Nenhuma configuração

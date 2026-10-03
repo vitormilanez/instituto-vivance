@@ -1,0 +1,110 @@
+[
+  {
+    "path": "/virada90",
+    "http": 200,
+    "contentType": "text/html; charset=utf-8",
+    "matchesCheckout": true,
+    "xVercelId": "gru1::7xfpx-1791040635034-2b6c52ec6212",
+    "elapsedMs": 769
+  },
+  {
+    "path": "/virada90/conhecer",
+    "http": 200,
+    "contentType": "text/html; charset=utf-8",
+    "matchesCheckout": true,
+    "xVercelId": "gru1::ml628-1791040635761-bc74544f481e",
+    "elapsedMs": 642
+  },
+  {
+    "path": "/virada90/measurement.js",
+    "http": 200,
+    "contentType": "application/javascript; charset=utf-8",
+    "matchesCheckout": true,
+    "xVercelId": "gru1::dcw9w-1791040636407-614c58216159",
+    "elapsedMs": 402
+  },
+  {
+    "path": "/virada90/measurement-core.js",
+    "http": 200,
+    "contentType": "application/javascript; charset=utf-8",
+    "matchesCheckout": true,
+    "xVercelId": "gru1::kkgfb-1791040636771-d966fbc34ccf",
+    "elapsedMs": 226
+  },
+  {
+    "path": "/virada90/measurement.css",
+    "http": 200,
+    "contentType": "text/css; charset=utf-8",
+    "matchesCheckout": true,
+    "xVercelId": "gru1::d7clf-1791040636995-b41e2b68c892",
+    "elapsedMs": 222
+  },
+  {
+    "path": "/virada90/guided.js",
+    "http": 200,
+    "contentType": "application/javascript; charset=utf-8",
+    "matchesCheckout": true,
+    "xVercelId": "gru1::j5xw7-1791040637246-421ec9b486db",
+    "elapsedMs": 234
+  },
+  {
+    "domain": "institutovivance.app",
+    "path": "/login",
+    "attempt": 1,
+    "http": 200,
+    "finalUrl": "https://institutovivance.app/login",
+    "xVercelId": "gru1::gru1::64z6x-1791040637452-6b540e9e80a0",
+    "elapsedMs": 242,
+    "campaignTagAbsent": true
+  },
+  {
+    "domain": "institutovivance.app",
+    "path": "/login",
+    "attempt": 2,
+    "http": 200,
+    "finalUrl": "https://institutovivance.app/login",
+    "xVercelId": "gru1::gru1::d7clf-1791040637696-405952fc9c25",
+    "elapsedMs": 91,
+    "campaignTagAbsent": true
+  },
+  {
+    "domain": "institutovivance.app",
+    "path": "/login",
+    "attempt": 3,
+    "http": 200,
+    "finalUrl": "https://institutovivance.app/login",
+    "xVercelId": "gru1::gru1::g68f2-1791040637794-815cb396213e",
+    "elapsedMs": 97,
+    "campaignTagAbsent": true
+  },
+  {
+    "domain": "instituto-vivance.vercel.app",
+    "path": "/login",
+    "attempt": 1,
+    "http": 200,
+    "finalUrl": "https://institutovivance.app/login",
+    "xVercelId": "gru1::gru1::qpnxz-1791040637987-5e17af1b1e42",
+    "elapsedMs": 444,
+    "campaignTagAbsent": true
+  },
+  {
+    "domain": "instituto-vivance.vercel.app",
+    "path": "/login",
+    "attempt": 2,
+    "http": 200,
+    "finalUrl": "https://institutovivance.app/login",
+    "xVercelId": "gru1::gru1::vdw9p-1791040638358-7032e187c209",
+    "elapsedMs": 117,
+    "campaignTagAbsent": true
+  },
+  {
+    "domain": "instituto-vivance.vercel.app",
+    "path": "/login",
+    "attempt": 3,
+    "http": 200,
+    "finalUrl": "https://institutovivance.app/login",
+    "xVercelId": "gru1::gru1::d9hfx-1791040638563-9cc9ac5b2646",
+    "elapsedMs": 216,
+    "campaignTagAbsent": true
+  }
+]
