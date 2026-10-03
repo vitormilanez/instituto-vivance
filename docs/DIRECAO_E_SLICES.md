@@ -141,3 +141,8 @@ saúde nem importar o container inteiro (widget/Meta). [Contrato e IDs conferido
 O Pulse oferece Webhooks de mensagem recebida e widget com origem de visita.
 A integração de conversa recebida permanece um próximo slice, dependente de
 atribuição consentida e deduplicação; clique não equivale a contato recebido.
+
+Medição pública publicada pelo PR #76 (`a97f94d`), com verificação da main e
+promoção manual do deployment `dpl_GG3xheoUfPTYcjjoxfCz2kHbxVxy`.
+[Evidências e limites](virada90/releases/2026-10-03/README.md). A confirmação
+de recebimento no Google e a configuração da campanha não foram validadas.
