@@ -4926,6 +4926,56 @@ test("onboarding draft is patient-private, versioned and exposes immutable conse
   });
 });
 
+test("exam text persistence requires an explicitly registered synthetic document", async () => {
+  await asUser("doctor", async () => {
+    const patient = randomUUID();
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patients(id,tenant_id,display_name,created_by) values($1,$2,'Synthetic exam patient',$3)",
+      [patient, a, users.admin.id],
+    );
+    await db.query(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'active')",
+      [a, patient, users.doctor.id],
+    );
+    await db.exec("set local role service_role");
+    const reservation = await db.query<{ document_id: string; storage_path: string }>(
+      "select * from public.reserve_patient_document($1,$2,$3,'synthetic-exam.pdf','application/pdf',6,'exam','internal')",
+      [a, patient, users.doctor.id],
+    );
+    const document = reservation.rows[0].document_id;
+    await db.exec("reset role");
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [reservation.rows[0].storage_path],
+    );
+    await db.exec("set local role service_role");
+    await db.query("select public.complete_patient_document($1,$2,$3)", [a, document, users.doctor.id]);
+    await switchActor("doctor");
+    const extraction = "select public.persist_document_text_extraction($1,$2,$3,$4,$5,$6::jsonb,$7) as id";
+    const values = [a, document, "a".repeat(64), "synthetic-test", "1", "[]", "invalid_pdf"];
+    await denied(extraction, values);
+    await denied(
+      "insert into private.synthetic_exam_pilot_documents(tenant_id,document_id,patient_id) values($1,$2,$3)",
+      [a, document, patient],
+    );
+    await db.exec("reset role");
+    await db.query(
+      "insert into private.synthetic_exam_pilot_documents(tenant_id,document_id,patient_id) values($1,$2,$3)",
+      [a, document, patient],
+    );
+    await switchActor("doctor");
+    const saved = await db.query<{ id: string }>(extraction, values);
+    assert.equal(saved.rows.length, 1);
+    await switchActor("patient");
+    assert.equal(
+      (await db.query("select id from public.document_extraction_runs where document_id=$1", [document])).rows.length,
+      0,
+    );
+    await denied(extraction, values);
+  });
+});
+
 test("patient invitation revocation is creator-or-admin controlled and consumes WhatsApp token", async () => {
   await asUser("doctor", async () => {
     await db.exec("reset role");

@@ -1,6 +1,6 @@
 # Direção do Vivance e próximos slices
 
-Atualizado em 29/09/2026. Este é o plano vigente. O [estado técnico](STATUS_ATUAL.md) registra o que foi comprovado; o [plano de IA clínica](PLANO_IA_CLINICA.md) detalha essa frente.
+Atualizado em 03/10/2026. Este é o plano vigente. O [estado técnico](STATUS_ATUAL.md) registra o que foi comprovado; o [plano de IA clínica](PLANO_IA_CLINICA.md) detalha essa frente.
 
 ## Resultado que estamos construindo
 
@@ -37,7 +37,8 @@ de saúde reais; o uso temporário não conclui C1 para operação clínica.
 | 2 | **C2 · Completar a demonstração** | Usar somente as contas de Guilherme e Vitor; completar e conferir uma jornada longitudinal de demonstração no prontuário de Vitor. | Limpeza e carga histórica parcial executadas: 21 dias seguidos de check-in e 18 refeições fictícias. Quatro exames têm títulos conferidos. A lista e um PDF original foram validados na sessão do médico; sessão do paciente, consulta/retorno e aceite da demonstração seguem pendentes. |
 | 3 | **C3 · Validar contexto e operação** | Executar as duas etapas de C3 abaixo com sessões reais de paciente e médico; registrar falhas e decisão de aceite **dos testes**. | Iniciado na sessão do médico: abas e fontes conferidas, altura legada corrigida e check-ins diários incluídos na Linha do tempo em ordem de referência. Ainda sem sessão do paciente ou aceite operacional. |
 | Paralelo | **IA1 · Governança e contrato** | Obter decisão sobre finalidade, fonte, fornecedor, privacidade, rastreabilidade e revisão médica no [contrato IA1](https://github.com/vitormilanez/instituto-vivance/pull/64). | Rascunho em revisão; nenhuma análise clínica por IA ativa. |
-| Depois | **IA2–IA3** | Extração conferível de poucos exames sintéticos e biblioteca versionada de fontes aprovadas. | Aguarda aceite de IA1. |
+| Em construção | **IA2 · Exames consolidados** | Base de texto por página, processamento e tela de conferência com poucos exames sintéticos. | PR #78 em rascunho: persistência e visão de inventário implementadas localmente; migration, piloto autenticado e estruturação ainda pendentes. Claude aguarda IA1. |
+| Depois | **IA3 · Biblioteca clínica** | Fontes aprovadas e versionadas, com trechos rastreáveis. | Aguarda IA1 e avaliação do IA2. |
 | Depois | **IA4–IA6** | Evidência aplicável, verificação independente, revisão médica e validação clínica com limites previamente definidos. | Aguarda IA1–IA3 e gates clínicos. |
 
 ### Etapas de C2
@@ -113,6 +114,8 @@ Cada slice entrega contrato, migrations versionadas quando necessárias, testes 
 O usuário priorizou uma visão única de todos os exames enviados para o médico, evitando a abertura sequencial de PDFs. A análise local de cinco exemplos mostrou laudos numéricos extensos, laudos narrativos e mais de um exame no mesmo arquivo. O [contrato de produto](EXAMES_CONSOLIDADOS_IA2.md) define recebimento, segmentação, proveniência, tela, conferência médica e critérios de aceite sem incorporar dados pessoais dos exemplos.
 
 Esta prioridade direciona o primeiro incremento de IA2 para extração estruturada e conferível em material sintético; a tela mostra resultados laboratoriais e conclusões textuais atribuídas aos laudos, com acesso ao original.
+
+**Sequência de IA2 iniciada em 03/10:** (1) fechar a base sintética com bloqueio no banco, migration e teste autenticado; (2) ligar a fila e o worker de extração, com falhas e repetição controlada; (3) estruturar laudos e observações com fornecedor aprovado no IA1; (4) completar a visão do médico e a revisão por item; (5) medir cobertura e erros em corpus sintético com a direção médica. O inventário de todos os arquivos e a fila de qualidade já estão implementados localmente no PR #78. Eles ainda não exibem resultados estruturados e não foram publicados.
 
 **Decisão de persistência em 03/10:** conservar o binário original no Storage privado já existente e seu vínculo em `patient_documents`; acrescentar em migrations novas hash/versão, texto por página e laudos/observações com proveniência e RLS. Extrair texto antes de chamar Claude, usar OCR apenas quando necessário, estruturar uma vez por versão e servir a tela a partir do banco, sem chamada ao modelo a cada abertura. Os cinco exemplos pessoais seguem fora do projeto sintético até Gate P. A construção não representa IA ativa nem aceita. IA1, segurança do fornecedor, Gate P e validação clínica continuam governando qualquer uso de dados reais ou assistencial. RAG de fontes aprovadas permanece para IA3/IA4; MCP é uma possível interface futura para ferramentas autorizadas.
 

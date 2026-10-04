@@ -22,6 +22,8 @@ import type {
   StaffDocuments,
 } from "@/modules/documents/service";
 import type { DocumentExtraction } from "@/modules/exams/service";
+import type { PatientExamOverview } from "@/modules/exams/overview-service";
+import { ExamOverviewPanel } from "./exam-overview-panel";
 import { clinicalTime } from "./encounter-editor";
 
 type DocumentItem =
@@ -583,14 +585,17 @@ export function StaffPatientDocumentsPanel({
   initial,
   base,
   pilotDocumentIds = [],
+  overview = null,
 }: {
   initial: StaffDocuments;
   base: string;
   pilotDocumentIds?: string[];
+  overview?: PatientExamOverview | null;
 }) {
   const pageHref = (page: number) => `${base}&pagina=${page}`;
   return (
     <section className="document-board" aria-labelledby="patient-documents-title">
+      {overview && <ExamOverviewPanel overview={overview} tenant={initial.clinic.id} />}
       <div className="section-heading">
         <div>
           <h2 id="patient-documents-title">Documentos do paciente</h2>

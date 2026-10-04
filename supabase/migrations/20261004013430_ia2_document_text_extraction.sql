@@ -81,6 +81,22 @@ alter table public.patient_documents
   add constraint patient_documents_extraction_identity
   unique (tenant_id, id, patient_id);
 
+-- The temporary database is shared with the published app. No authenticated
+-- caller may persist extracted text for a document until an operator has
+-- explicitly registered that particular synthetic fixture. This private
+-- allowlist starts empty and is never writable through the Data API.
+create table private.synthetic_exam_pilot_documents (
+  tenant_id uuid not null,
+  document_id uuid not null,
+  patient_id uuid not null,
+  created_at timestamptz not null default clock_timestamp(),
+  primary key (tenant_id, document_id),
+  foreign key (tenant_id, document_id, patient_id)
+    references public.patient_documents(tenant_id, id, patient_id)
+);
+alter table private.synthetic_exam_pilot_documents enable row level security;
+revoke all on private.synthetic_exam_pilot_documents from public, anon, authenticated;
+
 create table public.document_extraction_runs (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null,
@@ -314,6 +330,15 @@ begin
   if not found
     or not private.has_care_access(document_row.tenant_id, document_row.patient_id) then
     raise exception 'Available document with active care access required'
+      using errcode = '42501';
+  end if;
+  if not exists (
+    select 1 from private.synthetic_exam_pilot_documents as pilot
+    where pilot.tenant_id = document_row.tenant_id
+      and pilot.document_id = document_row.id
+      and pilot.patient_id = document_row.patient_id
+  ) then
+    raise exception 'Only registered synthetic pilot documents can be extracted'
       using errcode = '42501';
   end if;
 
