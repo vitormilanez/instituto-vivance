@@ -1,6 +1,6 @@
 # Exames consolidados para o médico — contrato de produto
 
-**Estado:** direção de produto proposta pelo usuário em 03/10/2026; análise de formatos concluída; implementação e aceite pendentes. Este contrato não libera análise clínica por IA nem uso de dados reais em modelos.
+**Estado:** direção de produto proposta pelo usuário em 03/10/2026; análise de formatos concluída; primeiro corte técnico em revisão no PR #78; aceite pendente. Este contrato não libera análise clínica por IA nem uso de dados reais em modelos.
 
 ## Resultado esperado
 
@@ -96,3 +96,9 @@ O médico pode confirmar, corrigir ou rejeitar **cada observação** e registrar
 ## Dependências e limites
 
 O contrato IA1 de finalidade, fornecedor, privacidade e saídas permitidas segue em revisão no PR #64. A construção técnica com dados sintéticos pode preparar o fluxo; seleção de fornecedor, envio de dados reais e uso assistencial seguem os gates aprovados. O Gate P permanece obrigatório antes de dados de saúde reais. Este incremento não inclui RAG de diretrizes, diagnóstico, prescrição, triagem, resposta automática ao paciente ou publicação automática.
+
+## Primeiro corte implementado para revisão — 03/10/2026
+
+O PR #78 agora inclui uma migration **ainda não aplicada ao projeto remoto** para execuções imutáveis por documento/hash/versão e texto por página, com RLS de equipe vinculada, gravação atômica por RPC médica e falha de leitura persistida. O parser local de PDF preserva número da página, marca página sem texto para conferência e não envia dados a modelo. Uma rota autenticada permite ao médico acionar a extração e consultar o texto; na ficha, páginas aparecem recolhidas e ligadas ao original. A rota de escrita só habilita IDs sintéticos explicitamente listados em `VIVANCE_SYNTHETIC_EXAM_DOCUMENT_IDS`, com `VIVANCE_EXAM_TEXT_PILOT=synthetic`, em desenvolvimento local ou Preview; a execução em produção fica bloqueada.
+
+Este corte é **manual e síncrono**. O worker da fila, OCR, segmentação em laudos, observações estruturadas, Claude, consolidação de todos os arquivos e revisão por observação ainda faltam. O hash é registrado na execução de extração; calcular e guardar o hash já no recebimento do arquivo é trabalho posterior. Os cinco PDFs reais do usuário não são usados em testes. Antes de habilitar o piloto, criar e autorizar PDFs inteiramente sintéticos, aplicar a migration no ambiente confirmado e validar o percurso autenticado e a negação entre pacientes.

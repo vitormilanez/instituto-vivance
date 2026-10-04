@@ -21,6 +21,7 @@ import type {
   PatientDocuments,
   StaffDocuments,
 } from "@/modules/documents/service";
+import type { DocumentExtraction } from "@/modules/exams/service";
 import { clinicalTime } from "./encounter-editor";
 
 type DocumentItem =
@@ -39,6 +40,13 @@ const reviewLabels: Record<string, string> = {
   approved: "Conferido",
   rejected: "Não utilizável",
   needs_follow_up: "Precisa de acompanhamento",
+};
+const extractionFailureLabels: Record<string, string> = {
+  invalid_pdf: "O PDF não pôde ser lido.",
+  password_protected: "O PDF está protegido por senha.",
+  page_limit: "O PDF ultrapassa o limite de páginas deste piloto.",
+  text_limit: "O texto ultrapassa o limite deste piloto.",
+  incomplete_text: "A leitura não cobriu todas as páginas.",
 };
 
 export function byteLimit() {
@@ -278,12 +286,14 @@ function DocumentList({
   showPatient,
   reviews = [],
   canReview = false,
+  pilotDocumentIds = [],
 }: {
   documents: DocumentItem[];
   tenant: string;
   showPatient: boolean;
   reviews?: StaffDocuments["reviews"];
   canReview?: boolean;
+  pilotDocumentIds?: string[];
 }) {
   const [openReviewId, setOpenReviewId] = useState<string | null>(null);
   if (!documents.length)
@@ -364,11 +374,93 @@ function DocumentList({
                 originalFilename={document.original_filename}
               />
             )}
+            {pilotDocumentIds.includes(document.id) && (
+              <ExamTextPanel tenant={tenant} documentId={document.id} title={title} canExtract={canReview} />
+            )}
           </article>
         );
       })}
     </div>
   );
+}
+
+function ExamTextPanel({ tenant, documentId, title, canExtract }: {
+  tenant: string;
+  documentId: string;
+  title: string;
+  canExtract: boolean;
+}) {
+  const endpoint = `/api/v1/clinics/${tenant}/documents/${documentId}/extraction`;
+  const originalUrl = `/api/v1/clinics/${tenant}/documents/${documentId}/download`;
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [extraction, setExtraction] = useState<DocumentExtraction | null>(null);
+  const [error, setError] = useState("");
+
+  async function load() {
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch(endpoint, { cache: "no-store", signal: AbortSignal.timeout(20_000) });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "Não foi possível consultar o texto.");
+      setExtraction(body.extraction ?? null);
+      setLoaded(true);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível consultar o texto.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function run() {
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(65_000),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "Não foi possível extrair o texto.");
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível extrair o texto.");
+      setBusy(false);
+    }
+  }
+
+  return <section className="document-extraction-panel" aria-label={`Texto extraído de ${title}`}>
+    <button type="button" className="secondary" disabled={busy} aria-expanded={open}
+      onClick={() => { setOpen(!open); if (!open && !loaded) void load(); }}>
+      {open ? "Fechar texto" : "Ver texto extraído"}
+    </button>
+    {open && <div className="document-extraction-content">
+      <p className="module-footnote">Transcrição automática das páginas, ainda sem interpretação ou revisão clínica. Confira o original antes de usar qualquer resultado.</p>
+      {busy && <p role="status">Lendo páginas…</p>}
+      {error && <p role="alert">{error}</p>}
+      {!busy && loaded && !extraction && <div>
+        <p>Este exame ainda não tem texto extraído.</p>
+        {canExtract && <button type="button" disabled={busy} onClick={() => void run()}>Extrair texto do PDF</button>}
+      </div>}
+      {!busy && extraction && <>
+        {extraction.status === "failed"
+          ? <p role="status">{extractionFailureLabels[extraction.failure_code ?? ""] ?? "Não foi possível ler o PDF."} O original continua disponível para conferência.</p>
+          : <p role="status">{extraction.page_count} página{extraction.page_count === 1 ? "" : "s"} · {extraction.extracted_page_count} com texto · {extraction.review_page_count} para conferência</p>}
+        <ol className="document-extraction-pages">
+          {extraction.pages.map((page) => <li key={page.page_number}>
+            <details>
+              <summary>Página {page.page_number} · {page.status === "extracted" ? "Texto disponível" : "Conferir no original"}</summary>
+              {page.extracted_text ? <pre>{page.extracted_text}</pre> : <p>Não foi encontrado texto selecionável nesta página.</p>}
+              <a href={`${originalUrl}#page=${page.page_number}`} target="_blank" rel="noreferrer">Abrir página no PDF original</a>
+            </details>
+          </li>)}
+        </ol>
+      </>}
+    </div>}
+  </section>;
 }
 
 function DocumentReviewPanel({
@@ -490,9 +582,11 @@ function DocumentReviewPanel({
 export function StaffPatientDocumentsPanel({
   initial,
   base,
+  pilotDocumentIds = [],
 }: {
   initial: StaffDocuments;
   base: string;
+  pilotDocumentIds?: string[];
 }) {
   const pageHref = (page: number) => `${base}&pagina=${page}`;
   return (
@@ -510,6 +604,7 @@ export function StaffPatientDocumentsPanel({
         showPatient={false}
         reviews={initial.reviews}
         canReview={initial.canReview}
+        pilotDocumentIds={pilotDocumentIds}
       />
       <nav className="agenda-actions" aria-label="Páginas de documentos deste paciente">
         {initial.page > 1 && <Link href={pageHref(initial.page - 1)}>Anterior</Link>}

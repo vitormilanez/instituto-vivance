@@ -121,7 +121,9 @@ O usuário indicou a consolidação de exames enviados como primeira função de
 
 O [contrato de produto](EXAMES_CONSOLIDADOS_IA2.md) registra a proposta de tela, pipeline e aceites. **Estado:** análise e especificação; nenhum worker, observação extraída persistida, modelo conectado ou tela consolidada foi entregue nesta etapa. A fila `processing_jobs` existente não possui tipo específico de extração de exame; o IA1 do PR #64 segue em rascunho. As funções atuais de documentos, revisão humana e abertura do original permanecem disponíveis. Gate P continua aberto.
 
-**Decisão de persistência em 03/10:** originais continuam no bucket privado e referenciados por `patient_documents`; o texto extraído por página, hash/versão e observações ainda não têm schema, worker ou dados gravados. O contrato do PR #78 propõe extrair texto primeiro, limitar chamadas ao Claude, persistir resultado por versão e abrir a tela sem consumo de tokens. Os cinco PDFs fornecidos continuam apenas como exemplos locais de formato, sem importação para `instituto-vivance-dev`.
+**Decisão de persistência em 03/10:** originais continuam no bucket privado e referenciados por `patient_documents`; o contrato do PR #78 separa o texto por página e as observações estruturadas. Os cinco PDFs fornecidos continuam apenas como exemplos locais de formato, sem importação para `instituto-vivance-dev`.
+
+**Primeiro corte técnico em revisão no PR #78:** migration nova para execuções imutáveis e texto por página, parser PDF local, rota médica autenticada, bloqueio padrão com lista explícita de IDs sintéticos e painel recolhido por página com link para o original. Testes sintéticos focados, 428 testes do app, lint, typecheck e build passaram; a migration passou em PostgreSQL 15 isolado com idempotência, falha registrada, RLS e negação ao paciente. **Ainda não foi aplicada no Supabase remoto, não há worker, OCR, Claude, laudos/observações estruturados, consolidação final nem teste autenticado do fluxo completo.** Nada foi publicado ou aceito clinicamente.
 
 ## Landing Virada 90 — 30/09/2026
 

@@ -1067,6 +1067,48 @@ export type Database = {
           },
         ];
       };
+      document_extraction_runs: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          processing_job_id: string | null;
+          source_content_sha256: string;
+          extractor_name: string;
+          extractor_version: string;
+          status: string;
+          failure_code: string | null;
+          page_count: number;
+          extracted_page_count: number;
+          review_page_count: number;
+          failed_page_count: number;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      document_extracted_pages: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          extraction_run_id: string;
+          page_number: number;
+          status: string;
+          extraction_method: string;
+          extracted_text: string | null;
+          text_sha256: string | null;
+          failure_code: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       patient_accounts: {
         Row: {
           created_at: string;
@@ -1486,6 +1528,19 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      persist_document_text_extraction: {
+        Args: {
+          target_tenant: string;
+          target_document: string;
+          source_content_sha256: string;
+          extractor_name: string;
+          extractor_version: string;
+          pages: Json;
+          failure_code?: string | null;
+          target_processing_job?: string | null;
+        };
+        Returns: string;
+      };
       create_patient_for_care: {
         Args: {
           target_tenant: string;

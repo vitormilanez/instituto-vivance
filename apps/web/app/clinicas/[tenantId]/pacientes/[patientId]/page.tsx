@@ -18,6 +18,7 @@ import { CheckInError } from "@/modules/check-ins/service";
 import { staffLongitudinal } from "@/modules/longitudinal/service";
 import { DocumentError, staffDocuments } from "@/modules/documents/service";
 import { StaffPatientDocumentsPanel } from "@/components/documents-workspace";
+import { syntheticPilotDocumentIds } from "@/modules/exams/pilot";
 import {
   canInvitePatientToIntake,
   getPatientIntake,
@@ -298,6 +299,7 @@ export default async function Patient({
           <StaffPatientDocumentsPanel
             initial={documents}
             base={`${recordBase}?aba=Documentos`}
+            pilotDocumentIds={doctorView ? syntheticPilotDocumentIds() : []}
           />
         ) : active === "Linha do tempo" && longitudinal ? (
           <StaffLongitudinalWorkspace
