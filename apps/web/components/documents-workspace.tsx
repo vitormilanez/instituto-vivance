@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { maxDocumentBytes } from "@/modules/documents/validation";
@@ -398,21 +398,28 @@ function ExamTextPanel({ tenant, documentId, title, canExtract }: {
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [extraction, setExtraction] = useState<DocumentExtraction | null>(null);
+  const [job, setJob] = useState<{ status: string; attempt_count: number; max_attempts: number } | null>(null);
   const [error, setError] = useState("");
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (pollTimer.current) clearTimeout(pollTimer.current); }, []);
 
-  async function load() {
-    setBusy(true);
+  async function load(showBusy = true) {
+    if (showBusy) setBusy(true);
     setError("");
     try {
       const response = await fetch(endpoint, { cache: "no-store", signal: AbortSignal.timeout(20_000) });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível consultar o texto.");
       setExtraction(body.extraction ?? null);
+      setJob(body.job ?? null);
       setLoaded(true);
+      if (pollTimer.current) clearTimeout(pollTimer.current);
+      if (body.job?.status === "pending" || body.job?.status === "processing")
+        pollTimer.current = setTimeout(() => void load(false), 2500);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Não foi possível consultar o texto.");
     } finally {
-      setBusy(false);
+      if (showBusy) setBusy(false);
     }
   }
 
@@ -423,7 +430,7 @@ function ExamTextPanel({ tenant, documentId, title, canExtract }: {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(65_000),
+        signal: AbortSignal.timeout(20_000),
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível extrair o texto.");
@@ -436,7 +443,7 @@ function ExamTextPanel({ tenant, documentId, title, canExtract }: {
 
   return <section className="document-extraction-panel" aria-label={`Texto extraído de ${title}`}>
     <button type="button" className="secondary" disabled={busy} aria-expanded={open}
-      onClick={() => { setOpen(!open); if (!open && !loaded) void load(); }}>
+      onClick={() => { setOpen(!open); if (open && pollTimer.current) clearTimeout(pollTimer.current); if (!open) void load(); }}>
       {open ? "Fechar texto" : "Ver texto extraído"}
     </button>
     {open && <div className="document-extraction-content">
@@ -444,8 +451,12 @@ function ExamTextPanel({ tenant, documentId, title, canExtract }: {
       {busy && <p role="status">Lendo páginas…</p>}
       {error && <p role="alert">{error}</p>}
       {!busy && loaded && !extraction && <div>
-        <p>Este exame ainda não tem texto extraído.</p>
-        {canExtract && <button type="button" disabled={busy} onClick={() => void run()}>Extrair texto do PDF</button>}
+        {job?.status === "pending" || job?.status === "processing"
+          ? <p role="status">Extração na fila · tentativa {job.attempt_count} de {job.max_attempts}. A página atualiza o resultado automaticamente.</p>
+          : job?.status === "failed"
+            ? <p role="status">Não foi possível concluir o processamento automático. O original continua disponível para conferência.</p>
+            : <p>Este exame ainda não tem texto extraído.</p>}
+        {!job && canExtract && <button type="button" disabled={busy} onClick={() => void run()}>Extrair texto do PDF</button>}
       </div>}
       {!busy && extraction && <>
         {extraction.status === "failed"

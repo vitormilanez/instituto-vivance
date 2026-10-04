@@ -1542,6 +1542,36 @@ export type Database = {
         };
         Returns: string;
       };
+      enqueue_synthetic_exam_text_extraction: {
+        Args: { target_tenant: string; target_document: string };
+        Returns: string;
+      };
+      claim_next_exam_text_extraction_job: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          job_id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          attempt_count: number;
+          max_attempts: number;
+          lease_token: string;
+        }[];
+      };
+      persist_queued_document_text_extraction: {
+        Args: {
+          target_job: string;
+          target_lease: string;
+          target_tenant: string;
+          target_document: string;
+          source_content_sha256: string;
+          extractor_name: string;
+          extractor_version: string;
+          pages: Json;
+          failure_code?: string | null;
+        };
+        Returns: string;
+      };
       create_patient_for_care: {
         Args: {
           target_tenant: string;
