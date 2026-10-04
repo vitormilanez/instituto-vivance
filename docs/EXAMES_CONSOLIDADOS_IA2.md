@@ -1,6 +1,6 @@
 # Exames consolidados para o médico — contrato de produto
 
-**Estado:** direção de produto proposta pelo usuário em 03/10/2026; análise de formatos concluída; primeiro corte técnico em revisão no PR #78; aceite pendente. Este contrato não libera análise clínica por IA nem uso de dados reais em modelos.
+**Estado:** direção de produto proposta pelo usuário em 03/10/2026; análise de formatos concluída; migration IA2 aplicada no projeto de teste em 04/10; código do primeiro corte em revisão no PR #78; aceite pendente. Este contrato não libera análise clínica por IA nem uso de dados reais em modelos.
 
 ## Resultado esperado
 
@@ -105,4 +105,12 @@ Na continuação local, a própria RPC passou a exigir uma segunda autorização
 
 No slice de 04/10, o PDF de três páginas fornecido pelo usuário serviu como referência **local** para o problema de repetição. As duas primeiras páginas não têm o mesmo hash, apesar de terem texto quase idêntico; a única diferença observada foi um dígito. O extrator agora marca a segunda página como `requires_review` com `possible_duplicate_of_page = 1`, preservando ambos os textos e o original. Essa heurística é apenas um sinal de qualidade: o dígito pode representar um valor clínico, portanto ela não remove páginas nem suprime laudos/observações. Os testes versionados usam conteúdo inteiramente sintético; o PDF pessoal permanece fora do repositório e do banco.
 
-Este corte é **manual e síncrono**. O worker da fila, OCR, segmentação em laudos, observações estruturadas, Claude, consolidação dos resultados e revisão por observação ainda faltam. O hash é registrado na execução de extração; calcular e guardar o hash já no recebimento do arquivo é trabalho posterior. Os cinco PDFs reais do usuário não são usados em testes. Antes de habilitar o piloto, criar e autorizar PDFs inteiramente sintéticos, aplicar a migration no ambiente confirmado e validar o percurso autenticado e a negação entre pacientes.
+Este corte é **manual e síncrono**. O worker da fila, OCR, segmentação em laudos, observações estruturadas, Claude, consolidação dos resultados e revisão por observação ainda faltam. O hash é registrado na execução de extração; calcular e guardar o hash já no recebimento do arquivo é trabalho posterior. Os cinco PDFs reais do usuário não são usados em testes.
+
+### Preparação do piloto sintético — 04/10/2026
+
+A migration `20261004142437_ia2_document_text_extraction.sql` foi aplicada ao projeto confirmado `oxuwrdjojsmgxoljqkuk`, compartilhado com o app publicado. A lista privada `synthetic_exam_pilot_documents` segue vazia e as tabelas de extração não têm registros. O código novo continua apenas no PR de rascunho.
+
+O comando `cd apps/web && node scripts/build-synthetic-exam-fixture.mjs` cria `work/ia2-synthetic-exam.pdf` na raiz do checkout; `work/` é ignorado pelo Git. O PDF tem três páginas, todas marcadas como demonstração fictícia. O extrator local retornou páginas 1 e 3 como extraídas e página 2 como possível repetição da 1, sem descartá-la. A geração não usa os PDFs pessoais fornecidos pelo usuário.
+
+**Próximo passo operacional:** validar um Preview ligado ao projeto Vercel correto e à branch do PR; enviar o PDF sintético pelo fluxo normal, registrar exclusivamente o novo documento na lista privada e configurar `VIVANCE_EXAM_TEXT_PILOT=synthetic` e `VIVANCE_SYNTHETIC_EXAM_DOCUMENT_IDS` somente no Preview. Depois conferir extração, original, persistência e negações com sessões reais de médico e paciente. O conector Vercel respondeu `403` para a equipe nesta execução; no navegador autenticado o filtro da branch não encontrou Preview do PR #78. Nenhum deploy foi assumido a partir do `READY` do app publicado.
