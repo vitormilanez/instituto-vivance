@@ -115,6 +115,12 @@ Há identidade por clínica e papel, vínculo de cuidado, agenda, atendimento ve
 
 `READY`, HTTP 200 e migrations listadas são evidências técnicas delimitadas. Não comprovam a jornada completa, nem autorizam dados de saúde reais.
 
+## Exames consolidados — avaliação de entrada em 03/10/2026
+
+O usuário indicou a consolidação de exames enviados como primeira função de IA a desenvolver para o médico. Cinco PDFs locais, totalizando 31 páginas, foram lidos apenas para avaliação de formato: arquivo com múltiplos laudos e página repetida, três laudos narrativos de uma página e painel laboratorial extenso. Os arquivos e seus dados pessoais não foram incorporados ao repositório nem enviados a fornecedor.
+
+O [contrato de produto](EXAMES_CONSOLIDADOS_IA2.md) registra a proposta de tela, pipeline e aceites. **Estado:** análise e especificação; nenhum worker, observação extraída persistida, modelo conectado ou tela consolidada foi entregue nesta etapa. A fila `processing_jobs` existente não possui tipo específico de extração de exame; o IA1 do PR #64 segue em rascunho. As funções atuais de documentos, revisão humana e abertura do original permanecem disponíveis. Gate P continua aberto.
+
 ## Landing Virada 90 — 30/09/2026
 
 Publicação autorizada em `/virada90` no domínio Vivance para o Instituto
