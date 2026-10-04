@@ -454,7 +454,10 @@ function ExamTextPanel({ tenant, documentId, title, canExtract }: {
         <ol className="document-extraction-pages">
           {extraction.pages.map((page) => <li key={page.page_number}>
             <details>
-              <summary>Página {page.page_number} · {page.status === "extracted" ? "Texto disponível" : "Conferir no original"}</summary>
+              <summary>Página {page.page_number} · {page.possible_duplicate_of_page
+                ? `Possível repetição da página ${page.possible_duplicate_of_page}`
+                : page.status === "extracted" ? "Texto disponível" : "Conferir no original"}</summary>
+              {page.possible_duplicate_of_page && <p>As páginas são muito semelhantes. Ambas foram preservadas; confira se há alguma diferença clínica antes de considerar uma repetição.</p>}
               {page.extracted_text ? <pre>{page.extracted_text}</pre> : <p>Não foi encontrado texto selecionável nesta página.</p>}
               <a href={`${originalUrl}#page=${page.page_number}`} target="_blank" rel="noreferrer">Abrir página no PDF original</a>
             </details>

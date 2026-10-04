@@ -128,7 +128,7 @@ export async function documentExtraction(tenantInput: string, documentInput: str
   if (!run.data) return null;
   const pages = await client
     .from("document_extracted_pages")
-    .select("page_number,status,extraction_method,extracted_text,failure_code")
+    .select("page_number,status,extraction_method,extracted_text,possible_duplicate_of_page,failure_code")
     .eq("tenant_id", tenant)
     .eq("document_id", document)
     .eq("extraction_run_id", run.data.id)

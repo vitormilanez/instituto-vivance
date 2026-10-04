@@ -5,7 +5,7 @@ import { btree_gist } from "@electric-sql/pglite/contrib/btree_gist";
 import { before, after, test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 const db = new PGlite({ extensions: { btree_gist } });
 const a = randomUUID(),
@@ -4967,6 +4967,33 @@ test("exam text persistence requires an explicitly registered synthetic document
     await switchActor("doctor");
     const saved = await db.query<{ id: string }>(extraction, values);
     assert.equal(saved.rows.length, 1);
+    const firstText = "LAUDO SINTETICO A";
+    const secondText = "LAUDO SINTETICO B";
+    const pageHash = (value: string) => createHash("sha256").update(value).digest("hex");
+    const pages = [
+      {
+        page_number: 1, status: "extracted", extraction_method: "embedded_text",
+        extracted_text: firstText, text_sha256: pageHash(firstText),
+        possible_duplicate_of_page: null, failure_code: null,
+      },
+      {
+        page_number: 2, status: "requires_review", extraction_method: "embedded_text",
+        extracted_text: secondText, text_sha256: pageHash(secondText),
+        possible_duplicate_of_page: 1, failure_code: null,
+      },
+    ];
+    const reviewed = await db.query<{ id: string }>(extraction, [
+      a, document, "b".repeat(64), "synthetic-test", "1", JSON.stringify(pages), null,
+    ]);
+    assert.equal(reviewed.rows.length, 1);
+    assert.deepEqual((await db.query<{ status: string; review_page_count: number }>(
+      "select status,review_page_count from public.document_extraction_runs where id=$1",
+      [reviewed.rows[0].id],
+    )).rows, [{ status: "requires_review", review_page_count: 1 }]);
+    assert.equal((await db.query<{ possible_duplicate_of_page: number }>(
+      "select possible_duplicate_of_page from public.document_extracted_pages where extraction_run_id=$1 and page_number=2",
+      [reviewed.rows[0].id],
+    )).rows[0].possible_duplicate_of_page, 1);
     await switchActor("patient");
     assert.equal(
       (await db.query("select id from public.document_extraction_runs where document_id=$1", [document])).rows.length,

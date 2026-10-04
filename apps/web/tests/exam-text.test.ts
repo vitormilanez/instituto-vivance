@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { PDFDocument, StandardFonts } from "pdf-lib";
-import { extractEmbeddedPdfText } from "../modules/exams/text.ts";
+import { extractEmbeddedPdfText, markPossibleRepeatedPages, type ExtractedPage } from "../modules/exams/text.ts";
 
 test("extrai texto por página e sinaliza página sem texto para conferência", async () => {
   const pdf = await PDFDocument.create();
@@ -24,8 +24,34 @@ test("extrai texto por página e sinaliza página sem texto para conferência", 
     extracted_text: null,
     text_sha256: null,
     failure_code: null,
+    possible_duplicate_of_page: null,
   });
   assert.equal(result.sourceContentSha256.length, 64);
+});
+
+test("marca páginas quase iguais para revisão sem remover texto nem páginas", () => {
+  const first = Array.from({ length: 100 }, (_, index) =>
+    `SECAO SINTETICA ${index}: informacao ilustrativa da pagina ${index}.`).join("\n");
+  const second = first.replace("SECAO SINTETICA 57:", "SECAO SINTETICA 58:");
+  const third = Array.from({ length: 100 }, (_, index) =>
+    `OUTRO LAUDO ${index}: narrativa ilustrativa distinta ${index}.`).join("\n");
+  const pages: ExtractedPage[] = [first, second, third].map((text, index) => ({
+    page_number: index + 1,
+    status: "extracted",
+    extraction_method: "embedded_text",
+    extracted_text: text,
+    text_sha256: "a".repeat(64),
+    failure_code: null,
+    possible_duplicate_of_page: null,
+  }));
+  const result = markPossibleRepeatedPages(pages);
+  assert.equal(result.length, 3);
+  assert.equal(result[1].status, "requires_review");
+  assert.equal(result[1].possible_duplicate_of_page, 1);
+  assert.equal(result[1].extracted_text, second);
+  assert.equal(result[2].status, "extracted");
+  assert.equal(result[2].possible_duplicate_of_page, null);
+  assert.equal(pages[1].status, "extracted");
 });
 
 test("rejeita entrada que não é PDF", async () => {

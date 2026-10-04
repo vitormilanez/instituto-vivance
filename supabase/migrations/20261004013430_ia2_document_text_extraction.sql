@@ -200,6 +200,7 @@ create table public.document_extracted_pages (
   text_sha256 text check (
     text_sha256 is null or text_sha256 ~ '^[0-9a-f]{64}$'
   ),
+  possible_duplicate_of_page integer,
   failure_code text check (
     failure_code is null
     or (
@@ -220,6 +221,12 @@ create table public.document_extracted_pages (
   check (
     (extracted_text is null and text_sha256 is null)
     or (extracted_text is not null and text_sha256 is not null)
+  ),
+  check (
+    possible_duplicate_of_page is null
+    or (possible_duplicate_of_page between 1 and page_number - 1
+      and status = 'requires_review'
+      and extracted_text is not null)
   ),
   check (
     (status = 'extracted'
@@ -305,6 +312,7 @@ declare
   page_method text;
   page_text text;
   page_text_hash text;
+  page_possible_duplicate integer;
   page_failure_code text;
   page_number_value integer;
   page_count_value integer;
@@ -393,6 +401,7 @@ begin
           'extraction_method',
           'extracted_text',
           'text_sha256',
+          'possible_duplicate_of_page',
           'failure_code'
         )
       ) then
@@ -410,6 +419,12 @@ begin
     page_method := page->>'extraction_method';
     page_text := page->>'extracted_text';
     page_text_hash := lower(page->>'text_sha256');
+    begin
+      page_possible_duplicate := (page->>'possible_duplicate_of_page')::integer;
+    exception when invalid_text_representation or numeric_value_out_of_range then
+      raise exception 'Valid possible duplicate page required'
+        using errcode = '23514';
+    end;
     page_failure_code := page->>'failure_code';
 
     if page_number_value is null
@@ -427,6 +442,11 @@ begin
       or (page_failure_code is not null and (
         char_length(page_failure_code) not between 1 and 64
         or page_failure_code !~ '^[a-z0-9_]+$'
+      ))
+      or (page_possible_duplicate is not null and (
+        page_possible_duplicate not between 1 and page_number_value - 1
+        or page_status <> 'requires_review'
+        or page_text is null
       ))
       or (page_status = 'extracted' and (
         page_method = 'none'
@@ -457,6 +477,7 @@ begin
       'extraction_method', page_method,
       'extracted_text', page_text,
       'text_sha256', page_text_hash,
+      'possible_duplicate_of_page', page_possible_duplicate,
       'failure_code', page_failure_code
     ));
     extracted_count := extracted_count + (page_status = 'extracted')::integer;
@@ -527,6 +548,7 @@ begin
           'extraction_method', stored.extraction_method,
           'extracted_text', stored.extracted_text,
           'text_sha256', stored.text_sha256,
+          'possible_duplicate_of_page', stored.possible_duplicate_of_page,
           'failure_code', stored.failure_code
         ) order by stored.page_number
       ), '[]'::jsonb) into stored_pages
@@ -557,6 +579,7 @@ begin
     extraction_method,
     extracted_text,
     text_sha256,
+    possible_duplicate_of_page,
     failure_code
   )
   select
@@ -569,6 +592,7 @@ begin
     input.value->>'extraction_method',
     input.value->>'extracted_text',
     input.value->>'text_sha256',
+    (input.value->>'possible_duplicate_of_page')::integer,
     input.value->>'failure_code'
   from jsonb_array_elements(normalized_pages) as input(value);
 

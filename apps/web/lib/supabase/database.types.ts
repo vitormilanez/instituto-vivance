@@ -1102,6 +1102,7 @@ export type Database = {
           extraction_method: string;
           extracted_text: string | null;
           text_sha256: string | null;
+          possible_duplicate_of_page: number | null;
           failure_code: string | null;
           created_at: string;
         };

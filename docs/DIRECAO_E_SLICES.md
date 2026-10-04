@@ -1,6 +1,6 @@
 # Direção do Vivance e próximos slices
 
-Atualizado em 03/10/2026. Este é o plano vigente. O [estado técnico](STATUS_ATUAL.md) registra o que foi comprovado; o [plano de IA clínica](PLANO_IA_CLINICA.md) detalha essa frente.
+Atualizado em 04/10/2026. Este é o plano vigente. O [estado técnico](STATUS_ATUAL.md) registra o que foi comprovado; o [plano de IA clínica](PLANO_IA_CLINICA.md) detalha essa frente.
 
 ## Resultado que estamos construindo
 
@@ -116,6 +116,8 @@ O usuário priorizou uma visão única de todos os exames enviados para o médic
 Esta prioridade direciona o primeiro incremento de IA2 para extração estruturada e conferível em material sintético; a tela mostra resultados laboratoriais e conclusões textuais atribuídas aos laudos, com acesso ao original.
 
 **Sequência de IA2 iniciada em 03/10:** (1) fechar a base sintética com bloqueio no banco, migration e teste autenticado; (2) ligar a fila e o worker de extração, com falhas e repetição controlada; (3) estruturar laudos e observações com fornecedor aprovado no IA1; (4) completar a visão do médico e a revisão por item; (5) medir cobertura e erros em corpus sintético com a direção médica. O inventário de todos os arquivos e a fila de qualidade já estão implementados localmente no PR #78. Eles ainda não exibem resultados estruturados e não foram publicados.
+
+**Próximo corte em 04/10:** um dos PDFs fornecidos foi usado somente para testar o extrator local. Duas páginas têm texto quase igual, mas hashes distintos. O PR #78 agora marca a segunda como **possível repetição** e guarda o número da página anterior, sem eliminar página ou texto. Essa sinalização pede conferência; não equivale à deduplicação de laudos ou resultados. O arquivo pessoal não foi copiado para o repositório, banco ou modelo.
 
 **Decisão de persistência em 03/10:** conservar o binário original no Storage privado já existente e seu vínculo em `patient_documents`; acrescentar em migrations novas hash/versão, texto por página e laudos/observações com proveniência e RLS. Extrair texto antes de chamar Claude, usar OCR apenas quando necessário, estruturar uma vez por versão e servir a tela a partir do banco, sem chamada ao modelo a cada abertura. Os cinco exemplos pessoais seguem fora do projeto sintético até Gate P. A construção não representa IA ativa nem aceita. IA1, segurança do fornecedor, Gate P e validação clínica continuam governando qualquer uso de dados reais ou assistencial. RAG de fontes aprovadas permanece para IA3/IA4; MCP é uma possível interface futura para ferramentas autorizadas.
 

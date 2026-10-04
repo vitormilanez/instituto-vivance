@@ -1,6 +1,6 @@
 # Estado atual do Vivance
 
-Fotografia técnica iniciada entre 28 e 29/09/2026, com atualização de IA2 em 03/10. Para prioridades, leia
+Fotografia técnica iniciada entre 28 e 29/09/2026, com atualização de IA2 em 04/10. Para prioridades, leia
 [Direção e slices](DIRECAO_E_SLICES.md). Este arquivo não autoriza uso clínico.
 
 ## Resumo executivo — base de 29/09/2026, IA2 atualizada em 03/10
@@ -126,6 +126,8 @@ O [contrato de produto](EXAMES_CONSOLIDADOS_IA2.md) registra a proposta de tela,
 **Primeiro corte técnico em revisão no PR #78:** migration nova para execuções imutáveis e texto por página, parser PDF local, rota médica autenticada, bloqueio padrão com lista explícita de IDs sintéticos e painel recolhido por página com link para o original. Testes sintéticos focados, 428 testes do app, lint, typecheck e build passaram; a migration passou em PostgreSQL 15 isolado com idempotência, falha registrada, RLS e negação ao paciente. **Ainda não foi aplicada no Supabase remoto, não há worker, OCR, Claude, laudos/observações estruturados, consolidação final nem teste autenticado do fluxo completo.** Nada foi publicado ou aceito clinicamente.
 
 **Continuação local de IA2 em 03/10:** o PR #78 agora inclui uma visão compacta de todos os arquivos disponíveis na ficha do médico, independente da paginação de 20 itens da lista de Documentos. Ela reconcilia a última execução de extração por arquivo e mostra contagem de arquivos, exames, texto integral e itens a conferir, com acesso ao original. Ainda não há resultados laboratoriais ou laudos estruturados nessa visão. Antes da aplicação remota, a migration não aplicada recebeu uma lista privada, inicialmente vazia, de documentos sintéticos autorizados: a RPC de gravação recusa qualquer documento fora dela, mesmo se chamada diretamente. Testes locais cobriram 205 arquivos, a barreira do banco e negação ao paciente; typecheck, lint e build passaram. O projeto Supabase confirmado é `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), ativo e compartilhado com o aplicativo publicado; as 57 migrations anteriores estão presentes, mas a migration IA2 continua **não aplicada**. Não houve upload de PDF real, chamada ao Claude, teste autenticado no ambiente nem publicação.
+
+**PDF de referência local em 04/10:** o arquivo de três páginas fornecido pelo usuário foi lido pelo mesmo extrator do app, somente na máquina local. As páginas 1 e 2 têm texto muito semelhante, mas hashes distintos; a página 3 é diferente. O novo código sinaliza a página 2 como possível repetição da 1, conserva as três páginas e exige conferência antes de qualquer decisão de deduplicação. A migration ainda não aplicada guarda essa referência por página e a interface a mostra ao médico. Testes usam apenas texto sintético. Não houve importação do PDF ao repositório/Supabase, chamada ao Claude, estruturação de laudos ou aceite clínico.
 
 ## Landing Virada 90 — 30/09/2026
 
