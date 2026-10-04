@@ -30,6 +30,12 @@ As datas de coleta, realização, emissão e upload são campos diferentes. Os P
 
 O índice de observações é estruturado e consultável por paciente e clínica. RAG de diretrizes e MCP são integrações futuras; não são necessários para receber e organizar estes exames.
 
+## Experiência de envio pelo paciente
+
+Manter o envio múltiplo já existente, com nome original, tipo, tamanho, estado e erro por arquivo. O paciente não precisa conhecer o nome de cada analito nem separar um PDF de muitos painéis: envia o arquivo uma vez e recebe confirmação individual de recebimento. Nome do exame e data de realização podem ser sugeridos a partir do laudo, mas dados incertos não são gravados como fatos sem conferência. Não exigir que o paciente escolha um grupo clínico.
+
+O documento conserva a categoria escolhida no envio, mas o processamento examina o conteúdo elegível: um exame marcado equivocadamente como “documento clínico” deve aparecer para classificação/conferência, sem omissão silenciosa. Arquivo sem página, ilegível, repetido ou potencialmente de outro paciente mantém um estado explícito para a equipe; não é descartado automaticamente. O paciente vê o recebimento e o estado técnico do arquivo, sem receber interpretação gerada pela IA.
+
 ## Aba do médico
 
 A aba atual **Documentos** passa a oferecer uma visão de **Exames** para arquivos classificados como exame, mantendo os demais documentos e os originais acessíveis. Não adicionar outro nível de cartões dentro dos cartões do prontuário.
