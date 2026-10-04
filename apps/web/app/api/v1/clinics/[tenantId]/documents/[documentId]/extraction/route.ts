@@ -18,7 +18,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
       || state.job.status === "processing" && state.job.lease_expires_at
         && new Date(state.job.lease_expires_at).getTime() <= Date.now()
     ))
-      after(runOneSyntheticExamJob);
+      after(() => runOneSyntheticExamJob(tenantId, documentId));
     return json(state);
   } catch (error) {
     return apiError(error);
@@ -31,7 +31,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   try {
     const { tenantId, documentId } = await params;
     const queued = await enqueueDocumentText(tenantId, documentId);
-    after(runOneSyntheticExamJob);
+    after(() => runOneSyntheticExamJob(tenantId, documentId));
     return json(queued, 202);
   } catch (error) {
     return apiError(error);

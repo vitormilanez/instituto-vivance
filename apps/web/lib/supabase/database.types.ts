@@ -1558,6 +1558,43 @@ export type Database = {
           lease_token: string;
         }[];
       };
+      claim_doctor_exam_text_extraction_job: {
+        Args: { target_tenant: string; target_document: string };
+        Returns: {
+          job_id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          attempt_count: number;
+          max_attempts: number;
+          lease_token: string;
+        }[];
+      };
+      complete_doctor_exam_text_extraction_job: {
+        Args: { target_tenant: string; target_document: string; target_job: string; target_lease: string };
+        Returns: boolean;
+      };
+      fail_doctor_exam_text_extraction_job: {
+        Args: {
+          target_tenant: string; target_document: string; target_job: string;
+          target_lease: string; failure_code: string;
+        };
+        Returns: { status: string; available_at: string }[];
+      };
+      persist_doctor_exam_text_extraction: {
+        Args: {
+          target_job: string;
+          target_lease: string;
+          target_tenant: string;
+          target_document: string;
+          source_content_sha256: string;
+          extractor_name: string;
+          extractor_version: string;
+          pages: Json;
+          failure_code?: string | null;
+        };
+        Returns: string;
+      };
       persist_queued_document_text_extraction: {
         Args: {
           target_job: string;

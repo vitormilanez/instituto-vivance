@@ -1,26 +1,15 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { documentBucket, documentBytesMatch } from "@/modules/documents/validation";
+import { requireClinic } from "@/modules/identity/service";
 import { syntheticPilotAllows } from "./pilot";
 import { embeddedTextExtractor, extractEmbeddedPdfText, PdfTextError } from "./text";
 
-// Only the server can hold this key. Every claimed document is checked against
-// the Preview allowlist again; the database enforces its private allowlist too.
-function workerClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("Synthetic exam worker is not configured.");
-  return createClient<Database>(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: { fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }) },
-  });
-}
-
 type ClaimedJob = Database["public"]["Functions"]["claim_next_exam_text_extraction_job"]["Returns"][number];
+type WorkerClient = Awaited<ReturnType<typeof requireClinic>>["client"];
 
-async function processClaim(client: ReturnType<typeof workerClient>, job: ClaimedJob) {
+async function processClaim(client: WorkerClient, job: ClaimedJob) {
   if (!syntheticPilotAllows(job.document_id)) return "permanent" as const;
   const source = await client.from("patient_documents")
     .select("id,patient_id,storage_path,byte_size,content_type")
@@ -56,7 +45,7 @@ async function processClaim(client: ReturnType<typeof workerClient>, job: Claime
       : error instanceof Error && error.name === "InvalidPDFException" ? "invalid_pdf" : null;
     if (!failureCode) return "retryable" as const;
   }
-  const saved = await client.rpc("persist_queued_document_text_extraction", {
+  const saved = await client.rpc("persist_doctor_exam_text_extraction", {
     target_job: job.job_id,
     target_lease: job.lease_token,
     target_tenant: job.tenant_id,
@@ -71,22 +60,30 @@ async function processClaim(client: ReturnType<typeof workerClient>, job: Claime
   return "completed" as const;
 }
 
-export async function runOneSyntheticExamJob() {
+export async function runOneSyntheticExamJob(tenant: string, document: string) {
   if (process.env.VIVANCE_EXAM_TEXT_PILOT !== "synthetic"
-    || process.env.VERCEL_ENV !== "preview" && process.env.NODE_ENV !== "development")
+    || process.env.VERCEL_ENV !== "preview" && process.env.NODE_ENV !== "development"
+    || !syntheticPilotAllows(document))
     return;
-  const client = workerClient();
-  const claimed = await client.rpc("claim_next_exam_text_extraction_job");
-  if (claimed.error || !claimed.data?.length) return;
-  const job = claimed.data[0];
-  let outcome: "completed" | "retryable" | "permanent" = "retryable";
-  try { outcome = await processClaim(client, job); } catch { /* No source text in logs. */ }
-  if (outcome === "completed")
-    await client.rpc("complete_processing_job", { target_job: job.job_id, target_lease: job.lease_token });
-  else
-    await client.rpc("fail_processing_job", {
-      target_job: job.job_id,
-      target_lease: job.lease_token,
-      failure_code: outcome,
+  try {
+    const { client } = await requireClinic(tenant, ["doctor"]);
+    const claimed = await client.rpc("claim_doctor_exam_text_extraction_job", {
+      target_tenant: tenant, target_document: document,
     });
+    if (claimed.error || !claimed.data?.length) return;
+    const job = claimed.data[0];
+    let outcome: "completed" | "retryable" | "permanent" = "retryable";
+    try { outcome = await processClaim(client, job); } catch { /* No source text in logs. */ }
+    if (outcome === "completed")
+      await client.rpc("complete_doctor_exam_text_extraction_job", {
+        target_tenant: tenant, target_document: document,
+        target_job: job.job_id, target_lease: job.lease_token,
+      });
+    else
+      await client.rpc("fail_doctor_exam_text_extraction_job", {
+        target_tenant: tenant, target_document: document,
+        target_job: job.job_id, target_lease: job.lease_token,
+        failure_code: outcome,
+      });
+  } catch { /* Auth changes or transient failures leave the lease recoverable. */ }
 }

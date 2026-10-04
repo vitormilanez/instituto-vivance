@@ -5000,20 +5000,21 @@ test("exam text persistence requires an explicitly registered synthetic document
     assert.equal(firstJob.rows[0].id, repeatedJob.rows[0].id);
     await switchActor("patient");
     await denied(enqueue, [a, document]);
-    await db.exec("set local role service_role");
-    await db.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({ role: "service_role" })]);
+    await denied("select * from public.claim_doctor_exam_text_extraction_job($1,$2)", [a, document]);
+    await switchActor("doctor");
     const claim = await db.query<{ job_id: string; document_id: string; lease_token: string }>(
-      "select * from public.claim_next_exam_text_extraction_job()",
+      "select * from public.claim_doctor_exam_text_extraction_job($1,$2)", [a, document],
     );
     assert.equal(claim.rows[0].job_id, firstJob.rows[0].id);
     assert.equal(claim.rows[0].document_id, document);
-    const persistQueued = "select public.persist_queued_document_text_extraction($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9) id";
+    const persistQueued = "select public.persist_doctor_exam_text_extraction($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9) id";
     const queuedValues = [firstJob.rows[0].id, claim.rows[0].lease_token, a, document,
       "c".repeat(64), "synthetic-test", "1", JSON.stringify(pages), null];
     await denied(persistQueued, [firstJob.rows[0].id, randomUUID(), ...queuedValues.slice(2)]);
     const queuedRun = await db.query<{ id: string }>(persistQueued, queuedValues);
     assert.equal(queuedRun.rows.length, 1);
-    await db.query("select public.complete_processing_job($1,$2)", [firstJob.rows[0].id, claim.rows[0].lease_token]);
+    await db.query("select public.complete_doctor_exam_text_extraction_job($1,$2,$3,$4)",
+      [a, document, firstJob.rows[0].id, claim.rows[0].lease_token]);
     await denied(persistQueued, queuedValues);
     await switchActor("patient");
     assert.equal(
