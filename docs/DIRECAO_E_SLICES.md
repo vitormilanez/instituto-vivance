@@ -112,7 +112,9 @@ Cada slice entrega contrato, migrations versionadas quando necessárias, testes 
 
 O usuário priorizou uma visão única de todos os exames enviados para o médico, evitando a abertura sequencial de PDFs. A análise local de cinco exemplos mostrou laudos numéricos extensos, laudos narrativos e mais de um exame no mesmo arquivo. O [contrato de produto](EXAMES_CONSOLIDADOS_IA2.md) define recebimento, segmentação, proveniência, tela, conferência médica e critérios de aceite sem incorporar dados pessoais dos exemplos.
 
-Esta prioridade direciona o primeiro incremento de IA2 para extração estruturada e conferível em material sintético; a tela mostra resultados laboratoriais e conclusões textuais atribuídas aos laudos, com acesso ao original. A construção não representa IA ativa nem aceita. IA1, segurança do fornecedor, Gate P e validação clínica continuam governando qualquer uso de dados reais ou assistencial. RAG de fontes aprovadas permanece para IA3/IA4; MCP é uma possível interface futura para ferramentas autorizadas.
+Esta prioridade direciona o primeiro incremento de IA2 para extração estruturada e conferível em material sintético; a tela mostra resultados laboratoriais e conclusões textuais atribuídas aos laudos, com acesso ao original.
+
+**Decisão de persistência em 03/10:** conservar o binário original no Storage privado já existente e seu vínculo em `patient_documents`; acrescentar em migrations novas hash/versão, texto por página e laudos/observações com proveniência e RLS. Extrair texto antes de chamar Claude, usar OCR apenas quando necessário, estruturar uma vez por versão e servir a tela a partir do banco, sem chamada ao modelo a cada abertura. Os cinco exemplos pessoais seguem fora do projeto sintético até Gate P. A construção não representa IA ativa nem aceita. IA1, segurança do fornecedor, Gate P e validação clínica continuam governando qualquer uso de dados reais ou assistencial. RAG de fontes aprovadas permanece para IA3/IA4; MCP é uma possível interface futura para ferramentas autorizadas.
 
 ## Landing Virada 90 — 30/09/2026
 
