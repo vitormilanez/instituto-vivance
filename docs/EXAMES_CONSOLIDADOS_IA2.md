@@ -18,6 +18,19 @@ Cinco PDFs fornecidos pelo usuário foram inspecionados **localmente**, somente 
 
 As datas de coleta, realização, emissão e upload são campos diferentes. Os PDFs também contêm notas metodológicas e avisos de comparabilidade que não podem desaparecer no resumo.
 
+## Persistência do original, texto e custo de IA
+
+| Camada | Onde fica | Situação |
+| --- | --- | --- |
+| Arquivo original (PDF ou imagem) | Bucket privado `vivance-documents` no Supabase Storage, referenciado por `patient_documents.storage_path`. | O fluxo de documentos já existe. O binário não precisa ser duplicado como BLOB no PostgreSQL. |
+| Metadados e vínculo | `patient_documents`: clínica, paciente, remetente, nome, MIME, tamanho, categoria, visibilidade e estado. | Já existe; hash do conteúdo, versão e reconciliação por página exigem evolução versionada do schema. |
+| Texto extraído | Nova persistência privada, por documento, versão, página e execução de extração, com texto, método, estado e proveniência. | A construir; não substituir o PDF original nem expor texto bruto em listagens públicas ou logs. |
+| Laudos e observações | Novas entidades vinculadas à página e ao trecho do texto, com valores literais, unidades e notas do emissor. | A construir; toda interpretação e correção humana ficam em versões próprias e auditáveis. |
+
+O recebimento confirma a gravação do original antes de criar a tarefa de extração. O worker extrai o texto localmente quando o PDF permite; aplica OCR apenas às páginas sem texto legível; usa Claude apenas na etapa delimitada de estruturação, com contexto mínimo necessário e saída verificável. Páginas incertas podem exigir leitura visual ou revisão humana. Registrar versão do extrator, versão do prompt/modelo, consumo de tokens e falhas por execução, sem registrar conteúdo clínico em telemetria. Identificar o arquivo por hash para evitar cobrança e observações duplicadas no reprocessamento; mudança de versão gera nova execução sem apagar original ou revisão médica.
+
+Abrir a aba do médico lê dados persistidos e **não chama o modelo**. O texto serve à busca e à conferência de cobertura; só as observações validadas entram na visão clínica. Definir retenção e acesso ao texto no IA1, com as mesmas restrições de paciente, clínica e papel dos originais. Nenhum dos cinco PDFs pessoais usados na avaliação foi importado para o ambiente temporário `instituto-vivance-dev`; importação de dados reais depende do Gate P e da decisão de fornecedor/privacidade do IA1.
+
 ## Modelo de recebimento
 
 1. Preservar cada arquivo original no Storage privado, com hash, tamanho, tipo, remetente, paciente, clínica, data de upload e versão. O processamento só começa quando o arquivo estiver disponível e o vínculo autorizado for confirmado.
