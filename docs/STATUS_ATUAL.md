@@ -159,3 +159,30 @@ Pulse `/integration` foi consultado na sessão autenticada: Webhooks incluem
 mensagens recebidas; widget registra origem da visita. Nenhuma configuração
 foi alterada. Recebimento no Google, conversão primária da campanha e integração
 de conversa efetiva no CRM não foram validados.
+
+### Conversa recebida no Pulse — preparação em 03/10/2026
+
+Acesso ao Pulse e ao projeto `vtr-consulting/instituto-vivance` pela CLI
+Vercel conferido. O novo webhook permite selecionar Mensagem recebida; os
+dois webhooks ativos de eventos de contato e o webhook inativo existente
+não foram modificados. Em 05/10, o acesso de `vitor.milanezz@gmail.com` à
+conta Google Ads do médico (`421-617-2711`) foi confirmado; a ação existente
+`Clique no WhatsApp` é de site, principal e apresenta diagnóstico de
+configuração incorreta. Não há ação de conversa recebida entre as ações
+filtradas por WhatsApp. O assistente de ação off-line foi examinado sem
+concluir a declaração de dados nem criar conversão.
+[Contrato e requisitos](virada90/CONVERSAO_PULSE.md) registrados na branch
+`codex/virada90-pulse-conversations-20261003`. Nenhuma implementação,
+importação, migration ou publicação ocorreu neste slice. A próxima
+dependência é obter contrato/autenticação do evento `Mensagem recebida` no
+Pulse e armazenamento próprio de atribuição; o projeto clínico sintético não
+será usado.
+Em 05/10, o projeto dedicado `virada-90-attribution` foi criado na conta
+Google pessoal de Vitor (sem organização, número `1032696782997`). A
+Data Manager API não está ativada; a tela exige aceite dos Termos de Serviço
+das APIs do Google. O acesso do médico, as credenciais e a importação continuam
+pendentes. O widget Pulse legado `Larissa - Closer` confirma que a instância
+e725c7 usa o número `(18) 99755-1234` da landing, mas a landing usa `wa.me`
+direto, sem o rastreamento do widget. O Console ativou automaticamente a API
+Firestore ao abrir sua lista de bancos; nenhum banco foi criado, e a Data
+Manager API permanece desativada. Nenhuma mensagem de teste foi enviada.

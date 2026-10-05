@@ -146,3 +146,23 @@ Medição pública publicada pelo PR #76 (`a97f94d`), com verificação da main 
 promoção manual do deployment `dpl_GG3xheoUfPTYcjjoxfCz2kHbxVxy`.
 [Evidências e limites](virada90/releases/2026-10-03/README.md). A confirmação
 de recebimento no Google e a configuração da campanha não foram validadas.
+
+### Conversa efetiva no Pulse — preparação em 03/10/2026
+
+Configuração solicitada pelo usuário. [Contrato e acessos](virada90/CONVERSAO_PULSE.md):
+referência consentida da visita ao WhatsApp, evento de mensagem recebida,
+deduplicação e importação de conversão separada. Pulse e CLI Vercel estão
+acessíveis. Em 05/10, o acesso à conta Google Ads **CA - Dr. Guilherme
+Martins** (`421-617-2711`) foi confirmado. Ações existentes de WhatsApp
+medem cliques, não a conversa recebida; a criação de uma ação off-line
+separada foi examinada, mas não concluída por faltar receptor validado,
+projeto/credencial Data Manager e revisão da declaração de dados do Google.
+Os webhooks existentes foram preservados. Receptor, armazenamento, credenciais
+de servidor, ação Google e teste de atribuição ainda não foram implementados
+ou ativados. Não usar o banco clínico de testes para guardar conversas reais.
+Em 05/10, foi criado `virada-90-attribution` sob a conta Google de Vitor,
+sem organização. A Data Manager API ainda não foi ativada e o médico ainda
+não recebeu acesso. A tela do Firestore ativou automaticamente sua API, mas
+nenhum banco foi criado. O widget Pulse existente confirma que o número da
+landing pertence à instância e725c7; os links `wa.me` não usam o rastreamento
+desse widget.
