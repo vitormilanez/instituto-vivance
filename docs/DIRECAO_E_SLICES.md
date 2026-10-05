@@ -161,8 +161,10 @@ Os webhooks existentes foram preservados. Receptor, armazenamento, credenciais
 de servidor, ação Google e teste de atribuição ainda não foram implementados
 ou ativados. Não usar o banco clínico de testes para guardar conversas reais.
 Em 05/10, foi criado `virada-90-attribution` sob a conta Google de Vitor,
-sem organização. A Data Manager API ainda não foi ativada e o médico ainda
-não recebeu acesso. A tela do Firestore ativou automaticamente sua API, mas
+sem organização. A Data Manager API foi ativada, e o IAM do projeto confirma
+`guilhe.martins@gmail.com` e `vitor.milanezz@gmail.com` como Proprietários.
+Isso não cria credenciais de servidor nem importa conversões. A tela do
+Firestore ativou automaticamente sua API, mas
 nenhum banco foi criado. O widget Pulse existente confirma que o número da
 landing pertence à instância e725c7; os links `wa.me` não usam o rastreamento
 desse widget.

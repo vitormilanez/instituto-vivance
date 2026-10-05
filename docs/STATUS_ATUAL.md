@@ -179,10 +179,11 @@ Pulse e armazenamento próprio de atribuição; o projeto clínico sintético n�
 será usado.
 Em 05/10, o projeto dedicado `virada-90-attribution` foi criado na conta
 Google pessoal de Vitor (sem organização, número `1032696782997`). A
-Data Manager API não está ativada; a tela exige aceite dos Termos de Serviço
-das APIs do Google. O acesso do médico, as credenciais e a importação continuam
-pendentes. O widget Pulse legado `Larissa - Closer` confirma que a instância
+Data Manager API foi ativada com autorização do usuário, e o IAM mostra
+`guilhe.martins@gmail.com` e `vitor.milanezz@gmail.com` como Proprietários.
+Credenciais de servidor e importação continuam pendentes. O widget Pulse
+legado `Larissa - Closer` confirma que a instância
 e725c7 usa o número `(18) 99755-1234` da landing, mas a landing usa `wa.me`
 direto, sem o rastreamento do widget. O Console ativou automaticamente a API
-Firestore ao abrir sua lista de bancos; nenhum banco foi criado, e a Data
-Manager API permanece desativada. Nenhuma mensagem de teste foi enviada.
+Firestore ao abrir sua lista de bancos; nenhum banco foi criado. Nenhuma
+mensagem de teste foi enviada.

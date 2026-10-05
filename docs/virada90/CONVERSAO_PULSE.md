@@ -35,10 +35,11 @@ implementada, webhook ativado ou conversão importada.
 - Google Cloud: no navegador de `vitor.milanezz@gmail.com`, não apareceu
   projeto dedicado ao Vivance/Instituto. Em 05/10 foi criado o projeto
   **Virada 90 Attribution** (`virada-90-attribution`, número `1032696782997`)
-  sob **Nenhuma organização**, na conta de Vitor. A Data Manager API permanece
-  desativada; a tela de ativação informa que o uso implica aceitar os Termos
-  de Serviço das APIs do Google. O acesso de `guilhe.martins@gmail.com` ainda
-  não foi concedido. O `gcloud` local está autenticado em outra conta/projeto
+  sob **Nenhuma organização**, na conta de Vitor. Em 05/10, a Data Manager API
+  foi ativada com autorização do usuário. O IAM do projeto confirma
+  `guilhe.martins@gmail.com` e `vitor.milanezz@gmail.com` como Proprietários;
+  a política foi atualizada e pode levar alguns minutos para propagar. O
+  `gcloud` local está autenticado em outra conta/projeto
   (Autisfera) com sessão expirada e não foi usado para mutação.
 - A interface do Firestore tentou ativar automaticamente a API Firestore ao
   abrir sua lista de bancos e mostrou uma confirmação de API ativada. Não há
@@ -92,8 +93,9 @@ o contato funciona, mas não se promete atribuição ao anúncio.
 ## Acesso resolvido e próxima etapa
 
 O acesso humano ao Google Ads foi resolvido. O projeto Cloud dedicado existe,
-mas a autorização de servidor da Data Manager API ainda exige ativação,
-credenciais próprias/autorizadas e acesso à conta de destino. O formulário Pulse confirma
+com Data Manager API ativa e os dois Proprietários conferidos no IAM, mas a
+autorização de servidor ainda exige credenciais próprias/autorizadas e acesso
+à conta de destino. O formulário Pulse confirma
 **Mensagem recebida** e exige apenas nome, URL e seleção de eventos; não
 documenta ali assinatura, cabeçalhos, retries nem schema. Nenhum webhook foi
 criado ou ativado. Antes de conectar, obter contrato/payload de teste do Pulse
