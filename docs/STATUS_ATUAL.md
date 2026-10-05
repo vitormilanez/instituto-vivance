@@ -172,11 +172,14 @@ configuração incorreta. Não há ação de conversa recebida entre as ações
 filtradas por WhatsApp. O assistente de ação off-line foi examinado sem
 concluir a declaração de dados nem criar conversão.
 [Contrato e requisitos](virada90/CONVERSAO_PULSE.md) registrados na branch
-`codex/virada90-pulse-conversations-20261003`. Nenhuma implementação,
-importação, migration ou publicação ocorreu neste slice. A próxima
-dependência é obter contrato/autenticação do evento `Mensagem recebida` no
-Pulse e armazenamento próprio de atribuição; o projeto clínico sintético não
-será usado.
+`codex/virada90-pulse-conversations-20261003`. Em 05/10 foi preparado um
+adaptador **candidato e local** para selecionar um evento `MESSAGE_RECEIVED`
+com referência de campanha, sem reter texto ou identidade; teste sintético,
+typecheck e lint passaram. O formato de `content` foi inferido da API de
+mensagens WTS e ainda precisa ser validado com um payload fictício da conta
+Pulse. Nenhuma rota pública, importação, migration ou publicação ocorreu neste
+slice. A próxima dependência é confirmar schema/autenticação e armazenamento
+próprio de atribuição; o projeto clínico sintético não será usado.
 Em 05/10, o projeto dedicado `virada-90-attribution` foi criado na conta
 Google pessoal de Vitor (sem organização, número `1032696782997`). A
 Data Manager API foi ativada com autorização do usuário, e o IAM mostra

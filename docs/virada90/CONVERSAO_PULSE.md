@@ -108,6 +108,40 @@ inadequado, falhas/retries e ausência de dados de saúde. Testes locais usam
 dados sintéticos; importação em validação não comprova atribuição em anúncio.
 Ativação e teste de mensagem efetivamente recebida ficam pendentes.
 
+## Contrato do evento — investigação em 05/10/2026
+
+O usuário informou que representa a equipe Pulse e pode decidir a configuração
+do lado dessa conta. A [documentação de webhooks da plataforma WTS](https://docs.dyamante.com.br/reference/webhooks-1)
+descreve `POST` com `application/json` e envelope `eventType`, `date` e
+`content`. A [lista de eventos](https://docs.dyamante.com.br/reference/get_v1-webhook-event.md)
+inclui `MESSAGE_RECEIVED`. A tela autenticada de novo webhook no Pulse oferece
+nome, URL e seleção de **Mensagem recebida**, sem campo visível para cabeçalho
+secreto, assinatura ou evento de teste. A documentação consultada não especifica
+o `content` desse evento, a autenticação da chamada nem a política de tentativas.
+Essas páginas WTS são referência para investigar a instalação Pulse; a
+equivalência do payload nesta conta ainda precisa ser confirmada por um exemplo
+fictício ou anonimizado fornecido pela equipe.
+
+O módulo `apps/web/modules/virada90/pulse-event.ts` é um **adaptador candidato,
+somente local**. Ele aceita a forma da [API de mensagens](https://docs.dyamante.com.br/reference/get_v1-message-id.md)
+como hipótese para `content`, exige evento de entrada `TO_HUB`, texto com
+referência `V90-...` e ID de mensagem válido; a saída contém só referência,
+ID e horário. Não grava nem encaminha texto, telefone, nome ou anexo. Um
+teste sintético comprova a seleção e a exclusão de eventos incompatíveis;
+**não comprova que o webhook real use esse schema**. Nenhuma rota pública,
+assinatura Pulse, persistência ou importação Ads foi adicionada.
+
+Decisão operacional para o próximo passo: usar assinatura exclusiva de
+**Mensagem recebida**, não modificar os webhooks existentes, exigir segredo
+aleatório de alta entropia no caminho da URL do receptor caso o Pulse não
+suporte assinatura/cabeçalho, limitar tamanho e tipo do corpo, e aplicar
+restrição de origem de rede apenas como defesa adicional após confirmar o IP
+do emissor. Nunca confiar somente em `X-Forwarded-For`. O receptor deve
+responder de forma idempotente e guardar exclusivamente os campos mínimos de
+atribuição em armazenamento separado. Antes de ativá-lo, validar o contrato
+com carga sintética, revisar a coleta de dados/consentimento e concluir o
+Gate P aplicável a mensagens reais de saúde.
+
 Fontes oficiais consultadas em 03–05/10/2026:
 [níveis de acesso Google Ads](https://support.google.com/google-ads/answer/9978556),
 [importação de eventos](https://developers.google.com/data-manager/api/devguides/events/google-ads/offline/send-events),

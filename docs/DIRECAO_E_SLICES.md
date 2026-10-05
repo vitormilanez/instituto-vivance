@@ -160,6 +160,12 @@ projeto/credencial Data Manager e revisão da declaração de dados do Google.
 Os webhooks existentes foram preservados. Receptor, armazenamento, credenciais
 de servidor, ação Google e teste de atribuição ainda não foram implementados
 ou ativados. Não usar o banco clínico de testes para guardar conversas reais.
+Em 05/10, com o usuário atuando como equipe Pulse, ficou definido preparar uma
+assinatura exclusiva de **Mensagem recebida** e validar o contrato com evento
+fictício antes de ativá-la. Foi criado apenas um adaptador candidato local que
+extrai ID, horário e referência, com teste sintético; o schema real de
+`content` e a autenticação ainda dependem de confirmação. Sem receptor público
+ou ingestão de conversa real nesta etapa.
 Em 05/10, foi criado `virada-90-attribution` sob a conta Google de Vitor,
 sem organização. A Data Manager API foi ativada, e o IAM do projeto confirma
 `guilhe.martins@gmail.com` e `vitor.milanezz@gmail.com` como Proprietários.
