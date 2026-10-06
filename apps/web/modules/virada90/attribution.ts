@@ -59,7 +59,7 @@ export function buildAdsReceivedRequest(
       adIdentifiers: { [opportunity.click.kind]: opportunity.click.value },
       eventTimestamp: new Date(opportunity.receivedAt).toISOString(),
       transactionId: opportunity.reference,
-      eventSource: 'WEB',
+      eventSource: 'MESSAGE',
       consent: { adUserData: 'CONSENT_GRANTED', adPersonalization: 'CONSENT_DENIED' }
     }],
     validateOnly

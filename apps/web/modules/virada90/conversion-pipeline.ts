@@ -9,6 +9,8 @@ export type ConsentedOpportunity = {
   consent: 'granted' | 'revoked';
 };
 
+export type ClaimedOpportunity = ConsentedOpportunity & { leaseId: string };
+
 /** Implementations must atomically claim the first inbound event per reference. */
 export type ConversionStore = {
   /** Returns false only when the generated reference already exists. */
@@ -17,15 +19,16 @@ export type ConversionStore = {
   revokeOpportunity(reference: string): Promise<boolean>;
   /**
    * Atomically records the first inbound message and leases it for submission.
-   * A retry of that same message may return the opportunity again until it is
-   * submitted; later messages for the reference must always return null.
+   * A retry of that same message may return the opportunity after its lease
+   * expires; later messages for the reference must always return null.
+   * A busy lease throws so the webhook receives a retryable response.
    */
   claimFirstReceived(input: {
     reference: string;
     messageId: string;
     receivedAt: string;
-  }): Promise<ConsentedOpportunity | null>;
-  markSubmitted(reference: string, requestId: string): Promise<void>;
+  }): Promise<ClaimedOpportunity | null>;
+  markSubmitted(reference: string, leaseId: string, requestId: string): Promise<void>;
 };
 
 export type AdsUploader = (request: ReturnType<typeof buildAdsReceivedRequest>) => Promise<string>;
@@ -66,6 +69,6 @@ export async function processPulseReceivedEvent(
   });
   const requestId = await dependencies.upload(request);
   // A Data Manager request ID confirms submission, not attributed conversion.
-  await dependencies.store.markSubmitted(opportunity.reference, requestId);
+  await dependencies.store.markSubmitted(opportunity.reference, opportunity.leaseId, requestId);
   return 'submitted';
 }

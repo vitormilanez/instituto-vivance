@@ -211,3 +211,14 @@ somente às duas rotas da campanha; uma checagem local sem Supabase confirmou
 essas respostas. Os 442 testes, lint, tipos e build passaram. Ainda faltam
 armazenamento independente, identidade/autorização de servidor, contrato real
 Pulse, ação Ads e Gate P antes de receber mensagens reais nessa integração.
+
+Em 06/10, foi criado o Firestore `(default)` vazio no projeto dedicado
+`virada-90-attribution`, edição Standard, região São Paulo e regras de acesso
+direto restritivas. O PR #79 passou a incluir persistência REST com atualização
+condicional, lease para a primeira mensagem, revogação e deduplicação, além do
+provedor de token federado Vercel → Google sem chave estática. Os testes são
+sintéticos: não há identidade/IAM da aplicação configurados, documentos no
+banco, rotina de limpeza, webhook Pulse ativo, ação Ads off-line, importação
+nem conversão atribuída. A investigação do Pulse não encontrou teste isolado,
+replay ou filtro de remetente para `MESSAGE_RECEIVED`; o canal comercial segue
+desconectado do receptor até contrato fictício, retenção e Gate P.

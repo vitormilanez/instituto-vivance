@@ -237,3 +237,41 @@ Fontes oficiais consultadas em 03–05/10/2026:
 [níveis de acesso Google Ads](https://support.google.com/google-ads/answer/9978556),
 [importação de eventos](https://developers.google.com/data-manager/api/devguides/events/google-ads/offline/send-events),
 [acesso à API](https://developers.google.com/data-manager/api/devguides/quickstart/set-up-access).
+
+### Armazenamento dedicado e teste de concorrência — 06/10/2026
+
+No projeto Cloud dedicado `virada-90-attribution`, foi criado o primeiro banco
+Firestore `(default)`, edição Standard, em `southamerica-east1` (São Paulo),
+com regras de acesso direto restritivas. O banco está vazio; nenhuma conversa,
+telefone, nome ou identificador de clique real foi gravado. Há cota gratuita
+para o primeiro banco, mas uso acima da cota e TTL gerenciado podem gerar
+cobrança. A região não pode ser alterada após a criação.
+
+O PR #79 agora inclui `firestore-store.ts`: escrita com ID opaco, atualização
+condicional pela versão do documento, lease de cinco minutos para a primeira
+mensagem, revogação e remoção do clique após submissão. Repetição enquanto o
+lease está ativo solicita retentativa; outra mensagem não reivindica a
+referência. O `transactionId` enviado ao Google permanece a referência.
+Testes sintéticos cobrem duplicata, concorrência, perda de lease, revogação e
+expiração. `google-oidc.ts` prepara autenticação federada sem chave persistente
+entre Vercel e Google Cloud. **Nenhuma dessas peças foi conectada ao runtime
+ativo ou exercitada contra o Firestore real.**
+
+Nova inspeção do Pulse confirmou que o formulário e a API pública da
+assinatura só aceitam nome, URL, estado e eventos. Não há disparo sintético,
+replay, filtro de remetente/canal nem cabeçalho secreto documentado. Seu
+histórico de entrega não fornece contrato de payload sem inspecionar mensagens
+reais. A assinatura `MESSAGE_RECEIVED` do canal comercial segue inativa:
+ligá-la agora poderia encaminhar relatos de outras pessoas ao receptor antes
+de validar isolamento e o [Gate P](../GATE_P.md).
+
+Para ativar depois ainda faltam identidade federada e IAM mínimos para o
+serviço, limpeza dos documentos expirados, contrato/autenticação do evento
+Pulse com carga fictícia isolada, ação off-line secundária após revisão da
+declaração de dados do Google Ads, e teste de importação e diagnóstico. A flag
+sozinha continua incapaz de ativar o receptor. Não mudar a meta principal da
+campanha antes de comprovar a conversa recebida e atribuída.
+
+Fontes técnicas: [API REST do Firestore](https://docs.cloud.google.com/firestore/docs/reference/rest/v1/projects.databases.documents/patch),
+[Vercel OIDC para GCP](https://vercel.com/docs/oidc/gcp) e
+[conta de serviço no Data Manager](https://developers.google.com/data-manager/api/devguides/quickstart/set-up-access).

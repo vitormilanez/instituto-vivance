@@ -29,10 +29,11 @@ test('claims and uploads only the first consented received message', async () =>
     async claimFirstReceived() {
       if (claimed) return null;
       claimed = true;
-      return base;
+      return { ...base, leaseId: 'synthetic-lease' };
     },
-    async markSubmitted(ref, requestId) {
+    async markSubmitted(ref, leaseId, requestId) {
       assert.equal(ref, reference);
+      assert.equal(leaseId, 'synthetic-lease');
       assert.equal(requestId, 'synthetic-request');
     }
   };
@@ -59,7 +60,7 @@ test('does not upload a revoked or expired reference or an unrelated event', asy
       store: {
         async createOpportunity() { throw new Error('unexpected'); },
         async revokeOpportunity() { throw new Error('unexpected'); },
-        async claimFirstReceived() { return opportunity; },
+        async claimFirstReceived() { return { ...opportunity, leaseId: 'synthetic-lease' }; },
         async markSubmitted() { throw new Error('unexpected'); }
       },
       async upload() { uploaded = true; return 'unexpected'; },

@@ -27,7 +27,7 @@ function runtime(overrides: Partial<Virada90Runtime> = {}) {
   const store: ConversionStore = {
     async createOpportunity(opportunity) { saved = opportunity; return true; },
     async revokeOpportunity(candidate) { revoked = candidate === reference; return revoked; },
-    async claimFirstReceived() { return saved; },
+    async claimFirstReceived() { return saved ? { ...saved, leaseId: 'synthetic-lease' } : null; },
     async markSubmitted() {}
   };
   return {

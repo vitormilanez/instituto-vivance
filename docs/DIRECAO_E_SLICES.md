@@ -192,3 +192,13 @@ injetado. A composição está deliberadamente nula: GET de estado retorna
 armazenamento, credencial, webhook ativo nem importação. Testes, lint, tipos e
 build passaram. A ativação depende de contrato real Pulse, infraestrutura de
 medição separada, revisão da declaração Ads e Gate P.
+
+Em 06/10, a infraestrutura de medição avançou: Firestore dedicado vazio,
+restrito e sediado em São Paulo; código de persistência com claim condicional,
+lease, revogação e testes de concorrência; autenticação federada sem chave
+estática preparada. O runtime continua inativo. A ativação exige identidade
+e permissões mínimas, limpeza dos registros expirados, evento fictício isolado
+do Pulse, ação Ads secundária e prova de importação. O webhook do canal
+comercial não oferece filtro de remetente ou teste sintético documentado; não
+o habilitar antes do Gate P e de verificar o contrato de dados. [Evidência e
+limites](virada90/CONVERSAO_PULSE.md).

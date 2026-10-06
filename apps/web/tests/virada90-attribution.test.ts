@@ -32,9 +32,9 @@ test('builds a distinct offline conversion with stable deduplication and no heal
     adIdentifiers: { gclid: 'synthetic-click-id' },
     eventTimestamp: '2026-10-05T18:00:00.000Z',
     transactionId: reference,
-    eventSource: 'WEB',
+    eventSource: 'MESSAGE',
     consent: { adUserData: 'CONSENT_GRANTED', adPersonalization: 'CONSENT_DENIED' }
   });
   assert.equal(request.validateOnly, true);
-  assert.doesNotMatch(JSON.stringify(request), /phone|goal|symptom|message|name/i);
+  assert.doesNotMatch(JSON.stringify(request), /phone|goal|symptom|messageText|name/i);
 });
