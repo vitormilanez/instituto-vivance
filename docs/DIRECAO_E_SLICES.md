@@ -146,3 +146,59 @@ Medição pública publicada pelo PR #76 (`a97f94d`), com verificação da main 
 promoção manual do deployment `dpl_GG3xheoUfPTYcjjoxfCz2kHbxVxy`.
 [Evidências e limites](virada90/releases/2026-10-03/README.md). A confirmação
 de recebimento no Google e a configuração da campanha não foram validadas.
+
+### Conversa efetiva no Pulse — preparação em 03/10/2026
+
+Configuração solicitada pelo usuário. [Contrato e acessos](virada90/CONVERSAO_PULSE.md):
+referência consentida da visita ao WhatsApp, evento de mensagem recebida,
+deduplicação e importação de conversão separada. Pulse e CLI Vercel estão
+acessíveis. Em 05/10, o acesso à conta Google Ads **CA - Dr. Guilherme
+Martins** (`421-617-2711`) foi confirmado. Ações existentes de WhatsApp
+medem cliques, não a conversa recebida; a criação de uma ação off-line
+separada foi examinada, mas não concluída por faltar receptor validado,
+projeto/credencial Data Manager e revisão da declaração de dados do Google.
+Os webhooks existentes foram preservados. Receptor, armazenamento, credenciais
+de servidor, ação Google e teste de atribuição ainda não foram implementados
+ou ativados. Não usar o banco clínico de testes para guardar conversas reais.
+Em 05/10, com o usuário atuando como equipe Pulse, ficou definido preparar uma
+assinatura exclusiva de **Mensagem recebida** e validar o contrato com evento
+fictício antes de ativá-la. Foi criado apenas um adaptador candidato local que
+extrai ID, horário e referência, com teste sintético; o schema real de
+`content` e a autenticação ainda dependem de confirmação. Sem receptor público
+ou ingestão de conversa real nesta etapa.
+Em 05/10, foi criado `virada-90-attribution` sob a conta Google de Vitor,
+sem organização. A Data Manager API foi ativada, e o IAM do projeto confirma
+`guilhe.martins@gmail.com` e `vitor.milanezz@gmail.com` como Proprietários.
+Isso não cria credenciais de servidor nem importa conversões. A tela do
+Firestore ativou automaticamente sua API, mas
+nenhum banco foi criado. O widget Pulse existente confirma que o número da
+landing pertence à instância e725c7; os links `wa.me` não usam o rastreamento
+desse widget.
+Após a mensagem neutra do usuário aparecer no Pulse em 05/10, o PR #79 passou
+a incluir geração de referência opaca, construção do pedido off-line e contrato
+de primeira mensagem com teste sintético. O webhook ainda não tem payload de
+teste documentado nem filtro confiável por remetente; ativá-lo na conta
+comercial pode encaminhar dados de outras pessoas. O assistente Ads exigiu
+declaração de conformidade de dados antes de criar a ação, não marcada porque
+o fluxo ainda não foi validado. Receptor, armazenamento, credencial, ação Ads e
+teste de importação permanecem pendentes; preservar o Gate P antes de tráfego
+real.
+
+Continuação local do PR #79: a landing prepara referência opaca após consentimento
+e preserva o caminho normal para o WhatsApp em falhas. Foram adicionadas rotas
+HTTP para oportunidade e evento Pulse, mais transporte Data Manager com token
+injetado. A composição está deliberadamente nula: GET de estado retorna
+`enabled:false` e os POSTs retornam 404, verificados localmente; não há
+armazenamento, credencial, webhook ativo nem importação. Testes, lint, tipos e
+build passaram. A ativação depende de contrato real Pulse, infraestrutura de
+medição separada, revisão da declaração Ads e Gate P.
+
+Em 06/10, a infraestrutura de medição avançou: Firestore dedicado vazio,
+restrito e sediado em São Paulo; código de persistência com claim condicional,
+lease, revogação e testes de concorrência; autenticação federada sem chave
+estática preparada. O runtime continua inativo. A ativação exige identidade
+e permissões mínimas, limpeza dos registros expirados, evento fictício isolado
+do Pulse, ação Ads secundária e prova de importação. O webhook do canal
+comercial não oferece filtro de remetente ou teste sintético documentado; não
+o habilitar antes do Gate P e de verificar o contrato de dados. [Evidência e
+limites](virada90/CONVERSAO_PULSE.md).

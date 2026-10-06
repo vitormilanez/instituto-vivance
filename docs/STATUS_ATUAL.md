@@ -159,3 +159,66 @@ Pulse `/integration` foi consultado na sessão autenticada: Webhooks incluem
 mensagens recebidas; widget registra origem da visita. Nenhuma configuração
 foi alterada. Recebimento no Google, conversão primária da campanha e integração
 de conversa efetiva no CRM não foram validados.
+
+### Conversa recebida no Pulse — preparação em 03/10/2026
+
+Acesso ao Pulse e ao projeto `vtr-consulting/instituto-vivance` pela CLI
+Vercel conferido. O novo webhook permite selecionar Mensagem recebida; os
+dois webhooks ativos de eventos de contato e o webhook inativo existente
+não foram modificados. Em 05/10, o acesso de `vitor.milanezz@gmail.com` à
+conta Google Ads do médico (`421-617-2711`) foi confirmado; a ação existente
+`Clique no WhatsApp` é de site, principal e apresenta diagnóstico de
+configuração incorreta. Não há ação de conversa recebida entre as ações
+filtradas por WhatsApp. O assistente de ação off-line foi examinado sem
+concluir a declaração de dados nem criar conversão.
+[Contrato e requisitos](virada90/CONVERSAO_PULSE.md) registrados na branch
+`codex/virada90-pulse-conversations-20261003`. Em 05/10 foi preparado um
+adaptador **candidato e local** para selecionar um evento `MESSAGE_RECEIVED`
+com referência de campanha, sem reter texto ou identidade; teste sintético,
+typecheck e lint passaram. O formato de `content` foi inferido da API de
+mensagens WTS e ainda precisa ser validado com um payload fictício da conta
+Pulse. Nenhuma rota pública, importação, migration ou publicação ocorreu neste
+slice. A próxima dependência é confirmar schema/autenticação e armazenamento
+próprio de atribuição; o projeto clínico sintético não será usado.
+Em 05/10, o projeto dedicado `virada-90-attribution` foi criado na conta
+Google pessoal de Vitor (sem organização, número `1032696782997`). A
+Data Manager API foi ativada com autorização do usuário, e o IAM mostra
+`guilhe.martins@gmail.com` e `vitor.milanezz@gmail.com` como Proprietários.
+Credenciais de servidor e importação continuam pendentes. O widget Pulse
+legado `Larissa - Closer` confirma que a instância
+e725c7 usa o número `(18) 99755-1234` da landing, mas a landing usa `wa.me`
+direto, sem o rastreamento do widget. O Console ativou automaticamente a API
+Firestore ao abrir sua lista de bancos; nenhum banco foi criado. Nenhuma
+mensagem de teste foi enviada.
+Em 05/10, uma mensagem neutra enviada voluntariamente pelo usuário chegou ao
+Pulse na instância e725c7 às 21h45. A entrega WhatsApp → Pulse está confirmada
+para esse caso; webhook e conversão Ads continuam desligados e não validados.
+Na retomada do mesmo dia, o PR #79 ganhou gerador de referência opaca, seleção
+de identificador de clique e construtor de pedido off-line com deduplicação por
+`transactionId`, além de um contrato de processamento da primeira mensagem.
+Os testes usam armazenamento e envio sintéticos; ainda não existe persistência
+nem chamada ao Google. O assistente da conta Ads exigiu declaração
+de coleta e compartilhamento em conformidade antes de criar a ação; ela não foi
+marcada, pois o fluxo real ainda não foi validado. Nenhuma conversão recebida
+foi criada ou importada. A inspeção atual não confirmou filtro de webhook por
+contato, portanto ativá-lo na conta comercial pode encaminhar conversas reais.
+
+Na continuação, o PR #79 passou a conter o handoff consentido da landing, uma
+fronteira HTTP para oportunidade e webhook, e transporte Data Manager injetável.
+As rotas seguem **inativas** por composição nula: GET informa `enabled:false`,
+POSTs retornam 404. O middleware foi ajustado para permitir acesso público
+somente às duas rotas da campanha; uma checagem local sem Supabase confirmou
+essas respostas. Os 442 testes, lint, tipos e build passaram. Ainda faltam
+armazenamento independente, identidade/autorização de servidor, contrato real
+Pulse, ação Ads e Gate P antes de receber mensagens reais nessa integração.
+
+Em 06/10, foi criado o Firestore `(default)` vazio no projeto dedicado
+`virada-90-attribution`, edição Standard, região São Paulo e regras de acesso
+direto restritivas. O PR #79 passou a incluir persistência REST com atualização
+condicional, lease para a primeira mensagem, revogação e deduplicação, além do
+provedor de token federado Vercel → Google sem chave estática. Os testes são
+sintéticos: não há identidade/IAM da aplicação configurados, documentos no
+banco, rotina de limpeza, webhook Pulse ativo, ação Ads off-line, importação
+nem conversão atribuída. A investigação do Pulse não encontrou teste isolado,
+replay ou filtro de remetente para `MESSAGE_RECEIVED`; o canal comercial segue
+desconectado do receptor até contrato fictício, retenção e Gate P.
