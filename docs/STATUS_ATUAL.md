@@ -193,3 +193,12 @@ mensagem de teste foi enviada.
 Em 05/10, uma mensagem neutra enviada voluntariamente pelo usuário chegou ao
 Pulse na instância e725c7 às 21h45. A entrega WhatsApp → Pulse está confirmada
 para esse caso; webhook e conversão Ads continuam desligados e não validados.
+Na retomada do mesmo dia, o PR #79 ganhou gerador de referência opaca, seleção
+de identificador de clique e construtor de pedido off-line com deduplicação por
+`transactionId`, além de um contrato de processamento da primeira mensagem.
+Os testes usam armazenamento e envio sintéticos; ainda não existe receptor,
+persistência ou chamada ao Google. O assistente da conta Ads exigiu declaração
+de coleta e compartilhamento em conformidade antes de criar a ação; ela não foi
+marcada, pois o fluxo real ainda não foi validado. Nenhuma conversão recebida
+foi criada ou importada. A inspeção atual não confirmou filtro de webhook por
+contato, portanto ativá-lo na conta comercial pode encaminhar conversas reais.

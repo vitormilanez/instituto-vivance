@@ -122,13 +122,14 @@ Essas páginas WTS são referência para investigar a instalação Pulse; a
 equivalência do payload nesta conta ainda precisa ser confirmada por um evento
 sintético da plataforma ou por teste controlado após os gates aplicáveis.
 
-Nova inspeção da interface em 05/10: o formulário de edição oferece filtros
-por canal, equipe, usuário e outros atributos, além de status inativo. A lista
-oferece histórico por assinatura. Nenhum comando de disparo sintético foi
-identificado. O filtro por canal permite reduzir o alcance do teste caso exista
-um canal dedicado, mas não filtra por telefone do remetente; ativar no canal
-comercial atual ainda encaminharia mensagens reais de outras pessoas. Nenhuma
-assinatura ou filtro existente foi modificado.
+Nova inspeção da interface em 05/10: a criação de assinatura mostrou somente
+nome, URL, eventos e estado; a API pública de assinaturas também não documenta
+filtro por contato ou telefone. Uma inspeção anterior de edição sugeriu filtros
+por canal/equipe/usuário, mas essa capacidade não foi confirmada como contrato
+da assinatura nem isola o contato de teste. A lista oferece histórico por
+assinatura. Nenhum comando de disparo sintético foi identificado. Ativar
+`MESSAGE_RECEIVED` na conta comercial pode encaminhar mensagens reais de outras
+pessoas. Nenhuma assinatura existente foi modificada.
 
 O módulo `apps/web/modules/virada90/pulse-event.ts` é um **adaptador candidato,
 somente local**. Ele aceita a forma da [API de mensagens](https://docs.dyamante.com.br/reference/get_v1-message-id.md)
@@ -138,6 +139,15 @@ ID e horário. Não grava nem encaminha texto, telefone, nome ou anexo. Um
 teste sintético comprova a seleção e a exclusão de eventos incompatíveis;
 **não comprova que o webhook real use esse schema**. Nenhuma rota pública,
 assinatura Pulse, persistência ou importação Ads foi adicionada.
+
+`attribution.ts` gera referência opaca, seleciona no máximo um identificador de
+clique Google e constrói o pedido off-line para uma ação `UPLOAD_CLICKS`, com
+`transactionId` estável. `conversion-pipeline.ts` encadeia seleção do evento,
+reivindicação atômica da primeira mensagem no armazenamento, checagem adicional
+de consentimento/vigência e submissão ao Google. Os contratos de armazenamento
+e envio são interfaces exercitadas com substitutos sintéticos. **Ainda não há
+armazenamento, receptor HTTP, credenciais de servidor nem chamada real à API.**
+O `requestId` do Data Manager representará submissão, não atribuição confirmada.
 
 Decisão operacional para o próximo passo: usar assinatura exclusiva de
 **Mensagem recebida**, não modificar os webhooks existentes, exigir segredo
@@ -162,6 +172,25 @@ Isso confirma a chegada **WhatsApp → Pulse** para esse teste específico.
 Não houve ativação de webhook, captura do payload de `MESSAGE_RECEIVED`,
 persistência de atribuição ou importação no Google Ads. O número pessoal do
 remetente e o histórico da conversa não foram copiados para este repositório.
+
+### Retomada de 05/10/2026
+
+Na conta correta do Ads, o assistente de ação `Contato` off-line ofereceu criar
+uma ação sem conectar a fonte imediatamente, mas exigiu declarar que os dados
+do cliente já foram coletados e compartilhados em conformidade com as políticas
+aplicáveis. A declaração não foi marcada: o fluxo de coleta, consentimento,
+armazenamento e envio ainda não existe nem foi validado. Nenhuma ação foi
+criada, e a meta de clique não foi alterada.
+
+Para concluir tecnicamente: provisionar armazenamento de atribuição separado do
+banco clínico, com expiração e revogação; obter credencial de servidor limitada
+para armazenamento e Data Manager; conceder à identidade acesso à conta Ads;
+confirmar payload fictício `MESSAGE_RECEIVED` e autenticação do Pulse;
+implementar receptor e retentativas; integrar a referência às duas páginas só
+após consentimento; testar duplicatas, revogação e falhas. Depois, revisar a
+declaração no Ads, criar ação off-line **secundária** e validar submissão e
+diagnósticos. Ativação para mensagens reais e uso como meta principal dependem
+do [Gate P](../GATE_P.md); o teste WhatsApp → Pulse não o substitui.
 
 Fontes oficiais consultadas em 03–05/10/2026:
 [níveis de acesso Google Ads](https://support.google.com/google-ads/answer/9978556),

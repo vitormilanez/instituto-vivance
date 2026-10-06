@@ -174,3 +174,12 @@ Firestore ativou automaticamente sua API, mas
 nenhum banco foi criado. O widget Pulse existente confirma que o número da
 landing pertence à instância e725c7; os links `wa.me` não usam o rastreamento
 desse widget.
+Após a mensagem neutra do usuário aparecer no Pulse em 05/10, o PR #79 passou
+a incluir geração de referência opaca, construção do pedido off-line e contrato
+de primeira mensagem com teste sintético. O webhook ainda não tem payload de
+teste documentado nem filtro confiável por remetente; ativá-lo na conta
+comercial pode encaminhar dados de outras pessoas. O assistente Ads exigiu
+declaração de conformidade de dados antes de criar a ação, não marcada porque
+o fluxo ainda não foi validado. Receptor, armazenamento, credencial, ação Ads e
+teste de importação permanecem pendentes; preservar o Gate P antes de tráfego
+real.
