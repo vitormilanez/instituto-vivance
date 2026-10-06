@@ -196,9 +196,18 @@ para esse caso; webhook e conversão Ads continuam desligados e não validados.
 Na retomada do mesmo dia, o PR #79 ganhou gerador de referência opaca, seleção
 de identificador de clique e construtor de pedido off-line com deduplicação por
 `transactionId`, além de um contrato de processamento da primeira mensagem.
-Os testes usam armazenamento e envio sintéticos; ainda não existe receptor,
-persistência ou chamada ao Google. O assistente da conta Ads exigiu declaração
+Os testes usam armazenamento e envio sintéticos; ainda não existe persistência
+nem chamada ao Google. O assistente da conta Ads exigiu declaração
 de coleta e compartilhamento em conformidade antes de criar a ação; ela não foi
 marcada, pois o fluxo real ainda não foi validado. Nenhuma conversão recebida
 foi criada ou importada. A inspeção atual não confirmou filtro de webhook por
 contato, portanto ativá-lo na conta comercial pode encaminhar conversas reais.
+
+Na continuação, o PR #79 passou a conter o handoff consentido da landing, uma
+fronteira HTTP para oportunidade e webhook, e transporte Data Manager injetável.
+As rotas seguem **inativas** por composição nula: GET informa `enabled:false`,
+POSTs retornam 404. O middleware foi ajustado para permitir acesso público
+somente às duas rotas da campanha; uma checagem local sem Supabase confirmou
+essas respostas. Os 442 testes, lint, tipos e build passaram. Ainda faltam
+armazenamento independente, identidade/autorização de servidor, contrato real
+Pulse, ação Ads e Gate P antes de receber mensagens reais nessa integração.

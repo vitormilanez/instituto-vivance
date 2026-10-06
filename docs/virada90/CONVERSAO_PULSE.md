@@ -3,8 +3,8 @@
 Preparação iniciada em 03/10/2026, após o pedido de configurar a integração.
 Em 05/10/2026, o convite do Google Ads foi aceito e a conta correta foi
 verificada na interface.
-Este documento registra o contrato e as pendências; não representa integração
-implementada, webhook ativado ou conversão importada.
+Este documento registra o contrato, a implementação local inativa e as
+pendências. Não representa webhook ativado ou conversão importada.
 [Acompanhamento no Asana](https://app.asana.com/1/1192450062279073/project/1218382636610484/task/1219190189916726).
 
 ## Acessos e estado conferidos
@@ -191,6 +191,47 @@ após consentimento; testar duplicatas, revogação e falhas. Depois, revisar a
 declaração no Ads, criar ação off-line **secundária** e validar submissão e
 diagnósticos. Ativação para mensagens reais e uso como meta principal dependem
 do [Gate P](../GATE_P.md); o teste WhatsApp → Pulse não o substitui.
+
+### Backend local inativo — 05/10/2026
+
+Foi preparada uma fronteira HTTP local, sem ativação ou infraestrutura:
+
+- `GET /api/virada90/opportunity` responde `{"enabled":false}` enquanto a
+  composição segura não existe;
+- `POST /api/virada90/opportunity` aceita estritamente um único identificador
+  Google (`gclid`, `gbraid` ou `wbraid`) após consentimento, exige a origem
+  pública aprovada e gera a referência opaca no servidor;
+- `DELETE /api/virada90/opportunity` revoga a referência de forma idempotente,
+  sem revelar se ela existia;
+- `POST /api/virada90/pulse` autentica antes de interpretar a carga, seleciona
+  somente a primeira mensagem recebida com referência e retorna erro temporário
+  quando a submissão falha, para permitir retentativa;
+- o transporte Data Manager usa `POST /v1/events:ingest`, aceita um provedor de
+  token injetado e retém somente o `requestId`. Ele não lê credenciais nem envia
+  chamadas enquanto a composição está inativa.
+- as duas saídas públicas da landing preservam o texto revisável do WhatsApp;
+  quando houver consentimento e a função estiver ativa, acrescentarão apenas
+  uma referência opaca. Sem medição ou em caso de falha, abrem o mesmo destino
+  comercial sem referência. A preferência negada revoga referências guardadas
+  no navegador.
+
+O proxy exclui somente essas duas rotas públicas da exigência de sessão
+Supabase. Na execução local sem variáveis de Supabase, o GET respondeu
+`{"enabled":false}` (200) e os POSTs de oportunidade e Pulse responderam
+`{"error":"disabled"}` (404). A experiência pública abriu no navegador.
+Isso verifica o estado inativo; não verifica a integração real.
+
+A flag `VIRADA90_ATTRIBUTION_ENABLED` é `false` por ausência por padrão e,
+sozinha, não ativa as rotas. O composition root permanece deliberadamente
+nulo. Ainda faltam: armazenamento durável fora do Supabase clínico, com TTL,
+revogação, claim/lease atômico e retentativa; identidade de workload e acesso
+mínimo à conta Ads; contrato real de autenticação e payload Pulse; e revisão
+do Gate P antes de mensagens reais. Nenhum Firestore foi criado, nenhuma
+credencial foi gerada e nenhuma chamada externa foi executada.
+
+Referências de implementação: [events.ingest](https://developers.google.com/data-manager/api/reference/rest/v1/events/ingest),
+[configuração de acesso](https://developers.google.com/data-manager/api/devguides/quickstart/set-up-access)
+e [deploy de autenticação](https://developers.google.com/data-manager/api/devguides/concepts/deploy).
 
 Fontes oficiais consultadas em 03–05/10/2026:
 [níveis de acesso Google Ads](https://support.google.com/google-ads/answer/9978556),

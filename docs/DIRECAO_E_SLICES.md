@@ -183,3 +183,12 @@ declaração de conformidade de dados antes de criar a ação, não marcada porq
 o fluxo ainda não foi validado. Receptor, armazenamento, credencial, ação Ads e
 teste de importação permanecem pendentes; preservar o Gate P antes de tráfego
 real.
+
+Continuação local do PR #79: a landing prepara referência opaca após consentimento
+e preserva o caminho normal para o WhatsApp em falhas. Foram adicionadas rotas
+HTTP para oportunidade e evento Pulse, mais transporte Data Manager com token
+injetado. A composição está deliberadamente nula: GET de estado retorna
+`enabled:false` e os POSTs retornam 404, verificados localmente; não há
+armazenamento, credencial, webhook ativo nem importação. Testes, lint, tipos e
+build passaram. A ativação depende de contrato real Pulse, infraestrutura de
+medição separada, revisão da declaração Ads e Gate P.

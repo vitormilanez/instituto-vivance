@@ -24,6 +24,8 @@ test('claims and uploads only the first consented received message', async () =>
   let claimed = false;
   let uploadCount = 0;
   const store: ConversionStore = {
+    async createOpportunity() { throw new Error('unexpected'); },
+    async revokeOpportunity() { throw new Error('unexpected'); },
     async claimFirstReceived() {
       if (claimed) return null;
       claimed = true;
@@ -55,6 +57,8 @@ test('does not upload a revoked or expired reference or an unrelated event', asy
     let uploaded = false;
     const result = await processPulseReceivedEvent(event, {
       store: {
+        async createOpportunity() { throw new Error('unexpected'); },
+        async revokeOpportunity() { throw new Error('unexpected'); },
         async claimFirstReceived() { return opportunity; },
         async markSubmitted() { throw new Error('unexpected'); }
       },

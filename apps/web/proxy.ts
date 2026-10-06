@@ -7,7 +7,9 @@ export async function proxy(request: NextRequest) {
   if (
     request.nextUrl.pathname === "/" ||
     request.nextUrl.pathname === "/virada90" ||
-    request.nextUrl.pathname.startsWith("/virada90/")
+    request.nextUrl.pathname.startsWith("/virada90/") ||
+    request.nextUrl.pathname === "/api/virada90/opportunity" ||
+    request.nextUrl.pathname === "/api/virada90/pulse"
   ) return NextResponse.next({ request });
   let response = NextResponse.next({ request });
   const { url, key } = supabaseConfig();

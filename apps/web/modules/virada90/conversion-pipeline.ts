@@ -11,6 +11,15 @@ export type ConsentedOpportunity = {
 
 /** Implementations must atomically claim the first inbound event per reference. */
 export type ConversionStore = {
+  /** Returns false only when the generated reference already exists. */
+  createOpportunity(opportunity: ConsentedOpportunity): Promise<boolean>;
+  /** Revocation must delete the click identifier or make it permanently unreadable. */
+  revokeOpportunity(reference: string): Promise<boolean>;
+  /**
+   * Atomically records the first inbound message and leases it for submission.
+   * A retry of that same message may return the opportunity again until it is
+   * submitted; later messages for the reference must always return null.
+   */
   claimFirstReceived(input: {
     reference: string;
     messageId: string;
@@ -34,8 +43,8 @@ export async function processPulseReceivedEvent(
   if (!received) return 'ignored';
 
   // The store is responsible for an atomic first-message claim. It must reject
-  // a revoked, absent, expired or already claimed reference without exposing
-  // any patient data to this process.
+  // a revoked, absent or expired reference and every later message, while
+  // allowing a safe retry of the same first message until submission.
   const opportunity = await dependencies.store.claimFirstReceived({
     reference: received.reference,
     messageId: received.messageId,
