@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { campaignUrl, campaignReferrer, createMeasurement, GOOGLE } from '../public/virada90/measurement-core.js';
+import { campaignUrl, campaignReferrer, campaignSource, createMeasurement, GOOGLE, whatsappWithSource } from '../public/virada90/measurement-core.js';
 
 function fixture(url = 'https://institutovivance.app/virada90') {
   const calls: unknown[][] = [];
@@ -76,6 +76,31 @@ test('page URLs keep campaign attribution and exclude arbitrary contact or healt
   assert.equal(campaignReferrer('https://institutovivance.app/virada90?goal=private'), 'https://institutovivance.app/virada90');
 });
 
+test('the WhatsApp handoff uses only recognized paid-source labels, never raw click IDs or health data', () => {
+  const handoff = 'https://wa.me/5518997551234?text=' + encodeURIComponent('Olá! Quero saber mais sobre o Virada 90 online.');
+  const google = 'https://institutovivance.app/virada90/conhecer?utm_source=google&utm_medium=cpc&utm_campaign=consulta&gclid=click_123&goal=private-health-answer';
+  const tagged = whatsappWithSource(handoff, google);
+  assert.equal(campaignSource(google), 'Google Ads');
+  assert.match(new URL(tagged).searchParams.get('text') || '', /Virada 90 online\.\nOrigem do link: Google Ads\.$/);
+  assert.doesNotMatch(decodeURIComponent(tagged), /click_123|private-health-answer|consulta/);
+  assert.equal(whatsappWithSource(tagged, google), tagged);
+
+  const meta = 'https://institutovivance.app/virada90?utm_source=instagram&utm_medium=paid_social&utm_content=private';
+  assert.equal(campaignSource(meta), 'Anúncio nas redes sociais');
+  assert.match(new URL(whatsappWithSource(handoff, meta)).searchParams.get('text') || '', /Origem do link: Anúncio nas redes sociais/);
+  for (const uncertain of [
+    'https://institutovivance.app/virada90',
+    'https://institutovivance.app/virada90?utm_source=google&utm_medium=organic',
+    'https://institutovivance.app/virada90?utm_source=instagram',
+    'https://institutovivance.app/virada90?utm_source=meta&gclid=abc',
+    'https://institutovivance.app/clinicas/id?gclid=abc'
+  ]) {
+    assert.equal(campaignSource(uncertain), '');
+    assert.equal(whatsappWithSource(handoff, uncertain), handoff);
+  }
+  assert.equal(whatsappWithSource('https://example.com/?text=hello', google), 'https://example.com/?text=hello');
+});
+
 test('no funnel or event payload can receive a health answer or a WhatsApp URL', () => {
   const f = fixture('https://institutovivance.app/virada90/conhecer?goal=private-health-answer');
   f.measurement.viewStep(4);
@@ -116,7 +141,10 @@ test('the guided handoff keeps health choices in memory and opens WhatsApp witho
       addEventListener() {}, dispatchEvent() {}
     },
     FormData: class { get(name: string) { return name === 'goal' ? 'private-health-answer' : 'Online'; } },
-    CustomEvent: class {}, window: { requestAnimationFrame() {}, open(url: string) { opened.push(url); } }
+    CustomEvent: class {}, window: {
+      requestAnimationFrame() {}, open(url: string) { opened.push(url); },
+      virada90SourceHandoff(url: string) { return whatsappWithSource(url, 'https://institutovivance.app/virada90/conhecer?gclid=click_123'); }
+    }
   });
   const generic = controls.get('#talk-team')?.href;
   listeners.get('#topic-select:change')?.({ target: { value: '10' } });
@@ -125,6 +153,8 @@ test('the guided handoff keeps health choices in memory and opens WhatsApp witho
   assert.equal(opened.length, 1);
   assert.match(decodeURIComponent(opened[0]), /private-health-answer/);
   assert.match(decodeURIComponent(opened[0]), /Online/);
+  assert.match(new URL(opened[0]).searchParams.get('text') || '', /Origem do link: Google Ads/);
+  assert.doesNotMatch(decodeURIComponent(opened[0]), /click_123/);
 });
 
 test('tags are included only by the two public campaign documents', () => {

@@ -146,3 +146,7 @@ Medição pública publicada pelo PR #76 (`a97f94d`), com verificação da main 
 promoção manual do deployment `dpl_GG3xheoUfPTYcjjoxfCz2kHbxVxy`.
 [Evidências e limites](virada90/releases/2026-10-03/README.md). A confirmação
 de recebimento no Google e a configuração da campanha não foram validadas.
+
+### Funil comercial enxuto — 06/10/2026
+
+Como há apenas dois formatos do Virada 90 e uma closer já classifica contatos no CRM, a primeira entrega enriquece o encaminhamento ao WhatsApp com um rótulo de origem de anúncio após consentimento, sem criar outro CRM. O acompanhamento semanal usa conversa recebida, avaliação agendada, comparecimento e entrada no programa, por formato e origem. [Contrato e limites](virada90/FUNIL_COMERCIAL_LEVE.md). Implementação local em `codex/virada90-source-simple-20261006`: 425 testes, lint, tipos e build passaram; navegador local confirmou o aviso de consentimento e a preservação dos parâmetros até `/conhecer`. O rótulo foi testado por código porque só é aplicado no domínio público. Publicação e confirmação de conversa real não estão incluídas neste slice. O PR #79 de webhook/importação permanece desligado e separado.
