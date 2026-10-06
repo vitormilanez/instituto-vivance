@@ -190,3 +190,6 @@ e725c7 usa o número `(18) 99755-1234` da landing, mas a landing usa `wa.me`
 direto, sem o rastreamento do widget. O Console ativou automaticamente a API
 Firestore ao abrir sua lista de bancos; nenhum banco foi criado. Nenhuma
 mensagem de teste foi enviada.
+Em 05/10, uma mensagem neutra enviada voluntariamente pelo usuário chegou ao
+Pulse na instância e725c7 às 21h45. A entrega WhatsApp → Pulse está confirmada
+para esse caso; webhook e conversão Ads continuam desligados e não validados.

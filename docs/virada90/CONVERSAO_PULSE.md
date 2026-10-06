@@ -153,6 +153,16 @@ O teste de ponta a ponta poderá usar uma mensagem neutra enviada
 voluntariamente pelo usuário depois que receptor e escopo estiverem prontos;
 o número pessoal não será gravado no contrato nem no código.
 
+### Verificação do canal — 05/10/2026
+
+O usuário enviou voluntariamente a frase neutra de teste pelo link público
+do Virada 90. A sessão autenticada do Pulse mostrou a mensagem às **21h45**
+na **instância e725c7**, o canal vinculado ao número comercial da landing.
+Isso confirma a chegada **WhatsApp → Pulse** para esse teste específico.
+Não houve ativação de webhook, captura do payload de `MESSAGE_RECEIVED`,
+persistência de atribuição ou importação no Google Ads. O número pessoal do
+remetente e o histórico da conversa não foram copiados para este repositório.
+
 Fontes oficiais consultadas em 03–05/10/2026:
 [níveis de acesso Google Ads](https://support.google.com/google-ads/answer/9978556),
 [importação de eventos](https://developers.google.com/data-manager/api/devguides/events/google-ads/offline/send-events),
