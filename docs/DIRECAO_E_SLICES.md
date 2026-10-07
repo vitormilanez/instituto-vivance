@@ -11,6 +11,10 @@ Navegação para a apresentação não é contato ou conversão Ads. Avaliar a
 hipótese de melhor entendimento/qualidade junto ao CRM e aos agendamentos,
 sem criar outro cadastro nem ativar o PR #79 neste slice.
 
+Implementado e publicado pelo PR #87 em 07/10, merge `a436d30`, com 440
+testes, lint, tipos e build aprovados e percurso público conferido.
+[Evidências e limites](virada90/releases/2026-10-07-discovery/README.md).
+
 Atualizado em 29/09/2026. Este é o plano vigente. O [estado técnico](STATUS_ATUAL.md) registra o que foi comprovado; o [plano de IA clínica](PLANO_IA_CLINICA.md) detalha essa frente.
 
 ## Resultado que estamos construindo
