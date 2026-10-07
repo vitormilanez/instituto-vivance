@@ -9,6 +9,7 @@ import { openConsultationId } from "./home-view";
 import { openWork } from "./open-work";
 import { staffRecentWeight } from "@/modules/longitudinal/service";
 import { preparationQuestions } from "@/modules/return-preparation/questionnaire";
+import { generateConsultationBrief } from "@/modules/ai/consultation-brief";
 import type { OpenWorkItem } from "./open-work-items";
 import type { ReceivedItem } from "./received-items";
 import {
@@ -149,6 +150,35 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
   const { cutoffs, received } = receivedResult;
   const contexts = new Map(contextPairs);
   const weights = new Map(weightPairs);
+  const briefCandidates = shown.flatMap((item) => {
+    const patientContext = contexts.get(item.id);
+    return patientContext ? [{ item, patientContext }] : [];
+  });
+  const briefs = new Map(
+    await Promise.all(
+      briefCandidates.map(async ({ item, patientContext }) => {
+        const documentWork = work?.find(
+          (entry) => entry.kind === "documents" && entry.patientId === item.patient_id,
+        );
+        return [
+          item.id,
+          await generateConsultationBrief({
+            tenantId: id,
+            patientId: item.patient_id,
+            appointment: { id: item.id, starts_at: item.starts_at },
+            context: patientContext,
+            documentReview: work === null
+              ? null
+              : {
+                  pending: Boolean(documentWork),
+                  total: documentWork?.total ?? 0,
+                  documentIds: documentWork?.documentIds,
+                },
+          }),
+        ] as const;
+      }),
+    ),
+  );
   const context = open ? (contexts.get(open.id) ?? null) : null;
   return {
     ...agenda,
@@ -158,6 +188,7 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
     nextDate: next ? clinicDate(new Date(next.starts_at)) : null,
     context,
     contexts,
+    briefs,
     weights,
     work,
     drafts: drafts.data ?? [],
@@ -196,6 +227,7 @@ export type PatientCareContext = {
   preparation: {
     id: string;
     status: string;
+    requested_at?: string;
     submitted_at: string | null;
     goal?: string | null;
     answers: Record<string, string> | null;
@@ -322,7 +354,7 @@ export async function patientCareContext(
     appointmentId
       ? client
           .from("return_preparation_requests")
-          .select("id,status,submitted_at")
+          .select("id,status,requested_at,submitted_at")
           .eq("tenant_id", id)
           .eq("patient_id", patientId)
           .eq("doctor_id", user.id)
@@ -460,6 +492,7 @@ export async function patientCareContext(
       ? {
           id: preparation.data.id,
           status: preparation.data.status,
+          requested_at: preparation.data.requested_at,
           submitted_at: preparation.data.submitted_at,
           goal: goalFor(preparation.data.id),
           answers: answersFor(preparation.data.id),
