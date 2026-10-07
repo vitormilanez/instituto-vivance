@@ -150,3 +150,29 @@ de recebimento no Google e a configuração da campanha não foram validadas.
 ### Funil comercial enxuto — 06/10/2026
 
 Como há apenas dois formatos do Virada 90 e uma closer já classifica contatos no CRM, a primeira entrega enriquece o encaminhamento ao WhatsApp com um rótulo de origem de anúncio após consentimento, sem criar outro CRM. O acompanhamento semanal usa conversa recebida, avaliação agendada, comparecimento e entrada no programa, por formato e origem. [Contrato e limites](virada90/FUNIL_COMERCIAL_LEVE.md). O PR #80 foi mesclado e publicado tecnicamente em 06/10/2026; [evidências e limites](virada90/releases/2026-10-06/README.md). A mensagem recebida e a conversão real no Ads não foram confirmadas. O PR #79 de webhook/importação permanece desligado e separado.
+
+
+## Briefing da consulta e peso — 07/10/2026, entrega local
+
+Na branch `codex/consultation-brief-20261007`, iniciada da `main` atualizada
+(`0e28011`), a Home do médico troca as abas da próxima consulta por leitura
+contínua: identidade e ação contextual, relatos com fontes, pré-consulta
+mais recente aberta, comparação de originais e fatos compactos. As pendências
+da pessoa selecionada ficam no briefing; a revisão dos demais inclui documentos
+sem somar os mesmos arquivos duas vezes e abre a coleção correta. Agenda,
+solicitações, aceite de vínculo e seis ações rápidas do médico são preservados.
+
+O gráfico usa datas reais no eixo, seleção por toque/teclado, peso e data de
+cada registro, variação factual em kg/percentual, tabela acessível e cadastro
+como referência separada. Não determina peso ideal, gravidade ou conduta.
+
+O serviço de IA fica no servidor, desligado por padrão. O fallback cita
+literalmente relatos e calcula lacunas por regra. A IA só pode selecionar
+fatos existentes com fontes válidas, mantendo a ordem do servidor; texto
+reescrito ou sem fonte é descartado. Não há nova persistência nem migration.
+Ativar o envio de dados clínicos ao provedor exige decisão expressa do usuário
+sobre fornecedor/LGPD e os gates aplicáveis.
+
+Validação nesta fatia é local e sintética. Não houve push, deploy, escrita no
+Supabase nem aceite autenticado/clinico. C3 permanece sem aceite operacional e
+Gate P aberto. [Contrato, saídas reais e limites](BRIEFING_CONSULTA_2026-10-07.md).
