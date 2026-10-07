@@ -72,9 +72,21 @@ comprova envio de mensagem. A ação de conversão atual continua com esse limit
 Oito testes focados cobrem consentimento, isolamento, destinos, ausência de
 respostas nos payloads, etapas, bloqueio do SDK e handoff independente. A revisão
 independente identificou perda de escolhas em abertura nativa do link; o CTA
-final foi convertido em botão. A configuração de conversão primária/secundária,
-campanhas associadas, realtime do GA4 e recebimento no Google Ads dependem da
-conta Google e não são comprovados por um deploy ou teste sintético.
+final foi convertido em botão. Em 07/10/2026, na conta Google Ads `421-617-2711`, foi conferido que a label
+publicada pertence à ação **“Botão do Whatsapp”** (ID `6468401750`),
+classificada como **Contatos / Ação principal** e ativa no nível da conta.
+A última conversão dessa ação foi em 03/10; o relatório não prova que tenha
+vindo do Virada 90. A ação antiga **“Clique no WhatsApp”** (ID `7523312347`)
+usa a label distinta `AW-818747876/jCxeCNvFsoMcEOSztIYD` e não recebia
+pings desde julho; foi preservada por poder atender outras campanhas.
+
+As campanhas de busca online (`24310407311`) e presencial (`24316075414`)
+herdavam metas padrão sem **Contatos**. Ambas foram alteradas para a meta
+específica **Contatos**; a configuração foi reaberta e confirmada. Os lances
+seguem **Maximizar cliques**, sem mudança de orçamento. A mudança alinha a
+meta exibida à ação publicada, mas não demonstra um ping da landing Virada 90,
+atribuição de clique ou conversa efetivamente recebida. Realtime do GA4 e
+importação de conversa continuam sem validação. [Modelo semanal](MODELO_ACOMPANHAMENTO.md).
 
 Fontes: [configuração gtag](https://developers.google.com/tag-platform/gtagjs/configure),
 [consentimento básico](https://developers.google.com/tag-platform/security/guides/consent),

@@ -164,6 +164,33 @@ de conversa efetiva no CRM não foram validados.
 
 Publicado tecnicamente em 06/10/2026 pelo [PR #80](https://github.com/vitormilanez/instituto-vivance/pull/80): rótulo curto da origem paga no texto editável do WhatsApp, apenas após consentimento e quando reconhecida no link. O CRM existente da closer continua sendo a fonte para conversa recebida, agendamento, comparecimento e entrada no Virada 90 presencial ou online. [Contrato operacional](virada90/FUNIL_COMERCIAL_LEVE.md) e [registro do release](virada90/releases/2026-10-06/README.md). Verificação da `main` aprovada, deployment `dpl_AgWG4tj1AQ3QeyGpiqpGpRRRXZvv` promovido manualmente e confirmado em ambos os domínios. O navegador público confirmou recusa, aceite e revogação sem enviar mensagem. Recebimento no Pulse e conversão real no Ads não foram validados. PR #79 permanece rascunho/desligado. Gate P aberto.
 
+### Google Ads e modelo de acompanhamento — 07/10/2026
+
+Na conta `CA - Dr. Guilherme Martins` (`421-617-2711`), a ação
+**“Botão do Whatsapp”** usa a label publicada
+`AW-818747876/zzjqCNb0r4wYEOSztIYD` e está ativa como **Contatos**. A ação
+antiga **“Clique no WhatsApp”** usa outra label, não recebia ping desde julho
+e permanece sem alteração. A última conversão da ação ativa foi registrada em
+03/10 no nível da conta; isso **não comprova** conversão do Virada 90.
+
+As campanhas `VIRADA90 | ONLINE | BRASIL | SEARCH` (`24310407311`) e
+`VIRADA90 | PRESENCIAL | 100KM PRUDENTE | SEARCH` (`24316075414`) herdavam
+metas padrão sem **Contatos**. Em 07/10, ambas foram configuradas com a meta
+específica **Contatos**, sem alterar orçamento, anúncios ou lances (ambas
+continuam em **Maximizar cliques**). A janela de 07/09 a 06/10 mostrou,
+respectivamente, 66 cliques em anúncios/R$ 276,12 e 24 cliques/R$ 158,56;
+as campanhas indicavam zero conversões nessa janela. Clique no anúncio,
+clique no WhatsApp e mensagem recebida são eventos distintos.
+
+O [modelo semanal de acompanhamento](virada90/MODELO_ACOMPANHAMENTO.md) está
+pronto. Ele usa o CRM existente para conversa recebida, avaliação agendada,
+comparecimento e entrada no programa, com origem não identificada quando
+faltar evidência. No Pulse, não foi validado webhook ativo para mensagem
+recebida; o PR #79 segue rascunho/desligado. Não há comprovação de
+conversão real atribuída ao Virada 90 nem autorização para importar conversas
+com dados reais ao banco clínico. Gate P permanece aberto.
+
+
 
 ## Briefing da consulta e peso — 07/10/2026, publicado
 

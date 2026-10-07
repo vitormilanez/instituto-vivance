@@ -151,6 +151,18 @@ de recebimento no Google e a configuração da campanha não foram validadas.
 
 Como há apenas dois formatos do Virada 90 e uma closer já classifica contatos no CRM, a primeira entrega enriquece o encaminhamento ao WhatsApp com um rótulo de origem de anúncio após consentimento, sem criar outro CRM. O acompanhamento semanal usa conversa recebida, avaliação agendada, comparecimento e entrada no programa, por formato e origem. [Contrato e limites](virada90/FUNIL_COMERCIAL_LEVE.md). O PR #80 foi mesclado e publicado tecnicamente em 06/10/2026; [evidências e limites](virada90/releases/2026-10-06/README.md). A mensagem recebida e a conversão real no Ads não foram confirmadas. O PR #79 de webhook/importação permanece desligado e separado.
 
+**Decisão operacional de 07/10/2026:** as duas campanhas de busca do Virada 90
+passaram a usar a meta específica **Contatos**, que contém a ação de clique
+“Botão do Whatsapp” publicada na landing. Orçamentos, anúncios e estratégia
+**Maximizar cliques** ficaram iguais. Ler esse sinal como clique no CTA,
+**não** como mensagem enviada. O [modelo de acompanhamento](virada90/MODELO_ACOMPANHAMENTO.md)
+separa os dois formatos e as etapas comerciais verificáveis no CRM. Próximo
+slice: conferir, com acesso operacional apropriado, o evento de mensagem
+recebida no Pulse, seu vínculo consentido ao anúncio e a deduplicação;
+só então validar eventual importação no Ads. O PR #79 continua desligado
+até essa validação e o Gate P aplicável.
+
+
 
 ## Briefing da consulta e peso — 07/10/2026, entrega local
 
