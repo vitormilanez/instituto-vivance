@@ -165,7 +165,7 @@ de conversa efetiva no CRM não foram validados.
 Publicado tecnicamente em 06/10/2026 pelo [PR #80](https://github.com/vitormilanez/instituto-vivance/pull/80): rótulo curto da origem paga no texto editável do WhatsApp, apenas após consentimento e quando reconhecida no link. O CRM existente da closer continua sendo a fonte para conversa recebida, agendamento, comparecimento e entrada no Virada 90 presencial ou online. [Contrato operacional](virada90/FUNIL_COMERCIAL_LEVE.md) e [registro do release](virada90/releases/2026-10-06/README.md). Verificação da `main` aprovada, deployment `dpl_AgWG4tj1AQ3QeyGpiqpGpRRRXZvv` promovido manualmente e confirmado em ambos os domínios. O navegador público confirmou recusa, aceite e revogação sem enviar mensagem. Recebimento no Pulse e conversão real no Ads não foram validados. PR #79 permanece rascunho/desligado. Gate P aberto.
 
 
-## Briefing da consulta e peso — 07/10/2026, entrega local
+## Briefing da consulta e peso — 07/10/2026, publicado
 
 Na branch `codex/consultation-brief-20261007`, iniciada da `main` atualizada
 (`0e28011`), a Home do médico troca as abas da próxima consulta por leitura
@@ -173,7 +173,7 @@ contínua: identidade e ação contextual, relatos com fontes, pré-consulta
 mais recente aberta, comparação de originais e fatos compactos. As pendências
 da pessoa selecionada ficam no briefing; a revisão dos demais inclui documentos
 sem somar os mesmos arquivos duas vezes e abre a coleção correta. Agenda,
-solicitações, aceite de vínculo e seis ações rápidas do médico são preservados.
+solicitações, aceite de vínculo e ações rápidas do médico são preservados.
 
 O gráfico usa datas reais no eixo, seleção por toque/teclado, peso e data de
 cada registro, variação factual em kg/percentual, tabela acessível e cadastro
@@ -186,6 +186,12 @@ reescrito ou sem fonte é descartado. Não há nova persistência nem migration.
 Ativar o envio de dados clínicos ao provedor exige decisão expressa do usuário
 sobre fornecedor/LGPD e os gates aplicáveis.
 
-Validação nesta fatia é local e sintética. Não houve push, deploy, escrita no
-Supabase nem aceite autenticado/clinico. C3 permanece sem aceite operacional e
-Gate P aberto. [Contrato, saídas reais e limites](BRIEFING_CONSULTA_2026-10-07.md).
+Validação inicial local e sintética; publicação autorizada e concluída em
+07/10/2026 pelo [PR #82](https://github.com/vitormilanez/instituto-vivance/pull/82),
+merge `abefcb3`. Testes, lint, typecheck e build da main passaram. Deployment
+de produção `dpl_AKdqxwrBgQuVjrwAJjRMVXJ6frAR`, READY, promovido manualmente e
+confirmado em ambos os domínios. A Home e suas interações foram conferidas na
+sessão autenticada existente do médico; os oito atalhos da rota foram preservados.
+IA permanece desligada, sem migration ou escrita no Supabase nesta publicação.
+C3 permanece sem aceite operacional e Gate P aberto.
+[Contrato, evidências de publicação e limites](BRIEFING_CONSULTA_2026-10-07.md).
