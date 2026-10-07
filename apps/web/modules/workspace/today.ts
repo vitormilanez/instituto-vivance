@@ -125,10 +125,15 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
     Promise.all(
       shown.map(
         async (item) =>
-          [item.id, await patientCareContext(id, item.patient_id, {
-            id: item.id,
-            starts_at: item.starts_at,
-          })] as const,
+          [
+            item.id,
+            await patientCareContext(
+              id,
+              item.patient_id,
+              { id: item.id, starts_at: item.starts_at },
+              { mode: "tolerant" },
+            ).catch(() => null),
+          ] as const,
       ),
     ),
     Promise.all(
@@ -201,7 +206,14 @@ export type PatientCareContext = {
     goal?: string | null;
     answers: Record<string, string> | null;
   } | null;
+  preparationHistory: {
+    id: string;
+    submitted_at: string;
+    answers: Record<string, string>;
+  }[];
   onboarding: {
+    // Always present for database rows. Optional only for legacy local fixtures.
+    id?: string;
     submittedAt: string;
     answers: Record<string, string>;
     measurements: {
@@ -211,17 +223,37 @@ export type PatientCareContext = {
       measuredOn: string | null;
     };
   } | null;
-  documents: { total: number; latest_at: string | null };
-  measurements: { total: number; latest_at: string | null };
+  documents: { total: number | null; latest_at: string | null };
+  documentItems: { id: string; title: string; created_at: string }[];
+  measurements: { total: number | null; latest_at: string | null };
   intake: { hasGoal: boolean; updatedAt: string | null } | null;
   // Pendências abertas com o paciente: só o tipo e a data entram no card.
-  requests: { kind: string; requested_at: string }[];
+  requests: { id: string; kind: string; requested_at: string }[];
+  prescriptions: { total: number | null; available: boolean };
+  failed?: PatientCareContextFailure[];
 };
+
+export type PatientCareContextFailure =
+  | "encounter"
+  | "nextAppointment"
+  | "publications"
+  | "preparation"
+  | "preparationHistory"
+  | "preparationAnswers"
+  | "documents"
+  | "measurements"
+  | "intake"
+  | "requests"
+  | "onboarding"
+  | "prescriptions";
+
+export type PatientCareContextOptions = { mode?: "strict" | "tolerant" };
 
 export async function patientCareContext(
   id: string,
   patientId: string,
   focusedAppointment?: { id: string; starts_at: string },
+  options: PatientCareContextOptions = {},
 ): Promise<PatientCareContext | null> {
   const { client, user, clinic } = await requireClinic(id, ["doctor", "nurse"]);
   const relationship = await client
@@ -268,13 +300,24 @@ export async function patientCareContext(
       .order("id")
       .limit(6),
   ]);
-  if (encounter.error || nextAppointment.error || publications.error)
-    throw new Error("Unable to load patient care context");
+  const failed = new Set<PatientCareContextFailure>();
+  const tolerate = options.mode === "tolerant";
+  const recordFailure = (
+    result: { error: unknown },
+    name: PatientCareContextFailure,
+  ) => {
+    if (!result.error) return;
+    if (!tolerate) throw new Error("Unable to load patient care context");
+    failed.add(name);
+  };
+  recordFailure(encounter, "encounter");
+  recordFailure(nextAppointment, "nextAppointment");
+  recordFailure(publications, "publications");
   // O que o paciente deve fornecer e o que a clínica registrou, por tipo: o
   // bloco "Contexto para esta consulta" mostra um estado factual para cada um,
   // inclusive quando falta. Somente leitura; nenhuma inferência clínica.
   const appointmentId = focusedAppointment?.id ?? nextAppointment.data?.[0]?.id ?? null;
-  const [preparation, previousPreparations, documents, measurements, intake, requests, onboarding] =
+  const [preparation, previousPreparations, documents, measurements, intake, requests, onboarding, prescriptions] =
     await Promise.all([
     appointmentId
       ? client
@@ -282,6 +325,7 @@ export async function patientCareContext(
           .select("id,status,submitted_at")
           .eq("tenant_id", id)
           .eq("patient_id", patientId)
+          .eq("doctor_id", user.id)
           .eq("appointment_id", appointmentId)
           .neq("status", "cancelled")
           .order("requested_at", { ascending: false })
@@ -299,10 +343,10 @@ export async function patientCareContext(
       .not("submitted_at", "is", null)
       .order("submitted_at", { ascending: false })
       .order("id")
-      .limit(2),
+      .limit(20),
     client
       .from("patient_documents")
-      .select("created_at", { count: "exact" })
+      .select("id,display_title,original_filename,created_at", { count: "exact" })
       .eq("tenant_id", id)
       .eq("patient_id", patientId)
       .eq("status", "available")
@@ -310,7 +354,7 @@ export async function patientCareContext(
       .eq("attached_to", "documents")
       .order("created_at", { ascending: false })
       .order("id")
-      .limit(1),
+      .limit(6),
     client
       .from("patient_measurements")
       .select("submitted_at", { count: "exact" })
@@ -327,55 +371,70 @@ export async function patientCareContext(
       .maybeSingle(),
     client
       .from("patient_care_requests")
-      .select("kind,requested_at")
+      .select("id,kind,requested_at")
       .eq("tenant_id", id)
       .eq("patient_id", patientId)
+      .eq("doctor_id", user.id)
       .eq("status", "requested")
       .order("requested_at")
       .order("id"),
     client
       .from("patient_onboarding_submissions")
-      .select("submitted_at,answer_goal,answer_history,answer_routine,answer_treatments,answer_questions,weight_kg,height_cm,waist_cm,measured_on")
+      .select("id,submitted_at,answer_goal,answer_history,answer_routine,answer_treatments,answer_questions,weight_kg,height_cm,waist_cm,measured_on")
       .eq("tenant_id", id)
       .eq("patient_id", patientId)
       .maybeSingle(),
+    client
+      .from("patient_prescriptions")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", id)
+      .eq("patient_id", patientId),
   ]);
-  if (
-    preparation.error ||
-    previousPreparations.error ||
-    documents.error ||
-    measurements.error ||
-    intake.error ||
-    requests.error ||
-    onboarding.error
-  )
-    throw new Error("Unable to load patient care context");
+  recordFailure(preparation, "preparation");
+  recordFailure(previousPreparations, "preparationHistory");
+  recordFailure(documents, "documents");
+  recordFailure(measurements, "measurements");
+  recordFailure(intake, "intake");
+  recordFailure(requests, "requests");
+  recordFailure(onboarding, "onboarding");
+  recordFailure(prescriptions, "prescriptions");
   const documentRow = documents.data?.[0] ?? null;
   const measurementRow = measurements.data?.[0] ?? null;
   const intakeRow = intake.data ?? null;
-  const previousPreparationRow = (previousPreparations.data ?? []).find(
+  const historicalPreparationRows = (previousPreparations.data ?? []).filter(
     (row) => row.id !== preparation.data?.id && row.submitted_at !== null,
-  ) ?? null;
+  );
+  const previousPreparationRow = historicalPreparationRows[0] ?? null;
   const preparationIds = [
     preparation.data?.id,
-    previousPreparationRow?.id,
+    ...historicalPreparationRows.map((row) => row.id),
   ].filter((value): value is string => Boolean(value));
   const submissions = preparationIds.length
     ? await client
         .from("return_preparation_submissions")
         .select("request_id,answers")
         .eq("tenant_id", id)
+        .eq("patient_id", patientId)
+        .eq("doctor_id", user.id)
         .in("request_id", preparationIds)
     : { data: [], error: null };
-  if (submissions.error)
-    throw new Error("Unable to load preparation answers");
-  const answersFor = (requestId: string | undefined): Record<string, string> | null => {
+  recordFailure(submissions, "preparationAnswers");
+  const rawAnswersFor = (requestId: string | undefined): Record<string, string> | null => {
     const answers = submissions.data?.find(
       (submission) => submission.request_id === requestId,
     )?.answers;
     if (!answers || Array.isArray(answers) || typeof answers !== "object")
       return null;
     const original = answers as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.entries(original).filter(
+        (entry): entry is [string, string] => typeof entry[1] === "string",
+      ),
+    );
+  };
+  const answersFor = (requestId: string | undefined): Record<string, string> | null => {
+    const original = rawAnswersFor(requestId);
+    if (!original) return null;
     return Object.fromEntries(preparationQuestions.map(({ id: questionId }) => [
       questionId,
       typeof original[questionId] === "string" ? original[questionId] : "",
@@ -407,7 +466,16 @@ export async function patientCareContext(
         }
       : null,
     previousPreparation,
+    preparationHistory: historicalPreparationRows
+      .flatMap((row) => {
+        const answers = rawAnswersFor(row.id);
+        return row.submitted_at && answers
+          ? [{ id: row.id, submitted_at: row.submitted_at, answers }]
+          : [];
+      })
+      .slice(0, 8),
     onboarding: onboarding.data ? {
+      id: onboarding.data.id,
       submittedAt: onboarding.data.submitted_at,
       answers: {
         goal: onboarding.data.answer_goal ?? "",
@@ -424,11 +492,18 @@ export async function patientCareContext(
       },
     } : null,
     documents: {
-      total: documents.count ?? (documentRow ? 1 : 0),
+      total: documents.error ? null : documents.count ?? (documentRow ? 1 : 0),
       latest_at: documentRow?.created_at ?? null,
     },
+    documentItems: (documents.data ?? []).map((document) => ({
+      id: document.id,
+      title: document.display_title?.trim() || document.original_filename,
+      created_at: document.created_at,
+    })),
     measurements: {
-      total: measurements.count ?? (measurementRow ? 1 : 0),
+      total: measurements.error
+        ? null
+        : measurements.count ?? (measurementRow ? 1 : 0),
       latest_at: measurementRow?.submitted_at ?? null,
     },
     intake: intakeRow
@@ -440,5 +515,9 @@ export async function patientCareContext(
         }
       : null,
     requests: requests.data ?? [],
+    prescriptions: prescriptions.error
+      ? { total: null, available: false }
+      : { total: prescriptions.count ?? 0, available: true },
+    ...(failed.size ? { failed: [...failed] } : {}),
   };
 }
