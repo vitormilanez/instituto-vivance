@@ -94,7 +94,8 @@
   topicSelect.addEventListener('change', event => goTo(event.target.value));
   talkTeam.addEventListener('click', event => {
     event.preventDefault();
-    window.open(handoffUrl, '_blank', 'noopener,noreferrer');
+    const destination = window.virada90SourceHandoff?.(handoffUrl) || handoffUrl;
+    window.open(destination, '_blank', 'noopener,noreferrer');
   });
 
   document.addEventListener('keydown', event => {

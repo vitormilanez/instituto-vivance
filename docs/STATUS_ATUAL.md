@@ -159,3 +159,7 @@ Pulse `/integration` foi consultado na sessão autenticada: Webhooks incluem
 mensagens recebidas; widget registra origem da visita. Nenhuma configuração
 foi alterada. Recebimento no Google, conversão primária da campanha e integração
 de conversa efetiva no CRM não foram validados.
+
+### Funil comercial enxuto — 06/10/2026
+
+Implementado localmente: rótulo curto da origem paga no texto editável do WhatsApp, apenas após consentimento e quando reconhecida no link. O CRM existente da closer continua sendo a fonte para conversa recebida, agendamento, comparecimento e entrada no Virada 90 presencial ou online. [Contrato operacional](virada90/FUNIL_COMERCIAL_LEVE.md). 425 testes, lint, tipos e build passaram; o navegador local confirmou o aviso de consentimento e a continuidade dos parâmetros na apresentação. Ainda não publicado nem validado com uma mensagem recebida; não equivale a conversão real no Google Ads. PR #79 permanece rascunho/desligado. Gate P aberto.

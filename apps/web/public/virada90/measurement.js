@@ -1,8 +1,9 @@
-import { campaignUrl, createMeasurement, GOOGLE, isPublicCampaign } from './measurement-core.js';
+import { campaignUrl, createMeasurement, GOOGLE, isPublicCampaign, whatsappWithSource } from './measurement-core.js';
 
 const preferenceCookie = 'virada90_measurement_v1';
 const saved = document.cookie.split('; ').find(value => value.startsWith(preferenceCookie + '='))?.split('=')[1];
 let sdkLoaded = false;
+let consentGranted = saved === 'granted';
 
 const command = (...args) => {
   window.dataLayer = window.dataLayer || [];
@@ -32,7 +33,7 @@ banner.className = 'measurement-banner';
 banner.setAttribute('aria-label', 'Preferências de cookies de medição');
 banner.innerHTML = `<div><strong>Podemos medir as visitas?</strong>
   <p>Usamos Google Analytics e Google Ads para medir visitas e cliques no WhatsApp.
-  Suas escolhas sobre saúde não são enviadas ao Google. Você pode mudar sua opção abaixo.</p></div>
+  Suas escolhas sobre saúde não são enviadas ao Google. Ao aceitar, a mensagem ao WhatsApp pode indicar se você veio de um anúncio. Você pode mudar sua opção abaixo.</p></div>
   <div class="measurement-actions"><button type="button" data-consent="denied">Continuar sem medição</button>
   <button type="button" data-consent="granted">Aceitar medição</button></div>`;
 banner.hidden = saved === 'granted' || saved === 'denied';
@@ -53,6 +54,7 @@ banner.addEventListener('click', event => {
   const button = event.target.closest('button[data-consent]');
   if (!button) return;
   const choice = button.dataset.consent;
+  consentGranted = choice === 'granted';
   const secure = window.location.protocol === 'https:' ? '; Secure' : '';
   document.cookie = `${preferenceCookie}=${choice}; Path=/virada90; Max-Age=15552000; SameSite=Lax${secure}`;
   banner.hidden = true;
@@ -82,6 +84,9 @@ for (const link of document.querySelectorAll('a[href]')) {
 }
 
 document.addEventListener('virada90:step', event => measurement.viewStep(event.detail.step));
+window.virada90SourceHandoff = handoff =>
+  consentGranted && isPublicCampaign(window.location.href)
+    ? whatsappWithSource(handoff, window.location.href) : handoff;
 const initialStep = Number(document.querySelector('.step.active[data-step]')?.dataset.step || 1);
 measurement.viewStep(initialStep);
 document.addEventListener('click', event => {
@@ -91,5 +96,10 @@ document.addEventListener('click', event => {
   if (new URL(link.href).hostname !== 'wa.me') return;
   const position = link.classList.contains('main') ? 'landing_presencial' : 'landing_online';
   measurement.whatsapp(position);
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  const handoff = window.virada90SourceHandoff(link.href);
+  if (handoff === link.href) return;
+  event.preventDefault();
+  window.open(handoff, '_blank', 'noopener,noreferrer');
 });
 if (saved === 'granted' && isPublicCampaign(window.location.href)) measurement.consent(true);

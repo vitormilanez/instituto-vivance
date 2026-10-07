@@ -46,6 +46,34 @@ export function campaignReferrer(input) {
   } catch { return ''; }
 }
 
+/** Rótulo curto para a equipe; não reutiliza UTMs livres nem IDs de clique.
+ * @param {string} input */
+export function campaignSource(input) {
+  if (!isPublicCampaign(input)) return '';
+  const params = new URL(campaignUrl(input)).searchParams;
+  const source = params.get('utm_source')?.toLowerCase() || '';
+  const medium = params.get('utm_medium')?.toLowerCase() || '';
+  const googleClick = ['gclid', 'gbraid', 'wbraid'].some(key => params.has(key));
+  if (googleClick && source && source !== 'google') return '';
+  if (googleClick && medium === 'organic') return '';
+  if (googleClick || (source === 'google' && ['cpc', 'ppc', 'paid', 'paid_search'].includes(medium))) return 'Google Ads';
+  if (['facebook', 'instagram', 'meta'].includes(source) && ['cpc', 'paid', 'paid_social'].includes(medium)) return 'Anúncio nas redes sociais';
+  return '';
+}
+
+/** Acrescenta somente o rótulo validado a uma mensagem que a pessoa ainda pode editar.
+ * @param {string} handoff @param {string} campaign */
+export function whatsappWithSource(handoff, campaign) {
+  const source = campaignSource(campaign);
+  if (!source) return handoff;
+  const url = new URL(handoff);
+  if (url.hostname !== 'wa.me' || url.pathname !== '/5518997551234') return handoff;
+  const message = url.searchParams.get('text');
+  if (!message || message.includes('\nOrigem do link:')) return handoff;
+  url.searchParams.set('text', `${message}\nOrigem do link: ${source}.`);
+  return url.href;
+}
+
 /** @param {{url: string, referrer?: string, command: (...args: unknown[]) => void, load: () => void}} options */
 export function createMeasurement({ url, referrer = '', command, load }) {
   const allowed = isPublicCampaign(url);
