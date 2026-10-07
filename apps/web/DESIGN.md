@@ -102,7 +102,7 @@ Títulos de página usam headline; títulos de seção usam title. O corpo parte
 
 ## Layout
 
-A área da equipe tem menu lateral de 224 px e conteúdo flexível com largura máxima de 1380 px. O conteúdo recebe 36 px de espaço vertical e margem interna horizontal entre 20 e 48 px. A visão geral do administrador mantém **oito cartões de ações rápidas** (`staffActions`), em quatro colunas, reduzidas para duas até 1150 px. O `Hoje` do médico mostra **seis atalhos** (`staffShortcuts`), que são as mesmas ações menos Pacientes, Agenda e Mensagens — as três áreas que o menu já destaca. Os dois números são intencionais e cada um tem teste próprio.
+A área da equipe tem menu lateral de 224 px e conteúdo flexível com largura máxima de 1380 px. O conteúdo recebe 36 px de espaço vertical e margem interna horizontal entre 20 e 48 px. A visão geral do administrador mantém **oito cartões de ações rápidas** (`staffActions`), em quatro colunas, reduzidas para duas até 1150 px. O `Hoje` do médico também mostra **oito ações rápidas** (`staffActions`); a prévia fictícia usa seis atalhos (`staffShortcuts`). O menu principal continua oferecendo os destinos frequentes.
 
 A área do paciente tem largura máxima de 1080 px. Sua navegação principal mantém **quatro entradas**: Hoje, Meu cuidado, Conversas e Evolução. Meu perfil fica separado, no contexto da clínica. O resumo usa duas colunas no desktop e uma até 760 px.
 
@@ -136,7 +136,7 @@ Continuam conectados os fluxos existentes de autenticação, cadastro e consulta
 ## Do's and Don'ts
 
 - **Do** manter português do Brasil, títulos concretos e estados compreensíveis sem depender de cor.
-- **Do** preservar as oito ações rápidas na visão geral do administrador, os seis atalhos do `Hoje` do médico e as quatro entradas principais do paciente.
+- **Do** preservar as oito ações rápidas na visão geral do administrador e no `Hoje` do médico, além das quatro entradas principais do paciente.
 - **Do** distinguir o link que permite conhecer uma área do botão que executaria uma operação ainda indisponível.
 - **Do** preservar foco visível, alvos de pelo menos 44 px de altura e navegação por teclado.
 - **Don't** preencher módulos novos com mocks clínicos, contadores fictícios, gráficos ou atividade simulada.
@@ -160,3 +160,16 @@ Receitas abrem em dialog lateral com título, fechamento por Escape e foco
 restaurado, sem abas internas. O gráfico preserva datas proporcionais,
 seleção acessível, controles de 44 px e tabela textual. A prévia sintética
 é exclusiva de desenvolvimento e não constitui integração validada.
+
+### Leitura e espaço — 07/10/2026
+
+O resumo do médico separa falas literais, solicitações sem resposta e documentos
+para revisar. Títulos repetidos de documentos são distinguidos pela posição e
+data; o link realça a linha de destino. O card da consulta pode ser minimizado
+para identidade e horário, trazendo o conteúdo seguinte para cima sem navegação.
+O controle mantém texto visível e usa disclosure nativo.
+
+Na troca de áreas, a navegação aguarda o destino preservando a tela atual e
+mostra atividade no link acionado. O compositor das mensagens deixa referências
+opcionais recolhidas; no desktop, a lista aberta flutua sobre a conversa para
+manter o histórico e o envio visíveis. No celular, as opções expandem no fluxo.

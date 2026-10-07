@@ -213,6 +213,7 @@ function ConversationWorkspace({
   const router = useRouter();
   const busy = useRef(false);
   const composer = useRef<HTMLTextAreaElement>(null);
+  const messagesPane = useRef<HTMLDivElement>(null);
   const [pending, setPending] = useState(false);
   const [draft, setDraft] = useState("");
   const [selectedReferences, setSelectedReferences] = useState<string[]>([]);
@@ -223,6 +224,7 @@ function ConversationWorkspace({
   const selectedKey = selected
     ? `${selected.patientId}:${selected.doctorId}`
     : "";
+  const latestMessageId = initial.messages.at(-1)?.id;
   const previousSelectedKey = useRef(selectedKey);
   const messagesBeforeAttempt = useRef<Set<string>>(new Set());
   const requestKey = useRef<string | null>(null);
@@ -288,6 +290,12 @@ function ConversationWorkspace({
     setSendUncertain(false);
     requestKey.current = null;
   }, [selectedKey]);
+
+  useEffect(() => {
+    if (initial.page !== 1 || !latestMessageId) return;
+    const pane = messagesPane.current;
+    if (pane) pane.scrollTop = pane.scrollHeight;
+  }, [initial.page, latestMessageId, selectedKey]);
 
   useEffect(() => {
     if (!sendUncertain || !draft.trim()) return;
@@ -680,7 +688,7 @@ function ConversationWorkspace({
               />
             ) : null}
             {initial.messages.length ? (
-              <div className="conversation-messages" aria-live="polite">
+              <div className="conversation-messages" ref={messagesPane} aria-live="polite">
                 {initial.messages.map((message) => {
                   const ownMessage = message.sender_id === initial.userId;
                   return (
@@ -789,9 +797,11 @@ function ConversationWorkspace({
                 aceita anexos nesta etapa; use Documentos para arquivos.
               </p>
               {initial.references.length > 0 && (
-                <div className="conversation-reference-picker">
+                <details className="conversation-reference-picker">
+                  <summary>Referências compartilhadas (opcional){activeReferences.length > 0 ? ` · ${activeReferences.length} selecionada${activeReferences.length === 1 ? "" : "s"}` : ""}</summary>
+                  <div className="conversation-reference-body">
                   <fieldset className="message-reference-options" disabled={pending}>
-                    <legend>Referências compartilhadas (opcional)</legend>
+                    <legend className="sr-only">Itens disponíveis para citar</legend>
                     {["Plano de cuidado publicado", "Documentos compartilhados"].map(
                       (group) => {
                         const options = initial.references.filter(
@@ -843,7 +853,8 @@ function ConversationWorkspace({
                     Cite até 10 itens. Somente documentos compartilhados e o plano
                     atualmente publicado aparecem aqui. Nenhum arquivo é enviado pela conversa.
                   </small>
-                </div>
+                  </div>
+                </details>
               )}
               <div>
                 <span>{draft.length}/4.000 caracteres</span>

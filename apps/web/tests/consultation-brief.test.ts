@@ -65,13 +65,33 @@ test("fallback determinístico preserva respostas literais e cita lacunas por re
   assert.equal(brief.mode, "deterministic");
   assert.equal(brief.retry, false);
   assert.equal(brief.topics[0].text, "Quero conversar sobre meu sono.");
+  assert.equal(brief.topics[0].kind, "patient");
   assert.equal(brief.topics[0].sources[0].id, "preparation-1");
   assert.ok(brief.topics.some((topic) =>
+    topic.kind === "pending"
+    &&
     topic.text === "As metas solicitadas ainda aguardam resposta."
     && topic.sources[0].id === "request-goals-1"));
   assert.ok(brief.topics.some((topic) =>
+    topic.kind === "documents"
+    &&
     topic.text === "Há 1 documento aguardando revisão médica."
     && topic.sources[0].type === "patient_document"));
+  assert.ok(brief.topics.some((topic) =>
+    topic.kind === "documents"
+    && topic.sources[0].href.endsWith("?aba=Documentos#documento-document-1")));
+});
+
+test("documentos para revisão permanecem visíveis com duas solicitações pendentes", () => {
+  const data = input();
+  data.context.requests.push({
+    id: "request-exams-1",
+    kind: "exams",
+    requested_at: "2026-10-05T12:00:00.000Z",
+  });
+  const brief = deterministicConsultationBrief(data);
+  assert.equal(brief.topics.filter((topic) => topic.kind === "pending").length, 2);
+  assert.ok(brief.topics.some((topic) => topic.kind === "documents"));
 });
 
 test("flag desligada não chama provedor nem rotula fallback como IA", async () => {
@@ -119,9 +139,11 @@ test("saída estruturada só aceita texto literal ligado à source key real", as
   assert.equal(sentModel, "configured-model");
   assert.equal(formatType, "json_schema");
   assert.equal(brief.mode, "ai");
-  assert.deepEqual(brief.topics.map((topic) => topic.text), [
+  assert.deepEqual(brief.topics.filter((topic) => topic.kind === "patient").map((topic) => topic.text), [
     "Quero conversar sobre meu sono.",
   ]);
+  assert.ok(brief.topics.some((topic) => topic.kind === "pending"));
+  assert.ok(brief.topics.some((topic) => topic.kind === "documents"));
   assert.equal(brief.topics[0].sources[0].id, "preparation-1");
 });
 

@@ -55,7 +55,7 @@ export default async function RefinementsPreview({ searchParams }: {
     prescriptions: {total: 0, available: true},
     onboarding: { id: "synthetic-onboarding", submittedAt: instant(-20160), answers: draft.answers, measurements: { ...draft.measurements, weightKg: 82, measuredOn: new Date(now.getTime() - 14 * 86400000).toISOString().slice(0, 10) } },
     documents: { total: 2, latest_at: instant(-120) }, measurements: { total: 3, latest_at: instant(-90) },
-    intake: { hasGoal: true, updatedAt: instant(-90) }, requests: [],
+    intake: null, requests: [{ id: "synthetic-goals-request", kind: "goals", requested_at: instant(-180) }],
   };
   const dates = [-14, -12, -10, -7, -5, -3, -1, 0].map(days => new Date(now.getTime() + days * 86_400_000).toISOString().slice(0, 10));
   const weights = [82, 81.2, 81.4, 80.5, 80.6, 79.9, 79.2, 78.8].map((value, index) => ({ value, date: dates[index] }));
@@ -98,7 +98,14 @@ export default async function RefinementsPreview({ searchParams }: {
         clinic: { id: tenant, name: "Clínica demonstrativa", role: "doctor", displayName: "Dra. Marina · FICTÍCIO" }, userId: doctor,
         recipients: [{ id: patient, displayName: "Ana Souza · FICTÍCIO", lastMessageAt: null, hasUnread: false }],
         selected: { patientId: patient, doctorId: doctor, displayName: "Ana Souza · FICTÍCIO" },
-        page: 1, references: [], messages: [], hasNext: false, lastReadAt: null,
+        page: 1, references: [
+          { type: "document", id: "synthetic-exam-1", label: "Exames laboratoriais · FICTÍCIO", group: "Documentos compartilhados" },
+          { type: "document", id: "synthetic-exam-2", label: "Exame de imagem · FICTÍCIO", group: "Documentos compartilhados" },
+        ], messages: [
+          { id: "synthetic-message-1", client_request_id: "synthetic-request-1", content: "Tenho dúvidas sobre a rotina desta semana. · FICTÍCIO", conversation_id: "synthetic-conversation", doctor_id: doctor, patient_id: patient, sender_id: patient, sent_at: instant(-360), tenant_id: tenant, references: [] },
+          { id: "synthetic-message-2", client_request_id: "synthetic-request-2", content: "Podemos conversar na próxima consulta. · FICTÍCIO", conversation_id: "synthetic-conversation", doctor_id: doctor, patient_id: patient, sender_id: doctor, sent_at: instant(-240), tenant_id: tenant, references: [] },
+          { id: "synthetic-message-3", client_request_id: "synthetic-request-3", content: "Enviei os exames pelo app. · FICTÍCIO", conversation_id: "synthetic-conversation", doctor_id: doctor, patient_id: patient, sender_id: patient, sent_at: instant(-120), tenant_id: tenant, references: [] },
+        ], hasNext: false, lastReadAt: null,
         context: {
           documents: { state: "ready", count: 2, latest: { title: "Avaliação inicial.pdf", at: instant(-120), href: `${base}/documentos?paciente=${patient}` } },
           exams: { state: "ready", count: 3, latest: { title: "Exames laboratoriais.pdf", at: instant(-90), href: `${base}/documentos?paciente=${patient}` } },

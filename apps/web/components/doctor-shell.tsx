@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { logout } from "@/app/actions";
 import type { ClinicAccess } from "@/modules/identity/service";
 import { navLabel, staffModules } from "@/modules/workspace/navigation";
+import { DoctorNavPending } from "./doctor-nav-pending";
 import "@/app/doctor.css";
 import "@/app/doctor-home.css";
 import "@/app/doctor-patients.css";
@@ -95,6 +96,7 @@ export function DoctorShell({
       aria-current={active === link.key ? "page" : undefined}
     >
       {link.label}
+      <DoctorNavPending />
     </Link>
   ));
   return (
@@ -116,6 +118,7 @@ export function DoctorShell({
             >
               <DoctorIcon name={link.key} />
               {link.label}
+              <DoctorNavPending />
             </Link>
           ))}
         </nav>
@@ -185,6 +188,7 @@ export function DoctorShell({
                 aria-current={active === "teleconsulta" ? "page" : undefined}
               >
                 Teleconsulta
+                <DoctorNavPending />
               </Link>
               {secondaryLinks}
               <Link href="/clinicas">Minhas clínicas</Link>
@@ -209,6 +213,7 @@ export function DoctorShell({
           >
             <DoctorIcon name={link.key} />
             <span>{link.mobile}</span>
+            <DoctorNavPending />
           </Link>
         ))}
       </nav>

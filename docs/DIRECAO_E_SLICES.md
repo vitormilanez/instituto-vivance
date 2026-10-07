@@ -182,3 +182,15 @@ sessão autenticada existente do médico; os oito atalhos da rota foram preserva
 IA permanece desligada, sem migration ou escrita no Supabase nesta publicação.
 C3 permanece sem aceite operacional e Gate P aberto.
 [Contrato, evidências de publicação e limites](BRIEFING_CONSULTA_2026-10-07.md).
+
+### Refinamento da Home e mensagens — 07/10/2026
+
+Após conferir a tela publicada, o usuário pediu separar relatos literais do
+paciente, respostas pendentes e documentos para revisão, com cada documento
+identificável por fonte e data. O card da consulta deve recolher em um resumo
+de pessoa/horário e liberar o espaço para as seções seguintes; ao expandir,
+restaura todo o briefing. Na navegação do médico, preservar o menu visível
+enquanto o destino carrega. No painel de mensagens, manter o histórico e a ação
+de enviar utilizáveis mesmo quando há referências opcionais. O envio de teste
+autorizado na sessão autenticada confirmou persistência visual da mensagem;
+isso não equivale ao aceite clínico de C3. Gate P permanece aberto.

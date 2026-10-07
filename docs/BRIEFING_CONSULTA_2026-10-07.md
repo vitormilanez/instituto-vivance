@@ -67,6 +67,16 @@ As três variáveis exigidas para IA não constam na configuração production c
 
 Esta é publicação técnica com conferência autenticada da Home do médico. Jornada do paciente, outros perfis, persistência/revisão/publicação clínica, isolamento remoto, backup/restauração e aceite operacional C3 não foram concluídos nesta fatia. Gate P permanece aberto.
 
+## Refinamento solicitado em 07/10/2026
+
+A leitura do card foi revista após avaliação do usuário: respostas literais do paciente, solicitações sem resposta e documentos aguardando revisão têm grupos próprios. O texto clínico não é reescrito nem classificado. Documentos recebem link para a linha original, data e número de arquivo para distinguir títulos repetidos; a linha de destino fica realçada. A lista operacional de pendências continua visível também se o modo de IA vier a selecionar apenas parte dos relatos.
+
+O card da próxima consulta inicia expandido e pode ser minimizado para pessoa, horário e tipo de encontro, deixando as seções seguintes subirem. O controle é um disclosure nativo com texto, foco e teclado; reabrir restaura o conteúdo. A navegação do médico deixou de renderizar o fallback global que removia o menu entre páginas, e o link pendente mostra um sinal discreto. No painel médico de mensagens, o seletor de referências fica recolhido por padrão; aberto no desktop, flutua sobre a conversa, sem deslocar o botão de envio. O histórico posiciona a última mensagem no painel interno.
+
+Na sessão publicada anterior à alteração, a transição para Mensagens exibiu apenas “Carregando sua clínica…” até a página carregar. O usuário autorizou testar envio; uma mensagem curta identificada como teste, sem conteúdo clínico, foi enviada ao paciente selecionado e apareceu no histórico, com campo limpo e confirmação “Mensagem enviada.” O teste não avalia entrega ao destinatário fora do app.
+
+Na prévia local com dados fictícios, as larguras de 390 e 320 px não apresentaram rolagem horizontal; minimização e expansão moveram o conteúdo abaixo. Em viewport desktop de 806 px de altura, o compositor compacto deixou “Enviar mensagem” a 788 px, e a lista de mensagens passou a ter 199 px, com rolagem ao registro mais recente. Abrir as referências não alterou essas medidas. Essa conferência é local e não declara a nova versão publicada ou aceita clinicamente.
+
 ## Saídas reais dos comandos
 
 Node 24.19.0. Todos os comandos abaixo encerraram com código 0. Os arquivos integrais são preservados localmente em `output/consultation-*-final.log`.

@@ -4,7 +4,16 @@
 .dv .doctor-home-focus .doctor-consultation.consultation-briefing { padding: 0; border: 1px solid var(--dv-line); box-shadow: none; overflow: visible; }
 .consultation-briefing { --brief-muted: #4c5d78; color: var(--ink); }
 .consultation-briefing h2, .consultation-briefing h3, .consultation-briefing h4 { letter-spacing: -.02em; }
-.brief-header { padding: 24px 28px; border-bottom: 1px solid var(--border); }
+.brief-expandable > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 76px; padding: 16px 28px; cursor: pointer; list-style: none; }
+.brief-expandable > summary::-webkit-details-marker { display: none; }
+.brief-expandable > summary .brief-identity { min-width: 0; }
+.brief-expandable > summary:hover { background: #f6f9fe; }
+.brief-expandable[open] > summary { padding-top: 24px; padding-bottom: 8px; }
+.brief-collapse-control { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 106px; min-height: 44px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; color: #124da0; font-size: 12px; font-weight: 650; white-space: nowrap; }
+.brief-collapse-control svg { transition: transform .18s ease; }
+.brief-expandable[open] .brief-collapse-control svg { transform: rotate(90deg); }
+.brief-expandable[open] .brief-expand-label, .brief-expandable:not([open]) .brief-minimize-label { display: none; }
+.brief-header { padding: 0 28px 20px; border-bottom: 1px solid var(--border); }
 .brief-identity { display: flex; align-items: center; gap: 14px; }
 .brief-identity > div { min-width: 0; }
 .dv .brief-identity h2 { margin: 0 0 5px; font-size: 26px; line-height: 1.2; }
@@ -33,13 +42,26 @@
 .brief-section-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
 .brief-section-heading h3 { margin: 0; font-size: 18px; }
 .brief-section-heading > span { font-size: 12px; color: var(--brief-muted); }
-.brief-mode { margin: 5px 0 12px; color: var(--brief-muted); font-size: 12px; }
+.brief-mode { margin: 5px 0 18px; color: var(--brief-muted); font-size: 12px; }
+.brief-topic-group { padding: 16px 0; border-top: 1px solid #dbe4f0; }
+.brief-topic-group:last-of-type { padding-bottom: 0; }
+.brief-topic-group h4 { margin: 0; font-size: 15px; line-height: 1.35; }
+.brief-group-note, .brief-group-empty { margin: 4px 0 10px; color: var(--brief-muted); font-size: 12px; line-height: 1.5; }
+.brief-topic-group .brief-group-empty { margin-bottom: 0; }
 .brief-topics { margin: 0; padding: 0; list-style: none; }
 .brief-topics > li { padding: 12px 0 4px; border-top: 1px solid #dbe4f0; }
 .brief-topics > li:first-child { border: 0; padding-top: 0; }
-.brief-topics p { margin: 0; font-size: 15px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 70ch; }
+.brief-topics p, .brief-topics blockquote { margin: 0; font-size: 15px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 70ch; }
+.brief-topics blockquote { color: var(--ink); }
 .brief-sources { display: flex; gap: 4px 14px; flex-wrap: wrap; }
 .brief-sources a { display: inline-flex; gap: 2px; align-items: center; min-height: 44px; font-size: 12px; color: #124da0; text-decoration: underline; text-underline-offset: 3px; }
+.brief-source-with-date { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.brief-source-with-date time, .brief-document-list time { color: var(--brief-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.brief-document-count { margin: 8px 0; color: var(--brief-muted); font-size: 13px; }
+.brief-document-list { margin: 0; padding: 0; list-style: none; }
+.brief-document-list li { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; padding: 5px 0; border-top: 1px solid #dbe4f0; overflow-wrap: anywhere; }
+.brief-document-number { color: var(--brief-muted); font-size: 11px; font-weight: 650; white-space: nowrap; }
+.brief-document-list a { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; min-width: 0; color: #124da0; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
 .brief-patient-feed { padding: 24px 28px 28px; }
 .brief-feed { margin: 14px 0 0; padding: 0; list-style: none; }
 .brief-feed > li { border-bottom: 1px solid var(--border); }
@@ -85,7 +107,7 @@
 .brief-open-work a { min-height: 44px; display: flex; align-items: center; font-weight: 600; }
 .brief-load-error { margin: 16px 0; padding: 12px 16px; border: 1px solid #98a9bf; border-radius: 8px; background: #f6f9fe; }
 .brief-load-error p { font-size: 13px; margin: 0 0 8px; color: var(--brief-muted); }
-.consultation-briefing > .brief-load-error { margin-inline: 24px; }
+.consultation-briefing > .brief-expandable > .brief-expandable-body > .brief-load-error { margin-inline: 24px; }
 .brief-prescription-drawer { position: fixed; inset: 0 0 0 auto; width: min(540px, 100%); max-width: 100%; height: 100dvh; max-height: 100dvh; margin: 0; padding: 24px; border: 0; border-left: 1px solid var(--border); border-radius: 0; background: #fff; color: var(--ink); overflow-y: auto; }
 .brief-prescription-drawer::backdrop { background: rgb(3 19 45 / .28); }
 .brief-prescription-drawer > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
@@ -102,7 +124,11 @@
 }
 @media (max-width: 650px) {
   .dv .doctor-home .doctor-home-aside { grid-template-columns: minmax(0, 1fr); }
-  .brief-header, .brief-summary, .brief-patient-feed, .brief-facts { padding: 20px 16px; }
+  .brief-expandable > summary { padding: 14px 16px; align-items: flex-start; }
+  .brief-expandable[open] > summary { padding-top: 20px; }
+  .brief-header { padding: 0 16px 20px; }
+  .brief-summary, .brief-patient-feed, .brief-facts { padding: 20px 16px; }
+  .brief-collapse-control { min-width: 88px; font-size: 11px; }
   .dv .brief-identity h2 { font-size: 23px; overflow-wrap: anywhere; }
   .brief-identity { align-items: start; gap: 10px; }
   .brief-identity .dv-avatar { width: 42px; height: 42px; flex: 0 0 42px; font-size: 14px; }
@@ -120,6 +146,7 @@
   .brief-comparison { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .brief-prescription-drawer { padding: 16px; }
 }
-@media (prefers-reduced-motion: reduce) { .brief-disclosure-icon { transition: none; } }
+@media (max-width: 360px) { .brief-collapse-summary .dv-avatar { display: none; } }
+@media (prefers-reduced-motion: reduce) { .brief-disclosure-icon, .brief-collapse-control svg { transition: none; } }
 
 .doctor-review-other { display: flex; align-items: center; min-height: 44px; margin-left: 60px; font-weight: 600; }

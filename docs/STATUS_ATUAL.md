@@ -195,3 +195,18 @@ sessão autenticada existente do médico; os oito atalhos da rota foram preserva
 IA permanece desligada, sem migration ou escrita no Supabase nesta publicação.
 C3 permanece sem aceite operacional e Gate P aberto.
 [Contrato, evidências de publicação e limites](BRIEFING_CONSULTA_2026-10-07.md).
+
+### Refinamento solicitado — 07/10/2026, em validação local
+
+O briefing foi reagrupado em relatos literais, respostas pendentes e documentos
+para revisão; links de documentos apontam para linhas identificáveis, com data.
+A próxima consulta pode ser minimizada e expandida pelo teclado ou toque,
+movendo as seções seguintes no fluxo normal da página. A causa observada do
+menu desaparecer na troca era o fallback global `Carregando sua clínica…`, que
+substituía todo o shell; essa tela de carregamento foi removida e os links do
+menu indicam navegação pendente. No compositor médico, as referências opcionais
+ficam recolhidas e abrem sobre a conversa no desktop, mantendo o envio visível;
+o histórico abre no último registro. Um teste autorizado enviou mensagem curta
+sem dados clínicos na sessão autenticada do médico, confirmada no histórico.
+Os demais comportamentos foram conferidos localmente com dados fictícios;
+publicação da nova versão e aceite clínico ainda são etapas distintas.
