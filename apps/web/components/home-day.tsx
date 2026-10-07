@@ -9,7 +9,7 @@ import {
   dayStatusLabels,
 } from "@/modules/workspace/home-day";
 import { receivedDateLabel } from "@/modules/workspace/received-items";
-import { doctorReviewGroups as groupReceivedForReview } from "@/modules/workspace/doctor-review";
+import { outsideBriefing, reviewSidebar } from "@/modules/workspace/consultation-layout";
 import {
   betweenConsultations,
   earlierLabel,
@@ -21,7 +21,6 @@ import {
 } from "@/modules/workspace/home-view";
 import {
   receivedItemLabels,
-  type ReceivedItem,
 } from "@/modules/workspace/received-items";
 import { ConsultationBlock } from "@/components/consultation-block";
 import { StickyConsultation } from "@/components/sticky-consultation";
@@ -141,51 +140,15 @@ function ReceivedBetween({
   );
 }
 
-type DoctorReviewGroup = {
-  patientId: string;
-  patientName: string;
-  counts: { label: string; total: number }[];
-};
 
-// A revisão compacta usa somente itens já filtrados pelo vínculo ativo. A
-// ordem padrão é a chegada mais antiga; não há score, prioridade ou urgência.
-function doctorReviewSummary(
-  links: Data["links"],
-  received: Data["received"],
-): DoctorReviewGroup[] {
-  const groups = groupReceivedForReview(
-    [...links]
-      .filter(([, link]) => link.status === "active")
-      .map(([patientId, link]) => ({
-        patientId,
-        name: link.name,
-        items: received.get(patientId) ?? [],
-      })),
-    { kind: "all", status: "all", search: "" },
-  );
-  return groups.map(({ patientId, name, items }) => {
-    const totals = new Map<ReceivedItem["kind"], number>();
-    for (const item of items)
-      totals.set(item.kind, (totals.get(item.kind) ?? 0) + 1);
-    return {
-      patientId,
-      patientName: name,
-      counts: [...totals.entries()].map(([kind, total]) => ({
-        label: receivedItemLabels[kind],
-        total,
-      })),
-    };
-  });
-}
-
-function DoctorReviewPanel({ base, data }: { base: string; data: Data }) {
-  const groups = doctorReviewSummary(data.links, data.received).slice(0, 5);
+function DoctorReviewPanel({ base, data, focusPatientId }: { base: string; data: Data; focusPatientId: string | null }) {
+  const groups = reviewSidebar({ patients: [...data.links].filter(([, link]) => link.status === "active").map(([patientId, link]) => ({ patientId, name: link.name, items: data.received.get(patientId) ?? [] })), work: data.work, focusPatientId }).slice(0, 5);
   return (
     <section className="doctor-review" aria-labelledby="doctor-review-title">
       <div className="doctor-review-head">
         <div>
           <h2 id="doctor-review-title">Para revisar</h2>
-          <p className="doctor-review-caption">Envios por paciente · do mais antigo</p>
+          <p className="doctor-review-caption">Envios e documentos sem revisão · por chegada</p>
         </div>
         <Link className="button secondary" href={`${base}/revisar`}>Abrir</Link>
       </div>
@@ -193,16 +156,17 @@ function DoctorReviewPanel({ base, data }: { base: string; data: Data }) {
         <ul>
           {groups.map((group) => (
             <li key={group.patientId}>
-              <Link className="doctor-review-patient" href={`${base}/revisar?paciente=${group.patientId}`}>
-                <span className="dv-avatar" aria-hidden="true">{group.patientName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>
-                <span><strong>{group.patientName}</strong><small>
+              <Link className="doctor-review-patient" href={group.documentHref ?? `${base}/revisar?paciente=${group.patientId}`}>
+                <span className="dv-avatar" aria-hidden="true">{group.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>
+                <span><strong>{group.name}</strong><small>
                 {group.counts
                   .map(
-                    ({ label, total }) => `${total} × ${label.toLowerCase()}`,
+                    ({ kind, total }) => `${total} × ${receivedItemLabels[kind].toLowerCase()}`,
                   )
                   .join(" · ")}
-                </small></span><b>{group.counts.reduce((total, item) => total + item.total, 0)}</b>
+                </small></span><b>{data.failed.length || data.work === null ? "Parcial" : group.counts.reduce((total, item) => total + item.total, 0)}</b>
               </Link>
+              {group.documentHref && group.counts.some(({ kind }) => kind !== "documents") && <Link className="doctor-review-other" href={`${base}/revisar?paciente=${group.patientId}`}>Ver os outros envios</Link>}
             </li>
           ))}
         </ul>
@@ -210,7 +174,7 @@ function DoctorReviewPanel({ base, data }: { base: string; data: Data }) {
         <p className="doctor-review-empty">
           {data.failed.length
             ? "Não foi possível carregar todos os envios."
-            : "Nenhum envio de pacientes com vínculo ativo por aqui ainda."}
+            : focusPatientId ? "As pendências da consulta selecionada estão no briefing." : "Nenhum envio de pacientes com vínculo ativo por aqui ainda."}
         </p>
       )}
       {data.failed.length ? (
@@ -282,6 +246,8 @@ export function HomeDay({
     return (
       <ConsultationBlock
         compact={doctorView}
+        brief={data.briefs?.get(appointment.id) ?? null}
+        workItems={data.work}
         base={base}
         now={data.now}
         tenantId={tenantId}
@@ -467,6 +433,7 @@ export function HomeDay({
   }
 
   const focus = open ?? future;
+  const briefingPatient = focus && careLink(data, focus.patient_id).status === "active" && contextFor(focus.id) ? focus.patient_id : null;
 
   return (
     <div className="home doctor-home">
@@ -574,18 +541,8 @@ export function HomeDay({
           </section>
         </aside>
         <aside className="doctor-home-aside" aria-label="Revisão e trabalho em aberto">
-          <DoctorReviewPanel base={base} data={data} />
-      <OpenWork
-        items={
-          data.work?.filter(
-            (item) =>
-              // O rascunho de quem tem consulta aberta na tela já aparece no
-              // bloco dela; aqui ficaria repetido.
-              !(item.kind === "encounter" && blockPatients.has(item.patientId)),
-          ) ?? null
-        }
-        today={data.today}
-      />
+          <DoctorReviewPanel base={base} data={data} focusPatientId={briefingPatient} />
+          <OpenWork items={data.work ? outsideBriefing(data.work, briefingPatient) : null} today={data.today} />
 
         </aside>
       </div>

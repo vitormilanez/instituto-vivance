@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { PrescriptionsPanel } from "@/components/prescriptions-panel";
-import { TeleconsultationLink } from "./teleconsultation-link";
 import type { PatientCareContext } from "@/modules/workspace/today";
 import {
   dayStatusLabels,
@@ -18,9 +17,12 @@ import {
 } from "@/components/context-card-list";
 import { ReceivedSince } from "@/components/received-since";
 import { CareLinkAccept } from "@/components/care-link-accept";
-import { DoctorWeightChart, type WeightPoint } from "@/components/doctor-weight-chart";
+import { type WeightPoint } from "@/components/doctor-weight-chart";
 import { preparationQuestions } from "@/modules/return-preparation/questionnaire";
 import { onboardingMeasurements, onboardingQuestions } from "@/modules/onboarding/display";
+import { DoctorConsultationBriefing } from "./doctor-consultation-briefing";
+import type { ConsultationBrief } from "@/modules/ai/consultation-brief";
+import type { OpenWorkItem } from "@/modules/workspace/open-work-items";
 import { ConsultationContextTabs } from "@/components/consultation-context-tabs";
 
 export type BlockAppointment = {
@@ -59,8 +61,12 @@ export function ConsultationBlock({
   backToNext,
   now,
   compact = false,
+  brief,
+  workItems,
 }: {
   now: string;
+  brief?: ConsultationBrief | null;
+  workItems?: OpenWorkItem[] | null;
   compact?: boolean;
   base: string;
   tenantId: string;
@@ -83,8 +89,6 @@ export function ConsultationBlock({
   }).format(new Date(appointment.starts_at));
   const agendaHref = `${base}/agenda?data=${date}#consulta-${appointment.id}`;
   const resumesThis = draft && draft.appointment_id === appointment.id;
-  const video = appointment.teleconsultation?.delivery_mode === "video";
-  const encounterQuery = video ? "?modo=teleconsulta&etapa=consulta" : "";
   // Consulta agendada que já terminou não se "prepara": a ação é ir à Agenda,
   // onde se registra o que aconteceu (concluir, falta). Nada é inferido aqui.
   const preparable =
@@ -117,28 +121,8 @@ export function ConsultationBlock({
       <ContextCardList cards={otherCards} compactRequests={compact} homeView base={base} patientId={appointment.patient_id} />
     </section>
   ) : null;
-  if (compact) return (
-    <article className="home-consultation doctor-consultation" aria-labelledby={titleId}>
-      <header className="doctor-consultation-identity">
-        <span className="dv-avatar" aria-hidden="true">{name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>
-        <div><p className="home-eyebrow">{eyebrow} · {appointmentClock(appointment.starts_at)}–{appointmentClock(appointment.ends_at)}</p><h2 id={titleId}>{name}</h2><p className="home-consultation-meta">{appointment.kind === "return" ? "Retorno" : "Consulta"} · {appointment.doctor_display_name}</p></div>
-        {context && <DoctorWeightChart initialWeight={context.onboarding?.measurements.weightKg != null && context.onboarding.measurements.measuredOn ? { value: context.onboarding.measurements.weightKg, date: context.onboarding.measurements.measuredOn } : null} points={weight} href={`${base}/acompanhamento?aba=evolucao&paciente=${appointment.patient_id}`} />}
-      </header>
-      {linkCopy ? <div className="home-care-link"><p>{linkCopy}</p>{link.status === "assigned" && <CareLinkAccept tenantId={tenantId} relationshipId={link.relationshipId} version={link.version} patientName={name} />}</div> : <>
-        {context && <ConsultationGlance context={context} tenantId={tenantId} />}
-        {contextTabs}
-        {otherContext}
-      </>}
-      <div className="home-consultation-actions">
-        <Link className="button" href={resumesThis ? `${base}/atendimentos/${draft.id}${encounterQuery}` : agendaHref}>{resumesThis ? "Retomar atendimento" : preparable ? "Preparar atendimento" : "Ver na agenda"}</Link>
-        {link.status === "active" && <><Link className="button secondary" href={`${base}/pacientes/${appointment.patient_id}`}>Abrir ficha</Link>
-        <Link className="button secondary" href={`${base}/mensagens?paciente=${appointment.patient_id}`}>Mensagem</Link></>}
-        {video && preparable && appointment.teleconsultation?.join_url && <TeleconsultationLink url={appointment.teleconsultation.join_url} compact />}
-      </div>
-      {draft && !resumesThis && <p className="home-draft">Atendimento em rascunho · <Link href={`${base}/atendimentos/${draft.id}`}>Retomar</Link></p>}
-      {backToNext && <Link className="home-back" href={backToNext}>Voltar para a próxima consulta</Link>}
-    </article>
-  );
+  if (compact) return <DoctorConsultationBriefing base={base} tenantId={tenantId} appointment={appointment} eyebrow={eyebrow} link={link} context={context} weight={weight} received={received} draft={draft} brief={brief} workItems={workItems} now={now} agendaHref={agendaHref} backToNext={backToNext} />;
+
   return (
     <article className="home-consultation" aria-labelledby={titleId}>
       <header className="home-consultation-head">
@@ -213,29 +197,6 @@ export function ConsultationBlock({
         </>
       )}
     </article>
-  );
-}
-
-function ConsultationGlance({ context, tenantId }: { context: PatientCareContext; tenantId: string }) {
-  const date = (value: string) =>
-    new Date(value).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      timeZone: "America/Sao_Paulo",
-    });
-  return (
-    <section className="doctor-consultation-glance" aria-label="Resumo para a consulta">
-      <div>
-        <h3>Evolução registrada</h3>
-        <p className="doctor-evolution-text">{context.encounter?.evolution?.trim() || "Nenhuma evolução finalizada registrada."}</p>
-        {context.encounter?.evolution?.trim() && context.encounter.finalized_at && (
-          <small>Último atendimento finalizado em {date(context.encounter.finalized_at)}.</small>
-        )}
-        {context.encounter?.evolution?.trim() && (
-          <Link href={`/clinicas/${tenantId}/atendimentos/${context.encounter.id}`}>Ler evolução completa</Link>
-        )}
-      </div>
-    </section>
   );
 }
 

@@ -78,7 +78,7 @@ test("sem vínculo ativo não há contexto, nem recebidos, nem query de recebido
 
 test("cada bloco usa o contexto do próprio paciente, nunca o de outra linha", () => {
   const service = read("../modules/workspace/today.ts");
-  assert.match(service, /item\.id,[\s\S]*?patientCareContext\([\s\S]*?item\.patient_id,[\s\S]*?\{ id: item\.id, starts_at: item\.starts_at \},[\s\S]*?\{ mode: "tolerant" \}/);
+  assert.match(service, /item\.id,[\s\S]*?patientCareContext\([\s\S]*?item\.patient_id,[\s\S]*?\{ id: item\.id, starts_at: item\.starts_at \},[\s\S]*?\{ mode: clinic\.role === "doctor" \? "tolerant" : "strict" \}/);
   assert.match(day(), /const contextFor = \(appointmentId: string\) =>\s*data\.contexts\.get\(appointmentId\) \?\? null;/);
   assert.doesNotMatch(day(), /data\.context\b/);
 });
@@ -117,21 +117,15 @@ test("consulta agendada que já terminou não oferece 'Preparar atendimento'", (
   assert.match(source, /Ver na agenda/);
 });
 
-test("o topo da próxima consulta mostra evolução e separa a resposta atual da anterior", () => {
-  const source = block();
-  const service = read("../modules/workspace/today.ts");
-  assert.match(source, /<h3>Evolução registrada<\/h3>/);
-  assert.match(source, /<ConsultationContextTabs/);
-  assert.match(source, /\{contextTabs\}\s*\{otherContext\}/);
-  assert.match(source, /currentAnswers \? "Pré-consulta desta consulta" : "Pré-consulta anterior"/);
-  assert.match(source, /<h3>Cadastro inicial<\/h3>/);
-  assert.match(source, /Aguardando resposta para esta consulta\./);
-  assert.match(source, /Enviada em \{submittedDate\} pelo paciente/);
-  assert.match(service, /select\("id,finalized_at,evolution"\)/);
-  assert.match(service, /select\("request_id,answers"\)/);
-  assert.match(service, /answers: answersFor\(previousPreparationRow\.id\)/);
-  assert.match(source, /const shown = currentAnswers \?\? previousAnswers/);
-  assert.match(read("../app/doctor-home.css"), /\.doctor-consultation-glance \{ display: grid;/);
+test("a Home médica troca abas pelo briefing e mantém relatos com data e fonte", () => {
+  const source = read("../components/doctor-consultation-briefing.tsx");
+  assert.match(block(), /if \(compact\) return <DoctorConsultationBriefing/);
+  assert.doesNotMatch(source, /ConsultationContextTabs|ContextCardList/);
+  assert.match(source, /O que o paciente trouxe/);
+  assert.match(source, /Abrir registro original/);
+  assert.match(source, /Comparar com a anterior/);
+  assert.match(source, /item.current \? " desta consulta"/);
+  assert.match(source, /context.encounter\?\.evolution\?\.trim\(\)/);
 });
 
 test("a faixa fixa só existe no celular e não rouba o foco", () => {

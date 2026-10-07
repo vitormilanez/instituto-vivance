@@ -7,8 +7,9 @@ import { Agenda } from "@/components/agenda";
 import { OnboardingWorkspace, type OnboardingDraft } from "@/components/onboarding-workspace";
 import { PatientInvitationForm } from "@/components/patient-invitation-form";
 import type { Appointment } from "@/modules/agenda/service";
+import { deterministicConsultationBrief } from "@/modules/ai/consultation-brief-data";
 import type { PatientCareContext } from "@/modules/workspace/today";
-import { staffActions } from "@/modules/workspace/navigation";
+import { staffShortcuts } from "@/modules/workspace/navigation";
 import { clinicDate } from "@/modules/agenda/validation";
 import { StaffPatientDocumentsPanel } from "@/components/documents-workspace";
 import type { StaffDocuments } from "@/modules/documents/service";
@@ -47,13 +48,17 @@ export default async function RefinementsPreview({ searchParams }: {
     encounter: { id: "synthetic-previous", finalized_at: instant(-1440), evolution: "Registro demonstrativo de acompanhamento." },
     nextAppointment: { id: appointment.id, starts_at: appointment.starts_at, status: "scheduled" },
     preparationAppointmentAt: appointment.starts_at, publications: [],
-    preparation: { id: "synthetic-preparation", status: "submitted", submitted_at: instant(-90), goal: "Revisar a rotina e tirar dúvidas.", answers: draft.answers },
-    previousPreparation: null,
-    onboarding: { submittedAt: instant(-20160), answers: draft.answers, measurements: { ...draft.measurements, weightKg: 82, measuredOn: new Date(now.getTime() - 14 * 86400000).toISOString().slice(0, 10) } },
+    preparation: { id: "synthetic-preparation", status: "submitted", submitted_at: instant(-90), goal: "Revisar a rotina e tirar dúvidas.", answers: {goal: "Revisar a rotina e tirar dúvidas sobre os próximos passos.", changes: "Estou dormindo melhor nos últimos dias.", routine: "Tenho caminhado no fim da tarde.", treatment: "Estou seguindo as orientações da última conversa.", questions: "Como manter a rotina durante as viagens?"} },
+    previousPreparation: { id: "synthetic-preparation-before", submitted_at: instant(-10080), answers: { goal: "Entender como organizar os horários.", changes: "Comecei a anotar meu sono.", routine: "Ainda sem rotina fixa.", treatment: "Orientações da consulta anterior.", questions: "Como acompanhar a mudança na rotina?" } },
+    preparationHistory: [],
+    documentItems: [{id: "synthetic-exam-1", title: "Exames laboratoriais · FICTÍCIO", created_at: instant(-120)}, {id: "synthetic-exam-2", title: "Exame de imagem · FICTÍCIO", created_at: instant(-240)}],
+    prescriptions: {total: 0, available: true},
+    onboarding: { id: "synthetic-onboarding", submittedAt: instant(-20160), answers: draft.answers, measurements: { ...draft.measurements, weightKg: 82, measuredOn: new Date(now.getTime() - 14 * 86400000).toISOString().slice(0, 10) } },
     documents: { total: 2, latest_at: instant(-120) }, measurements: { total: 3, latest_at: instant(-90) },
     intake: { hasGoal: true, updatedAt: instant(-90) }, requests: [],
   };
-  const dates = [-14, -7, 0].map(days => new Date(now.getTime() + days * 86_400_000).toISOString().slice(0, 10));
+  const dates = [-14, -12, -10, -7, -5, -3, -1, 0].map(days => new Date(now.getTime() + days * 86_400_000).toISOString().slice(0, 10));
+  const weights = [82, 81.2, 81.4, 80.5, 80.6, 79.9, 79.2, 78.8].map((value, index) => ({ value, date: dates[index] }));
   const demoDocuments = [
     { id: "00000000-0000-4000-8000-000000000021", display_title: "Ultrassonografia da tireoide e região cervical", category: "exam", original_filename: "f1a2b3c4-1111-4222-8333-123456789abc.pdf", content_type: "application/pdf", created_at: instant(-360), available_at: instant(-360) },
     { id: "00000000-0000-4000-8000-000000000022", display_title: "Ultrassonografia do abdome total", category: "exam", original_filename: "f1a2b3c4-1111-4222-8333-123456789abd.pdf", content_type: "application/pdf", created_at: instant(-420), available_at: instant(-420) },
@@ -104,6 +109,6 @@ export default async function RefinementsPreview({ searchParams }: {
       : tela === "documentos" ? <StaffPatientDocumentsPanel initial={documentPreview} base={`${base}/pacientes/${patient}?aba=Documentos`} />
       : tela === "convite" ? <PatientInvitationForm tenantId={tenant} role="admin" doctors={[{ id: doctor, displayName: "Dra. Marina · FICTÍCIO" }]} />
       : tela === "onboarding" ? <OnboardingWorkspace tenantId={tenant} clinicName="Clínica demonstrativa" doctorName="Dra. Marina" initial={draft} />
-      : <div className="doctor-home-overview"><aside className="doctor-home-focus"><ConsultationBlock compact base={base} tenantId={tenant} today={today} now={now.toISOString()} appointment={{ ...appointment, teleconsultation: { delivery_mode: "video", join_url: "https://meet.google.com/abc-defg-hij" } }} eyebrow="Próxima consulta" link={{ status: "active" }} context={context} weight={[{ value: 82, date: dates[0] }, { value: 80.5, date: dates[1] }, { value: 78.8, date: dates[2] }]} draft={null} received={{ visible: [], more: [], total: 0, empty: "Nenhum novo envio desde a última consulta.", failedLabels: [] }} /><section className="doctor-shortcuts panel"><h2>Ações rápidas</h2><ul className="more-tools-list">{staffActions(base).map(action => <li key={action.title}><Link className="more-tools-link" href={action.href}><strong>{action.title}</strong></Link></li>)}</ul></section></aside><aside className="panel"><h2>Para revisar</h2><p>Nenhum envio pendente nesta demonstração.</p></aside></div>}
+      : <div className="doctor-home"><div className="doctor-home-overview"><aside className="doctor-home-focus"><ConsultationBlock compact base={base} tenantId={tenant} today={today} now={now.toISOString()} appointment={{ ...appointment, teleconsultation: { delivery_mode: "video", join_url: "https://meet.google.com/abc-defg-hij" } }} eyebrow="Próxima consulta" link={{ status: "active" }} context={context} weight={weights} brief={deterministicConsultationBrief({tenantId:tenant, patientId:patient, appointment, context, documentReview:{pending:true,total:2,documentIds:["synthetic-exam-1","synthetic-exam-2"]}})} workItems={[{kind:"documents",id:"docs-demo",patientId:patient,patientName:"Ana · FICTÍCIO",total:2,state:"2 documentos sem revisão médica",action:"Revisar documentos",href:`${base}/pacientes/${patient}?aba=Documentos`,since:instant(-240)}]} draft={{id:"synthetic-draft",appointment_id:null,updated_at:instant(-60)}} received={{ visible: [], more: [], total: 0, empty: "Nenhum novo envio desde a última consulta.", failedLabels: [] }} /><section className="doctor-shortcuts panel"><h2>Ações rápidas</h2><ul className="more-tools-list">{staffShortcuts(base).map(action => <li key={action.title}><Link className="more-tools-link" href={action.href}><strong>{action.title}</strong></Link></li>)}</ul></section></aside><aside className="panel"><h2>Para revisar</h2><p>Nenhum envio pendente nesta demonstração.</p></aside></div></div>}
   </DoctorShell>;
 }
