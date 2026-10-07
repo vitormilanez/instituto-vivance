@@ -10,6 +10,7 @@ export type ConsultationBriefSource = {
 };
 
 export type ConsultationBriefTopic = {
+  kind: "patient" | "pending" | "documents";
   text: string;
   sources: ConsultationBriefSource[];
 };
@@ -98,6 +99,7 @@ function preparationFacts(input: ConsultationBriefInput): ConsultationBriefFact[
     return text
       ? [{
           key: `preparation:${record.id}:${id}`,
+          kind: "patient" as const,
           text,
           sources: [{
             type: "return_preparation_request",
@@ -119,6 +121,7 @@ function onboardingFacts(input: ConsultationBriefInput): ConsultationBriefFact[]
     return text
       ? [{
           key: `onboarding:${onboarding.id}:${id}`,
+          kind: "patient" as const,
           text,
           sources: [{
             type: "patient_onboarding_submission",
@@ -138,6 +141,7 @@ function gapFacts(input: ConsultationBriefInput): ConsultationBriefFact[] {
     return text
       ? [{
           key: `request:${request.id}`,
+          kind: "pending" as const,
           text,
           sources: [{
             type: "patient_care_request",
@@ -157,6 +161,7 @@ function gapFacts(input: ConsultationBriefInput): ConsultationBriefFact[] {
   ) {
     facts.unshift({
       key: `preparation-gap:${preparation.id}`,
+      kind: "pending",
       text: requestLabels.preparation,
       sources: [{
         type: "return_preparation_request",
@@ -179,13 +184,14 @@ function documentFact(input: ConsultationBriefInput): ConsultationBriefFact[] {
     type: "patient_document",
     id: document.id,
     date: document.created_at,
-    href: recordHref(input, "Documentos"),
+    href: `${recordHref(input, "Documentos")}#documento-${safeSegment(document.id)}`,
     label: document.title,
     }));
   if (!sources.length) return [];
   const total = input.documentReview.total;
   return [{
     key: `documents:${sources.map((source) => source.id).join(",")}`,
+    kind: "documents",
     text: total === 1
       ? "Há 1 documento aguardando revisão médica."
       : `Há ${total} documentos aguardando revisão médica.`,
@@ -196,8 +202,11 @@ function documentFact(input: ConsultationBriefInput): ConsultationBriefFact[] {
 export function consultationBriefFacts(input: ConsultationBriefInput) {
   const patientFacts = preparationFacts(input);
   if (!patientFacts.length) patientFacts.push(...onboardingFacts(input));
-  const operational = [...gapFacts(input), ...documentFact(input)];
-  return [...patientFacts.slice(0, 3), ...operational.slice(0, 2)];
+  return [
+    ...patientFacts.slice(0, 3),
+    ...gapFacts(input).slice(0, 2),
+    ...documentFact(input),
+  ];
 }
 
 export function deterministicConsultationBrief(
@@ -205,7 +214,8 @@ export function deterministicConsultationBrief(
 ): ConsultationBrief {
   return {
     mode: "deterministic",
-    topics: consultationBriefFacts(input).map(({ text, sources }) => ({
+    topics: consultationBriefFacts(input).map(({ kind, text, sources }) => ({
+      kind,
       text,
       sources,
     })),

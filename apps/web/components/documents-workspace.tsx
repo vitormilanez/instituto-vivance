@@ -310,7 +310,7 @@ function DocumentList({
         const reviewOpen = openReviewId === document.id;
         const availableAt = document.available_at ?? document.created_at;
         return (
-          <article className="document-row" key={document.id}>
+          <article className="document-row" id={`documento-${document.id}`} key={document.id}>
             <div className="document-summary">
               <h3>{title}</h3>
               <p className="document-meta">

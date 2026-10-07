@@ -69,7 +69,7 @@ function validatedTopics(payload: AiPayload, facts: ConsultationBriefFact[]) {
   }
   return facts
     .filter((fact) => selected.has(fact.key))
-    .map(({ text, sources }) => ({ text, sources }));
+    .map(({ kind, text, sources }) => ({ kind, text, sources }));
 }
 
 export async function generateConsultationBrief(
@@ -127,8 +127,9 @@ export async function generateConsultationBrief(
     const text = message.content?.find((block) => block.type === "text")?.text;
     if (!text) return { ...fallback, retry: true };
     const topics = validatedTopics(JSON.parse(text) as AiPayload, facts);
-    return topics.length
-      ? { mode: "ai", topics, retry: false }
+    const patientTopics = topics.filter((topic) => topic.kind === "patient");
+    return patientTopics.length
+      ? { mode: "ai", topics: [...patientTopics, ...fallback.topics.filter((topic) => topic.kind !== "patient")], retry: false }
       : { ...fallback, retry: true };
   } catch {
     return { ...fallback, retry: true };

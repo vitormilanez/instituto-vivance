@@ -96,9 +96,17 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
   const work = workItems?.filter((item) => item.patientId === appointment.patient_id) ?? [];
   const pendingWork = work.filter((item) => !(item.kind === "encounter" && item.id === draft?.id && action.label === "Retomar atendimento"));
   const prep = context?.preparation?.submitted_at ? context.preparation : context?.previousPreparation;
+  const patientTopics = brief?.topics.filter((topic) => topic.kind === "patient") ?? [];
+  const pendingTopics = brief?.topics.filter((topic) => topic.kind === "pending") ?? [];
+  const documentTopics = brief?.topics.filter((topic) => topic.kind === "documents") ?? [];
   return <article className="home-consultation doctor-consultation consultation-briefing" aria-labelledby={`consulta-${appointment.id}-titulo`}>
+    <details className="brief-expandable" open>
+      <summary className="brief-collapse-summary">
+        <div className="brief-identity"><span className="dv-avatar" aria-hidden="true">{name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span><div><h2 id={`consulta-${appointment.id}-titulo`}>{name}</h2><p><span>{eyebrow}</span> · <time dateTime={appointment.starts_at}>{appointmentClock(appointment.starts_at)}–{appointmentClock(appointment.ends_at)}</time></p><small>{appointment.kind === "return" ? "Retorno" : "Consulta"} · {appointment.doctor_display_name}</small></div></div>
+        <span className="brief-collapse-control"><span className="brief-minimize-label">Minimizar</span><span className="brief-expand-label">Expandir</span><ChevronRight size={18} aria-hidden="true" /></span>
+      </summary>
+    <div className="brief-expandable-body">
     <header className="brief-header">
-      <div className="brief-identity"><span className="dv-avatar" aria-hidden="true">{name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span><div><h2 id={`consulta-${appointment.id}-titulo`}>{name}</h2><p><span>{eyebrow}</span> · <time dateTime={appointment.starts_at}>{appointmentClock(appointment.starts_at)}–{appointmentClock(appointment.ends_at)}</time></p><small>{appointment.kind === "return" ? "Retorno" : "Consulta"} · {appointment.doctor_display_name}</small></div></div>
       {context && link.status === "active" && <ul className="brief-readiness" aria-label="Fontes disponíveis para o preparo">
         {prep?.submitted_at && <li><Link href={`${base}/preparo?solicitacao=${prep.id}#preparo-${prep.id}`}><ClipboardList size={14} aria-hidden="true" />Pré-consulta {day(prep.submitted_at)}</Link></li>}
         {!failed.includes("documents") && context.documents.total !== null && context.documents.total > 0 && <li><a href={`${base}/pacientes/${appointment.patient_id}?aba=Documentos`}><FileText size={14} aria-hidden="true" />{context.documents.total} exames{context.documents.latest_at ? ` · ${day(context.documents.latest_at)}` : ""}</a></li>}
@@ -117,8 +125,14 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
         <div className="brief-narrative">
           <section className="brief-summary" aria-labelledby={`brief-${appointment.id}`}>
             <div className="brief-section-heading"><h3 id={`brief-${appointment.id}`}>Para esta consulta</h3></div>
-            <p className="brief-mode">{brief?.mode === "ai" ? "Rascunho preparado pela IA · revisar" : "Relatos e lacunas · conferir as fontes"}</p>
-            {brief?.topics.length ? <ul className="brief-topics">{brief.topics.map((topic, index) => <li key={index}><p>{topic.text}</p><div className="brief-sources">{topic.sources.map((source) => <BriefSource key={`${source.type}:${source.id}`} source={source} received={received} tenantId={tenantId} />)}</div></li>)}</ul> : <p>Confira os registros originais abaixo para preparar a conversa.</p>}
+            <p className="brief-mode">{brief?.mode === "ai" ? "Seleção assistida de trechos literais · conferir as fontes" : "Trechos literais e pendências · conferir as fontes"}</p>
+            <div className="brief-topic-group">
+              <h4>Relatos do paciente</h4>
+              <p className="brief-group-note">Respostas enviadas pelo paciente, sem interpretação.</p>
+              {patientTopics.length ? <ul className="brief-topics">{patientTopics.map((topic, index) => <li key={index}><blockquote>{topic.text}</blockquote><div className="brief-sources">{topic.sources.map((source) => <BriefSource key={`${source.type}:${source.id}`} source={source} received={received} tenantId={tenantId} />)}</div></li>)}</ul> : <p className="brief-group-empty">Nenhum relato disponível neste recorte. Consulte os registros originais abaixo.</p>}
+            </div>
+            {pendingTopics.length > 0 && <div className="brief-topic-group"><h4>Respostas pendentes</h4><ul className="brief-topics">{pendingTopics.map((topic, index) => <li key={index}><p>{topic.text}</p><div className="brief-sources">{topic.sources.map((source) => <span className="brief-source-with-date" key={`${source.type}:${source.id}`}><BriefSource source={source} received={received} tenantId={tenantId} /><time dateTime={source.date}>{day(source.date)}</time></span>)}</div></li>)}</ul></div>}
+            {documentTopics.length > 0 && <div className="brief-topic-group"><h4>Documentos para revisar</h4>{documentTopics.map((topic, index) => <div key={index}><p className="brief-document-count">{topic.text}</p><ol className="brief-document-list">{topic.sources.map((source, sourceIndex) => <li key={`${source.type}:${source.id}`}><span className="brief-document-number">Arquivo {sourceIndex + 1}</span><BriefSource source={source} received={received} tenantId={tenantId} /><time dateTime={source.date}>{day(source.date)}</time></li>)}</ol></div>)}</div>}
             {brief?.retry && <div className="brief-load-error" role="status"><p>O resumo assistido não carregou. Os relatos originais continuam disponíveis.</p><RetryButton /></div>}
           </section>
           <PatientFeed context={context} received={received} base={base} patientId={appointment.patient_id} tenantId={tenantId} />
@@ -137,5 +151,7 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
         </aside>
       </div>
     </>}
+    </div>
+    </details>
   </article>;
 }

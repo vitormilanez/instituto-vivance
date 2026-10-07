@@ -163,6 +163,10 @@
 .dv .dv-primary-nav a[aria-current="page"] svg {
   color: var(--gold);
 }
+.dv .dv-nav-pending { display: inline-block; width: 7px; height: 7px; margin-left: auto; flex: 0 0 7px; border-radius: 50%; background: currentColor; opacity: 0; }
+.dv .dv-nav-pending[data-pending] { opacity: .8; animation: dv-nav-wait .9s ease-in-out infinite alternate; }
+@keyframes dv-nav-wait { to { opacity: .2; } }
+@media (prefers-reduced-motion: reduce) { .dv .dv-nav-pending[data-pending] { animation: none; } }
 .dv .dv-tools {
   margin: auto 0 8px;
   border-top: 1px solid var(--dv-line);
