@@ -39,6 +39,10 @@ esse pacote de integrações para o Vivance.
   `virada90_presentation_complete` (visualização da etapa final, uma vez por
   página). Ir diretamente ao final também conta como visualização final;
   não comprova leitura de todos os tópicos.
+- `virada90_presentation_entry`: navegação da landing para a apresentação,
+  com posição fixa (`header`, `hero`, `method`, `discovery`,
+  `landing_presencial`, `landing_online`, `faq`, `contact`), somente após
+  consentimento. Não dispara conversão Ads nem clique em WhatsApp.
 - `whatsapp_click` com posição fixa do CTA e a conversão Ads acima somente
   na ativação explícita de WhatsApp. Sem evento de compra ou `generate_lead`.
   Uma ativação gera uma conversão, sem aguardar o Google para abrir o canal.

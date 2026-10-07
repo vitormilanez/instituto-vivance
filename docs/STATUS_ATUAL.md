@@ -1,5 +1,16 @@
 # Estado atual do Vivance
 
+## Virada 90: apresentação antes do contato — 07/10/2026
+
+Em validação local na branch `codex/virada90-discovery-first-20261007`:
+oito entradas da landing para `/virada90/conhecer`, com acesso no menu e hero,
+bloco editorial, links contextuais e cards de formato. WhatsApp permanece na
+etapa final da apresentação, com seletor para quem já conhece o programa.
+O evento consentido de entrada mede navegação, sem conversão Ads. 440 testes,
+lint, tipos e build passaram; navegador conferido em 320/390/1440px.
+[Decisão e limites](virada90/FUNIL_COMERCIAL_LEVE.md). Publicação pendente;
+qualidade dos contatos exige acompanhamento do CRM.
+
 Fotografia técnica verificada entre 28 e 29/09/2026. Para prioridades, leia
 [Direção e slices](DIRECAO_E_SLICES.md). Este arquivo não autoriza uso clínico.
 
