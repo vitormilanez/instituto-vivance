@@ -57,11 +57,13 @@ export function PrescriptionsPanel({
   patientId,
   patientView = false,
   embedded = false,
+  continuous = false,
 }: {
   tenantId: string;
   patientId: string;
   patientView?: boolean;
   embedded?: boolean;
+  continuous?: boolean;
 }) {
   return (
     <PrescriptionsPanelContent
@@ -70,6 +72,7 @@ export function PrescriptionsPanel({
       patientId={patientId}
       patientView={patientView}
       embedded={embedded}
+      continuous={continuous}
     />
   );
 }
@@ -79,11 +82,13 @@ function PrescriptionsPanelContent({
   patientId,
   patientView,
   embedded,
+  continuous,
 }: {
   tenantId: string;
   patientId: string;
   patientView: boolean;
   embedded: boolean;
+  continuous: boolean;
 }) {
   const headingId = useId();
   const titleId = useId();
@@ -279,7 +284,7 @@ function PrescriptionsPanelContent({
         </div>
       </div>
 
-      <div className="prescriptions-panel__tabs" role="tablist" aria-label="Receitas">
+      {!continuous && <div className="prescriptions-panel__tabs" role="tablist" aria-label="Receitas">
         {(["history", "send"] as const).map((tab, index) => (
           <button
             key={tab}
@@ -296,9 +301,9 @@ function PrescriptionsPanelContent({
             {tab === "history" ? "Já enviadas" : "Enviar"}
           </button>
         ))}
-      </div>
+      </div>}
 
-      <div id={`${sectionId}-panel-history`} className="prescriptions-panel__section" role="tabpanel" aria-labelledby={`${sectionId}-tab-history`} hidden={section !== "history"} tabIndex={0}>
+      <div id={`${sectionId}-panel-history`} className="prescriptions-panel__section" role={continuous ? undefined : "tabpanel"} aria-labelledby={continuous ? undefined : `${sectionId}-tab-history`} hidden={!continuous && section !== "history"} tabIndex={continuous ? undefined : 0}>
         {notice && <p role="status">{notice}</p>}
         {loadError ? (
         <div role="alert">
@@ -331,7 +336,8 @@ function PrescriptionsPanelContent({
         )}
       </div>
 
-      <div id={`${sectionId}-panel-send`} className="prescriptions-panel__section" role="tabpanel" aria-labelledby={`${sectionId}-tab-send`} hidden={section !== "send"} tabIndex={0}>
+      {continuous && <button type="button" className="secondary" aria-expanded={section === "send"} onClick={() => setSection(section === "send" ? "history" : "send")}>{section === "send" ? "Fechar formulário" : "Adicionar receita anterior"}</button>}
+      <div id={`${sectionId}-panel-send`} className="prescriptions-panel__section" role={continuous ? undefined : "tabpanel"} aria-labelledby={continuous ? undefined : `${sectionId}-tab-send`} hidden={section !== "send"} tabIndex={0}>
         <form className="document-upload-form prescriptions-panel__form" onSubmit={submit}>
         <h3>Enviar receita anterior</h3>
         <p className="prescriptions-panel__form-help">PDF, JPG ou link da Memed. A receita será compartilhada com a equipe de cuidado.</p>

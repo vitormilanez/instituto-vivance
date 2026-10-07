@@ -1,0 +1,125 @@
+/* Briefing médico: a marca permanece; fontes e ações ganham uma leitura contínua. */
+.dv .doctor-home .doctor-home-overview { grid-template-columns: minmax(0, 1fr); }
+.dv .doctor-home .doctor-home-aside { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.dv .doctor-home-focus .doctor-consultation.consultation-briefing { padding: 0; border: 1px solid var(--dv-line); box-shadow: none; overflow: visible; }
+.consultation-briefing { --brief-muted: #4c5d78; color: var(--ink); }
+.consultation-briefing h2, .consultation-briefing h3, .consultation-briefing h4 { letter-spacing: -.02em; }
+.brief-header { padding: 24px 28px; border-bottom: 1px solid var(--border); }
+.brief-identity { display: flex; align-items: center; gap: 14px; }
+.brief-identity > div { min-width: 0; }
+.dv .brief-identity h2 { margin: 0 0 5px; font-size: 26px; line-height: 1.2; }
+.brief-identity p { margin: 0; font-size: 14px; color: var(--brief-muted); }
+.brief-identity p span { color: var(--ink); font-weight: 600; }
+.brief-identity small { display: block; margin-top: 4px; color: var(--brief-muted); font-size: 12px; }
+.brief-identity time { font-variant-numeric: tabular-nums; }
+.brief-readiness { display: flex; flex-wrap: wrap; list-style: none; margin: 12px 0 0; padding: 0; gap: 6px; }
+.brief-readiness a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 6px 10px; border-radius: 8px; color: #334e70; background: #f0f4fa; font-size: 12px; text-decoration: none; }
+.brief-readiness a:hover { background: #e4ecf7; }
+.dv .consultation-briefing .brief-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.dv .consultation-briefing .brief-actions .button { min-height: 44px; padding: 10px 16px; width: auto; font-size: 13px; }
+.brief-requests { position: relative; }
+.brief-requests > summary { display: flex; gap: 8px; cursor: pointer; list-style: none; }
+.brief-requests > summary::-webkit-details-marker { display: none; }
+.brief-requests[open] { flex: 1 1 100%; }
+.brief-requests[open] > summary { width: fit-content; }
+.brief-request-form { max-width: 520px; display: grid; gap: 12px; padding: 16px 0 0; }
+.brief-request-form .context-request { display: flex; align-items: start; flex-wrap: wrap; gap: 8px; }
+.brief-request-form .context-request .field { width: 100%; }
+.brief-other-draft { font-size: 13px; color: var(--brief-muted); }
+.brief-other-draft a { display: inline-flex; align-items: center; min-height: 44px; }
+.brief-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 350px); }
+.brief-narrative { min-width: 0; }
+.brief-summary { padding: 24px 28px 20px; background: #f2f6fb; }
+.brief-section-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.brief-section-heading h3 { margin: 0; font-size: 18px; }
+.brief-section-heading > span { font-size: 12px; color: var(--brief-muted); }
+.brief-mode { margin: 5px 0 12px; color: var(--brief-muted); font-size: 12px; }
+.brief-topics { margin: 0; padding: 0; list-style: none; }
+.brief-topics > li { padding: 12px 0 4px; border-top: 1px solid #dbe4f0; }
+.brief-topics > li:first-child { border: 0; padding-top: 0; }
+.brief-topics p { margin: 0; font-size: 15px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 70ch; }
+.brief-sources { display: flex; gap: 4px 14px; flex-wrap: wrap; }
+.brief-sources a { display: inline-flex; gap: 2px; align-items: center; min-height: 44px; font-size: 12px; color: #124da0; text-decoration: underline; text-underline-offset: 3px; }
+.brief-patient-feed { padding: 24px 28px 28px; }
+.brief-feed { margin: 14px 0 0; padding: 0; list-style: none; }
+.brief-feed > li { border-bottom: 1px solid var(--border); }
+.brief-feed > li:last-child { border: 0; }
+.brief-submission > summary { display: flex; align-items: start; gap: 10px; padding: 16px 0; cursor: pointer; min-height: 60px; list-style: none; }
+.brief-submission > summary::-webkit-details-marker { display: none; }
+.brief-feed-icon { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; flex: 0 0 30px; border-radius: 8px; background: #f0f4fa; color: #405675; }
+.brief-feed-copy { display: grid; gap: 4px; min-width: 0; flex: 1; }
+.brief-feed-copy strong { font-size: 14px; }
+.brief-feed-copy small { color: var(--brief-muted); font-size: 12px; }
+.brief-feed-preview { margin-top: 4px; color: #334e70; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.brief-disclosure-icon { flex: 0 0 18px; margin-top: 6px; color: var(--brief-muted); transition: transform .18s ease; }
+.brief-submission[open] > summary .brief-disclosure-icon { transform: rotate(90deg); }
+.brief-unseen { color: #071a3a; border: 1px solid #98a9bf; border-radius: 6px; padding: 3px 5px; font-size: 10px; font-weight: 650; white-space: nowrap; margin-top: 4px; }
+.brief-submission-body { padding: 0 0 18px 40px; }
+.brief-answers { margin: 0; }
+.brief-answers > div { padding: 10px 0; }
+.brief-answers dt { color: var(--brief-muted); font-size: 12px; margin-bottom: 5px; }
+.brief-answers dd { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.brief-answers [data-primary] dd { font-size: 16px; font-weight: 600; line-height: 1.5; }
+.brief-submission-body > a, .brief-source-link { display: inline-flex; min-height: 44px; align-items: center; gap: 4px; font-size: 12px; }
+.brief-compare { margin-top: 8px; }
+.brief-compare summary, .brief-evolution summary { min-height: 44px; padding: 12px 0; cursor: pointer; color: #124da0; font-size: 12px; }
+.brief-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; border-block: 1px solid var(--border); }
+.brief-comparison h4 { font-size: 12px; }
+.brief-original-measures { color: var(--brief-muted); font-size: 12px; line-height: 1.5; }
+.brief-facts { padding: 24px; border-left: 1px solid var(--border); min-width: 0; }
+.brief-facts > h3 { margin: 28px 0 8px; font-size: 15px; }
+.brief-fact { display: flex; align-items: center; gap: 10px; min-height: 66px; border-bottom: 1px solid var(--border); padding: 12px 0; }
+.brief-fact > svg { flex: 0 0 18px; color: var(--brief-muted); }
+.brief-fact > div { display: grid; gap: 4px; flex: 1; min-width: 0; }
+.brief-fact strong { font-size: 13px; }
+.brief-fact span { color: var(--brief-muted); font-size: 12px; line-height: 1.4; }
+.brief-fact > a, .brief-text-action { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; gap: 4px; color: #124da0; font-size: 12px; font-weight: 600; background: transparent; padding: 6px 0 6px 8px; border: 0; border-radius: 0; cursor: pointer; }
+.brief-text-action:hover { background: transparent; text-decoration: underline; }
+.brief-evolution { border-bottom: 1px solid var(--border); }
+.brief-evolution p { font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+.brief-evolution a { display: inline-flex; align-items: center; min-height: 44px; }
+.brief-open-work { margin-top: 24px; }
+.brief-open-work h3 { margin: 0 0 8px; font-size: 15px; }
+.brief-open-work ul { margin: 0; padding: 0; list-style: none; }
+.brief-open-work li { border-bottom: 1px solid var(--border); padding: 8px 0; display: grid; gap: 4px; font-size: 12px; color: var(--brief-muted); }
+.brief-open-work a { min-height: 44px; display: flex; align-items: center; font-weight: 600; }
+.brief-load-error { margin: 16px 0; padding: 12px 16px; border: 1px solid #98a9bf; border-radius: 8px; background: #f6f9fe; }
+.brief-load-error p { font-size: 13px; margin: 0 0 8px; color: var(--brief-muted); }
+.consultation-briefing > .brief-load-error { margin-inline: 24px; }
+.brief-prescription-drawer { position: fixed; inset: 0 0 0 auto; width: min(540px, 100%); max-width: 100%; height: 100dvh; max-height: 100dvh; margin: 0; padding: 24px; border: 0; border-left: 1px solid var(--border); border-radius: 0; background: #fff; color: var(--ink); overflow-y: auto; }
+.brief-prescription-drawer::backdrop { background: rgb(3 19 45 / .28); }
+.brief-prescription-drawer > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.brief-prescription-drawer h2 { font-size: 22px; }
+.brief-prescription-drawer > header button { width: 44px; height: 44px; padding: 8px; }
+.brief-prescription-drawer .prescriptions-panel__form { grid-template-columns: minmax(0, 1fr); }
+.brief-prescription-drawer input, .brief-prescription-drawer select { max-width: 100%; }
+.consultation-briefing ::selection { background: #dce7f5; color: #071a3a; }
+.consultation-briefing :is(a, button, summary, select):focus-visible { outline: 3px solid #124da0; outline-offset: 3px; }
+@media (max-width: 1050px) {
+  .brief-content { grid-template-columns: minmax(0, 1fr); }
+  .brief-facts { border-left: 0; border-top: 1px solid var(--border); }
+  .brief-facts .doctor-weight-trend { max-width: 540px; }
+}
+@media (max-width: 650px) {
+  .dv .doctor-home .doctor-home-aside { grid-template-columns: minmax(0, 1fr); }
+  .brief-header, .brief-summary, .brief-patient-feed, .brief-facts { padding: 20px 16px; }
+  .dv .brief-identity h2 { font-size: 23px; overflow-wrap: anywhere; }
+  .brief-identity { align-items: start; gap: 10px; }
+  .brief-identity .dv-avatar { width: 42px; height: 42px; flex: 0 0 42px; font-size: 14px; }
+  .brief-identity p { font-size: 12px; line-height: 1.5; }
+  .dv .consultation-briefing .brief-actions > .button:first-child { width: 100%; }
+  .dv .consultation-briefing .brief-actions > .button:not(:first-child), .brief-requests { flex: 1 1 auto; }
+  .brief-requests > summary { justify-content: center; }
+  .brief-section-heading > span { width: 100%; }
+  .brief-feed-icon { display: none; }
+  .brief-submission-body { padding-left: 0; }
+  .brief-submission > summary { flex-wrap: wrap; gap: 6px; }
+  .brief-feed-copy { flex-basis: calc(100% - 28px); }
+  .brief-unseen { order: 2; }
+  .brief-disclosure-icon { order: 1; }
+  .brief-comparison { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .brief-prescription-drawer { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { .brief-disclosure-icon { transition: none; } }
+
+.doctor-review-other { display: flex; align-items: center; min-height: 44px; margin-left: 60px; font-weight: 600; }

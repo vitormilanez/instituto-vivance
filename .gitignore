@@ -55,3 +55,8 @@ supabase/.temp/
 .impeccable/review/dashboard-mobile.png
 .impeccable/review/dashboard-mobile-final.png
 .impeccable/review/patients-mobile.png
+
+# Local browser sessions and verification artifacts.
+/.playwright-cli/
+/output/playwright/
+/output/consultation-*.log

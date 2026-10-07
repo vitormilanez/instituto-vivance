@@ -21,6 +21,8 @@ export type OpenWorkItem = {
   href: string;
   // Desde quando está assim (última alteração ou chegada mais antiga).
   since: string;
+  total?: number;
+  documentIds?: string[];
 };
 
 export const openWorkLimit = 8;
@@ -123,19 +125,22 @@ export function documentItems(
   reviewed: Set<string>,
   names: Map<string, string>,
 ): OpenWorkItem[] {
-  const byPatient = new Map<string, { count: number; oldest: string }>();
+  const byPatient = new Map<string, { count: number; oldest: string; documentIds: string[] }>();
   for (const document of documents) {
     if (reviewed.has(document.id)) continue;
     const current = byPatient.get(document.patientId);
-    if (!current) byPatient.set(document.patientId, { count: 1, oldest: document.at });
+    if (!current) byPatient.set(document.patientId, { count: 1, oldest: document.at, documentIds: [document.id] });
     else {
       current.count += 1;
+      current.documentIds.push(document.id);
       if (document.at < current.oldest) current.oldest = document.at;
     }
   }
   return [...byPatient.entries()].map(([patientId, group]) => ({
     kind: "documents" as const,
     id: `documents-${patientId}`,
+    total: group.count,
+    documentIds: group.documentIds,
     patientId,
     patientName: names.get(patientId) ?? "Paciente",
     state:

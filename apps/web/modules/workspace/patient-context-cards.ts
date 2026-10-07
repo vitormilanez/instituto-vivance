@@ -13,8 +13,8 @@ export type ConsultationContextInput = {
   preparation: { id: string; status: string; submittedAt: string | null } | null;
   nextAppointmentAt: string | null;
   previousPreparation: { id: string; submittedAt: string } | null;
-  documents: { total: number; latestAt: string | null };
-  measurements: { total: number; latestAt: string | null };
+  documents: { total: number | null; latestAt: string | null };
+  measurements: { total: number | null; latestAt: string | null };
   intake: { hasGoal: boolean; updatedAt: string | null } | null;
   encounter: { id: string; finalizedAt: string | null } | null;
   publication: {
@@ -178,7 +178,7 @@ export function consultationContextCards(
       title: "Exames",
       // A contagem vem junto: o médico sabe quantos arquivos existem antes de
       // abrir a lista, sem que o card classifique qualidade ou risco.
-      state: input.documents.total
+      state: input.documents.total === null ? "Contagem indisponível" : input.documents.total
         ? `${input.documents.total} exame${input.documents.total > 1 ? "s" : ""} enviado${input.documents.total > 1 ? "s" : ""}${documentDate ? ` em ${documentDate}` : ""}`
         : "Nenhum exame enviado",
       pending: input.documents.total === 0,
@@ -190,7 +190,7 @@ export function consultationContextCards(
     measurements: {
       id: "measurements",
       title: "Medidas",
-      state: input.measurements.total
+      state: input.measurements.total === null ? "Medidas indisponíveis" : input.measurements.total
         ? measurementDate
           ? `Última atualização em ${measurementDate}`
           : "Atualizadas"

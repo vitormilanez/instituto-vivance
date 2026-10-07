@@ -143,3 +143,20 @@ Continuam conectados os fluxos existentes de autenticação, cadastro e consulta
 - **Don't** apresentar uma área navegável como funcionalidade clínica entregue ou integração ativa.
 - **Don't** usar ouro fora da identidade do logo, efeitos decorativos de IA ou uma nova identidade visual sem direção explícita.
 - **Don't** transferir dados demonstrativos ou alegações de capacidade do protótipo da raiz para esta aplicação.
+
+
+## Briefing médico — 07/10/2026
+
+A consulta selecionada usa um único painel de leitura, com cabeçalho compacto,
+resumo factual com links de origem e feed de relatos. Azul claro delimita o
+resumo; navy continua reservado à identidade e às ações. Cor não classifica
+gravidade nem prioridade. A pré-consulta mais recente aparece aberta, com
+respostas maiores que os rótulos; históricos e cadastro ficam recolhidos.
+
+No desktop, fatos e peso ocupam a coluna interna de 300–350 px; até 1050 px
+ficam abaixo dos relatos. As filas dos demais pacientes ficam depois do
+briefing, sem repetir o selecionado. Vazios clínicos são linhas compactas.
+Receitas abrem em dialog lateral com título, fechamento por Escape e foco
+restaurado, sem abas internas. O gráfico preserva datas proporcionais,
+seleção acessível, controles de 44 px e tabela textual. A prévia sintética
+é exclusiva de desenvolvimento e não constitui integração validada.

@@ -7,6 +7,8 @@ import "./onboarding-refinements.css";
 import "./agenda-refinements.css";
 import "./message-context.css";
 import "./prescriptions.css";
+import "./doctor-weight-chart.css";
+import "./consultation-briefing.css";
 
 const geist = Geist({
   subsets: ["latin"],
