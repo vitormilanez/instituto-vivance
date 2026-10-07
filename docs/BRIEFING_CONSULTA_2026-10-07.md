@@ -1,6 +1,6 @@
 # Briefing da consulta e gráfico de peso — 07/10/2026
 
-Entrega local na branch `codex/consultation-brief-20261007`, criada da main atualizada `0e280111af4e81c075e25f5ce2ee47187ccf3633`. O checkout usado é `/Users/vitormilanez/Developer/vivance-consultation-brief-20261007`; a pasta de protótipo aberta inicialmente no Codex não foi modificada.
+Implementação na branch `codex/consultation-brief-20261007`, criada da main atualizada `0e280111af4e81c075e25f5ce2ee47187ccf3633`, publicada após autorização em 07/10/2026 pelo PR #82. O checkout usado é `/Users/vitormilanez/Developer/vivance-consultation-brief-20261007`; a pasta de protótipo aberta inicialmente no Codex não foi modificada.
 
 ## O que mudou
 
@@ -8,7 +8,7 @@ Entrega local na branch `codex/consultation-brief-20261007`, criada da main atua
 - Abas da Home do médico substituídas por relatos com fontes, feed cronológico, pré-consulta mais recente aberta e comparação dos dois originais. Cadastro inicial recolhido como contexto de base. Dados originais e datas são preservados.
 - Fatos compactos substituem cartões vazios. Receitas abrem em painel lateral sem sub-abas, com aviso de que a Vivance não emite nem valida receitas. O painel só busca dados quando aberto.
 - Pendências do paciente em foco aparecem no briefing. Outros pacientes permanecem nas filas. Documentos de trabalho substituem a contagem recebida, sem duplicação; documentos da equipe e anteriores ao último atendimento abrem a coleção completa, enquanto os demais envios têm destino próprio.
-- Um único menu Solicitar conserva os tipos e a mensagem opcional do fluxo existente, com idempotência. Links de fontes e originais conservam a marcação de não visto. Aceite de vínculo, Agenda, teleconsulta e seis atalhos do médico são preservados. `globals.css` não tem diff contra a main; as regras de `d78e4c6` permanecem.
+- Um único menu Solicitar conserva os tipos e a mensagem opcional do fluxo existente, com idempotência. Links de fontes e originais conservam a marcação de não visto. Aceite de vínculo, Agenda, teleconsulta e atalhos do médico são preservados. A rota autenticada mantém oito ações rápidas; a fixture sintética contém seis. `globals.css` não teve alteração nesta fatia; as regras de `d78e4c6` permanecem.
 
 ## Gráfico
 
@@ -45,7 +45,27 @@ Revisão independente de código encontrou três problemas, corrigidos: tolerân
 
 Histórico de pré-consultas consulta até 20 solicitações e materializa até 8; o contexto carrega 6 documentos recentes, com contagem exata da coleção. Pesos recentes preservam o limite existente de 8. A fila de trabalho existente varre até 300 documentos, portanto sua contagem não deve ser tratada como inventário histórico ilimitado. As fontes de documentos do briefing são apenas documentos sem revisão efetivamente identificados nessa leitura.
 
-Os testes abaixo incluem regressões de fallback, descarte de fontes inválidas, erro do provedor, deduplicação, navegação contextual e cálculo do gráfico. Os testes de banco existentes usam PostgreSQL efêmero; a verificação das novas queries de contexto inspeciona seus filtros e estados de erro. Isso não comprova execução de RLS no banco remoto nem uma jornada autenticada nova. Não houve validação com contas reais, aceite clínico, migration aplicada, push ou deploy.
+Os testes abaixo incluem regressões de fallback, descarte de fontes inválidas, erro do provedor, deduplicação, navegação contextual e cálculo do gráfico. Os testes de banco existentes usam PostgreSQL efêmero; a verificação das novas queries de contexto inspeciona seus filtros e estados de erro. Isso não comprova execução de RLS no banco remoto nem uma jornada autenticada nova. A verificação posterior à publicação cobre a Home na sessão existente do médico, conforme registro abaixo; aceite clínico, outros perfis e isolamento remoto permanecem fora deste aceite.
+
+## Publicação e conferência autenticada — 07/10/2026
+
+O usuário autorizou subir e publicar. Código integrado pelo [PR #82](https://github.com/vitormilanez/instituto-vivance/pull/82), merge `abefcb30b37ba335bb77c41c3b6987bd9f2af546`, em 07/10/2026 às 04:23:19 UTC. A árvore de `apps/web` corresponde à implementação testada localmente. [Foundation CI](https://github.com/vitormilanez/instituto-vivance/actions/runs/37571211721) e [release](https://github.com/vitormilanez/instituto-vivance/actions/runs/37571212062) concluíram com sucesso nesse SHA; o job verify executou testes, lint, typecheck e build. As etapas de aplicar migrations, publicar Edge Functions e promover/confirmar domínio foram skipped por ausência das credenciais/configurações do workflow. Não se declarou publicação só pelo workflow verde.
+
+A CLI autenticada confirmou VTR CONSULTING (`vtr-consulting`), projeto `instituto-vivance` / `prj_ligeZuFRycRXA21u5rRzaLAORTrI`, root `apps/web`, Next.js e Node 24. A integração Git já havia produzido deployment READY do mesmo SHA, target production. Esse deployment foi reutilizado e promovido manualmente:
+
+| Evidência | Resultado observado |
+| --- | --- |
+| Deployment publicado | `dpl_AKdqxwrBgQuVjrwAJjRMVXJ6frAR`, READY, target production |
+| URL do deployment | `https://instituto-vivance-igmnlag29-vtr-consulting.vercel.app` |
+| `institutovivance.app` | inspect aponta para o deployment publicado; `/login` retornou HTTP 200 nas três leituras |
+| `instituto-vivance.vercel.app` | inspect aponta para o mesmo deployment; `/login` retornou HTTP 307 para o domínio principal nas três leituras |
+| Rollback anterior registrado | `dpl_AgWG4tj1AQ3QeyGpiqpGpRRRXZvv`, `https://instituto-vivance-6el5wc9tn-vtr-consulting.vercel.app` |
+
+Após recarregar o domínio público na sessão autenticada existente do médico, o briefing contínuo, fontes, feed, pendências sem duplicação e oito ações rápidas apareceram. A comparação expandiu os dois originais e recolheu novamente; o gráfico selecionou o registro anterior e voltou ao último. Receitas carregaram o estado vazio sem erro, com o aviso obrigatório e sem sub-abas; o menu Solicitar abriu os quatro tipos e fechou. Não houve envio de solicitação, inclusão de receita, finalização de atendimento ou alteração clínica. Os resultados e títulos clínicos dessa sessão não são reproduzidos neste registro.
+
+As três variáveis exigidas para IA não constam na configuração production consultada; o recurso permanece desligado e o briefing usa fallback determinístico. Nenhuma variável de IA foi adicionada, nenhuma chamada real ao provedor ocorreu e esta publicação não aplicou migrations, Edge Functions ou comandos no Supabase. A promoção do frontend não altera a decisão de usar o projeto de desenvolvimento somente para testes sintéticos nem valida a origem dos registros existentes.
+
+Esta é publicação técnica com conferência autenticada da Home do médico. Jornada do paciente, outros perfis, persistência/revisão/publicação clínica, isolamento remoto, backup/restauração e aceite operacional C3 não foram concluídos nesta fatia. Gate P permanece aberto.
 
 ## Saídas reais dos comandos
 
