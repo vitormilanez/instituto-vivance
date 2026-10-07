@@ -1,0 +1,50 @@
+/* Informational measurements: color does not classify clinical status. */
+.dv .doctor-weight-trend.dweight { width: 100%; min-width: 0; margin: 0; padding: 0; border: 0; background: transparent; color: #071a3a; font-variant-numeric: tabular-nums; }
+.dweight .dweight-heading { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.dweight .dweight-heading h4 { margin: 0; font-size: 17px; line-height: 1.3; letter-spacing: -.02em; }
+.dweight .dweight-heading a { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; color: #124da0; text-underline-offset: 3px; }
+.dweight .dweight-origin { margin: 0 0 20px; font-size: 12px; color: #405675; }
+.dweight .dweight-current { display: grid; grid-template-columns: 1fr auto; align-items: baseline; column-gap: 8px; }
+.dweight .dweight-current > span { grid-column: 1 / -1; color: #405675; font-size: 12px; margin-bottom: 5px; }
+.dweight .dweight-current > strong { font-size: 28px; font-weight: 650; letter-spacing: -.025em; white-space: nowrap; line-height: 1.25; }
+.dweight .dweight-current small { font-size: 15px; font-weight: 500; letter-spacing: 0; }
+.dweight .dweight-current time { color: #405675; font-size: 12px; }
+.dweight .dweight-variation { margin: 9px 0 12px; display: grid; gap: 3px; color: #405675; font-size: 12px; line-height: 1.5; }
+.dweight .dweight-variation strong { color: #071a3a; font-weight: 600; }
+.dweight .dweight-chart { position: relative; height: 230px; padding-top: 20px; margin-top: 10px; }
+.dweight .dweight-unit { position: absolute; top: 0; left: 0; color: #405675; font-size: 11px; }
+.dweight .dweight-y-axis { position: absolute; top: 26px; bottom: 36px; left: 0; width: 42px; color: #405675; font-size: 12px; }
+.dweight .dweight-y-axis span { position: absolute; right: 0; transform: translateY(-50%); }
+.dweight .dweight-plot { position: absolute; top: 26px; bottom: 36px; left: 64px; right: 22px; }
+.dv .dweight .dweight-plot > svg, .dweight .dweight-plot > svg { display: block; width: 100%; height: 100%; max-width: none; margin: 0; overflow: visible; }
+.dweight .dweight-grid { stroke: #dbe4f0; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.dweight .dweight-line { fill: none; stroke: #286966; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.dweight .dweight-point { position: absolute; width: 44px; height: 44px; min-height: 44px; padding: 0; margin: 0; transform: translate(-50%, -50%); border: 0; background: transparent; border-radius: 10px; cursor: pointer; display: grid; place-items: center; }
+.dweight .dweight-point span { display: block; width: 8px; height: 8px; border: 2px solid #fff; border-radius: 50%; background: #286966; box-sizing: content-box; pointer-events: none; }
+.dweight .dweight-point.is-selected { z-index: 1; }
+.dweight .dweight-point.is-selected span { background: #03132d; width: 10px; height: 10px; }
+.dweight .dweight-point:hover span { outline: 2px solid #286966; outline-offset: 2px; }
+.dweight .dweight-x-axis { position: absolute; left: 64px; right: 22px; bottom: 8px; display: flex; justify-content: space-between; gap: 8px; color: #405675; font-size: 12px; }
+.dweight .dweight-single-date { margin: 0 auto; }
+.dweight .dweight-inspector { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-top: 1px solid #dbe4f0; border-bottom: 1px solid #dbe4f0; }
+.dweight .dweight-inspector button { display: grid; place-items: center; width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; border: 1px solid #dbe4f0; border-radius: 10px; background: #fff; color: #071a3a; cursor: pointer; }
+.dweight .dweight-inspector button:hover:not(:disabled) { background: #edf3fb; border-color: #98a9bf; }
+.dweight .dweight-inspector button:active:not(:disabled) { background: #dbe4f0; }
+.dweight .dweight-inspector button:disabled { color: #405675; background: #e8eef6; cursor: default; }
+.dweight .dweight-inspector p { flex: 1; min-width: 0; display: grid; gap: 2px; margin: 0; text-align: center; font-size: 14px; }
+.dweight .dweight-inspector p span { color: #405675; font-size: 12px; }
+.dweight .dweight-caption { margin: 10px 0; color: #405675; font-size: 12px; line-height: 1.5; }
+.dweight .dweight-baseline { padding-top: 16px; color: #405675; font-size: 12px; }
+.dweight .dweight-baseline p { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; margin: 4px 0 12px; }
+.dweight .dweight-baseline strong { color: #071a3a; font-size: 14px; font-weight: 600; }
+.dweight .dweight-details { border-top: 1px solid #dbe4f0; font-size: 12px; }
+.dweight .dweight-details summary { min-height: 44px; padding: 13px 0; cursor: pointer; color: #124da0; box-sizing: border-box; }
+.dweight .dweight-details table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dweight .dweight-details th, .dweight .dweight-details td { padding: 9px 0; border-bottom: 1px solid #dbe4f0; text-align: left; }
+.dweight .dweight-details th:last-child, .dweight .dweight-details td:last-child { text-align: right; }
+.dweight .dweight-empty { min-height: 200px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 12px; }
+.dweight .dweight-empty p { margin: 0; font-size: 14px; line-height: 1.5; color: #405675; }
+.dweight button:focus-visible, .dweight summary:focus-visible, .dweight a:focus-visible { outline: 3px solid #124da0; outline-offset: 3px; }
+.dweight ::selection { background: #dbe4f0; color: #03132d; }
+
+.dv .dweight .dweight-inspector button svg, .dweight .dweight-inspector button svg { width: 17px; height: 17px; margin: 0; }
