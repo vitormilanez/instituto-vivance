@@ -1,6 +1,6 @@
 # Direção do Vivance e próximos slices
 
-Atualizado em 29/09/2026. Este é o plano vigente. O [estado técnico](STATUS_ATUAL.md) registra o que foi comprovado; o [plano de IA clínica](PLANO_IA_CLINICA.md) detalha essa frente.
+Atualizado em 04/10/2026. Este é o plano vigente. O [estado técnico](STATUS_ATUAL.md) registra o que foi comprovado; o [plano de IA clínica](PLANO_IA_CLINICA.md) detalha essa frente.
 
 ## Resultado que estamos construindo
 
@@ -16,7 +16,7 @@ O fluxo principal é **convite → contexto inicial → preparação → consult
 | Jornada | Convite, onboarding, pré-consulta, agenda e atendimento | Horário vencido não determina realização; o médico finaliza. |
 | Continuidade | Check-ins, refeições, medidas, pedidos, mensagens e evolução | Originais permanecem; gráficos não diagnosticam. |
 | Documentos e saídas | Arquivo privado, revisão humana, receitas anteriores e relatório versionado | Aprovar, publicar e exportar são ações distintas. |
-| Plataforma | Migrations, RLS, auditoria e fundação de processamento | Worker e análise clínica por IA ainda não estão ativos. |
+| Plataforma | Migrations, RLS, auditoria e fundação de processamento | O worker de PDF funciona apenas no piloto sintético do Preview; análise clínica por IA não está ativa. |
 
 ## Próximos slices — ordem executável
 
@@ -37,7 +37,8 @@ de saúde reais; o uso temporário não conclui C1 para operação clínica.
 | 2 | **C2 · Completar a demonstração** | Usar somente as contas de Guilherme e Vitor; completar e conferir uma jornada longitudinal de demonstração no prontuário de Vitor. | Limpeza e carga histórica parcial executadas: 21 dias seguidos de check-in e 18 refeições fictícias. Quatro exames têm títulos conferidos. A lista e um PDF original foram validados na sessão do médico; sessão do paciente, consulta/retorno e aceite da demonstração seguem pendentes. |
 | 3 | **C3 · Validar contexto e operação** | Executar as duas etapas de C3 abaixo com sessões reais de paciente e médico; registrar falhas e decisão de aceite **dos testes**. | Iniciado na sessão do médico: abas e fontes conferidas, altura legada corrigida e check-ins diários incluídos na Linha do tempo em ordem de referência. Ainda sem sessão do paciente ou aceite operacional. |
 | Paralelo | **IA1 · Governança e contrato** | Obter decisão sobre finalidade, fonte, fornecedor, privacidade, rastreabilidade e revisão médica no [contrato IA1](https://github.com/vitormilanez/instituto-vivance/pull/64). | Rascunho em revisão; nenhuma análise clínica por IA ativa. |
-| Depois | **IA2–IA3** | Extração conferível de poucos exames sintéticos e biblioteca versionada de fontes aprovadas. | Aguarda aceite de IA1. |
+| Em construção | **IA2 · Exames consolidados** | Base de texto por página, processamento e tela de conferência com poucos exames sintéticos. | PR #78 em rascunho: fila e worker confirmados com segundo PDF fictício no Preview médico; resultados estruturados e aceite clínico pendentes. Claude aguarda IA1. |
+| Depois | **IA3 · Biblioteca clínica** | Fontes aprovadas e versionadas, com trechos rastreáveis. | Aguarda IA1 e avaliação do IA2. |
 | Depois | **IA4–IA6** | Evidência aplicável, verificação independente, revisão médica e validação clínica com limites previamente definidos. | Aguarda IA1–IA3 e gates clínicos. |
 
 ### Etapas de C2
@@ -107,6 +108,22 @@ próprios e mantém o fluxo manual.
 5. O piloto começa pequeno, com dados sintéticos e casos anonimizados revisados; expansão depende de métricas aceitas pelo médico.
 
 Cada slice entrega contrato, migrations versionadas quando necessárias, testes de autorização e falha, interface verificável e evidência no ambiente correto. Implementação local, Preview, publicação técnica e aceite clínico são marcos separados.
+
+## Primeira IA do produto — Exames consolidados (03/10/2026)
+
+O usuário priorizou uma visão única de todos os exames enviados para o médico, evitando a abertura sequencial de PDFs. A análise local de cinco exemplos mostrou laudos numéricos extensos, laudos narrativos e mais de um exame no mesmo arquivo. O [contrato de produto](EXAMES_CONSOLIDADOS_IA2.md) define recebimento, segmentação, proveniência, tela, conferência médica e critérios de aceite sem incorporar dados pessoais dos exemplos.
+
+Esta prioridade direciona o primeiro incremento de IA2 para extração estruturada e conferível em material sintético; a tela mostra resultados laboratoriais e conclusões textuais atribuídas aos laudos, com acesso ao original.
+
+**Sequência de IA2 iniciada em 03/10:** (1) fechar a base sintética com bloqueio no banco, migration e teste autenticado; (2) ligar a fila e o worker de extração, com falhas e repetição controlada; (3) estruturar laudos e observações com fornecedor aprovado no IA1; (4) completar a visão do médico e a revisão por item; (5) medir cobertura e erros em corpus sintético com a direção médica. O inventário de todos os arquivos e a fila de qualidade já estão implementados localmente no PR #78. Eles ainda não exibem resultados estruturados e não foram publicados.
+
+**Próximo corte em 04/10:** um dos PDFs fornecidos foi usado somente para testar o extrator local. Duas páginas têm texto quase igual, mas hashes distintos. O PR #78 agora marca a segunda como **possível repetição** e guarda o número da página anterior, sem eliminar página ou texto. Essa sinalização pede conferência; não equivale à deduplicação de laudos ou resultados. O arquivo pessoal não foi copiado para o repositório, banco ou modelo.
+
+**Piloto sintético em 04/10:** a migration IA2 foi aplicada ao projeto confirmado `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), que ainda é compartilhado com o app publicado. Um PDF inteiramente fictício de três páginas, gerado em `work/` fora do Git, foi enviado pela interface médica para `Paciente Sintético IA2` como exame interno. Somente o documento `4a837be3-b166-4a41-b5a2-a7205497e034` entrou na lista privada do banco. As flags de extração foram adicionadas exclusivamente à branch `codex/exames-consolidados-contrato-20261003` no Preview; Production permaneceu sem a flag. O redeploy `dpl_Ax3xsr7VEXZJqs6Ri68THdAbvZcz` do commit `0b3c3d4` ficou `READY`, e a sessão médica acionou a extração. A ficha mostrou três páginas, duas com texto disponível e uma sinalizada como possível repetição da página 1, preservando o texto e o link para o original. O banco confirmou uma execução, três páginas e hash idêntico ao PDF local. O PR #78 segue em rascunho; o CI do commit passou. **Próximo slice:** ligar fila e worker para esse mesmo corpus sintético, com repetição controlada e falha recuperável. Antes de qualquer uso real, concluir IA1, Gate P, verificação de acesso por sessão de paciente e aceite clínico; não promover esse piloto a Production.
+
+**Continuação da fila em 04/10:** as migrations `20261004153431_exam_extraction_worker` e `20261004154416_exam_doctor_worker_access` foram aplicadas somente em `instituto-vivance-dev`. O CI rejeitou a primeira implementação por trazer chave privilegiada ao app web; a segunda mantém o worker sob sessão médica ativa, com claim e persistência limitados ao próprio documento fictício, vínculo e lease. O código em revisão no PR #78 troca o POST síncrono por resposta `202`, executa uma tarefa após a resposta e mostra a fila na aba de Documentos. A leitura da aba aciona tentativas vencidas enquanto estiver aberta; não há agendador independente. O teste local isolado passou para idempotência, negação ao paciente, lease inválido e limite de runtime. O CI passou no commit `127e046`. No Preview `dpl_6sSuxXjivv2c6e4sFpTvFgWeuqDY` desse commit, a sessão médica enfileirou um segundo PDF fictício. A tarefa terminou na primeira tentativa, e a interface mostrou as três páginas persistidas: duas com texto e a página 2 preservada como possível repetição, ligada ao original. **Próximos slices:** (1) definir e implementar o contrato de resultados e narrativas estruturados com origem por página e revisão por item, inicialmente com corpus sintético e sem fornecedor; (2) medir cobertura e erros com a direção médica; (3) conectar Claude somente após IA1. Exercitar acesso por sessão de paciente e falha/retentativa no Preview antes de ampliar o piloto.
+
+**Decisão de persistência em 03/10:** conservar o binário original no Storage privado já existente e seu vínculo em `patient_documents`; acrescentar em migrations novas hash/versão, texto por página e laudos/observações com proveniência e RLS. Extrair texto antes de chamar Claude, usar OCR apenas quando necessário, estruturar uma vez por versão e servir a tela a partir do banco, sem chamada ao modelo a cada abertura. Os cinco exemplos pessoais seguem fora do projeto sintético até Gate P. A construção não representa IA ativa nem aceita. IA1, segurança do fornecedor, Gate P e validação clínica continuam governando qualquer uso de dados reais ou assistencial. RAG de fontes aprovadas permanece para IA3/IA4; MCP é uma possível interface futura para ferramentas autorizadas.
 
 ## Landing Virada 90 — 30/09/2026
 

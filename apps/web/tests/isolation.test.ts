@@ -5,7 +5,7 @@ import { btree_gist } from "@electric-sql/pglite/contrib/btree_gist";
 import { before, after, test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 const db = new PGlite({ extensions: { btree_gist } });
 const a = randomUUID(),
@@ -4923,6 +4923,105 @@ test("onboarding draft is patient-private, versioned and exposes immutable conse
     await switchActor("outsider");
     assert.equal((await db.query("select patient_id from public.patient_onboarding where tenant_id=$1", [a])).rows.length, 0);
     await denied("select public.submit_patient_onboarding($1,3,true)", [a]);
+  });
+});
+
+test("exam text persistence requires an explicitly registered synthetic document", async () => {
+  await asUser("doctor", async () => {
+    const patient = randomUUID();
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patients(id,tenant_id,display_name,created_by) values($1,$2,'Synthetic exam patient',$3)",
+      [patient, a, users.admin.id],
+    );
+    await db.query(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'active')",
+      [a, patient, users.doctor.id],
+    );
+    await db.exec("set local role service_role");
+    const reservation = await db.query<{ document_id: string; storage_path: string }>(
+      "select * from public.reserve_patient_document($1,$2,$3,'synthetic-exam.pdf','application/pdf',6,'exam','internal')",
+      [a, patient, users.doctor.id],
+    );
+    const document = reservation.rows[0].document_id;
+    await db.exec("reset role");
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [reservation.rows[0].storage_path],
+    );
+    await db.exec("set local role service_role");
+    await db.query("select public.complete_patient_document($1,$2,$3)", [a, document, users.doctor.id]);
+    await switchActor("doctor");
+    const extraction = "select public.persist_document_text_extraction($1,$2,$3,$4,$5,$6::jsonb,$7) as id";
+    const values = [a, document, "a".repeat(64), "synthetic-test", "1", "[]", "invalid_pdf"];
+    await denied(extraction, values);
+    await denied(
+      "insert into private.synthetic_exam_pilot_documents(tenant_id,document_id,patient_id) values($1,$2,$3)",
+      [a, document, patient],
+    );
+    await db.exec("reset role");
+    await db.query(
+      "insert into private.synthetic_exam_pilot_documents(tenant_id,document_id,patient_id) values($1,$2,$3)",
+      [a, document, patient],
+    );
+    await switchActor("doctor");
+    const saved = await db.query<{ id: string }>(extraction, values);
+    assert.equal(saved.rows.length, 1);
+    const firstText = "LAUDO SINTETICO A";
+    const secondText = "LAUDO SINTETICO B";
+    const pageHash = (value: string) => createHash("sha256").update(value).digest("hex");
+    const pages = [
+      {
+        page_number: 1, status: "extracted", extraction_method: "embedded_text",
+        extracted_text: firstText, text_sha256: pageHash(firstText),
+        possible_duplicate_of_page: null, failure_code: null,
+      },
+      {
+        page_number: 2, status: "requires_review", extraction_method: "embedded_text",
+        extracted_text: secondText, text_sha256: pageHash(secondText),
+        possible_duplicate_of_page: 1, failure_code: null,
+      },
+    ];
+    const reviewed = await db.query<{ id: string }>(extraction, [
+      a, document, "b".repeat(64), "synthetic-test", "1", JSON.stringify(pages), null,
+    ]);
+    assert.equal(reviewed.rows.length, 1);
+    assert.deepEqual((await db.query<{ status: string; review_page_count: number }>(
+      "select status,review_page_count from public.document_extraction_runs where id=$1",
+      [reviewed.rows[0].id],
+    )).rows, [{ status: "requires_review", review_page_count: 1 }]);
+    assert.equal((await db.query<{ possible_duplicate_of_page: number }>(
+      "select possible_duplicate_of_page from public.document_extracted_pages where extraction_run_id=$1 and page_number=2",
+      [reviewed.rows[0].id],
+    )).rows[0].possible_duplicate_of_page, 1);
+    const enqueue = "select public.enqueue_synthetic_exam_text_extraction($1,$2) id";
+    const firstJob = await db.query<{ id: string }>(enqueue, [a, document]);
+    const repeatedJob = await db.query<{ id: string }>(enqueue, [a, document]);
+    assert.equal(firstJob.rows[0].id, repeatedJob.rows[0].id);
+    await switchActor("patient");
+    await denied(enqueue, [a, document]);
+    await denied("select * from public.claim_doctor_exam_text_extraction_job($1,$2)", [a, document]);
+    await switchActor("doctor");
+    const claim = await db.query<{ job_id: string; document_id: string; lease_token: string }>(
+      "select * from public.claim_doctor_exam_text_extraction_job($1,$2)", [a, document],
+    );
+    assert.equal(claim.rows[0].job_id, firstJob.rows[0].id);
+    assert.equal(claim.rows[0].document_id, document);
+    const persistQueued = "select public.persist_doctor_exam_text_extraction($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9) id";
+    const queuedValues = [firstJob.rows[0].id, claim.rows[0].lease_token, a, document,
+      "c".repeat(64), "synthetic-test", "1", JSON.stringify(pages), null];
+    await denied(persistQueued, [firstJob.rows[0].id, randomUUID(), ...queuedValues.slice(2)]);
+    const queuedRun = await db.query<{ id: string }>(persistQueued, queuedValues);
+    assert.equal(queuedRun.rows.length, 1);
+    await db.query("select public.complete_doctor_exam_text_extraction_job($1,$2,$3,$4)",
+      [a, document, firstJob.rows[0].id, claim.rows[0].lease_token]);
+    await denied(persistQueued, queuedValues);
+    await switchActor("patient");
+    assert.equal(
+      (await db.query("select id from public.document_extraction_runs where document_id=$1", [document])).rows.length,
+      0,
+    );
+    await denied(extraction, values);
   });
 });
 
