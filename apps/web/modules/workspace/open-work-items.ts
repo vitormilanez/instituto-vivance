@@ -21,6 +21,7 @@ export type OpenWorkItem = {
   href: string;
   // Desde quando está assim (última alteração ou chegada mais antiga).
   since: string;
+  total?: number;
 };
 
 export const openWorkLimit = 8;
@@ -136,6 +137,7 @@ export function documentItems(
   return [...byPatient.entries()].map(([patientId, group]) => ({
     kind: "documents" as const,
     id: `documents-${patientId}`,
+    total: group.count,
     patientId,
     patientName: names.get(patientId) ?? "Paciente",
     state:
