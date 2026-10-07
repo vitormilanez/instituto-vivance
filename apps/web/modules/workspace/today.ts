@@ -34,7 +34,7 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
     today = clinicDate();
   const tomorrow = new Date(`${today}T12:00:00Z`);
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  const [{ client, user }, agenda] = await Promise.all([
+  const [{ client, user, clinic }, agenda] = await Promise.all([
     requireClinic(id, ["doctor", "nurse"]),
     listAppointments(id, today, tomorrow.toISOString().slice(0, 10)),
   ]);
@@ -132,7 +132,7 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
               id,
               item.patient_id,
               { id: item.id, starts_at: item.starts_at },
-              { mode: "tolerant" },
+              { mode: clinic.role === "doctor" ? "tolerant" : "strict" },
             ).catch(() => null),
           ] as const,
       ),
@@ -150,7 +150,7 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
   const { cutoffs, received } = receivedResult;
   const contexts = new Map(contextPairs);
   const weights = new Map(weightPairs);
-  const briefCandidates = shown.flatMap((item) => {
+  const briefCandidates = clinic.role !== "doctor" ? [] : shown.flatMap((item) => {
     const patientContext = contexts.get(item.id);
     return patientContext ? [{ item, patientContext }] : [];
   });

@@ -17,7 +17,7 @@ export function consultationAction(input: { draft: { id: string; appointment_id:
 }
 
 export function reviewSidebar(input: { patients: { patientId: string; name: string; items: ReceivedItem[] }[]; work: OpenWorkItem[] | null; focusPatientId: string | null }) {
-  const groups = new Map<string, { patientId: string; name: string; counts: Map<ReceivedItem["kind"], number>; oldest: string }>();
+  const groups = new Map<string, { patientId: string; name: string; counts: Map<ReceivedItem["kind"], number>; oldest: string; documentHref?: string }>();
   for (const patient of outsideBriefing(input.patients, input.focusPatientId)) {
     const items = patient.items.filter((item) => item.reviewed !== true);
     if (!items.length) continue;
@@ -29,8 +29,9 @@ export function reviewSidebar(input: { patients: { patientId: string; name: stri
   // arquivos adicionados pela equipe. Não somar as mesmas fontes duas vezes.
   for (const item of outsideBriefing(input.work ?? [], input.focusPatientId)) {
     if (item.kind !== "documents" || item.total === undefined) continue;
-    const group = groups.get(item.patientId) ?? { patientId: item.patientId, name: item.patientName, counts: new Map(), oldest: item.since };
+    const group = groups.get(item.patientId) ?? { patientId: item.patientId, name: item.patientName, counts: new Map<ReceivedItem["kind"], number>(), oldest: item.since, documentHref: undefined as string | undefined };
     group.counts.set("documents", item.total);
+    group.documentHref = item.href;
     if (item.since < group.oldest) group.oldest = item.since;
     groups.set(item.patientId, group);
   }

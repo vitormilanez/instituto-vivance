@@ -14,6 +14,7 @@ test("a coluna direita exclui apenas o paciente cujo contexto está no briefing"
 test("os documentos de trabalho substituem a contagem de recebidos sem duplicá-los", () => {
   const groups = reviewSidebar({ patients: [{ patientId: "a", name: "Paciente A", items: [{ kind: "documents", id: "doc", at: "2026-10-02", href: "/doc", author: null, reviewed: false }] }], work: [documentWork], focusPatientId: null });
   assert.deepEqual(groups[0].counts, [{ kind: "documents", total: 5 }]);
+  assert.equal(groups[0].documentHref, "/docs", "documentos da equipe e fora do corte abrem a coleção completa");
 });
 
 test("um documento adicionado pela equipe aparece mesmo sem envio do paciente", () => {

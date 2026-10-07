@@ -152,7 +152,7 @@ test("Home exige sessão, clínica e vínculo profissional antes dos reads clín
   assert.match(source.slice(access, contextReads), /\.eq\("patient_id", patientId\)/);
   assert.match(source.slice(access, contextReads), /\.eq\("professional_id", user\.id\)/);
   assert.match(source.slice(access, contextReads), /\.eq\("status", "active"\)/);
-  assert.match(source, /\{ mode: "tolerant" \}/);
+  assert.match(source, /\{ mode: clinic\.role === "doctor" \? "tolerant" : "strict" \}/);
   assert.match(source, /documents\.error \? null/);
   assert.match(source, /measurements\.error\s*\? null/);
 });
