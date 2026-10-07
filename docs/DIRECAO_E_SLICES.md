@@ -194,3 +194,9 @@ enquanto o destino carrega. No painel de mensagens, manter o histórico e a aç�
 de enviar utilizáveis mesmo quando há referências opcionais. O envio de teste
 autorizado na sessão autenticada confirmou persistência visual da mensagem;
 isso não equivale ao aceite clínico de C3. Gate P permanece aberto.
+
+O refinamento foi integrado pelo PR #84 e publicado tecnicamente no deployment
+`dpl_2VxpTEMTUimABXpCW3Kyy1xS9K2y` do commit `5466eb2` em 07/10. A
+conferência autenticada cobriu navegação e painel de Mensagens; o card
+minimizável permaneceu validado na prévia sintética porque não havia consulta
+futura no momento da conferência publicada. C3 e Gate P seguem abertos.

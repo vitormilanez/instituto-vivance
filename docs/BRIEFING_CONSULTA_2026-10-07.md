@@ -77,6 +77,10 @@ Na sessão publicada anterior à alteração, a transição para Mensagens exibi
 
 Na prévia local com dados fictícios, as larguras de 390 e 320 px não apresentaram rolagem horizontal; minimização e expansão moveram o conteúdo abaixo. Em viewport desktop de 806 px de altura, o compositor compacto deixou “Enviar mensagem” a 788 px, e a lista de mensagens passou a ter 199 px, com rolagem ao registro mais recente. Abrir as referências não alterou essas medidas. Essa conferência é local e não declara a nova versão publicada ou aceita clinicamente.
 
+O PR #84 foi integrado em `5466eb2a19bb7b8b74515a4add1a27b2cc4abe6a`; 439 testes, lint, tipos e build passaram localmente e no CI. O workflow de release passou na verificação, mas pulou migrations/Edge Functions e promoção porque não havia configuração protegida. Não há alteração de banco neste lote. O deployment production `dpl_2VxpTEMTUimABXpCW3Kyy1xS9K2y`, `READY` e associado ao mesmo SHA, foi promovido manualmente. Ambos os domínios foram inspecionados no mesmo ID; `/login` respondeu 200 no principal e 307 no secundário, apontando ao principal.
+
+Na sessão autenticada publicada, as transições entre Teleconsulta, Mensagens e Hoje conservaram o menu. Mensagens abriu com referências recolhidas, histórico no último registro e botão de envio inteiramente dentro do painel (limite inferior 788 px em área de 806 px). A mensagem de teste anterior reapareceu no histórico após o deploy; não houve novo envio. A consulta do dia já havia passado e não existia próxima consulta futura na Home, então o novo disclosure do card e o briefing reagrupado ficaram verificados apenas na prévia local sintética nesta rodada. Sem aceite clínico, C3 ou Gate P concluídos.
+
 ## Saídas reais dos comandos
 
 Node 24.19.0. Todos os comandos abaixo encerraram com código 0. Os arquivos integrais são preservados localmente em `output/consultation-*-final.log`.

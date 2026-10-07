@@ -210,3 +210,24 @@ o histórico abre no último registro. Um teste autorizado enviou mensagem curta
 sem dados clínicos na sessão autenticada do médico, confirmada no histórico.
 Os demais comportamentos foram conferidos localmente com dados fictícios;
 publicação da nova versão e aceite clínico ainda são etapas distintas.
+
+### Publicação técnica do refinamento — 07/10/2026
+
+PR #84 integrado à `main` no commit `5466eb2a19bb7b8b74515a4add1a27b2cc4abe6a`.
+Foundation CI e `verify` do release passaram com 439 testes, lint, tipos e build.
+O workflow não aplicou migrations nem Edge Functions e ignorou a promoção por
+configuração protegida ausente. Não houve alteração de banco neste lote. O
+deployment production `dpl_2VxpTEMTUimABXpCW3Kyy1xS9K2y`, do mesmo commit,
+foi promovido manualmente; `institutovivance.app` e
+`instituto-vivance.vercel.app` resolvem para esse ID. `/login` respondeu 200
+no principal e 307 no alias, redirecionando ao principal.
+
+Na sessão autenticada do médico, navegar de Teleconsulta para Mensagens e de
+Mensagens para Hoje preservou o menu durante a transição; o painel publicado
+mostrou referências recolhidas, último registro visível e botão de envio dentro
+da área de trabalho. O teste de envio autorizado ocorreu antes desta versão e
+foi confirmado no histórico depois da publicação; não houve segundo envio.
+O card minimizável e os grupos do briefing foram conferidos na prévia sintética;
+na sessão publicada a consulta do dia já havia passado e não havia próxima
+consulta, portanto essa interação não foi revalidada no domínio.
+Publicação técnica não fecha C3, Gate P nem aceite clínico.
