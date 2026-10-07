@@ -93,7 +93,12 @@ document.addEventListener('click', event => {
   const link = event.target.closest('a[href], #talk-team');
   if (!link || !event.isTrusted) return;
   if (link.id === 'talk-team') { measurement.whatsapp('presentation'); return; }
-  if (new URL(link.href).hostname !== 'wa.me') return;
+  const target = new URL(link.href);
+  if (target.origin === window.location.origin && target.pathname.replace(/\/$/, '') === '/virada90/conhecer') {
+    measurement.presentationEntry(link.dataset.presentationEntry);
+    return;
+  }
+  if (target.hostname !== 'wa.me') return;
   const position = link.classList.contains('main') ? 'landing_presencial' : 'landing_online';
   measurement.whatsapp(position);
   if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;

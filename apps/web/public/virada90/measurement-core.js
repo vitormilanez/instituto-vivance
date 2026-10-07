@@ -132,6 +132,12 @@ export function createMeasurement({ url, referrer = '', command, load }) {
       step = number;
       reportStep();
     },
+    /** Navegar para a apresentação não é uma conversão de contato.
+     * @param {string} position */
+    presentationEntry(position) {
+      if (guided || !['header', 'hero', 'method', 'discovery', 'landing_presencial', 'landing_online', 'faq', 'contact'].includes(position)) return;
+      event('virada90_presentation_entry', { cta_position: position });
+    },
     /** Um clique abre o WhatsApp; não comprova mensagem recebida.
      * @param {string} position */
     whatsapp(position) {

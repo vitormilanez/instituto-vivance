@@ -6,6 +6,21 @@ Decisão de 06/10/2026. O médico oferece dois formatos do mesmo programa de tr�
 
 Depois do aceite de medição, os botões públicos de `/virada90` e `/virada90/conhecer` acrescentam à mensagem editável `Origem do link: Google Ads` ou `Origem do link: Anúncio nas redes sociais`, somente quando os parâmetros do link permitem essa classificação. IDs de clique, UTMs livres e respostas sobre saúde não entram nesse rótulo. Sem aceite ou com origem incerta, a mensagem segue como antes. O Google continua medindo apenas o **clique**, não o envio da mensagem. O rótulo pode ser alterado pela pessoa e não comprova que a mensagem chegou ao Pulse.
 
+## Entender o programa antes do contato — 07/10/2026
+
+A landing passa a oferecer oito entradas para `/virada90/conhecer`: menu,
+hero, método, bloco editorial, dois formatos, pergunta sobre valores e ação
+final. Os cards de formato deixam de abrir o WhatsApp diretamente. A
+apresentação continua livremente navegável, com valores e contato no último
+tópico; quem já conhece o programa pode usar o seletor para ir ao final.
+
+O objetivo é dar contexto antes de conversar. A hipótese de reduzir contatos
+sem interesse no programa deve ser confrontada com o CRM; mais entradas ou
+visualizações não comprovam melhora de qualidade nem venda. O novo evento
+`virada90_presentation_entry` mede navegação consentida, separado da conversão
+de clique no WhatsApp. Ler, por origem e formato, a chegada à apresentação,
+o contato e os agendamentos confirmados, preservando a opção de recusar medição.
+
 ## Registro mínimo no CRM existente
 
 Para cada conversa que realmente chegou, registrar apenas:

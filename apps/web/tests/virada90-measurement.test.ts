@@ -76,6 +76,29 @@ test('page URLs keep campaign attribution and exclude arbitrary contact or healt
   assert.equal(campaignReferrer('https://institutovivance.app/virada90?goal=private'), 'https://institutovivance.app/virada90');
 });
 
+test('presentation entry measures a fixed navigation position only after consent, without an Ads conversion', () => {
+  const f = fixture();
+  f.measurement.presentationEntry('hero');
+  assert.equal(f.events().length, 0);
+  f.measurement.consent(true);
+  f.measurement.presentationEntry('hero');
+  f.measurement.presentationEntry('landing_presencial');
+  f.measurement.presentationEntry('private-health-answer');
+  const entries = f.events().filter(args => args[1] === 'virada90_presentation_entry');
+  assert.deepEqual(entries.map(args => (args[2] as Record<string, unknown>).cta_position), ['hero', 'landing_presencial']);
+  assert.equal(f.events().some(args => args[1] === 'conversion' || args[1] === 'whatsapp_click'), false);
+  assert.equal(JSON.stringify(f.calls).includes('private-health-answer'), false);
+  f.measurement.consent(false);
+  f.measurement.presentationEntry('contact');
+  assert.equal(f.events().filter(args => args[1] === 'virada90_presentation_entry').length, 2);
+  for (const url of ['http://localhost:4182/virada90', 'https://institutovivance.app/login', 'https://institutovivance.app/virada90/conhecer']) {
+    const blocked = fixture(url);
+    blocked.measurement.consent(true);
+    blocked.measurement.presentationEntry('hero');
+    assert.equal(blocked.events().some(args => args[1] === 'virada90_presentation_entry'), false);
+  }
+});
+
 test('the WhatsApp handoff uses only recognized paid-source labels, never raw click IDs or health data', () => {
   const handoff = 'https://wa.me/5518997551234?text=' + encodeURIComponent('Olá! Quero saber mais sobre o Virada 90 online.');
   const google = 'https://institutovivance.app/virada90/conhecer?utm_source=google&utm_medium=cpc&utm_campaign=consulta&gclid=click_123&goal=private-health-answer';

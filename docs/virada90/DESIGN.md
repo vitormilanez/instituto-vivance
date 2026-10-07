@@ -99,6 +99,14 @@ The sequence is introduction, pillars, assessment, individual plan, accompanimen
 
 **The Read Before Handoff Rule.** Keep all ten topics navigable, choices optional, and the only external action in topic ten.
 
+The landing introduces this reading path in its header and hero, a contextual
+method link, a sage editorial section, both format cards, the pricing FAQ and
+the final action. All eight entries use explicit discovery labels and point
+to `/virada90/conhecer`; format cards do not bypass the explanation through
+WhatsApp. The topic selector keeps the final handoff reachable for returning
+visitors. The editorial assessment image may also illustrate this invitation,
+with its illustrative caption retained.
+
 **The Final-Step Price Rule.** Prices belong only in topic ten, after program, limits, and formats are explained.
 
 ## Elevation & Depth
