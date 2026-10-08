@@ -1,6 +1,6 @@
 ---
 name: Virada 90 — Instituto Guilherme Martins
-description: A calm physician-led prospectus and ten-topic reading experience.
+description: A calm physician-led prospectus and five-step reading experience.
 colors:
   navy: "#0b1d35"
   ink: "#152b45"
@@ -19,7 +19,7 @@ rounded:
   standard: "6px"
   comparison: "8px"
 spacing:
-  content-gutter: "96px"
+  content-gutter: "64px"
   section: "112px"
   section-mobile: "66px"
 components:
@@ -35,14 +35,14 @@ components:
 
 **Creative North Star: "The Measured Clinical Prospectus"**
 
-The system makes a physician-led program feel calm, legible, and personal. Ivory reading fields, dark navy passages, and restrained warm gold establish authority without promising outcomes. The landing remains a long-form prospectus with its real video; the companion presentation is a complete ten-topic reading experience.
+The system makes a physician-led program feel calm, legible, and personal. Ivory reading fields, dark navy passages, and restrained warm gold establish authority without promising outcomes. The landing remains a long-form prospectus with its real video; the companion presentation is a complete five-step reading experience.
 
 Fine rules, compact numerals, native controls, and three natural editorial photographs organize detailed information without turning it into a dashboard. Photography supports assessment, flexible nutrition, and everyday maintenance. It is illustrative and never represents the doctor, clinic, patients, facilities, or results.
 
 **Key Characteristics:**
 - Navy authority on warm paper, with gold reserved for emphasis and action.
 - Manrope carries information; Instrument Serif appears only as a short italic inflection.
-- Fine rules, numerals, and native controls organize the ten-topic journey.
+- Fine rules, numerals, and native controls organize the five-step journey.
 - Three natural 3:2 photographs punctuate assessment, nutrition, and maintenance.
 - Responsive layouts preserve readable prose and one final WhatsApp handoff.
 
@@ -93,11 +93,11 @@ Manrope keeps program details, prices, and caveats direct. Instrument Serif is l
 
 The landing uses a centered 1240px content width and 1344px header. Major sections use 112px vertical spacing, reducing to 66px below 760px. Its real video and existing editorial sequence remain intact.
 
-The presentation uses a 1160px shell, a reading column up to 700px, and a 248px sticky program index across an 86px gap. Progress and the native selector share this grid. At 900px the gap and index narrow; below 760px everything becomes one column, the sticky index hides, photographs stay full-width, and comparisons stack.
+The presentation uses a 1040px shell and a full reading column. A sticky toolbar combines progress, the native selector and a direct jump to final prices; below 760px it becomes two compact rows. Content stays within 70ch where appropriate, figures are cropped to 280px, and comparable offers share two equal columns that stack on mobile.
 
-The sequence is introduction, pillars, assessment, individual plan, accompaniment, maintenance, exams and supplements, questions, formats, then prices and contact. Back, Continue, arrow keys, and the native selector expose the same sequence. Objective and format choices are optional and remain only in page memory.
+The five-step sequence is program/pillars, assessment/exams/supplements, individual plan/accompaniment, maintenance/questions, then formats/prices/contact. Back, Continue, arrow keys, and the native selector expose the same sequence. Objective and format choices are optional and remain only in page memory.
 
-**The Read Before Handoff Rule.** Keep all ten topics navigable, choices optional, and the only external action in topic ten.
+**The Read Before Handoff Rule.** Keep all five steps navigable, choices optional, and the only external action in step five.
 
 The landing introduces this reading path in its header and hero, a contextual
 method link, a sage editorial section, both format cards, the pricing FAQ and
@@ -107,28 +107,28 @@ WhatsApp. The topic selector keeps the final handoff reachable for returning
 visitors. The editorial assessment image may also illustrate this invitation,
 with its illustrative caption retained.
 
-**The Final-Step Price Rule.** Prices belong only in topic ten, after program, limits, and formats are explained.
+**The Final-Step Price Rule.** Prices belong only in step five, after program, limits, and formats are explained.
 
 ## Elevation & Depth
 
-The system is flat by default. Tonal shifts and rules define regions. The landing's real video retains `0 20px 60px #0003`; the gold WhatsApp action gains `0 8px 22px #0b1d3515` only on hover. Guided photographs remain flat. Progress uses a scale transform, and reduced-motion preferences remove transitions.
+The system is flat by default. Tonal shifts and rules define regions. The landing's real video retains `0 20px 60px #0003`; the gold WhatsApp action gains `0 8px 22px #0b1d3515` only on hover. Guided photographs remain flat. Progress uses a scale transform. A 220ms directional transition acknowledges forward/back chapter navigation without delaying focus. Reduced-motion preferences remove spatial movement; control color continues to acknowledge state.
 
 **The Flat Clinical Surface Rule.** Reserve shadows for the landing's real video or an interaction state.
 
 ## Shapes
 
-Controls and photographs use 6px corners. The landing portrait retains its large top-left curve. Format comparisons use one shared 8px frame. Phase markers are compact rectangles; progress is a 2px rule rather than a pill.
+Controls and photographs use 6px corners. The landing portrait retains its large top-left curve. Format comparisons use one shared 12px frame, warm paper for presencial and sage for online, with identical total/instalment hierarchy. Phase markers are compact rectangles; progress is a 2px rule rather than a pill.
 
 ## Components
 
 ### Buttons
 - **Primary / Back:** 56px minimum height; navy forward action and transparent ruled return action.
-- **Contact:** Gold with navy text, shown only in topic ten and opening WhatsApp.
+- **Contact:** Gold with navy text, shown only in step five and opening WhatsApp.
 - **Focus:** 3px gold-ink outline with 4px offset; mobile journey buttons remain at least 52px high.
 
 ### Native Topic Selector
 - Paper field, fine-rule border, 6px corner, 48px minimum height, and persistent label.
-- Lists ten numbered titles and stays synchronized with buttons, progress, and keyboard navigation.
+- Lists five numbered titles and stays synchronized with buttons, progress, and keyboard navigation.
 
 ### Choice Rows
 - Optional native radios in flat paper rows with 1px rules and 56px minimum height.
@@ -143,24 +143,24 @@ Controls and photographs use 6px corners. The landing portrait retains its large
 - Lists align titles and explanatory copy across fine rules, then stack on mobile.
 - Sage clinical notes have 14px by 16px padding and no elevation.
 - Native disclosures use ruled rows and gold-ink plus/minus indicators.
-- Two offers share one 8px ruled frame; tabular prices appear only in topic ten.
+- Two offers share one 12px tonal frame; tabular prices appear only in step five.
 
 ### Navigation and Progress
 - The presentation header keeps the institutional mark and one return link to `/virada90`.
-- A 2px track pairs `Etapa n de 10` with the current title; fill uses `transform: scaleX(...)`.
+- A 4px teal track pairs `Etapa n de 5` with the current title; fill uses `transform: scaleX(...)`.
 
 ### WhatsApp Handoff
-- One gold `Conversar pelo WhatsApp` action targets `+55 18 99755-1234` in topic ten.
+- One gold `Conversar pelo WhatsApp` action targets `+55 18 99755-1234` in step five.
 - Optional selections enter the editable draft only when chosen.
 - No contact field, submission, checkout, API, CRM, database, storage, automatic send, reservation, or payment state exists.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** preserve ten-topic status, selector, Back, and Continue as equivalent navigation paths.
+- **Do** preserve five-step status, selector, Back, and Continue as equivalent navigation paths.
 - **Do** keep choices native, reversible, optional, and local to page memory.
 - **Do** use the three editorial photographs only in their established topics with illustrative captions.
-- **Do** reveal both three-month offers and prices only in topic ten, followed by one WhatsApp action.
+- **Do** reveal both three-month offers and prices only in step five, followed by one WhatsApp action.
 - **Do** maintain visible focus, 44px-plus targets, and reduced-motion support.
 
 ### Don't:
@@ -169,3 +169,9 @@ Controls and photographs use 6px corners. The landing portrait retains its large
 - **Don't** imply interest-free installments, a fixed consultation count, guaranteed results, or automatic prescriptions.
 - **Don't** present generated images as real people, facilities, or outcome evidence.
 - **Don't** replace or remove the real video on `/virada90`.
+
+## Five-step comparison and consent — 07/10/2026
+
+Teal `#285b54` and soft teal `#e6efeb` extend the established sage family. Gold/warm `#f2e7d3` identifies presencial and teal identifies online, without urgency badges or a recommended plan. Both offers start with total investment and end with installment terms. The contact panel uses navy and one gold action. The compact cookie notice has expandable provider/purpose details and equally accessible choices; either dismisses the notice.
+
+Format preference is selected within each pricing column, without repeating the full offer below. “Ainda estou decidindo” remains optional and contact works with no selection.

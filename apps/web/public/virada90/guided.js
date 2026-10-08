@@ -11,7 +11,10 @@
   const talkTeam = document.querySelector('#talk-team');
   const interestSummary = document.querySelector('#interest-summary');
   const presentation = document.querySelector('#presentation');
+  const jumpValues = document.querySelector('#jump-values');
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   const total = steps.length;
+  let direction = 1;
   let current = 1;
   let handoffUrl = 'https://wa.me/5518997551234?text=Ol%C3%A1%21%20Quero%20saber%20mais%20sobre%20o%20Virada%2090%20do%20Dr.%20Guilherme%20Martins.';
 
@@ -43,7 +46,7 @@
   const keepToolsVisible = () => {
     const bounds = presentation.getBoundingClientRect();
     if (bounds.top < 0 || bounds.top > window.innerHeight * 0.55) {
-      presentation.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      presentation.scrollIntoView({ block: 'start', behavior: reducedMotion?.matches ? 'instant' : 'smooth' });
     }
   };
 
@@ -63,6 +66,11 @@
     progressTrack.setAttribute('aria-valuenow', String(current));
     progressTrack.setAttribute('aria-valuetext', `Etapa ${current} de ${total}: ${title}`);
     topicSelect.value = String(current);
+    jumpValues.hidden = current === total;
+    if (moveFocus && !reducedMotion?.matches && activeStep.animate) {
+      activeStep.getAnimations().forEach(animation => animation.cancel());
+      activeStep.animate([{ opacity: 0.65, transform: `translateX(${direction * 16}px)` }, { opacity: 1, transform: 'translateX(0)' }], { duration: 220, easing: 'cubic-bezier(.16,1,.3,1)' });
+    }
     back.disabled = current === 1;
     next.hidden = current === total;
     next.textContent = current === total - 1 ? 'Ver valores e conversar' : 'Continuar';
@@ -81,6 +89,7 @@
   const goTo = step => {
     const destination = Math.min(total, Math.max(1, Number(step)));
     if (!Number.isFinite(destination) || destination === current) return;
+    direction = destination > current ? 1 : -1;
     current = destination;
     render();
   };
@@ -91,6 +100,7 @@
   });
   next.addEventListener('click', () => goTo(current + 1));
   back.addEventListener('click', () => goTo(current - 1));
+  jumpValues.addEventListener('click', () => goTo(total));
   topicSelect.addEventListener('change', event => goTo(event.target.value));
   talkTeam.addEventListener('click', event => {
     event.preventDefault();

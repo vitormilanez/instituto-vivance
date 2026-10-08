@@ -51,8 +51,8 @@ test('accepted visitors initialize both verified destinations once, without ad p
 test('only an explicit WhatsApp action fires the existing Ads click conversion', () => {
   const f = fixture('https://institutovivance.app/virada90/conhecer');
   f.measurement.consent(true);
-  f.measurement.viewStep(10);
-  f.measurement.viewStep(10);
+  f.measurement.viewStep(5);
+  f.measurement.viewStep(5);
   assert.equal(f.events().filter(args => args[1] === 'conversion').length, 0);
   f.measurement.whatsapp('unknown');
   f.measurement.whatsapp('presentation');
@@ -128,10 +128,10 @@ test('no funnel or event payload can receive a health answer or a WhatsApp URL',
   const f = fixture('https://institutovivance.app/virada90/conhecer?goal=private-health-answer');
   f.measurement.viewStep(4);
   f.measurement.consent(true);
-  for (const step of [0, NaN, 11, 7, 10]) f.measurement.viewStep(step);
+  for (const step of [0, NaN, 6, 5, 10]) f.measurement.viewStep(step);
   f.measurement.whatsapp('presentation');
   assert.doesNotMatch(JSON.stringify(f.calls), /private-health-answer|wa\.me|5518997551234|generate_lead/);
-  assert.deepEqual(f.events().filter(args => args[1] === 'virada90_step_view').map(args => (args[2] as Record<string, unknown>).step_number), [4, 7, 10]);
+  assert.deepEqual(f.events().filter(args => args[1] === 'virada90_step_view').map(args => (args[2] as Record<string, unknown>).step_number), [4, 5]);
 });
 
 test('a blocked Google loader does not throw or produce a false conversion', () => {
@@ -145,13 +145,13 @@ test('a blocked Google loader does not throw or produce a false conversion', () 
 test('the guided handoff keeps health choices in memory and opens WhatsApp without relying on Google', () => {
   const listeners = new Map<string, (event: unknown) => void>();
   const makeControl = (key: string) => ({
-    href: 'https://wa.me/5518997551234?text=generic', dataset: { title: 'Topic' }, hidden: false,
+    textContent: '', href: 'https://wa.me/5518997551234?text=generic', dataset: { title: 'Topic' }, hidden: false,
     classList: { toggle() {} }, style: {}, setAttribute() {},
     addEventListener(type: string, fn: (event: unknown) => void) { listeners.set(key + ':' + type, fn); },
     querySelector() { return null; }
   });
   const controls = new Map<string, ReturnType<typeof makeControl>>();
-  const steps = Array.from({ length: 10 }, (_, n) => makeControl('step' + n));
+  const steps = Array.from({ length: 5 }, (_, n) => makeControl('step' + n));
   const form = { ...makeControl('form'), querySelectorAll: () => steps };
   const opened: string[] = [];
   vm.runInNewContext(readFileSync(new URL('../public/virada90/guided.js', import.meta.url), 'utf8'), {
@@ -170,7 +170,14 @@ test('the guided handoff keeps health choices in memory and opens WhatsApp witho
     }
   });
   const generic = controls.get('#talk-team')?.href;
-  listeners.get('#topic-select:change')?.({ target: { value: '10' } });
+  listeners.get('#jump-values:click')?.({});
+  assert.equal(controls.get('#progress-label')?.textContent, 'Etapa 5 de 5');
+  assert.equal(controls.get('#next')?.hidden, true);
+  assert.equal(controls.get('#jump-values')?.hidden, true);
+  listeners.get('#back:click')?.({});
+  assert.equal(controls.get('#progress-label')?.textContent, 'Etapa 4 de 5');
+  assert.equal(controls.get('#jump-values')?.hidden, false);
+  listeners.get('#topic-select:change')?.({ target: { value: '5' } });
   assert.equal(controls.get('#talk-team')?.href, generic);
   listeners.get('#talk-team:click')?.({ preventDefault() {} });
   assert.equal(opened.length, 1);
@@ -189,4 +196,20 @@ test('tags are included only by the two public campaign documents', () => {
   const appLayout = readFileSync(new URL('../app/layout.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(appLayout, /measurement|googletagmanager|gtag/);
   assert.equal(GOOGLE.whatsapp, 'AW-818747876/zzjqCNb0r4wYEOSztIYD');
+});
+
+test('five-step completion is versioned and rejects obsolete topic numbers', () => {
+  const f = fixture('https://institutovivance.app/virada90/conhecer');
+  f.measurement.consent(true);
+  f.measurement.viewStep(4);
+  assert.equal(f.events().some(args => args[1] === 'virada90_presentation_complete'), false);
+  f.measurement.viewStep(10);
+  f.measurement.viewStep(5);
+  f.measurement.viewStep(1);
+  f.measurement.viewStep(5);
+  const complete = f.events().filter(args => args[1] === 'virada90_presentation_complete');
+  assert.equal(complete.length, 1);
+  assert.deepEqual(complete[0][2], { send_to: GOOGLE.analytics, presentation_version: 'five_steps', step_count: 5 });
+  assert.equal(f.events().some(args => args[1] === 'conversion'), false);
+  assert.equal(f.events().filter(args => args[1] === 'virada90_step_view').every(args => (args[2] as Record<string, unknown>).presentation_version === 'five_steps'), true);
 });

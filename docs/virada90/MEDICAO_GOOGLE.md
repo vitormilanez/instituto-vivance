@@ -35,7 +35,7 @@ esse pacote de integrações para o Vivance.
 - `page_view`: URL pública com parâmetros de campanha permitidos; sem
   fragmento ou parâmetros arbitrários. Referrer externo contém só a origem;
   referrer clínico do app é omitido.
-- `virada90_presentation_start`, `virada90_step_view` (número de 1 a 10) e
+- `virada90_presentation_start`, `virada90_step_view` (número de 1 a 5 desde a revisão de 07/10) e
   `virada90_presentation_complete` (visualização da etapa final, uma vez por
   página). Ir diretamente ao final também conta como visualização final;
   não comprova leitura de todos os tópicos.
@@ -96,3 +96,7 @@ Fontes: [configuração gtag](https://developers.google.com/tag-platform/gtagjs/
 [consentimento básico](https://developers.google.com/tag-platform/security/guides/consent),
 [conversão de cliques](https://support.google.com/google-ads/answer/6331304),
 [medição automática e link_url](https://support.google.com/analytics/answer/9216061).
+
+## Mudança de sequência — 07/10/2026
+
+Os eventos de início, etapa e conclusão passam a incluir `presentation_version=five_steps` e `step_count=5`. A conclusão indica chegada à etapa final, inclusive pelo atalho; não comprova leitura integral, interesse, conversa recebida ou venda. Não comparar números de etapa entre a versão histórica de dez tópicos e esta. As conversões Ads continuam restritas à ativação explícita de WhatsApp após consentimento.

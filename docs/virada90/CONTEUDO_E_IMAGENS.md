@@ -2,23 +2,25 @@
 
 Revisão solicitada em 02/10/2026 após o usuário apontar conteúdo incompleto. Os arquivos HTML baixados são fonte de informação, sem importar a identidade visual, o nome de médico fictício nem promessas de resultado.
 
+Agrupamento revisto em 07/10/2026: cinco etapas, preservando as doze fontes.
+
 ## Cobertura das telas
 
 | Tela do material | Informação preservada | Tópico da nova apresentação |
 |---|---|---|
-| 1 · Apresentação | Protocolo individual, acompanhamento médico, identidade do programa | 1 · Introdução |
-| 2 · O que é | Ciência, histórico, rotina, mudanças viáveis, saúde além do peso | 1 · Introdução |
-| 3 · Pilares | Nutrição, comportamento, atividade física e acompanhamento médico | 2 · Quatro pilares |
-| 4 · Jornada | Avaliação, plano, acompanhamento, evolução/manutenção; ritmo individual | 3 · Avaliação; sequência dos tópicos 4–6 |
-| 5 · Avaliação | História e exame clínico, exames laboratoriais, composição corporal, hábitos | 3 · Avaliação |
-| 6 · Plano | Metas realistas, alimentação flexível, suplementação indicada, movimento compatível | 4 · Plano |
-| 7 · Acompanhamento | Consultas periódicas, ajustes, dificuldades/platôs, revisão de exames e medidas | 5 · Acompanhamento |
-| 8 · Evolução | Consolidação de hábitos, manutenção, viagens/celebrações, sinais além da balança | 6 · Evolução |
-| 9 · Exames | Glicemia/insulina/HbA1c; lipídios; TSH/T4 livre; vitamina D/B12/ferritina | 7 · Exames e suplementos |
-| 10 · Suplementos | Vitaminas/minerais, probióticos, complementos/substitutos de refeição quando indicados | 7 · Exames e suplementos |
-| 11 · Dúvidas | Fome, carboidratos, tempo dos resultados e medicamentos | 8 · Dúvidas |
-| 12 · Próximo passo | Avaliação inicial e conversa para entender o cuidado | 10 · Valores e contato |
-| Decisões da conversa | Presencial/online por três meses; valores apenas no final; WhatsApp | 9 · Formatos; 10 · Valores e contato |
+| 1 · Apresentação | Protocolo individual, acompanhamento médico, identidade do programa | 1 · Programa e pilares |
+| 2 · O que é | Ciência, histórico, rotina, mudanças viáveis, saúde além do peso | 1 · Programa e pilares |
+| 3 · Pilares | Nutrição, comportamento, atividade física e acompanhamento médico | 1 · Programa e pilares |
+| 4 · Jornada | Avaliação, plano, acompanhamento, evolução/manutenção; ritmo individual | 2 · Avaliação; sequência das etapas 3–4 |
+| 5 · Avaliação | História e exame clínico, exames laboratoriais, composição corporal, hábitos | 2 · Avaliação |
+| 6 · Plano | Metas realistas, alimentação flexível, suplementação indicada, movimento compatível | 3 · Plano e acompanhamento |
+| 7 · Acompanhamento | Consultas periódicas, ajustes, dificuldades/platôs, revisão de exames e medidas | 3 · Plano e acompanhamento |
+| 8 · Evolução | Consolidação de hábitos, manutenção, viagens/celebrações, sinais além da balança | 4 · Continuidade e dúvidas |
+| 9 · Exames | Glicemia/insulina/HbA1c; lipídios; TSH/T4 livre; vitamina D/B12/ferritina | 2 · Avaliação, exames e suplementos |
+| 10 · Suplementos | Vitaminas/minerais, probióticos, complementos/substitutos de refeição quando indicados | 2 · Avaliação, exames e suplementos |
+| 11 · Dúvidas | Fome, carboidratos, tempo dos resultados e medicamentos | 4 · Continuidade e dúvidas |
+| 12 · Próximo passo | Avaliação inicial e conversa para entender o cuidado | 5 · Formatos, valores e conversa |
+| Decisões da conversa | Presencial/online por três meses; valores apenas no final; WhatsApp | 5 · Formatos, valores e conversa |
 
 O nome de referência “Dr. [Nome]” foi substituído por **Dr. Guilherme Martins**, sem atribuir uma especialidade não confirmada. Exames, bioimpedância, medicamentos e suplementos dependem da avaliação e da disponibilidade no formato escolhido. Não há painel universal de exames, resultado garantido, número fixo de consultas ou prescrição automática. As quatro perguntas frequentes permanecem; suas respostas foram redigidas em linguagem condicional, sem prometer resultados.
 
@@ -28,9 +30,9 @@ Geradas pela ferramenta nativa **image_gen**, modo built-in. São cenas ilustrat
 
 | Arquivo final | Uso | Papel |
 |---|---|---|
-| `apps/web/public/virada90/assets/journey/avaliacao.jpg` | Tópico 3 | Conversa individual antes de definir o plano |
-| `apps/web/public/virada90/assets/journey/alimentacao.jpg` | Tópico 4 | Alimentação variada no cotidiano |
-| `apps/web/public/virada90/assets/journey/evolucao.jpg` | Tópico 6 | Movimento e hábitos no dia a dia |
+| `apps/web/public/virada90/assets/journey/avaliacao.jpg` | Etapa 2 | Conversa individual antes de definir o plano |
+| `apps/web/public/virada90/assets/journey/alimentacao.jpg` | Etapa 3 | Alimentação variada no cotidiano |
+| `apps/web/public/virada90/assets/journey/evolucao.jpg` | Etapa 4 | Movimento e hábitos no dia a dia |
 
 As imagens finais têm 1200×800 pixels, JPEG otimizado; o prompt integral é incorporado ao próprio arquivo pelo script Impeccable `embed-prompt.mjs`.
 

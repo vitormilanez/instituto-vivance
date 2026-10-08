@@ -1,5 +1,9 @@
 # Direção do Vivance e próximos slices
 
+## Virada 90: cinco etapas e comparação de formatos — 07/10/2026
+
+Pedido aprovado: agrupar o conteúdo em cinco etapas; atalho fixo para valores; padronizar total e parcelamento; ampliar cor e animação moderada, sem falsa escassez. Cookies compactos, com aceitar e recusar acessíveis. Implementação na branch `codex/virada90-five-step-presentation-20261007`; 441 testes, lint, tipos e build aprovados localmente. Navegador local validado em 320/390/768/1440px: cinco etapas, mídia, preços apenas no final, atalho fixo, teclado/foco e preferências de cookies; nenhuma mensagem enviada. Publicação ainda pendente. [Contrato atualizado](VIRADA90_JORNADA.md). Asana `1219287767285117`. Sem banco, checkout, alteração de Ads ou ativação de webhook.
+
 ## Decisão de funil — 07/10/2026
 
 Facilitar o acesso à apresentação completa do Virada 90 antes do contato:
