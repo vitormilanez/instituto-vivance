@@ -4,6 +4,8 @@ Consolidada em **08/10/2026**, preservando decisões anteriores e incorporando
 as orientações do usuário para a retomada. O [status](STATUS_ATUAL.md) separa
 código integrado, pilotos e evidências; o [histórico útil](historico/README.md)
 preserva decisões únicas e aponta às evidências anteriores. Reorganizar este plano não aprova novos slices.
+Para executar a sequência sem misturar evidência e aceite, use os
+[checkpoints das entregas](CHECKPOINTS_ENTREGAS.md).
 
 ## Resultado que estamos construindo
 
@@ -63,7 +65,8 @@ C1/C2/C3 são trilha de prontidão operacional, não motivo para refazer o pilot
 sintético já validado. Evoluções adicionais de Hoje/Pacientes devem demonstrar
 lacuna, escopo e aceite, preservando o briefing/gráfico entregues.
 
-C3 ainda precisa validar a sessão do paciente, troca de agendamento, origem/data/autoria,
+C3 validou parcialmente a sessão do paciente no Preview do exame; ainda precisa
+validar revisão/recibo posterior, troca de agendamento, origem/data/autoria,
 consulta/retorno e separação entre revisão e publicação. A decisão anterior de manter
 apenas Guilherme e Vitor não cobre admin, enfermagem ou isolamento entre pacientes;
 esses casos exigem outro ciclo de teste e não podem ser declarados aceitos.

@@ -1,0 +1,111 @@
+# Checkpoints das próximas entregas
+
+Atualizado em **08/10/2026**. Use este arquivo como lista curta de execução. A
+[direção](DIRECAO_E_SLICES.md) define o produto e a ordem; o
+[status](STATUS_ATUAL.md) guarda evidências e limites. Um item marcado aqui
+significa apenas que sua evidência indicada foi conferida, não aceite clínico.
+
+**Checkout oficial:** `/Users/vitormilanez/Desktop/Codes/vivance-atual`.
+**Ambiente de teste:** `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`),
+somente dados sintéticos. **Não usar `db push`, integrar ou acionar a pipeline de
+release** enquanto as migrations do [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78)
+fora da `main` não forem reconciliadas com C3.
+
+## Ordem de trabalho
+
+| Ordem | Slice | Resultado observável | Estado em 08/10 |
+| --- | --- | --- | --- |
+| Agora | **C3 — exame solicitado** | Paciente responde ao pedido; médico revisa; paciente vê o recibo operacional. | [PR #93](https://github.com/vitormilanez/instituto-vivance/pull/93) draft, Preview parcial; aceite aberto. |
+| Depois | **C2/C3 — continuidade da pessoa** | Hoje e ficha mostram contexto com origem/data; consulta e retorno preservam o paciente em foco. | Proposta local isolada, ainda sem PR ou Preview. |
+| Depois | **IA2 — fila confiável** | Extração sintética prossegue sem aba aberta, com permissão e retry verificados. | [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78) draft e com conflito; complemento apenas local. |
+| Depois | **IA2 — resultados conferíveis** | Médico compara cada item ao arquivo, página e trecho e registra revisão. | Contrato/persistência em elaboração; estruturador, tela e aceite pendentes. |
+| Paralelo, antes de IA clínica | **IA1 — governança** | Responsáveis decidem finalidade, fontes, fornecedor, dados e revisão. | [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) draft; decisão pendente. |
+| Antes de dados reais | **C1 / Gate P** | Destinos separados, restauração e segurança comprovadas. | Aberto; não confundir Preview com liberação clínica. |
+
+## C3 — fechar o exame solicitado (próxima ação)
+
+- [x] Vínculo explícito pedido → documento; um envio avulso não conclui o pedido.
+  Código no PR #93 e testes de isolamento.
+- [x] Paciente sintético autenticado enviou um arquivo; pedido `completed` aponta
+  ao documento. Home e comprovante persistiram após recarga no
+  [Preview C3](https://instituto-vivance-dkb5hxd6m-vtr-consulting.vercel.app).
+- [x] O envio mostra **quinta-feira, 08/10/2026, 15:29:57** no comprovante e
+  **qui. · 08/10/2026, 15:29** na lista. O título diz “Exame enviado em…”, sem
+  tratar a data do envio como data de realização.
+- [x] O médico vinculado volta a ver o exame em “Para revisar”; política RLS
+  `20261008184620` aplicada no dev, 114 testes de isolamento e CI do PR #93
+  aprovados. Abrir o item não equivale a registrar revisão.
+- [ ] Confirmar que `IMG_4022.PNG` é inteiramente fictício **antes de abrir o
+  original ou revisar**. Preservar o registro se a origem continuar incerta;
+  usar outro arquivo comprovadamente fictício para completar o teste.
+- [ ] Percorrer revisão médica explícita → novo estado do recibo do paciente,
+  com recarga nos dois perfis. Confirmar que nota/decisão interna não aparecem
+  ao paciente e que revisão não publica orientação.
+- [ ] Testar revisão `needs_follow_up`: item permanece em trabalho até o
+  seguimento apropriado, sem sumir da fila.
+- [ ] Testar envio avulso e acesso negado por papel, clínica e vínculo no
+  ambiente sintético. Registrar o que foi coberto por teste automatizado e o que
+  foi observado na interface.
+- [ ] Decidir se o produto precisa coletar a **data de realização do exame**.
+  Hoje só há timestamp do envio; não preencher a data clínica por inferência.
+- [ ] Fechar aceite operacional com o responsável e registrar evidência no
+  [status](STATUS_ATUAL.md) e na [tarefa C3](https://app.asana.com/1/1192450062279073/project/1218382636610484/task/1219002740032970).
+
+## C2/C3 — contexto longitudinal e retorno
+
+- [ ] Revisar a proposta local em
+  `/Users/vitormilanez/Desktop/Codes/vivance-c3-contexto` antes de incorporá-la:
+  objetivo e prioridade declarados, fonte/data, links ao registro original e
+  contexto da consulta. A branch parte do código C3 anterior ao ajuste de
+  data/fila do PR #93; reconciliar os dois. Foram registrados 16 testes focados
+  e lint; typecheck, commit, PR e Preview ainda não foram concluídos.
+- [ ] Confirmar coleta e precedência de objetivo, dificuldades, medidas e
+  lacunas; ausência de dado não vira zero, interpretação ou risco automático.
+- [ ] Completar cenário **paciente → consulta → registro médico → orientação
+  publicada → retorno** nos perfis sintéticos. Recarregar, conferir persistência
+  e manter aprovação separada de publicação.
+- [ ] Validar a tarefa de localizar contexto, pendências, mudanças factuais e
+  originais em Hoje/ficha, inclusive estados vazios e falhas. Registrar aceite
+  operacional sem alegar aceite clínico por uma avaliação heurística.
+
+## IA2 — retomar o piloto sem perder trabalho
+
+- [x] Preservado o [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78)
+  draft, HEAD `1e4493a`, com texto de PDF sintético por página já validado no
+  piloto anterior. As três migrations IA2 estão no dev, fora da `main`.
+- [ ] Reconciliar o PR #78, hoje **com conflito**, com a `main`, o PR #93 e o
+  histórico remoto de migrations. Não reaplicar versões existentes.
+- [ ] Revisar o complemento **local, sem commit/push/deploy**, no checkout
+  `/Users/vitormilanez/Desktop/Codes/vivance-ia2-exams`: migration de itens
+  estruturados e worker independente da aba. Teste PGlite focado e `deno check`
+  passaram; typecheck/lint gerais ficaram sem conclusão por I/O local.
+- [ ] Aplicar e validar em dev a fila autônoma, lease, falha/retry,
+  idempotência e negação ao paciente autenticado. Não chamar a fila de autônoma
+  apenas porque a aba do médico retoma trabalho vencido.
+- [ ] Fechar contrato de **arquivo → laudo → resultado** com valor literal,
+  unidade, referência do emissor, data de realização e página/trecho; decidir
+  casos iniciais com o médico. O timestamp de upload permanece separado.
+- [ ] Construir parser/fixture sintético delimitado e tela de comparação com o
+  original; revisar e corrigir por item, preservando histórico e fonte. Medir
+  cobertura, ambiguidades e erros antes de ampliar documentos.
+- [ ] Obter aceite técnico e, separadamente, avaliação clínica. Claude, OCR e
+  interpretação automática não entram por inferência deste piloto.
+
+## Gates permanentes
+
+- [ ] IA1: registrar decisões de finalidade, fornecedor, dados permitidos,
+  retenção, revisão e privacidade antes de qualquer envio clínico a modelo.
+- [ ] C1/Gate P: separar produção do projeto sintético, reconciliar migrations,
+  testar backup/restauração, autorização/RLS/auditoria e jornadas por papel
+  antes de dados reais. Ver [Gate P](GATE_P.md).
+- [ ] IA3–IA6: iniciar somente com biblioteca aprovada/versionada, fontes
+  rastreáveis, revisão humana e gates do [plano de IA](PLANO_IA_CLINICA.md).
+
+## Como atualizar este checklist
+
+Marque um item somente com evidência no Git, ambiente e/ou teste adequado.
+Acrescente link e data no [status](STATUS_ATUAL.md); atualize aqui apenas o
+checkbox e o próximo obstáculo, sem copiar relatórios inteiros. Em cada retomada,
+confira `AGENTS.md`, direção, status, HEAD dos PRs e destino do ambiente. A
+próxima entrega executável é o **ciclo de revisão e recibo do C3 com arquivo
+comprovadamente fictício**; depois vem o contexto longitudinal.

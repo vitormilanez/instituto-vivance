@@ -9,6 +9,7 @@ com data e material de protótipos ficam identificados como histórico.
 | --- | --- |
 | [Direção e slices](DIRECAO_E_SLICES.md) | O que estamos construindo e em que ordem? |
 | [Estado atual](STATUS_ATUAL.md) | O que existe, qual evidência o sustenta e o que falta? |
+| [Checkpoints das entregas](CHECKPOINTS_ENTREGAS.md) | Qual item executar agora e o que falta para marcar cada slice? |
 | [Avaliação Paciente × Médico × IA](AVALIACAO_JORNADA.md) | Quais lacunas de UX/dados foram encontradas e qual sequência está proposta? |
 | [Handoff dos exames IA2](IA2_EXAMES.md) | O que já funciona no PR #78 e qual é a próxima entrega? |
 | [Retomada do desenvolvimento](RETOMADA_DESENVOLVIMENTO.md) | Como preparar a próxima proposta e desenvolver/testar por slice? |

@@ -9,7 +9,8 @@ como descrito abaixo. Domínio público e produção separada **não foram
 revalidados nesta implantação**. Este documento não autoriza uso clínico.
 
 [Direção e prioridades](DIRECAO_E_SLICES.md) ·
-[Índice](README.md) · [Decisões e evidências históricas](historico/README.md)
+[Checkpoints das entregas](CHECKPOINTS_ENTREGAS.md) · [Índice](README.md) ·
+[Decisões e evidências históricas](historico/README.md)
 
 ## Avaliação de UX e dados em 08/10
 
@@ -93,8 +94,9 @@ não representam uma execução nova.
 | **C1 — base operacional** | Ambiente único temporário de testes sintéticos. Inventário de 29/09 registrou 57 migrations pareadas; contagem histórica, anterior ao piloto IA2. | Reconciliar migrations no destino confirmado, produção separada e backup/restauração antes de dados reais. [Registro C1](C1_BASE_OPERACIONAL_2026-09-29.md). |
 | **C2 — demonstração longitudinal** | Carga de autorrelatos sintéticos e documentos conferida parcialmente no médico em 29/09. As contagens antigas não são inventário atual. | Sessão do paciente, consulta/retorno e aceite da demonstração. Preservar origem incerta; nenhuma limpeza é autorizada por este texto. |
 | **C3 — contexto e operação** | PR #93 em rascunho; pedido → resposta → recibo inicial e presença na fila médica observados em Preview e banco no projeto sintético; sem aceite operacional registrado. | Origem sintética do arquivo, revisão médica/recibo posterior, envio avulso e seguimento; outros papéis e isolamento de UI exigem ciclo próprio. |
+| **C3 — contexto longitudinal** | Proposta local em `/Users/vitormilanez/Desktop/Codes/vivance-c3-contexto`, baseada em `430ee7d`; 16 testes focados e lint registrados, sem commit, PR ou Preview. | Revisar e reconciliar com o PR #93 mais recente; typecheck, integração e percurso consulta/retorno pendentes. |
 | **IA1 — governança** | [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) aberto e em rascunho, confirmado em 08/10. | Decisão sobre finalidade, fontes, fornecedor, privacidade e revisão. |
-| **IA2 — extração verificável** | [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78) aberto e em rascunho, fora da main; head `1e4493a`. O PR registra extração de texto de PDF sintético, proveniência por página e Preview. | Validar acesso de paciente, falha/retentativa, processamento independente da aba e contrato de resultados estruturados. Não há aceite clínico ou incorporação na main. |
+| **IA2 — extração verificável** | [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78) aberto, draft e com conflito, fora da main; head `1e4493a`. O PR registra texto por página e Preview. Há complemento local staged no checkout IA2 (worker e migration de itens), com PGlite focado e `deno check` registrados, sem commit/deploy. | Reconciliar branch e migrations; concluir lint/typecheck, validar retry e paciente no dev, estruturar itens e revisão na interface. Não há aceite clínico ou incorporação na main. |
 | **IA3–IA6** | Plano futuro, sem entrega confirmada nesta revisão. | Gates e critérios do [plano de IA](PLANO_IA_CLINICA.md). |
 | **Gate P** | Sem fechamento documentado. | Ambiente separado, restauração, segurança, jornadas por papel e demais [critérios](GATE_P.md). |
 
