@@ -170,9 +170,9 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
             documentReview: work === null
               ? null
               : {
-                  pending: Boolean(documentWork),
-                  total: documentWork?.total ?? 0,
-                  documentIds: documentWork?.documentIds,
+                  pending: Boolean(documentWork?.unreviewedDocumentIds?.length),
+                  total: documentWork?.unreviewedDocumentIds?.length ?? 0,
+                  documentIds: documentWork?.unreviewedDocumentIds,
                 },
           }),
         ] as const;

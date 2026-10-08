@@ -128,6 +128,9 @@ export type SentItem = {
   key: string;
   at: string;
   detail: string | null;
+  // Estado operacional do documento, sem decisão ou nota interna do médico.
+  reviewStatus?: "received" | "review_recorded" | "unavailable";
+  requestAt?: string;
 };
 
 export const sentLabels: Record<SentKind, string> = {

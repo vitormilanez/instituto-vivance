@@ -3118,9 +3118,17 @@ async function reservePrivateDocumentAs(
   filename: string,
   category: "exam" | "clinical_document",
   visibility: "internal" | "shared",
+  careRequestId: string | null = null,
 ) {
   await db.exec("set local role service_role");
   try {
+    if (careRequestId !== null)
+      return (
+        await db.query<{ document_id: string; storage_path: string }>(
+          "select * from public.reserve_patient_document($1,$2,$3,$4,'application/pdf',6,$5,$6,$7)",
+          [a, pa, users[actor].id, filename, category, visibility, careRequestId],
+        )
+      ).rows[0];
     return (
       await db.query<{ document_id: string; storage_path: string }>(
         "select * from public.reserve_patient_document($1,$2,$3,$4,'application/pdf',6,$5,$6)",
@@ -5477,6 +5485,168 @@ test("a solicitação ao paciente é única por tipo, idempotente por chave e ch
       "o paciente recebe um aviso no app",
     );
     await switchActor("doctor");
+  });
+});
+
+test("só o exame explicitamente ligado conclui a solicitação e preserva a autoria", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const care = (await requestCare("exams", randomUUID(), "Envie o exame solicitado.")).rows[0].id;
+
+    // Um exame avulso posterior não é uma resposta ao pedido.
+    const unrelated = await reservePrivateDocumentAs(
+      "patient",
+      "unrelated.pdf",
+      "exam",
+      "shared",
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [unrelated.storage_path],
+    );
+    await completePrivateDocumentAs("patient", unrelated.document_id);
+    await switchActor("doctor");
+    assert.deepEqual(
+      (
+        await db.query<{
+          status: string;
+          response_document_id: string | null;
+          response_actor_id: string | null;
+        }>(
+          "select status,response_document_id,response_actor_id from public.patient_care_requests where id=$1",
+          [care],
+        )
+      ).rows,
+      [{ status: "requested", response_document_id: null, response_actor_id: null }],
+    );
+
+    const response = await reservePrivateDocumentAs(
+      "patient",
+      "requested-response.pdf",
+      "exam",
+      "shared",
+      care,
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [response.storage_path],
+    );
+    await completePrivateDocumentAs("patient", response.document_id);
+    await switchActor("doctor");
+    assert.deepEqual(
+      (
+        await db.query<{
+          status: string;
+          response_document_id: string;
+          response_actor_id: string;
+        }>(
+          "select status,response_document_id,response_actor_id from public.patient_care_requests where id=$1",
+          [care],
+        )
+      ).rows,
+      [
+        {
+          status: "completed",
+          response_document_id: response.document_id,
+          response_actor_id: users.patient.id,
+        },
+      ],
+    );
+  });
+});
+
+test("resposta assistida registra o profissional e não aceita pedido incompatível", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const examCare = (await requestCare("exams")).rows[0].id;
+    const goalCare = (await requestCare("goals")).rows[0].id;
+
+    await db.exec("set local role service_role");
+    await denied(
+      "select * from public.reserve_patient_document($1,$2,$3,'wrong.pdf','application/pdf',6,'exam','shared',$4)",
+      [a, pa, users.patient.id, goalCare],
+    );
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'active')",
+      [a, pa, users.nurse.id],
+    );
+
+    const assisted = await reservePrivateDocumentAs(
+      "nurse",
+      "assisted-response.pdf",
+      "exam",
+      "shared",
+      examCare,
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [assisted.storage_path],
+    );
+    await completePrivateDocumentAs("nurse", assisted.document_id);
+    await switchActor("doctor");
+    assert.deepEqual(
+      (
+        await db.query<{ response_document_id: string; response_actor_id: string }>(
+          "select response_document_id,response_actor_id from public.patient_care_requests where id=$1",
+          [examCare],
+        )
+      ).rows,
+      [
+        {
+          response_document_id: assisted.document_id,
+          response_actor_id: users.nurse.id,
+        },
+      ],
+    );
+  });
+});
+
+test("paciente vê apenas o estado operacional da revisão do próprio documento", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const care = (await requestCare("exams")).rows[0].id;
+    const response = await reservePrivateDocumentAs(
+      "patient",
+      "review-status.pdf",
+      "exam",
+      "shared",
+      care,
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [response.storage_path],
+    );
+    await completePrivateDocumentAs("patient", response.document_id);
+    assert.deepEqual(
+      (
+        await db.query<{ document_id: string; operational_status: string }>(
+          "select * from public.get_own_patient_document_status($1,$2)",
+          [a, response.document_id],
+        )
+      ).rows,
+      [{ document_id: response.document_id, operational_status: "received" }],
+    );
+
+    await switchActor("doctor");
+    await db.query(
+      "select public.review_patient_document($1,$2,'needs_follow_up','Solicitar complemento.',true)",
+      [a, response.document_id],
+    );
+    await denied("select * from public.get_own_patient_document_status($1,$2)", [
+      a,
+      response.document_id,
+    ]);
+    await switchActor("patient");
+    assert.deepEqual(
+      (
+        await db.query<{ document_id: string; operational_status: string }>(
+          "select * from public.get_own_patient_document_status($1,$2)",
+          [a, response.document_id],
+        )
+      ).rows,
+      [{ document_id: response.document_id, operational_status: "review_recorded" }],
+    );
   });
 });
 

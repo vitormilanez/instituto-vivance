@@ -59,7 +59,7 @@ export default async function PatientAreaPage({
   searchParams,
 }: {
   params: Promise<{ tenantId: string; section: string }>;
-  searchParams: Promise<{ periodo?: string; enviado?: string; pagina?: string; preparo?: string; medico?: string | string[]; inicio?: string; fim?: string; cursor?: string }>;
+  searchParams: Promise<{ periodo?: string; enviado?: string; pagina?: string; preparo?: string; pedido?: string; medico?: string | string[]; inicio?: string; fim?: string; cursor?: string }>;
 }) {
   const { tenantId, section: slug } = await params;
   const section = findPatientSection(slug);
@@ -166,7 +166,7 @@ export default async function PatientAreaPage({
     ? patientMeasurementSummary(tenantId)
     : null,
     // careRequests: o que a equipe pediu vira tarefa no "Hoje"
-    patient && slug === "hoje"
+    patient && ["hoje", "documentos"].includes(slug)
     ? myPendingCareRequests(tenantId)
     : [],
     // sent: o que a pessoa já enviou; falha vira ausência da seção
@@ -315,7 +315,7 @@ export default async function PatientAreaPage({
       ) : slug === "conversas" && messages ? (
         <PatientMessagesWorkspace initial={messages} />
       ) : slug === "documentos" && documents ? (
-        <PatientDocumentsWorkspace initial={documents} />
+        <PatientDocumentsWorkspace initial={documents} pendingExamRequests={careRequests.filter((request) => request.kind === "exams")} selectedRequestId={query.pedido ?? null} />
       ) : slug === "evolucao" && longitudinal ? (
         <PatientEvolution data={longitudinal} base={base} period={evolution.key} checkIn={checkIn} />
       ) : slug === "diario" && checkIns && meals ? (

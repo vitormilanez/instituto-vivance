@@ -16,8 +16,17 @@ do código e observação autenticada, somente leitura, de Hoje médico e ficha
 sintética. Isso não revalida banco, sessão do paciente, jornada completa ou
 deployment servido. Identificou lacunas de vínculo pedido/resposta, continuidade
 da revisão e visibilidade para o paciente. A proposta de priorizar um slice C3
-de exames antes da ampliação de IA2 aguarda validação; nenhuma correção foi
-implementada e nenhum aceite foi promovido.
+de exames antes da ampliação de IA2 foi aceita como ponto de partida; não
+promoveu aceite operacional ou clínico.
+
+**Branch local de execução:** `codex/c3-exame-solicitado-20261008`, criada sobre
+os dois commits documentais após `origin/main` `ebadaab8`. O código local vincula
+o documento ao pedido explícito, conserva a fila quando a última revisão pede
+acompanhamento e mostra ao paciente somente estado operacional de revisão.
+Migration e Edge Function estão somente no checkout; não foram aplicadas ou
+publicadas. Os testes locais de contrato, isolamento, tipos e lint não substituem
+sessões autenticadas paciente/médico, recarga no Preview e conferência de acesso
+no projeto Supabase sintético. C3 continua sem aceite.
 
 ## Base confirmada no repositório
 
@@ -77,8 +86,9 @@ para dados reais. Registros cuja origem não foi estabelecida devem ser preserva
 - [PR #40](https://github.com/vitormilanez/instituto-vivance/pull/40) permanece aberto
   para limpeza de cópias do iCloud. Esta organização remove os sete MDs antigos;
   reconciliar as exclusões sobrepostas antes de integrar aquele PR.
-- Próxima entrega proposta após a avaliação: **C3 — fechar o ciclo de um exame
-  solicitado**, conforme [achados e aceites](AVALIACAO_JORNADA.md). Repriorização
-  ainda não aprovada. O [handoff IA2](IA2_EXAMES.md) permanece válido para retomar
-  o piloto; C2/C3 seguem sem aceite integrado. Esta documentação não inicia
-  implementação, não publica e não fecha aceites.
+- Primeira entrega iniciada localmente: **C3 — fechar o ciclo de um exame
+  solicitado**, conforme [achados e aceites](AVALIACAO_JORNADA.md). O
+  [handoff IA2](IA2_EXAMES.md) permanece válido para retomar o piloto; C2/C3
+  seguem sem aceite integrado. Próximo marco: verificar migração/Edge Function
+  no destino sintético confirmado e percorrer pedido → resposta → revisão →
+  recibo nas duas sessões antes de declarar o slice concluído.

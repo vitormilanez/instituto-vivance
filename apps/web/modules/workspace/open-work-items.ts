@@ -1,6 +1,6 @@
 // "Seu trabalho em aberto": o que só o profissional logado pode concluir —
 // rascunho de atendimento, plano e relatório que ainda não chegaram ao
-// paciente, documento sem revisão médica. Puro: a tela e o teste leem as
+// paciente, documento sem revisão ou com acompanhamento aberto. Puro: a tela e o teste leem as
 // mesmas regras.
 //
 // Regras:
@@ -23,6 +23,7 @@ export type OpenWorkItem = {
   since: string;
   total?: number;
   documentIds?: string[];
+  unreviewedDocumentIds?: string[];
 };
 
 export const openWorkLimit = 8;
@@ -117,37 +118,53 @@ export function encounterItem(
   };
 }
 
-// Documentos sem nenhuma revisão médica, agrupados por paciente: uma linha
-// por pessoa, com a contagem e a chegada mais antiga.
+// Documentos que ainda exigem ação médica, agrupados por paciente: uma linha
+// por pessoa. O registro mais recente da revisão define o estado atual; uma
+// revisão posterior pode encerrar um acompanhamento, sem apagar o histórico.
+export type DocumentReviewState = { decision: "approved" | "rejected" | "needs_follow_up"; at: string };
+
 export function documentItems(
   base: string,
   documents: { id: string; patientId: string; at: string }[],
-  reviewed: Set<string>,
+  reviews: Map<string, DocumentReviewState>,
   names: Map<string, string>,
 ): OpenWorkItem[] {
-  const byPatient = new Map<string, { count: number; oldest: string; documentIds: string[] }>();
+  const byPatient = new Map<string, { unreviewed: number; followUp: number; oldest: string; documentIds: string[]; unreviewedDocumentIds: string[] }>();
   for (const document of documents) {
-    if (reviewed.has(document.id)) continue;
+    const review = reviews.get(document.id);
+    if (review && review.decision !== "needs_follow_up") continue;
+    const since = review?.at ?? document.at;
     const current = byPatient.get(document.patientId);
-    if (!current) byPatient.set(document.patientId, { count: 1, oldest: document.at, documentIds: [document.id] });
+    if (!current) byPatient.set(document.patientId, {
+      unreviewed: review ? 0 : 1,
+      followUp: review ? 1 : 0,
+      oldest: since,
+      documentIds: [document.id],
+      unreviewedDocumentIds: review ? [] : [document.id],
+    });
     else {
-      current.count += 1;
+      if (review) current.followUp += 1;
+      else {
+        current.unreviewed += 1;
+        current.unreviewedDocumentIds.push(document.id);
+      }
       current.documentIds.push(document.id);
-      if (document.at < current.oldest) current.oldest = document.at;
+      if (since < current.oldest) current.oldest = since;
     }
   }
   return [...byPatient.entries()].map(([patientId, group]) => ({
     kind: "documents" as const,
     id: `documents-${patientId}`,
-    total: group.count,
+    total: group.unreviewed + group.followUp,
     documentIds: group.documentIds,
+    unreviewedDocumentIds: group.unreviewedDocumentIds,
     patientId,
     patientName: names.get(patientId) ?? "Paciente",
-    state:
-      group.count === 1
-        ? "1 documento sem revisão médica"
-        : `${group.count} documentos sem revisão médica`,
-    action: "Revisar documentos",
+    state: [
+      group.unreviewed ? `${group.unreviewed} ${group.unreviewed === 1 ? "documento sem revisão médica" : "documentos sem revisão médica"}` : "",
+      group.followUp ? `${group.followUp} ${group.followUp === 1 ? "acompanhamento em aberto" : "acompanhamentos em aberto"}` : "",
+    ].filter(Boolean).join(" · "),
+    action: group.unreviewed ? "Revisar documentos" : "Continuar acompanhamento",
     href: `${base}/pacientes/${patientId}?aba=Documentos`,
     since: group.oldest,
   }));

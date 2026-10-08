@@ -99,9 +99,11 @@ export async function openWork(
     documentIds.length
       ? client
           .from("patient_document_reviews")
-          .select("document_id")
+          .select("document_id,decision,reviewed_at")
           .eq("tenant_id", tenant)
           .in("document_id", documentIds)
+          .order("reviewed_at", { ascending: false })
+          .order("id", { ascending: false })
       : none,
   ]);
   if (planPublications.error || reportPublications.error || reviews.error)
@@ -138,9 +140,11 @@ export async function openWork(
       (row) => `${row.report_id}:${row.source_version}`,
     ),
   );
-  const reviewed = new Set(
-    ((reviews.data ?? []) as { document_id: string }[]).map((row) => row.document_id),
-  );
+  const reviewByDocument = new Map<string, { decision: "approved" | "rejected" | "needs_follow_up"; at: string }>();
+  for (const row of (reviews.data ?? []) as { document_id: string; decision: "approved" | "rejected" | "needs_follow_up"; reviewed_at: string }[]) {
+    if (!reviewByDocument.has(row.document_id))
+      reviewByDocument.set(row.document_id, { decision: row.decision, at: row.reviewed_at });
+  }
 
   const items: OpenWorkItem[] = [];
   for (const row of drafts.data ?? [])
@@ -201,7 +205,7 @@ export async function openWork(
         patientId: row.patient_id,
         at: row.available_at ?? row.created_at,
       })),
-      reviewed,
+      reviewByDocument,
       names,
     ),
   );

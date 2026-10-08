@@ -55,7 +55,7 @@ test("documentos sem revisão viram uma linha por paciente, com a chegada mais a
       { id: "d3", patientId: "p2", at: "2026-09-19T10:00:00Z" },
       { id: "d4", patientId: "p2", at: "2026-09-10T10:00:00Z" },
     ],
-    new Set(["d4"]),
+    new Map([["d4", { decision: "approved" as const, at: "2026-09-11T10:00:00Z" }]]),
     new Map([["p1", "Ana"], ["p2", "Bia"]]),
   );
   assert.equal(rows.length, 2);
@@ -65,6 +65,20 @@ test("documentos sem revisão viram uma linha por paciente, com a chegada mais a
   const bia = rows.find((row) => row.patientId === "p2")!;
   assert.equal(bia.state, "1 documento sem revisão médica");
   assert.equal(bia.href, "/clinicas/t1/pacientes/p2?aba=Documentos");
+});
+
+test("acompanhamento permanece na fila até nova revisão, com o tempo da decisão", () => {
+  const documents = [{ id: "d1", patientId: "p1", at: "2026-09-10T10:00:00Z" }];
+  const names = new Map([["p1", "Ana"]]);
+  const followUp = new Map([["d1", { decision: "needs_follow_up" as const, at: "2026-09-12T10:00:00Z" }]]);
+  const pending = documentItems(base, documents, followUp, names);
+  assert.equal(pending.length, 1);
+  assert.equal(pending[0].state, "1 acompanhamento em aberto");
+  assert.equal(pending[0].since, "2026-09-12T10:00:00Z");
+  assert.equal(pending[0].action, "Continuar acompanhamento");
+  assert.deepEqual(pending[0].unreviewedDocumentIds, [], "o briefing não deve chamar acompanhamento de sem revisão");
+  const closed = new Map([["d1", { decision: "approved" as const, at: "2026-09-14T10:00:00Z" }]]);
+  assert.deepEqual(documentItems(base, documents, closed, names), []);
 });
 
 test("o que espera há mais tempo vem primeiro; empate é estável", () => {

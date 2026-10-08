@@ -85,6 +85,7 @@ export async function reserveDocument(id: string, input: unknown) {
     byte_size: values.byteSize,
     category: values.category,
     visibility: values.visibility,
+    care_request_id: values.careRequestId,
   });
   if (
     typeof response.documentId !== "string" ||

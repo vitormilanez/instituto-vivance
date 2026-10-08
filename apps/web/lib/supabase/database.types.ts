@@ -1108,6 +1108,7 @@ export type Database = {
       };
       patient_documents: {
         Row: {
+          care_request_id: string | null;
           attached_to: string;
           available_at: string | null;
           byte_size: number;
@@ -1141,6 +1142,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "memberships";
             referencedColumns: ["tenant_id", "user_id"];
+          },
+          {
+            foreignKeyName: "patient_documents_care_request_fkey";
+            columns: ["tenant_id", "care_request_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patient_care_requests";
+            referencedColumns: ["tenant_id", "id", "patient_id"];
           },
         ];
       };
@@ -1454,6 +1462,8 @@ export type Database = {
           cancelled_at: string | null;
           preparation_id: string | null;
           requested_intake_version: number | null;
+          response_document_id: string | null;
+          response_actor_id: string | null;
         };
         Insert: never;
         Update: never;
@@ -1478,6 +1488,20 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "return_preparation_requests";
             referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "patient_care_requests_response_document_fkey";
+            columns: ["tenant_id", "response_document_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patient_documents";
+            referencedColumns: ["tenant_id", "id", "patient_id"];
+          },
+          {
+            foreignKeyName: "patient_care_requests_response_actor_fkey";
+            columns: ["tenant_id", "response_actor_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
           },
         ];
       };
@@ -1840,10 +1864,21 @@ export type Database = {
           input_byte_size: number;
           input_category: string;
           input_visibility: string;
+          target_care_request: string | null;
         };
         Returns: {
           document_id: string;
           storage_path: string;
+        }[];
+      };
+      get_own_patient_document_status: {
+        Args: {
+          target_tenant: string;
+          target_document: string;
+        };
+        Returns: {
+          document_id: string;
+          operational_status: string;
         }[];
       };
       complete_patient_document: {

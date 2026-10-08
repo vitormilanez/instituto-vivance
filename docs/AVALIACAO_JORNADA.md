@@ -1,6 +1,7 @@
 # Avaliação Paciente × Médico × IA
 
-08/10/2026 — **proposta para validação; sem implementação**. Base: checkout
+08/10/2026 — avaliação que fundamenta a primeira entrega C3, aceita como
+ponto de partida no mesmo dia. Base: checkout
 `vivance-atual`, código de `origin/main` `ebadaab8` e organização documental
 `a4be0db`; piloto IA2 separado, PR #78, `1e4493a`.
 
@@ -31,8 +32,8 @@ execução; não há resultado automatizado de design.
 **Observado** abaixo significa código ou tela inspecionada; **inferido** é impacto
 provável; **não validado** exige cenário sintético. Não foram revalidados banco
 remoto, sessão do paciente, mobile, isolamento entre papéis ou jornada completa.
-Não houve nova aceitação de C3 ou Gate P. Perguntas adicionais dispensadas porque
-o brief e o escopo estavam definidos; a priorização continua sujeita à validação.
+Não houve aceite operacional de C3 ou fechamento do Gate P. A implementação
+local e as verificações novas estão resumidas em [Status atual](STATUS_ATUAL.md).
 
 ## Jornada e atritos
 
@@ -122,7 +123,7 @@ Claude, novos fornecedores e uso clínico não ficam autorizados por esta avalia
 **Recomendação revisada:** começar pelo slice 1. A organização inicial dos MDs
 recomendava IA2 pela maturidade do piloto; a avaliação de UX/dados mostrou uma
 lacuna anterior na continuidade. Esta é uma proposta de repriorização para o
-usuário validar, não suspensão ou descarte do PR #78. O problema análogo de
+usuário validou como ponto de partida; não suspende ou descarta o PR #78. O problema análogo de
 medidas fica registrado para extensão posterior, evitando alargar o primeiro slice.
 
 ## Desenvolvimento e validação
@@ -137,3 +138,23 @@ Nesta avaliação foram feitas leituras e verificação documental, sem alterar
 aplicação, banco ou ambiente e sem rodar suite de produto. Implementação, Preview,
 publicação técnica e aceite clínico continuam marcos separados. Seguir o
 [método de retomada](RETOMADA_DESENVOLVIMENTO.md) e o [Gate P](GATE_P.md).
+
+## Reavaliação paralela de UX — Impeccable 4.5.0
+
+Alvo estável: `apps/web/components/patient-home.tsx`, com fila e documentos do
+médico como contexto. Duas avaliações independentes (A: experiência, B:
+detector/evidência) convergiram: a Home tem uma próxima ação clara, linguagem
+calma e confirmação do envio; o elo pedido → arquivo → revisão desaparecia
+após o envio. Prioridade **P1**: recibo factual do pedido e do estado da revisão.
+Como P2, agrupar/limitar tarefas secundárias quando houver muitas pendências e
+indicar data da orientação publicada. Esses P2 pertencem a outro recorte.
+
+A avaliou o código pelas dez heurísticas de Nielsen (0–4): visibilidade 2,
+linguagem 4, controle 3, consistência 4, prevenção 3, reconhecimento 4,
+eficiência 2, minimalismo 3, recuperação 3, ajuda 1 = **29/40**. É pontuação
+heurística sobre fonte, não teste com pacientes. O detector de B não produziu
+JSON: launcher instalado sem permissão de execução (exit 126). Um navegador
+novo tentou `localhost:3000` e recebeu conexão recusada; sem overlay ou
+observação autenticada do paciente. Nenhum servidor temporário ou arquivo
+de snapshot foi criado. A implementação local do P1 exige revisão visual e
+jornada sintética antes do aceite.

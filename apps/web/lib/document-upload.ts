@@ -51,6 +51,7 @@ export async function uploadDocument(input: {
   file: File;
   category: string;
   visibility: string;
+  careRequestId?: string;
   // Injected by tests; production always uses the signed Supabase upload.
   upload?: SignedUploader;
   fetchImpl?: typeof fetch;
@@ -68,6 +69,9 @@ export async function uploadDocument(input: {
       byte_size: input.file.size,
       category: input.category,
       visibility: input.visibility,
+      ...(input.careRequestId
+        ? { care_request_id: input.careRequestId }
+        : {}),
     }),
   });
   const prepared = (await intent.json()) as {

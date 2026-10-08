@@ -48,12 +48,12 @@ obrigatórios antes de dados reais. Preservar registros de origem incerta.
 | Depois | **IA3 — biblioteca aprovada** | Poucas fontes versionadas com população, trecho, autoria e revisão. | Busca reproduzível apenas em fontes aprovadas/vigentes e retirada rastreável. |
 | Depois | **IA4–IA6 — evidência, revisão e validação** | Capacidades e critérios do plano de IA; dependem de IA1–IA3 e gates clínicos. | Verificação por afirmação, revisão/correção médica, publicação separada e métricas aceitas antes de liberação. |
 
-**Proposta revisada em 08/10: C3 — fechar o ciclo de um exame solicitado.**
+**Primeira entrega aceita como ponto de partida em 08/10: C3 — fechar o ciclo de um exame solicitado.**
 A [avaliação de UX e dados](AVALIACAO_JORNADA.md) identificou lacunas no vínculo
 pedido/resposta, acompanhamento após revisão e recibo do paciente. Recomenda-se
 entregar esse percurso delimitado antes de ampliar IA2; a sequência completa e
-os aceites estão na avaliação. A repriorização aguarda validação do usuário e
-não inicia implementação nem cancela o PR #78.
+os aceites estão na avaliação. O usuário pediu iniciar na nova branch
+`codex/c3-exame-solicitado-20261008`; o PR #78 continua preservado.
 
 Para IA2, preservar o [handoff](IA2_EXAMES.md): fechar negação ao paciente e
 falha/retentativa da fila, definir resultados/narrativas com origem por página

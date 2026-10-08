@@ -73,7 +73,7 @@ export function PatientHome({
     measure_unit: string;
     reported_on: string;
   } | null;
-  careRequests: { kind: string; requested_at: string; preparation_id?: string | null; preparation_starts_at?: string | null }[];
+  careRequests: { id?: string; kind: string; requested_at: string; preparation_id?: string | null; preparation_starts_at?: string | null }[];
   sent: SentItem[] | null;
 }) {
   const next = patientNextAppointment(appointments, currentTime);
@@ -281,12 +281,20 @@ export function PatientHome({
           {sent.length ? (
             <ul className="pv-list">
               {sent.slice(0, 3).map((item) => (
-                <li key={`${item.kind}-${item.key}`}>
+                <li className="pv-sent-item" key={`${item.kind}-${item.key}`}>
                   <Link className="pv-link" href={sentHref(base, item)}>{sentLabels[item.kind]}</Link>
-                  <time className="pv-sent-when" dateTime={item.at}>
-                    <Icon name="check" size={16} />
-                    Enviado {sentWhen(item.at, today)}
-                  </time>
+                  <span className="pv-sent-meta">
+                    <time className="pv-sent-when" dateTime={item.at}>
+                      <Icon name="check" size={16} />
+                      Enviado {sentWhen(item.at, today)}
+                    </time>
+                    {item.kind === "document" && <small className="pv-muted">
+                      {item.requestAt ? `Resposta ao pedido de ${sentWhen(item.requestAt, today)} · ` : ""}
+                      {item.reviewStatus === "review_recorded" ? "Revisão registrada pela equipe" :
+                        item.reviewStatus === "received" ? "Disponível para revisão da equipe" :
+                          "Estado da revisão indisponível no momento"}
+                    </small>}
+                  </span>
                 </li>
               ))}
             </ul>

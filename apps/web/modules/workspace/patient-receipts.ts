@@ -14,6 +14,8 @@ export type PatientReceipt = {
   rows: { label: string; value: string }[];
   documentId?: string;
   sharedByTeam?: boolean;
+  reviewStatus?: "received" | "review_recorded" | "unavailable";
+  requestAt?: string;
 };
 
 export async function patientReceipt(id: string, kindInput: string, keyInput: string) {
@@ -58,7 +60,40 @@ export async function patientReceipt(id: string, kindInput: string, keyInput: st
     ], documentId: row.photo_document_id ?? undefined };
   } else if (kind === "document") {
     const row = checked(await client.from("patient_documents").select("*").eq("tenant_id", tenant).eq("patient_id", patient).eq("id", key).eq("status", "available").eq("attached_to", "documents").maybeSingle());
-    if (row) receipt = { title, at: row.available_at ?? row.created_at, rows: [{ label: "Documento", value: documentTitle(row) }, { label: "Nome original", value: row.original_filename }], documentId: row.id, sharedByTeam: row.uploaded_by !== user.id };
+    if (row) {
+      const sharedByTeam = row.uploaded_by !== user.id;
+      let reviewStatus: PatientReceipt["reviewStatus"];
+      let requestAt: string | undefined;
+      if (!sharedByTeam) {
+        const [status, request] = await Promise.all([
+          (async () => {
+            try {
+              return await client.rpc("get_own_patient_document_status", {
+                target_tenant: tenant,
+                target_document: row.id,
+              });
+            } catch { return null; }
+          })(),
+          (async () => {
+            if (!row.care_request_id) return null;
+            try {
+              return await client.from("patient_care_requests")
+                .select("requested_at")
+                .eq("tenant_id", tenant)
+                .eq("patient_id", patient)
+                .eq("id", row.care_request_id)
+                .eq("response_document_id", row.id)
+                .maybeSingle();
+            } catch { return null; }
+          })(),
+        ]);
+        const operational = status?.data?.[0]?.operational_status;
+        reviewStatus = operational === "received" || operational === "review_recorded"
+          ? operational : "unavailable";
+        requestAt = request?.data?.requested_at;
+      }
+      receipt = { title, at: row.available_at ?? row.created_at, rows: [{ label: "Documento", value: documentTitle(row) }, { label: "Nome original", value: row.original_filename }], documentId: row.id, sharedByTeam, reviewStatus, requestAt };
+    }
   } else if (kind === "measurements") {
     const rows = checked(await client.from("patient_measurements").select("*").eq("tenant_id", tenant).eq("patient_id", patient).eq("actor_user_id", user.id).eq("client_request_id", key));
     if (rows?.length) receipt = { title, at: rows[0].submitted_at, rows: rows.map((row) => ({ label: `${row.measure_label} · ${row.reported_on.split("-").reverse().join("/")}`, value: `${new Intl.NumberFormat("pt-BR").format(row.measure_value)} ${row.measure_unit}` })) };

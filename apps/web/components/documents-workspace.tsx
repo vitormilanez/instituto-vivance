@@ -50,6 +50,7 @@ export function DocumentUploadForm({
   patients,
   ownPatientId,
   category,
+  careRequestId,
 }: {
   tenant: string;
   patients?: StaffDocuments["patients"];
@@ -58,6 +59,7 @@ export function DocumentUploadForm({
   // arquivo (a foto de uma refeição, por exemplo), o seletor sai da tela e
   // o valor vem daqui. Sem ela, o formulário segue como sempre foi.
   category?: "exam" | "clinical_document";
+  careRequestId?: string;
 }) {
   const router = useRouter();
   const busy = useRef(false);
@@ -113,7 +115,7 @@ export function DocumentUploadForm({
 
   if (!patientUpload && !patients?.length)
     return <p>Nenhum paciente com vínculo ativo está disponível para envio.</p>;
-  if (ownPatientId) return <PatientMultiDocumentUpload tenant={tenant} patientId={ownPatientId} category={category} />;
+  if (ownPatientId) return <PatientMultiDocumentUpload tenant={tenant} patientId={ownPatientId} category={category} careRequestId={careRequestId} />;
 
   return (
     <form className="document-upload-form" onSubmit={submit}>
@@ -172,10 +174,11 @@ export function DocumentUploadForm({
   );
 }
 
-function PatientMultiDocumentUpload({ tenant, patientId, category }: {
+function PatientMultiDocumentUpload({ tenant, patientId, category, careRequestId }: {
   tenant: string;
   patientId: string;
   category?: "exam" | "clinical_document";
+  careRequestId?: string;
 }) {
   const router = useRouter();
   const [selection, dispatch] = useReducer(examSelectionReducer, undefined, () => initialExamSelection());
@@ -195,7 +198,7 @@ function PatientMultiDocumentUpload({ tenant, patientId, category }: {
     setError("");
     try {
       for (const item of items) dispatch({ type: "sending", key: item.key });
-      const sent = await uploadPatientDocumentBatch({ tenantId: tenant, patientId, category: chosenCategory, files: items },
+      const sent = await uploadPatientDocumentBatch({ tenantId: tenant, patientId, category: chosenCategory, careRequestId, files: items },
         ({ key, documentId, error: reason }) => {
           if (documentId) {
             dispatch({ type: "uploaded", key, documentId });
@@ -220,21 +223,26 @@ function PatientMultiDocumentUpload({ tenant, patientId, category }: {
     if (!consented) { setError("Confirme os arquivos que deseja compartilhar."); return; }
     void send(ready);
   }}>
-    {!category && <label className="field">Tipo para todos os arquivos
+    {!category && !careRequestId && <label className="field">Tipo para todos os arquivos
       <select value={chosenCategory} onChange={(event) => setChosenCategory(event.target.value as "exam" | "clinical_document")} disabled={sending}>
         <option value="exam">Exame</option>
         <option value="clinical_document">Documento clínico</option>
       </select>
     </label>}
     <label className="field">Arquivos
-      <input type="file" multiple accept="application/pdf,image/jpeg,image/png" disabled={sending}
+      <input type="file" multiple={!careRequestId} accept="application/pdf,image/jpeg,image/png" disabled={sending}
         onChange={(event) => {
           const files = Array.from(event.target.files ?? []);
           event.target.value = "";
+          if (careRequestId && (files.length > 1 || selection.items.length > 0)) {
+            setError("Envie um arquivo por vez para responder a este pedido. Outros arquivos podem ser enviados separadamente.");
+            return;
+          }
+          setError("");
           if (files.length) dispatch({ type: "add", files });
         }} />
     </label>
-    <p>Selecione vários PDF, JPG ou PNG de até {byteLimit()} cada.</p>
+    <p>{careRequestId ? "Selecione um PDF, JPG ou PNG para responder a este pedido." : "Selecione vários PDF, JPG ou PNG"} de até {byteLimit()} {careRequestId ? "" : "cada"}.</p>
     <p role="status">{failedCount
       ? `${failedCount} arquivo${failedCount === 1 ? "" : "s"} precisa${failedCount === 1 ? "" : "m"} de atenção`
       : ready.length
@@ -242,6 +250,9 @@ function PatientMultiDocumentUpload({ tenant, patientId, category }: {
         : sentCount
           ? `${sentCount} arquivo${sentCount === 1 ? "" : "s"} enviado${sentCount === 1 ? "" : "s"}`
           : "Nenhum arquivo selecionado"}</p>
+    {selection.sent.length > 0 && <Link className="pv-link" href={`/clinicas/${tenant}/meu-cuidado/envios/document/${selection.sent[selection.sent.length - 1]}`}>
+      Abrir comprovante do último arquivo
+    </Link>}
     {selection.rejected.length > 0 && <div role="alert">
       <p>Estes arquivos não foram adicionados:</p>
       <ul>{selection.rejected.map((item, index) => <li key={`${item.name}-${index}`}>{item.name}: {item.reason}</li>)}</ul>
@@ -580,21 +591,30 @@ export function StaffDocumentsWorkspace({ initial }: { initial: StaffDocuments }
   );
 }
 
-export function PatientDocumentsWorkspace({ initial }: { initial: PatientDocuments }) {
+export function PatientDocumentsWorkspace({ initial, pendingExamRequests = [], selectedRequestId = null }: {
+  initial: PatientDocuments;
+  pendingExamRequests?: { id: string; requested_at: string }[];
+  selectedRequestId?: string | null;
+}) {
   const base = `/clinicas/${initial.clinic.id}/meu-cuidado/documentos`;
+  const selectedRequest = pendingExamRequests.find((request) => request.id === selectedRequestId);
   return (
     <>
+      {selectedRequestId && !selectedRequest && <p className="notice" role="status">
+        Este pedido já foi respondido ou não está mais pendente. Confira o comprovante
+        em seus envios; novos arquivos abaixo serão avulsos.
+      </p>}
       {initial.patientId ? (
         // Para o paciente, enviar é a ação principal desta página: o
         // formulário já vem aberto, sem um clique a mais.
         <details className="panel document-upload-panel" id="enviar-documento" open>
-          <summary>Enviar exame, foto ou documento para a equipe</summary>
+          <summary>{selectedRequest ? "Enviar o exame solicitado" : "Enviar exame, foto ou documento para a equipe"}</summary>
           <p>
-            Aceita PDF, JPG e PNG de até {byteLimit()} cada. Os arquivos ficam privados,
-            disponíveis para o médico responsável revisar e não alteram suas
-            orientações automaticamente.
+            {selectedRequest
+              ? `Pedido de ${new Date(selectedRequest.requested_at).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}. Envie um arquivo por vez; ele ficará associado a este pedido e disponível para revisão da equipe.`
+              : `Aceita PDF, JPG e PNG de até ${byteLimit()} cada. Os arquivos ficam privados, disponíveis para o médico responsável revisar e não alteram suas orientações automaticamente.`}
           </p>
-          <DocumentUploadForm tenant={initial.clinic.id} ownPatientId={initial.patientId} />
+          <DocumentUploadForm tenant={initial.clinic.id} ownPatientId={initial.patientId} careRequestId={selectedRequest?.id} />
         </details>
       ) : (
         <p className="notice">

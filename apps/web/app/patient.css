@@ -565,6 +565,19 @@
   border-bottom: 0;
 }
 
+.pv-sent-meta {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  max-width: 60%;
+  text-align: right;
+}
+
+.pv-sent-meta small {
+  color: var(--pv-muted);
+  line-height: 1.35;
+}
+
 .pv-sent-when {
   display: inline-flex;
   align-items: center;
@@ -577,6 +590,22 @@
 
 .pv-sent-when svg {
   color: var(--pv-ink);
+}
+
+@media (max-width: 600px) {
+  .pv-list > .pv-sent-item {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding-block: 8px;
+  }
+
+  .pv-sent-meta {
+    justify-items: start;
+    max-width: 100%;
+    text-align: left;
+  }
 }
 
 .pv-notice {
