@@ -85,15 +85,15 @@ Manrope keeps program details, prices, and caveats direct. Instrument Serif is l
 - **Section Heading** (600, `clamp(32px, 3.1vw, 46px)`, 1.15): Landing sections.
 - **Row Title** (600, 20–26px, 1.15–1.3): Pillars, phases, offers, and timeline titles.
 - **Body** (400, 16–17px, 1.7–1.8): Prose constrained to 66–70ch.
-- **Label** (600–700, 10–13px): Status, optional markers, metadata, and controls.
+- **Label** (600–700, 12–13px): Status, optional markers, metadata, and controls.
 
 **The Italic Inflection Rule.** Never set informational blocks in Instrument Serif.
 
 ## Layout
 
-The landing uses a centered 1240px content width and 1344px header. Major sections use 112px vertical spacing, reducing to 66px below 760px. Its real video and existing editorial sequence remain intact.
+The landing uses a centered 1240px content width and 1344px header. Major sections use 112px vertical spacing, reducing to 48px below 760px in the compact reading path. Its real video and existing editorial sequence remain intact. Four native disclosures retain the full method, intended benefits, fit and presencial timeline; summaries make the first read lighter.
 
-The presentation uses a 1040px shell and a full reading column. A sticky toolbar combines progress, the native selector and a direct jump to final prices; below 760px it becomes two compact rows. Content stays within 70ch where appropriate, figures are cropped to 280px, and comparable offers share two equal columns that stack on mobile.
+The presentation uses a 1040px shell and a full reading column. A sticky toolbar combines progress, the native selector and a direct jump to final prices; below 760px the price shortcut sits beside progress and the selector occupies a full-width row. Content stays within 70ch where appropriate, figures are cropped to 280px, and comparable offers share two equal columns that stack on mobile.
 
 The five-step sequence is program/pillars, assessment/exams/supplements, individual plan/accompaniment, maintenance/questions, then formats/prices/contact. Back, Continue, arrow keys, and the native selector expose the same sequence. Objective and format choices are optional and remain only in page memory.
 
@@ -137,7 +137,7 @@ Controls and photographs use 6px corners. The landing portrait retains its large
 
 ### Editorial Figures
 - Three 1200×800 natural JPEGs at 3:2: assessment, nutrition planning, and maintenance.
-- Muted 11px captions identify each image as illustrative and preserve individual-care caveats.
+- Muted 12px captions identify each image as illustrative and preserve individual-care caveats.
 
 ### Ruled Information Patterns
 - Lists align titles and explanatory copy across fine rules, then stack on mobile.
@@ -175,3 +175,7 @@ Controls and photographs use 6px corners. The landing portrait retains its large
 Teal `#285b54` and soft teal `#e6efeb` extend the established sage family. Gold/warm `#f2e7d3` identifies presencial and teal identifies online, without urgency badges or a recommended plan. Both offers start with total investment and end with installment terms. The contact panel uses navy and one gold action. The compact cookie notice has expandable provider/purpose details and equally accessible choices; either dismisses the notice.
 
 Format preference is selected within each pricing column, without repeating the full offer below. “Ainda estou decidindo” remains optional and contact works with no selection.
+
+## Comprehension before conversion — 07/10/2026
+
+Presencial measurements and online clinical assessment/exams are differentiated in the opening of both surfaces. All eight landing discovery labels read “Conhecer o Virada 90”. The guided goal choices sit inside an optional native disclosure; plan and ongoing review use two summaries with their eight original detail items retained. Interactive targets are at least 44px and functional metadata at least 12px. These refinements reduce first-read effort; they do not claim measured commercial improvement or introduce scarcity.

@@ -1,5 +1,16 @@
 # Estado atual do Vivance
 
+## Virada 90: refinamento de clareza e conversão — 07/10/2026
+
+O usuário aprovou aplicar os cinco achados da revisão Impeccable, com o modelo
+6.1: leitura mais compacta, formatos claros desde a abertura, navegação móvel
+legível, alvos de toque maiores e personalização discreta. Implementado e
+validado localmente (441 testes, lint, tipos e build; navegador em quatro
+larguras, sem overflow) na branch `codex/virada90-conversion-refinement-20261007`.
+Publicação pendente de CI/merge e promoção. [Evidências locais](../apps/web/.impeccable/review/virada90-conversion-refinement/evidence.md).
+Asana `1219288382329047`. A hipótese comercial será avaliada junto ao CRM;
+esta revisão não comprova contatos recebidos ou vendas.
+
 ## Virada 90: cinco etapas e comparação de formatos — 07/10/2026
 
 Pedido aprovado: agrupar o conteúdo em cinco etapas; atalho fixo para valores; padronizar total e parcelamento; ampliar cor e animação moderada, sem falsa escassez. Cookies compactos, com aceitar e recusar acessíveis. Implementação na branch `codex/virada90-five-step-presentation-20261007`; 441 testes, lint, tipos e build aprovados localmente. Navegador local validado em 320/390/768/1440px: cinco etapas, mídia, preços apenas no final, atalho fixo, teclado/foco e preferências de cookies; nenhuma mensagem enviada. Publicado tecnicamente pelo [PR #89](https://github.com/vitormilanez/instituto-vivance/pull/89), merge `df175c5`, CI PR/main/release aprovados; deployment `dpl_dTKFioAg97ySk7ZNBnCS4YYQdzSj` promovido manualmente e confirmado nos dois domínios. Navegador público validou as cinco etapas e atalho nas quatro larguras, sem erro. [Registro do release](virada90/releases/2026-10-07-five-steps/README.md). [Contrato atualizado](VIRADA90_JORNADA.md). Asana `1219287767285117`. Sem banco, checkout, alteração de Ads ou ativação de webhook.
