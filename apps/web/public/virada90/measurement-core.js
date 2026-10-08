@@ -94,10 +94,10 @@ export function createMeasurement({ url, referrer = '', command, load }) {
   const reportStep = () => {
     if (!enabled || !guided || step === lastStep) return;
     lastStep = step;
-    event('virada90_step_view', { step_number: step });
-    if (step === 10 && !completed) {
+    event('virada90_step_view', { step_number: step, presentation_version: 'five_steps', step_count: 5 });
+    if (step === 5 && !completed) {
       completed = true;
-      event('virada90_presentation_complete');
+      event('virada90_presentation_complete', { presentation_version: 'five_steps', step_count: 5 });
     }
   };
 
@@ -123,12 +123,12 @@ export function createMeasurement({ url, referrer = '', command, load }) {
       command('config', GOOGLE.analytics, page);
       command('config', GOOGLE.ads, page);
       event('page_view', page);
-      if (guided) event('virada90_presentation_start');
+      if (guided) event('virada90_presentation_start', { presentation_version: 'five_steps', step_count: 5 });
       reportStep();
     },
     /** @param {number} number */
     viewStep(number) {
-      if (!Number.isInteger(number) || number < 1 || number > 10) return;
+      if (!Number.isInteger(number) || number < 1 || number > 5) return;
       step = number;
       reportStep();
     },

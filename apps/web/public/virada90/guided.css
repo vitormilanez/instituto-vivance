@@ -148,3 +148,89 @@ details>div p{margin:0 0 9px}
   html{scroll-behavior:auto}
   *,*:before,*:after{transition:none!important;animation:none!important}
 }
+
+/* Five chapters: compact navigation, generous editorial reading, comparable offers. */
+:root{--teal:#285b54;--teal-soft:#e6efeb;--warm:#f2e7d3;--control-line:#718076}
+html{scroll-padding-top:160px;scrollbar-color:var(--gold-ink) var(--ivory)}
+.shell{width:min(1040px,calc(100% - 64px));padding:0 0 64px}
+.guided-header{min-height:88px}
+.journey-tools{position:sticky;top:0;z-index:10;display:grid;grid-template-columns:minmax(0,1fr) 264px auto;gap:8px 24px;align-items:center;padding:20px 0 16px;background:var(--ivory);border-bottom:1px solid var(--line)}
+.progress-copy{grid-column:1;grid-row:1;margin:0;align-self:end}
+.progress{grid-column:1;grid-row:2;height:4px;border-radius:2px;overflow:hidden}
+.progress i{background:var(--teal);transform:scaleX(.2)}
+.topic-picker{grid-column:2;grid-row:1/3;gap:4px}
+.topic-picker select{border-color:var(--control-line)}
+.jump-values{grid-column:3;grid-row:1/3;display:flex;align-items:center;gap:10px;min-height:48px;padding:10px 16px;border:1px solid var(--gold-ink);border-radius:6px;background:var(--warm);color:var(--navy);font-size:13px;font-weight:700;cursor:pointer;transition:background .15s}
+.jump-values:hover{background:#ecd8b4}.jump-values[hidden]{display:none}
+.journey-grid{display:block;padding-top:36px}
+h1{max-width:860px;font-size:clamp(34px,4vw,50px);line-height:1.13;letter-spacing:-.035em}
+.step>p,.section-intro{max-width:70ch}
+.lead{margin:20px 0 24px;line-height:1.7}
+.chapter-title{margin:40px 0 12px;font-size:26px;color:var(--teal);text-wrap:balance}
+.section-intro{margin:12px 0 24px;color:var(--muted)}
+.ruled-list{display:grid;grid-template-columns:1fr 1fr;gap:0 32px;margin-top:24px}
+.ruled-list article,.ruled-list.compact article{display:block;padding:20px 0}
+.ruled-list p{margin:8px 0 0;max-width:60ch;font-size:15px}
+.editorial-figure{margin:24px 0}.editorial-figure img,.editorial-figure--wide img{max-height:280px;object-position:center}
+.detail-list article{padding-block:20px}.detail-list p,.editorial-columns p,.sequence p{font-size:15px;max-width:60ch}
+.optional-choice{padding:24px;background:var(--teal-soft);margin-top:32px;border-radius:8px}
+.optional-choice legend{padding-top:20px}
+.optional-choice .choice{background:var(--paper);border-color:var(--control-line)}
+.choice:has(input:checked){background:var(--warm);border-color:var(--gold-ink)}
+.choice input{accent-color:var(--teal)}
+.clinical-note{background:var(--teal-soft);color:#244b41;border-radius:6px}
+.offer-comparison{gap:0;margin:28px 0 12px;border:0;border-radius:12px;overflow:hidden;background:none}
+.offer-comparison article{padding:28px 32px;background:var(--warm)}
+.offer-comparison article+article{border:0;background:var(--teal-soft)}
+.offer-heading{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.offer-heading h2{font-size:27px}.offer-heading>span{font-size:12px;font-weight:600;color:var(--gold-ink)}
+.offer-online .offer-heading>span{color:var(--teal)}
+.offer-comparison article>p{font-size:14px;color:#49564f}
+.offer-comparison .price{padding:20px 0;margin:24px 0 20px;border-color:#bbac8e}
+.offer-online .price{border-color:#9aafa5}
+.price strong{margin:8px 0;font-size:38px;line-height:1.15;letter-spacing:-.03em}
+.price span{font-size:13px;margin:0;color:#604e2d;font-weight:600}
+.offer-online .price span{color:#285b54}
+.offer-includes{padding:0 0 0 20px;margin:0;font-size:15px;line-height:1.65;color:#283e38}
+.offer-includes li{padding-left:4px;margin:8px 0}
+.payment-note{font-size:13px;color:var(--muted);margin:12px 0 28px;max-width:75ch}
+.format-choice{margin-top:24px}.format-choice .choice{border-color:var(--control-line)}
+.contact-panel{margin-top:32px;padding:32px;background:var(--navy);border-radius:12px;color:var(--paper)}
+.contact-panel h2{font-size:26px;color:var(--paper)}
+.contact-panel>p{max-width:70ch;color:#cbd7df;margin:12px 0 0;font-size:15px}
+.contact-panel .interest-summary{background:#19344b;color:#e1eaf0;border-radius:6px}
+.team-action{gap:12px;margin-top:20px;transition:background .15s,box-shadow .15s}
+.team-action:hover svg{transform:translateX(3px)}.team-action svg{transition:transform .15s}
+.contact-panel .handoff-note{font-size:12px;color:#cbd7df}
+.actions{padding-top:28px}
+@media(max-width:760px){
+ .shell{width:calc(100% - 40px)}
+ .journey-tools{grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;padding:12px 0}
+ .topic-picker{grid-column:1;grid-row:2;margin:0;display:block}.topic-picker>span{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ .topic-picker select{min-height:44px;font-size:12px;padding:8px 24px 8px 10px}
+ .jump-values{grid-column:2;grid-row:2;min-height:44px;padding:8px 10px;font-size:12px;gap:5px}
+ .progress-copy{grid-column:1/3;grid-row:1;display:flex;font-size:11px;gap:10px}
+ .progress-copy span{display:inline;text-align:initial!important}.progress-copy span:last-child{max-width:none}
+ .progress{grid-column:1/3;grid-row:3;margin-top:4px}
+ .journey-grid{padding-top:28px}
+ .ruled-list{grid-template-columns:1fr;gap:0}.ruled-list article{padding:18px 0}
+ .chapter-title{font-size:24px;margin-top:32px}
+ .editorial-figure img,.editorial-figure--wide img{max-height:220px}
+ .optional-choice{padding:16px}
+ .offer-comparison{grid-template-columns:1fr;gap:0}.offer-comparison article{padding:24px}
+ .offer-heading h2{font-size:25px}.price strong{font-size:34px}
+ .contact-panel{padding:24px}.contact-panel h2{font-size:24px}
+ .team-action{width:100%;padding:14px 16px;font-size:14px}
+ .phase-line{grid-template-columns:1fr 1fr}
+}
+@media(max-width:360px){.shell{width:calc(100% - 32px)}.journey-tools{gap:8px}.jump-values{font-size:11px;padding:8px}.jump-values svg{display:none}.topic-picker select{font-size:11px}.offer-comparison article,.contact-panel{padding:20px}}
+
+.offer-pick{display:flex;align-items:center;gap:10px;min-height:48px;margin-top:20px;padding:10px 12px;border:1px solid #85622c;border-radius:6px;color:var(--navy);font-size:13px;font-weight:700;cursor:pointer;transition:background .15s}
+.offer-online .offer-pick{border-color:var(--teal)}
+.offer-pick:has(input:checked){background:var(--paper)}
+.offer-pick:hover{background:#fffefa80}
+.offer-pick input{width:20px;height:20px;accent-color:var(--teal);margin:0;flex:none}
+.undecided{max-width:390px;min-height:48px;padding:12px 16px;margin:12px 0 0}
+.format-choice>legend{margin:0;padding:0}
+.format-choice .offer-comparison{margin-top:16px}
+@media(prefers-reduced-motion:reduce){.offer-pick{transition:none}}

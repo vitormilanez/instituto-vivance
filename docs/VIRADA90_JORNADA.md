@@ -4,13 +4,17 @@ Revisão de 02/10/2026: o usuário forneceu todas as telas baixadas do protocolo
 
 ## Contrato vigente
 
-O CTA final da landing abre `/virada90/conhecer`, na identidade do Instituto Guilherme Martins/Vivance. A apresentação contém dez tópicos: introdução → quatro pilares → avaliação → plano individual → acompanhamento → evolução/manutenção → exames e suplementos → dúvidas → formatos → valores e contato. [Mapa de cobertura e prompts das imagens](virada90/CONTEUDO_E_IMAGENS.md).
+O CTA final da landing abre `/virada90/conhecer`, na identidade do Instituto Guilherme Martins/Vivance. Desde a revisão de 07/10/2026, a apresentação agrupa o mesmo conteúdo em cinco etapas: programa e pilares → avaliação, exames e suplementos → plano e acompanhamento → continuidade e dúvidas → formatos, valores e conversa. O botão “Pular para valores” permanece visível na barra fixa, sem exigir rolagem; seletor, voltar e continuar usam a mesma navegação. [Mapa de cobertura e prompts das imagens](virada90/CONTEUDO_E_IMAGENS.md).
 
 A pessoa pode avançar, voltar ou ir diretamente a um tópico. Objetivo e formato são escolhas opcionais, preservadas somente na memória da página. Não há cadastro intermediário, campo de histórico clínico, exigência de contato para ler ou gravação de lead. A indicação e as decisões clínicas dependem da avaliação do médico.
 
 Ambos os programas duram **três meses**. Presencial em Presidente Prudente com aplicações e medições quando indicadas: **12× R$ 1.000**, **R$ 12.000 no total**. Online com acompanhamento e plano alimentar: **R$ 6.500 no total em 12 vezes**. Não foi informado limite de três consultas, nem condição de parcelamento sem juros.
 
 Os valores aparecem exclusivamente no último tópico. Interessados escolhem **Conversar pelo WhatsApp**. O link usa o número existente da landing (`5518997551234`) e prepara uma mensagem editável sobre o programa, incluindo apenas as escolhas opcionais da página. A pessoa revisa e envia no WhatsApp; a página não afirma recebimento, reserva ou pagamento. O botão de checkout e sua configuração foram removidos conforme a decisão mais recente.
+
+## Revisão de interface — 07/10/2026
+
+Totais comparáveis em destaque (R$ 12.000 e R$ 6.500), com parcelamento abaixo e três meses em ambos. Navy/dourado e verde organizam as duas opções sem declarar uma superior ou inventar urgência. A troca de etapa tem movimento direcional de 220 ms, cancelado quando a pessoa prefere movimento reduzido. O aviso de cookies é compacto, com detalhes expansíveis e aceitar/recusar com a mesma acessibilidade; ambas as opções fecham e persistem o aviso. Não há assinatura ou pagamento no site.
 
 ## Conteúdo e mídia
 
