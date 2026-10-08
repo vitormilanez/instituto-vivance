@@ -7,7 +7,14 @@ O usuário aprovou aplicar os cinco achados da revisão Impeccable, com o modelo
 legível, alvos de toque maiores e personalização discreta. Implementado e
 validado localmente (441 testes, lint, tipos e build; navegador em quatro
 larguras, sem overflow) na branch `codex/virada90-conversion-refinement-20261007`.
-Publicação pendente de CI/merge e promoção. [Evidências locais](../apps/web/.impeccable/review/virada90-conversion-refinement/evidence.md).
+Publicado tecnicamente pelo [PR #91](https://github.com/vitormilanez/instituto-vivance/pull/91),
+merge `f1a7a575fc036aade44db4c8759bf2a834ef51ab`, com CI PR/main/release aprovados.
+Deployment `dpl_CX5tbs3FCgC9Jm94goAnHoikGTmj` promovido manualmente; principal
+e secundário confirmados no mesmo artefato. Seis arquivos públicos idênticos ao
+merge. Navegador público validou entrada pelo hero, detalhes, etapas 1/3/5 em
+390/1440px, preços finais e atalho após rolagem, sem overflow ou erro de página.
+[Registro final](virada90/releases/2026-10-07-conversion-refinement/README.md).
+[Parecer local anterior à publicação](../apps/web/.impeccable/review/virada90-conversion-refinement/evidence.md).
 Asana `1219288382329047`. A hipótese comercial será avaliada junto ao CRM;
 esta revisão não comprova contatos recebidos ou vendas.
 
