@@ -21,4 +21,4 @@ Navy conduz o contato; gold/warm e teal/sage diferenciam formatos sem ranking. C
 
 Capturas locais ignoradas em Git: output/playwright/virada90-five-{1440,390}-step{1,5}.png e virada90-five-cookies-390.png. Documentos de direção, status, cobertura, sistema visual e contrato analítico atualizados. Medição numérica identificada por presentation_version=five_steps, step_count=5. Chegar ao final não significa ler tudo ou converter.
 
-Publicação técnica ainda depende de PR, CI do mesmo SHA e confirmação dos domínios. Sem alterações clínicas, Supabase, checkout, campanha Ads ou webhook Pulse.
+Publicado pelo PR89, merge df175c5; CI aprovado, deployment dpl_dTKFioAg97ySk7ZNBnCS4YYQdzSj promovido e confirmado nos dois domínios. Navegador público passou em20 combinações, sem overflow ou erros; detalhes em docs/virada90/releases/2026-10-07-five-steps/README.md. Sem alterações clínicas, Supabase, checkout, campanha Ads ou webhook Pulse.
