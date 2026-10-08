@@ -54,9 +54,19 @@ sintética do arquivo enviado ainda não foi confirmada; preservar esse registro
 O timestamp de envio é persistido e aparece como data/hora local; a interface
 explicita o dia da semana e distingue a data de envio da data de realização do
 exame, que ainda não é coletada.
-Revisão → recibo posterior, isolamento de UI entre outros papéis e aceite
-clínico seguem pendentes.
-C3 continua aberto.
+Em 08/10, um segundo envio **avulso, inteiramente fictício**
+(`vivance-c3-exame-ficticio.pdf`, documento
+`5acc7676-7950-457e-b08c-b5b228d8d1de`) mostrou data e dia no comprovante
+às 16:54:16. O original foi visto no perfil médico com a marca explícita de
+teste. O médico registrou `needs_follow_up` às 16:55 e uma nota interna sem
+conduta clínica. Após recarga, a ficha manteve o histórico, a fila conservou o
+envio e a Home médica mostrou **1 acompanhamento em aberto**. Na conta do
+paciente, Home e recibo mostraram apenas “Revisão registrada pela equipe”, sem
+nota/decisão interna ou orientação. A imagem do envio solicitado anterior
+continua preservada, **sem abrir ou revisar**, pois sua origem sintética não
+foi confirmada. Isolamento de UI entre outros papéis/vínculos, decisão sobre
+data de realização do exame, aceite operacional e aceite clínico seguem
+pendentes. C3 continua aberto.
 
 ## Base confirmada no repositório
 
@@ -93,8 +103,8 @@ não representam uma execução nova.
 | --- | --- | --- |
 | **C1 — base operacional** | Ambiente único temporário de testes sintéticos. Inventário de 29/09 registrou 57 migrations pareadas; contagem histórica, anterior ao piloto IA2. | Reconciliar migrations no destino confirmado, produção separada e backup/restauração antes de dados reais. [Registro C1](C1_BASE_OPERACIONAL_2026-09-29.md). |
 | **C2 — demonstração longitudinal** | Carga de autorrelatos sintéticos e documentos conferida parcialmente no médico em 29/09. As contagens antigas não são inventário atual. | Sessão do paciente, consulta/retorno e aceite da demonstração. Preservar origem incerta; nenhuma limpeza é autorizada por este texto. |
-| **C3 — contexto e operação** | PR #93 em rascunho; pedido → resposta → recibo inicial e presença na fila médica observados em Preview e banco no projeto sintético; sem aceite operacional registrado. | Origem sintética do arquivo, revisão médica/recibo posterior, envio avulso e seguimento; outros papéis e isolamento de UI exigem ciclo próprio. |
-| **C3 — contexto longitudinal** | Proposta local em `/Users/vitormilanez/Desktop/Codes/vivance-c3-contexto`, baseada em `430ee7d`; 16 testes focados e lint registrados, sem commit, PR ou Preview. | Revisar e reconciliar com o PR #93 mais recente; typecheck, integração e percurso consulta/retorno pendentes. |
+| **C3 — contexto e operação** | PR #93 em rascunho; pedido → resposta → recibo inicial e fila, mais envio avulso fictício → revisão médica → recibo posterior e acompanhamento em aberto, observados no Preview sintético; sem aceite operacional registrado. | Origem sintética da imagem do pedido, isolamento de UI entre outros papéis/vínculos e aceite; a imagem anterior segue sem revisão. |
+| **C3 — contexto longitudinal** | [PR #94](https://github.com/vitormilanez/instituto-vivance/pull/94) draft, branch `codex/c3-contexto-longitudinal-20261008` baseada no HEAD `8440936` do PR #93. Mostra objetivo/prioridade literal com fonte, autoria, data e original na ficha/briefing; 16 testes focados e CI do SHA `ee28f27` passaram. | Preview, typecheck local, validação autenticada e percurso consulta/retorno pendentes. Não é aceite operacional ou clínico. |
 | **IA1 — governança** | [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) aberto e em rascunho, confirmado em 08/10. | Decisão sobre finalidade, fontes, fornecedor, privacidade e revisão. |
 | **IA2 — extração verificável** | [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78) aberto, draft e com conflito, fora da main; head `1e4493a`. O PR registra texto por página e Preview. Há complemento local staged no checkout IA2 (worker e migration de itens), com PGlite focado e `deno check` registrados, sem commit/deploy. | Reconciliar branch e migrations; concluir lint/typecheck, validar retry e paciente no dev, estruturar itens e revisão na interface. Não há aceite clínico ou incorporação na main. |
 | **IA3–IA6** | Plano futuro, sem entrega confirmada nesta revisão. | Gates e critérios do [plano de IA](PLANO_IA_CLINICA.md). |

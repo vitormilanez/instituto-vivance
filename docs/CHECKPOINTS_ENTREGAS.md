@@ -16,7 +16,7 @@ fora da `main` não forem reconciliadas com C3.
 | Ordem | Slice | Resultado observável | Estado em 08/10 |
 | --- | --- | --- | --- |
 | Agora | **C3 — exame solicitado** | Paciente responde ao pedido; médico revisa; paciente vê o recibo operacional. | [PR #93](https://github.com/vitormilanez/instituto-vivance/pull/93) draft, Preview parcial; aceite aberto. |
-| Depois | **C2/C3 — continuidade da pessoa** | Hoje e ficha mostram contexto com origem/data; consulta e retorno preservam o paciente em foco. | Proposta local isolada, ainda sem PR ou Preview. |
+| Depois | **C2/C3 — continuidade da pessoa** | Hoje e ficha mostram contexto com origem/data; consulta e retorno preservam o paciente em foco. | [PR #94](https://github.com/vitormilanez/instituto-vivance/pull/94) draft, baseado no C3; sem Preview ou aceite. |
 | Depois | **IA2 — fila confiável** | Extração sintética prossegue sem aba aberta, com permissão e retry verificados. | [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78) draft e com conflito; complemento apenas local. |
 | Depois | **IA2 — resultados conferíveis** | Médico compara cada item ao arquivo, página e trecho e registra revisão. | Contrato/persistência em elaboração; estruturador, tela e aceite pendentes. |
 | Paralelo, antes de IA clínica | **IA1 — governança** | Responsáveis decidem finalidade, fontes, fornecedor, dados e revisão. | [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) draft; decisão pendente. |
@@ -36,16 +36,23 @@ fora da `main` não forem reconciliadas com C3.
   `20261008184620` aplicada no dev, 114 testes de isolamento e CI do PR #93
   aprovados. Abrir o item não equivale a registrar revisão.
 - [ ] Confirmar que `IMG_4022.PNG` é inteiramente fictício **antes de abrir o
-  original ou revisar**. Preservar o registro se a origem continuar incerta;
-  usar outro arquivo comprovadamente fictício para completar o teste.
-- [ ] Percorrer revisão médica explícita → novo estado do recibo do paciente,
-  com recarga nos dois perfis. Confirmar que nota/decisão interna não aparecem
-  ao paciente e que revisão não publica orientação.
-- [ ] Testar revisão `needs_follow_up`: item permanece em trabalho até o
-  seguimento apropriado, sem sumir da fila.
-- [ ] Testar envio avulso e acesso negado por papel, clínica e vínculo no
-  ambiente sintético. Registrar o que foi coberto por teste automatizado e o que
-  foi observado na interface.
+  original ou revisar**. Sua origem segue incerta e o registro foi preservado
+  sem revisão. O teste prosseguiu com outro PDF comprovadamente fictício.
+- [x] No Preview, o paciente enviou avulsamente
+  `vivance-c3-exame-ficticio.pdf` (`5acc7676-7950-457e-b08c-b5b228d8d1de`)
+  em **quinta-feira, 08/10/2026, 16:54:16**. O original abriu no perfil médico
+  com a marca “EXAME FICTICIO - TESTE C3”. O envio avulso não respondeu a um
+  pedido; o comprovante persistiu após recarga.
+- [x] O médico registrou revisão explícita `needs_follow_up` às 16:55, com nota
+  interna identificada como teste sintético. Após troca de perfil e recarga, o
+  paciente viu apenas “Revisão registrada pela equipe”; a nota, decisão interna
+  e qualquer orientação clínica não apareceram.
+- [x] O documento permaneceu na fila de recebidos, e a Home médica mostrou
+  **1 acompanhamento em aberto** após a revisão. O histórico e o estado
+  “Precisa de acompanhamento” persistiram na ficha após recarga.
+- [ ] Completar isolamento na interface com outros papéis, clínicas e vínculos.
+  Os 114 testes automatizados de isolamento passaram; a observação autenticada
+  deste ciclo cobriu apenas paciente e médico vinculados.
 - [ ] Decidir se o produto precisa coletar a **data de realização do exame**.
   Hoje só há timestamp do envio; não preencher a data clínica por inferência.
 - [ ] Fechar aceite operacional com o responsável e registrar evidência no
@@ -53,12 +60,13 @@ fora da `main` não forem reconciliadas com C3.
 
 ## C2/C3 — contexto longitudinal e retorno
 
-- [ ] Revisar a proposta local em
-  `/Users/vitormilanez/Desktop/Codes/vivance-c3-contexto` antes de incorporá-la:
-  objetivo e prioridade declarados, fonte/data, links ao registro original e
-  contexto da consulta. A branch parte do código C3 anterior ao ajuste de
-  data/fila do PR #93; reconciliar os dois. Foram registrados 16 testes focados
-  e lint; typecheck, commit, PR e Preview ainda não foram concluídos.
+- [x] Revisada a proposta local em
+  `/Users/vitormilanez/Desktop/Codes/vivance-c3-contexto`: objetivo e prioridade
+  declarados, fonte/data, link que abre o registro original e contexto da
+  consulta. A branch foi reconciliada com o HEAD `8440936` do PR #93 e publicada
+  no [PR #94](https://github.com/vitormilanez/instituto-vivance/pull/94) draft.
+  Dezesseis testes focados e o CI do SHA `ee28f27` passaram; lint/typecheck
+  locais não concluíram por I/O do checkout iCloud. Preview e aceite pendentes.
 - [ ] Confirmar coleta e precedência de objetivo, dificuldades, medidas e
   lacunas; ausência de dado não vira zero, interpretação ou risco automático.
 - [ ] Completar cenário **paciente → consulta → registro médico → orientação
@@ -107,5 +115,6 @@ Marque um item somente com evidência no Git, ambiente e/ou teste adequado.
 Acrescente link e data no [status](STATUS_ATUAL.md); atualize aqui apenas o
 checkbox e o próximo obstáculo, sem copiar relatórios inteiros. Em cada retomada,
 confira `AGENTS.md`, direção, status, HEAD dos PRs e destino do ambiente. A
-próxima entrega executável é o **ciclo de revisão e recibo do C3 com arquivo
-comprovadamente fictício**; depois vem o contexto longitudinal.
+próxima ação no C3 é conferir isolamento na interface por outros papéis e
+vínculos e registrar aceite operacional. O [PR #94](https://github.com/vitormilanez/instituto-vivance/pull/94)
+prepara o contexto longitudinal, ainda sem Preview ou percurso de retorno.
