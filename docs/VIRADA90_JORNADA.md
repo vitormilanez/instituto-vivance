@@ -14,6 +14,16 @@ Os valores aparecem exclusivamente no último tópico. Interessados escolhem **C
 
 ## Revisão de interface — 07/10/2026
 
+Após a revisão Impeccable, a diferença entre avaliação presencial e online
+aparece já na abertura. O seletor ocupa toda a largura no celular, e o atalho
+para valores fica junto ao progresso na barra fixa. A personalização foi
+recolhida em “Personalizar a conversa (opcional)”; o objetivo não bloqueia a
+leitura. Plano alimentar inicial e acompanhamento têm resumos distintos e
+detalhes expansíveis, preservando os oito itens originais. Textos funcionais
+têm no mínimo 12px. A landing também usa resumos com detalhes nativos e oito
+CTAs com o mesmo rótulo e destino. O propósito é melhorar o entendimento antes
+do contato; o resultado comercial precisa ser observado no CRM.
+
 Totais comparáveis em destaque (R$ 12.000 e R$ 6.500), com parcelamento abaixo e três meses em ambos. Navy/dourado e verde organizam as duas opções sem declarar uma superior ou inventar urgência. A troca de etapa tem movimento direcional de 220 ms, cancelado quando a pessoa prefere movimento reduzido. O aviso de cookies é compacto, com detalhes expansíveis e aceitar/recusar com a mesma acessibilidade; ambas as opções fecham e persistem o aviso. Não há assinatura ou pagamento no site.
 
 ## Conteúdo e mídia

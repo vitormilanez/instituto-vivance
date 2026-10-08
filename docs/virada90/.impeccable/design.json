@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-08T02:10:00Z",
+  "generatedAt": "2026-10-08T02:46:00Z",
   "title": "Design System: Virada 90 — Instituto Guilherme Martins",
   "extensions": {
     "colorMeta": {
@@ -273,7 +273,7 @@
       "kind": "custom",
       "description": "Natural 3:2 illustrative photography with muted caption.",
       "html": "<figure class=\"ds-figure\"><img class=\"ds-media\" src=\"/virada90/assets/journey/avaliacao.jpg\" width=\"1200\" height=\"800\" alt=\"Pessoa em conversa de avaliação individual com um profissional de saúde\"><figcaption>Imagem ilustrativa. Cada cuidado considera o contexto individual.</figcaption></figure>",
-      "css": ".ds-figure{margin:32px 0}.ds-media{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:6px}.ds-figure figcaption{margin-top:8px;color:#596573;font:400 11px/1.5 Manrope,sans-serif}"
+      "css": ".ds-figure{margin:32px 0}.ds-media{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:6px}.ds-figure figcaption{margin-top:8px;color:#596573;font:400 12px/1.5 Manrope,sans-serif}"
     },
     {
       "name": "Offer Comparison",
@@ -285,7 +285,7 @@
   ],
   "narrative": {
     "northStar": "The Measured Clinical Prospectus",
-    "overview": "The system makes a physician-led program feel calm, legible, and personal. Ivory reading fields, dark navy passages, and restrained warm gold establish authority without promising outcomes. The landing remains a long-form prospectus with its real video; the companion presentation is a complete five-step reading experience.\n\nFine rules, compact numerals, native controls, and three natural editorial photographs organize detailed information without turning it into a dashboard. Photography supports assessment, flexible nutrition, and everyday maintenance. It is illustrative and never represents the doctor, clinic, patients, facilities, or results.",
+    "overview": "The system makes a physician-led program feel calm, legible, and personal. Ivory reading fields, dark navy passages, and restrained warm gold establish authority without promising outcomes. The landing is a compact prospectus with its real video and native expandable detail; the companion presentation is a complete five-step reading experience with optional personalization and plan detail disclosed on request.\n\nFine rules, compact numerals, native controls, and three natural editorial photographs organize detailed information without turning it into a dashboard. Photography supports assessment, flexible nutrition, and everyday maintenance. It is illustrative and never represents the doctor, clinic, patients, facilities, or results.",
     "keyCharacteristics": [
       "Navy authority on warm paper, with gold reserved for emphasis and action.",
       "Manrope carries information; Instrument Serif appears only as a short italic inflection.",
@@ -323,6 +323,11 @@
         "name": "The Flat Clinical Surface Rule",
         "body": "Reserve shadows for the landing's real video or an interaction state.",
         "section": "elevation"
+      },
+      {
+        "name": "The Comprehension Before Conversion Rule",
+        "body": "Differentiate presencial measurements from online clinical assessment near the opening; use concise summaries with original factual details accessible. Keep eight discovery labels consistent and the mobile topic selector full width.",
+        "section": "layout"
       }
     ],
     "dos": [

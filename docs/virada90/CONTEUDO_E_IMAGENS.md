@@ -4,6 +4,12 @@ Revisão solicitada em 02/10/2026 após o usuário apontar conteúdo incompleto.
 
 Agrupamento revisto em 07/10/2026: cinco etapas, preservando as doze fontes.
 
+Refinamento após revisão Impeccable em 07/10: os oito itens de plano e
+acompanhamento permanecem em detalhes expansíveis na etapa 3; os demais
+conteúdos de referência continuam acessíveis nas mesmas etapas. A landing
+mantém método, objetivos, perfil e calendário presencial em quatro detalhes
+nativos. Resumos facilitam a primeira leitura sem remover conteúdo clínico.
+
 ## Cobertura das telas
 
 | Tela do material | Informação preservada | Tópico da nova apresentação |

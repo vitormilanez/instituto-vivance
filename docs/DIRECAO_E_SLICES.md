@@ -1,5 +1,20 @@
 # Direção do Vivance e próximos slices
 
+## Virada 90: clareza e conversão após revisão Impeccable — 07/10/2026
+
+Revisão aprovada pelo usuário, com implementação no modelo 6.1. Compactar a
+primeira leitura mantendo detalhes acessíveis, esclarecer presencial e online
+na abertura, ampliar alvos de toque e textos funcionais, dar largura completa
+ao seletor de tópicos no celular e tornar a personalização claramente opcional.
+Preservar cinco etapas, oito entradas para a apresentação, valores ao final,
+vídeo original somente na landing, contato editável e consentimento livre.
+O objetivo é melhorar entendimento e qualidade dos contatos; o resultado
+comercial exige acompanhamento do CRM, sem confundir navegação com venda.
+Branch `codex/virada90-conversion-refinement-20261007`; Asana `1219288382329047`.
+Implementado e validado localmente: 441 testes, lint, tipos e build aprovados;
+navegador em quatro larguras, sem overflow. [Evidências locais](../apps/web/.impeccable/review/virada90-conversion-refinement/evidence.md).
+Publicação pendente de CI/merge e promoção; sem mudança de banco, Ads ou Pulse.
+
 ## Virada 90: cinco etapas e comparação de formatos — 07/10/2026
 
 Pedido aprovado: agrupar o conteúdo em cinco etapas; atalho fixo para valores; padronizar total e parcelamento; ampliar cor e animação moderada, sem falsa escassez. Cookies compactos, com aceitar e recusar acessíveis. Implementação na branch `codex/virada90-five-step-presentation-20261007`; 441 testes, lint, tipos e build aprovados localmente. Navegador local validado em 320/390/768/1440px: cinco etapas, mídia, preços apenas no final, atalho fixo, teclado/foco e preferências de cookies; nenhuma mensagem enviada. Publicado tecnicamente pelo [PR #89](https://github.com/vitormilanez/instituto-vivance/pull/89), merge `df175c5`, CI PR/main/release aprovados; deployment `dpl_dTKFioAg97ySk7ZNBnCS4YYQdzSj` promovido manualmente e confirmado nos dois domínios. Navegador público validou as cinco etapas e atalho nas quatro larguras, sem erro. [Registro do release](virada90/releases/2026-10-07-five-steps/README.md). [Contrato atualizado](VIRADA90_JORNADA.md). Asana `1219287767285117`. Sem banco, checkout, alteração de Ads ou ativação de webhook.

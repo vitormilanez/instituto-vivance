@@ -26,3 +26,10 @@ never an Ads conversion or message received. No health answers, arbitrary
 strings or personal contact fields are added to analytics. Local and preview
 environments do not send Google events. No changes to Pulse, Ads campaigns,
 clinical routes or persistence.
+
+Approved critique refinements 07/10: format distinction appears next to the hero;
+method, intended benefits, fit and presencial timeline use summaries with native
+expandable details. All eight discovery actions share “Conhecer o Virada 90”;
+interactive targets are at least 44px and metadata at least 12px. Full original
+video, credentials and factual content stay available. First-read effort is
+reduced without a new conversion claim. [Local verification](../review/virada90-conversion-refinement/evidence.md).

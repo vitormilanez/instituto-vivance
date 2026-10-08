@@ -25,9 +25,12 @@
 
   <main id="presentation" class="shell">
     <div class="journey-tools">
-      <div class="progress-copy">
-        <span id="progress-label">Etapa 1 de 5</span>
-        <span id="progress-title">O programa</span>
+      <div class="progress-overview">
+        <div class="progress-copy">
+          <span id="progress-label">Etapa 1 de 5</span>
+          <span id="progress-title">O programa</span>
+        </div>
+        <button class="jump-values" id="jump-values" type="button">Pular para valores <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
       </div>
       <div class="progress" id="progress-track" role="progressbar" aria-label="Progresso da apresentação" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" aria-valuetext="Etapa 1 de 5: O programa">
         <i id="progress-bar"></i>
@@ -42,7 +45,6 @@
           <option value="5">5. Formatos e valores</option>
         </select>
       </label>
-      <button class="jump-values" id="jump-values" type="button">Pular para valores <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </div>
 
     <section class="journey-grid" aria-label="Apresentação Virada 90">
@@ -51,6 +53,7 @@
           <h1 tabindex="-1">Uma nova relação com sua rotina.</h1>
           <p class="lead">O Virada 90 é um acompanhamento médico individual com o Dr. Guilherme Martins para cuidar do emagrecimento de forma sustentável ao longo de três meses.</p>
           <p>O plano começa pela sua história, rotina e desafios. A partir daí, vocês constroem mudanças possíveis, sem extremismos, pensando na saúde e na preservação muscular — além do número na balança.</p>
+          <p class="clinical-note">No presencial, a avaliação pode incluir medições e bioimpedância, quando indicadas. No online, o ponto de partida é a avaliação à distância e os exames pertinentes ao seu contexto.</p>
           <h2 class="chapter-title">Quatro pilares que trabalham juntos.</h2>
           <p class="section-intro">Nenhum elemento funciona isolado. O acompanhamento combina quatro frentes, revistas de acordo com o seu contexto.</p>
           <div class="ruled-list">
@@ -59,13 +62,18 @@
             <article><h2>Movimento</h2><p>Atividade compatível com seu momento de vida e sua capacidade, com foco também na preservação muscular.</p></article>
             <article><h2>Acompanhamento médico</h2><p>Exames quando necessários, monitoramento e ajustes revistos pelo médico ao longo do programa.</p></article>
           </div>
-          <fieldset class="optional-choice">
-            <legend>O que mais trouxe você até aqui? <span>Opcional</span></legend>
-            <label class="choice"><input type="radio" name="goal" value="Emagrecer com constância"><span>Emagrecer com constância</span></label>
-            <label class="choice"><input type="radio" name="goal" value="Cuidar da composição corporal e da rotina"><span>Cuidar da composição corporal e da rotina</span></label>
-            <label class="choice"><input type="radio" name="goal" value="Entender como o programa funciona"><span>Entender como o programa funciona</span></label>
-          </fieldset>
-          <p class="optional-note">Você pode seguir sem escolher. Sua resposta fica apenas nesta página e pode compor a mensagem do WhatsApp.</p>
+          <details class="optional-personalization">
+            <summary>Personalizar a conversa (opcional)</summary>
+            <div>
+              <fieldset class="optional-choice">
+                <legend>O que mais trouxe você até aqui?</legend>
+                <label class="choice"><input type="radio" name="goal" value="Emagrecer com constância"><span>Emagrecer com constância</span></label>
+                <label class="choice"><input type="radio" name="goal" value="Cuidar da composição corporal e da rotina"><span>Cuidar da composição corporal e da rotina</span></label>
+                <label class="choice"><input type="radio" name="goal" value="Entender como o programa funciona"><span>Entender como o programa funciona</span></label>
+              </fieldset>
+              <p class="optional-note">Você pode seguir sem escolher. Sua resposta fica apenas nesta página e pode compor a mensagem que você revisa e envia no WhatsApp.</p>
+            </div>
+          </details>
         </section>
 
         <section class="step" data-step="2" data-title="Avaliação e cuidado individual" hidden>
@@ -81,7 +89,7 @@
           <div class="detail-list">
             <article><h2>História e exame clínico</h2><p>Queixas, histórico familiar, medicamentos usados anteriormente e outros aspectos relevantes para compreender o ponto de partida.</p></article>
             <article><h2>Exames, quando necessários</h2><p>Seleção conforme a avaliação para observar o contexto metabólico, glicêmico, hormonal e de nutrientes.</p></article>
-            <article><h2>Composição corporal</h2><p>Estimativas de gordura, massa muscular, hidratação e gordura visceral quando indicadas e disponíveis no formato. No presencial, pode incluir bioimpedância.</p></article>
+            <article><h2>Composição corporal</h2><p>Estimativas de gordura, massa muscular, hidratação e gordura visceral quando indicadas e disponíveis no formato. No presencial, pode incluir bioimpedância. No online, a avaliação e os exames orientam o cuidado à distância.</p></article>
             <article><h2>Hábitos e rotina</h2><p>Preferências e horários alimentares, trabalho, sono e momentos de maior vulnerabilidade entram no mapeamento.</p></article>
           </div>
           <p class="clinical-note">O ritmo é adaptado à pessoa. Não existe um prazo padronizado para resultado.</p>
@@ -106,19 +114,33 @@
             <img src="/virada90/assets/journey/alimentacao.jpg" width="1200" height="800" alt="Refeição variada preparada para uma rotina alimentar flexível">
             <figcaption>Imagem ilustrativa. Seu plano considera preferências, rotina e necessidades individuais.</figcaption>
           </figure>
-          <div class="ruled-list compact">
-            <article><h2>Metas individuais</h2><p>Objetivos realistas e mensuráveis para peso e composição corporal, definidos com você.</p></article>
-            <article><h2>Alimentação flexível</h2><p>Uma estratégia que considera preferências, horários e rotina, sem regras extremas ou listas universais de proibições.</p></article>
-            <article><h2>Suplementação criteriosa</h2><p>Somente quando a avaliação indicar uma necessidade e após decisão médica.</p></article>
-            <article><h2>Movimento possível</h2><p>Orientação compatível com articulações, capacidade, condicionamento e disponibilidade.</p></article>
-          </div>
-          <h2 class="chapter-title">O cuidado continua ao longo dos três meses.</h2>
-          <p class="section-intro">O plano não fica congelado. Consultas periódicas permitem entender a adaptação, a resposta do corpo e as dificuldades que aparecem no caminho.</p>
-          <div class="sequence">
-            <article><h2>Revisar a adaptação</h2><p>A conversa considera como o plano se encaixou na rotina e o que precisa ser revisto.</p></article>
-            <article><h2>Ajustar plano e metas</h2><p>A estratégia alimentar e os objetivos podem mudar conforme a evolução individual.</p></article>
-            <article><h2>Apoiar dificuldades e platôs</h2><p>Momentos de desaceleração são analisados para orientar próximos passos possíveis.</p></article>
-            <article><h2>Monitorar exames e composição</h2><p>Novas avaliações podem ser usadas quando fizerem sentido e quando o formato permitir.</p></article>
+          <div class="care-stages">
+            <section class="care-stage" aria-labelledby="initial-plan-title">
+              <h2 id="initial-plan-title">Primeiro, um plano alimentar individual.</h2>
+              <p>Metas definidas com você, alimentação flexível e movimento possível. A suplementação só entra quando indicada pela avaliação e pela decisão médica.</p>
+              <details>
+                <summary>O que orienta o plano inicial</summary>
+                <div class="care-detail ruled-list compact">
+                  <article><h3>Metas individuais</h3><p>Objetivos realistas e mensuráveis para peso e composição corporal, definidos com você.</p></article>
+                  <article><h3>Alimentação flexível</h3><p>Uma estratégia que considera preferências, horários e rotina, sem regras extremas ou listas universais de proibições.</p></article>
+                  <article><h3>Suplementação criteriosa</h3><p>Somente quando a avaliação indicar uma necessidade e após decisão médica.</p></article>
+                  <article><h3>Movimento possível</h3><p>Orientação compatível com articulações, capacidade, condicionamento e disponibilidade.</p></article>
+                </div>
+              </details>
+            </section>
+            <section class="care-stage" aria-labelledby="followup-title">
+              <h2 id="followup-title">Depois, acompanhar e ajustar.</h2>
+              <p>Ao longo dos três meses, consultas periódicas permitem revisar a adaptação, a resposta do corpo e as dificuldades. Plano e metas podem mudar conforme a evolução individual.</p>
+              <details>
+                <summary>Como o acompanhamento continua</summary>
+                <div class="care-detail sequence">
+                  <article><h3>Revisar a adaptação</h3><p>A conversa considera como o plano se encaixou na rotina e o que precisa ser revisto.</p></article>
+                  <article><h3>Ajustar plano e metas</h3><p>A estratégia alimentar e os objetivos podem mudar conforme a evolução individual.</p></article>
+                  <article><h3>Apoiar dificuldades e platôs</h3><p>Momentos de desaceleração são analisados para orientar próximos passos possíveis.</p></article>
+                  <article><h3>Monitorar exames e composição</h3><p>Novas avaliações podem ser usadas quando fizerem sentido e quando o formato permitir.</p></article>
+                </div>
+              </details>
+            </section>
           </div>
         </section>
 
