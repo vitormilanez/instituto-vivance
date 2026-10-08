@@ -67,10 +67,15 @@ fora da `main` não forem reconciliadas com C3.
   no [PR #94](https://github.com/vitormilanez/instituto-vivance/pull/94) draft.
   Dezesseis testes focados e o CI passaram; lint/typecheck locais não concluíram
   por I/O do checkout iCloud. O build do
-  [Preview C2/C3](https://instituto-vivance-rh0zu8cgg-vtr-consulting.vercel.app)
+  [Preview C2/C3](https://instituto-vivance-do5x19hv4-vtr-consulting.vercel.app)
   completou TypeScript. Na sessão médica autenticada, sem objetivo registrado
   para o paciente observado, o componente novo não inventou conteúdo; a ficha
   mostrou a próxima consulta. O fluxo consulta → retorno e o aceite pendem.
+- [x] A ficha de Vitor levou à consulta de 08/10 na Agenda do mesmo paciente.
+  O agendamento de 06/10 continua com resultado pendente e não há atendimento
+  finalizado. Sem esse registro, “Onde continuar” agora informa a lacuna em vez
+  de levar a uma lista geral de atendimentos de outras pessoas; a mudança foi
+  conferida em sessão médica autenticada no Preview atualizado.
 - [ ] Confirmar coleta e precedência de objetivo, dificuldades, medidas e
   lacunas; ausência de dado não vira zero, interpretação ou risco automático.
 - [ ] Completar cenário **paciente → consulta → registro médico → orientação

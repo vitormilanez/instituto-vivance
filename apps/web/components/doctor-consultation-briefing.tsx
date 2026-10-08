@@ -17,6 +17,7 @@ import { RetryButton } from "./retry-button";
 import { CareLinkAccept } from "./care-link-accept";
 import { ConsultationPrescriptions, ConsultationRequests } from "./consultation-tools";
 import { TeleconsultationLink } from "./teleconsultation-link";
+import { DoctorCurrentGoal } from "./doctor-current-goal";
 
 const day = (at: string) => new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" }).format(new Date(at.length === 10 ? `${at}T12:00:00Z` : at));
 const fullDay = (at: string) => new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "America/Sao_Paulo" }).format(new Date(at));
@@ -140,6 +141,15 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
         <aside className="brief-facts" aria-label="Evolução e fatos da consulta">
           <div id={`peso-${appointment.id}`}><DoctorWeightChart initialWeight={context.onboarding?.measurements.weightKg != null && context.onboarding.measurements.measuredOn ? { value: context.onboarding.measurements.weightKg, date: context.onboarding.measurements.measuredOn } : null} points={weight} href={`${base}/acompanhamento?aba=evolucao&paciente=${appointment.patient_id}`} /></div>
           <h3>Fatos da consulta</h3>
+          {context.intake && <DoctorCurrentGoal
+            expectedOutcome={context.intake.expectedOutcome ?? null}
+            firstPriority={context.intake.firstPriority ?? null}
+            source={context.intake.source ?? null}
+            recordedByName={context.intake.recordedByName ?? null}
+            updatedAt={context.intake.updatedAt}
+            awaitingPatient={context.requests.some((request) => request.kind === "goals")}
+            href={`${base}/pacientes/${appointment.patient_id}?aba=Vis%C3%A3o%20geral&acolhimento=ver#patient-intake-context`}
+          />}
           <div className="brief-fact"><FileText size={18} aria-hidden="true" /><div><strong>Exames</strong><span>{failed.includes("documents") ? "Contagem indisponível" : `${context.documents.total} disponíveis${context.documents.latest_at ? ` · ${day(context.documents.latest_at)}` : ""}`}</span></div><Link href={`${base}/pacientes/${appointment.patient_id}?aba=Documentos`}>Revisar</Link></div>
           <div className="brief-fact"><Target size={18} aria-hidden="true" /><div><strong>Metas</strong><span>{failed.includes("intake") || failed.includes("requests") ? "Estado indisponível" : context.intake?.hasGoal ? "Informadas pelo paciente" : context.requests.some((item) => item.kind === "goals") ? "Solicitadas · aguardando resposta" : "Não informadas"}</span></div></div>
           <div className="brief-fact"><CalendarDays size={18} aria-hidden="true" /><div><strong>Última consulta</strong><span>{failed.includes("encounter") ? "Registro indisponível" : context.encounter?.finalized_at ? `Finalizada em ${day(context.encounter.finalized_at)}` : "Sem registro finalizado"}</span></div>{context.encounter && <Link href={`${base}/atendimentos/${context.encounter.id}`}>Abrir</Link>}</div>
