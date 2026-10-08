@@ -1,9 +1,22 @@
 import type { PatientReceipt } from "@/modules/workspace/patient-receipts";
 
+function receiptDateTime(value: string) {
+  return new Date(value).toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 export function PatientReceiptView({ receipt, tenantId }: { receipt: PatientReceipt; tenantId: string }) {
   return <article className="pv-card pv-receipt">
     <h2 className="pv-h2">{receipt.sharedByTeam ? "Documento compartilhado pela equipe" : `${receipt.title} · seu registro`}</h2>
-    <p className="pv-muted">{receipt.sharedByTeam ? "Disponibilizado" : "Enviado"} em <time dateTime={receipt.at}>{new Date(receipt.at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</time></p>
+    <p className="pv-muted">{receipt.sharedByTeam ? "Disponibilizado" : "Enviado"} em <time dateTime={receipt.at}>{receiptDateTime(receipt.at)}</time></p>
     <p>{receipt.sharedByTeam ? "Documento disponibilizado pela equipe para você consultar." : "Registro preservado como foi enviado. O envio não confirma leitura ou revisão médica."}</p>
     {receipt.documentId && !receipt.sharedByTeam && <p className="pv-muted" role="status">
       {receipt.requestAt ? `Resposta ao pedido de ${new Date(receipt.requestAt).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}. ` : ""}

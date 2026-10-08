@@ -2364,6 +2364,49 @@ test("linked patient reads only their record and cannot modify data or their lin
   }
 });
 
+test("received-items account mapping is visible only to its active care professional and patient", async () => {
+  await db.exec("begin");
+  try {
+    await switchActor("doctor");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,user_id,patient_id) values($1,$2,$3)",
+      [a, users.patient.id, pa],
+    );
+    await db.query(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'active')",
+      [a, pa, users.doctor.id],
+    );
+    for (const [actor, expected] of [
+      ["doctor", 1],
+      ["patient", 1],
+      ["colleague", 0],
+      ["nurse", 0],
+      ["admin", 0],
+    ] as const) {
+      await switchActor(actor);
+      const accounts = await db.query<{ patient_id: string; user_id: string }>(
+        "select patient_id,user_id from public.patient_accounts where tenant_id=$1 and patient_id=$2",
+        [a, pa],
+      );
+      assert.equal(accounts.rows.length, expected, actor);
+      if (expected) assert.equal(accounts.rows[0].user_id, users.patient.id);
+    }
+    await db.exec("reset role");
+    await db.query(
+      "update public.memberships set status='suspended' where tenant_id=$1 and user_id=$2",
+      [a, users.doctor.id],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select user_id from public.patient_accounts where tenant_id=$1 and patient_id=$2", [a, pa])).rows.length,
+      0,
+    );
+  } finally {
+    await db.exec("rollback");
+  }
+});
+
 test("patient profile stops being visible immediately after membership suspension", async () => {
   await db.exec("begin");
   try {

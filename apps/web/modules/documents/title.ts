@@ -1,6 +1,7 @@
 // Título legível de um documento. O nome original do arquivo é mantido quando
 // diz algo; quando é só um código (UUID) ou um nome genérico de câmera, a tela
-// mostra o tipo e a data — o arquivo baixado continua com o nome original.
+// mostra o tipo e a data do envio, sem sugerir que foi a data do exame.
+// O arquivo baixado continua com o nome original.
 const technical = [
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
   /^(img|image|photo|foto|pxl|dsc|file|arquivo|document|documento|scan)[-_ ]?\d*(\.\w{2,5})?$/i,
@@ -34,5 +35,5 @@ export function documentTitle(document: {
         : document.content_type === "application/pdf"
           ? "PDF"
           : "Documento";
-  return `${kind} de ${brDate(document.created_at)}`;
+  return `${kind} ${kind === "Imagem" ? "enviada" : "enviado"} em ${brDate(document.created_at)}`;
 }

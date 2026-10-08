@@ -337,7 +337,9 @@ function DocumentList({
             </div>
             <div className="document-date">
               <span className="document-mobile-label">Disponibilizado</span>
-              <time dateTime={availableAt}>{clinicalTime(availableAt)}</time>
+              <time dateTime={availableAt}>
+                {new Date(availableAt).toLocaleDateString("pt-BR", { weekday: "short", timeZone: "America/Sao_Paulo" })} · {clinicalTime(availableAt)}
+              </time>
             </div>
             {canReview && <div className="document-review-state">
               <span className="document-mobile-label">Revisão médica</span>

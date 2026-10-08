@@ -4,8 +4,9 @@ Consolidado documental em **08/10/2026**, sobre a `origin/main`
 `ebadaab8e5fa64d49355c459dee92707edbe5557` (PR #92). Git e situação dos PRs
 foram conferidos nesta data. Os registros de publicação abaixo são evidências
 anteriores, até 07/10. O projeto Supabase sintético e o Preview C3 foram
-conferidos em 08/10; domínio público, produção separada e sessões autenticadas
-**não foram revalidados nesta implantação**. Este documento não autoriza uso clínico.
+conferidos em 08/10; as sessões do Preview foram revalidadas parcialmente
+como descrito abaixo. Domínio público e produção separada **não foram
+revalidados nesta implantação**. Este documento não autoriza uso clínico.
 
 [Direção e prioridades](DIRECAO_E_SLICES.md) ·
 [Índice](README.md) · [Decisões e evidências históricas](historico/README.md)
@@ -25,16 +26,32 @@ promoveu aceite operacional ou clínico.
 criada sobre os dois commits documentais após `origin/main` `ebadaab8`. O código vincula
 o documento ao pedido explícito, conserva a fila quando a última revisão pede
 acompanhamento e mostra ao paciente somente estado operacional de revisão.
-O CI do SHA `b4182dd` passou e o [Preview C3](https://instituto-vivance-lpgp40mqr-vtr-consulting.vercel.app)
-(`dpl_5mhKBDkEQURdERpmgaG4cK8Ruk6p`) ficou `Ready`, com `/login` HTTP 200
+O CI do SHA `430ee7d` passou e o [Preview C3](https://instituto-vivance-4a0xdl122-vtr-consulting.vercel.app)
+(`dpl_AiY3Arkkg8apRUCaXWjTBTcZb7h2`) ficou `Ready`, com `/login` HTTP 200
 via Vercel CLI. No projeto sintético confirmado `instituto-vivance-dev`, as
 migrations `20261008174209` e `20261008174346` foram aplicadas, e a Edge
 Function `private-documents` v5 foi publicada com JWT obrigatório; a fonte
 remota foi conferida contra o checkout. A segunda migration move a função
 privilegiada de recibo para `private`; o advisor deixou de apontá-la no
-schema público. Isso é **implantação técnica sintética**, não aceite: o
-percurso autenticado paciente/médico e a persistência do pedido → resposta →
-revisão → recibo no Preview ainda não foram observados. C3 continua aberto.
+schema público. Isso é **implantação técnica sintética**, não aceite.
+
+No Preview, houve login real com os dois perfis de teste: o médico criou um
+pedido de exame e o paciente respondeu com uma imagem em 08/10/2026 às
+15:29 (São Paulo). O banco confirmou `completed` no pedido e vínculo com o
+documento; após recarga, a Home mostrou o envio ligado ao pedido e o
+comprovante preservou data/hora e estado "disponível para revisão". A fila
+"Para revisar" inicialmente ocultava envios do paciente por falta de leitura
+do mapeamento `patient_accounts` pelo profissional vinculado. A migration
+`20261008184620` corrigiu a política de leitura no projeto dev: 114 testes de
+isolamento passaram, e o Preview mostrou 6 exames para esse paciente, incluindo
+o envio de 08/10 às 15:29, sem abrir o arquivo nem registrar revisão. A origem
+sintética do arquivo enviado ainda não foi confirmada; preservar esse registro.
+O timestamp de envio é persistido e aparece como data/hora local; um ajuste
+de interface nesta branch explicita o dia da semana e distingue a data de envio
+da data de realização do exame, que ainda não é coletada.
+Revisão → recibo posterior, isolamento de UI entre outros papéis e aceite
+clínico seguem pendentes.
+C3 continua aberto.
 
 ## Base confirmada no repositório
 
@@ -71,7 +88,7 @@ não representam uma execução nova.
 | --- | --- | --- |
 | **C1 — base operacional** | Ambiente único temporário de testes sintéticos. Inventário de 29/09 registrou 57 migrations pareadas; contagem histórica, anterior ao piloto IA2. | Reconciliar migrations no destino confirmado, produção separada e backup/restauração antes de dados reais. [Registro C1](C1_BASE_OPERACIONAL_2026-09-29.md). |
 | **C2 — demonstração longitudinal** | Carga de autorrelatos sintéticos e documentos conferida parcialmente no médico em 29/09. As contagens antigas não são inventário atual. | Sessão do paciente, consulta/retorno e aceite da demonstração. Preservar origem incerta; nenhuma limpeza é autorizada por este texto. |
-| **C3 — contexto e operação** | PR #93 em rascunho; Preview e contrato de banco/Edge implantados somente no projeto sintético; sem aceite operacional registrado. | Jornada autenticada paciente/médico, persistência, envio avulso, seguimento após revisão e recibo. Outros papéis e isolamento exigem ciclo próprio. |
+| **C3 — contexto e operação** | PR #93 em rascunho; pedido → resposta → recibo inicial e presença na fila médica observados em Preview e banco no projeto sintético; sem aceite operacional registrado. | Origem sintética do arquivo, revisão médica/recibo posterior, envio avulso e seguimento; outros papéis e isolamento de UI exigem ciclo próprio. |
 | **IA1 — governança** | [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) aberto e em rascunho, confirmado em 08/10. | Decisão sobre finalidade, fontes, fornecedor, privacidade e revisão. |
 | **IA2 — extração verificável** | [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78) aberto e em rascunho, fora da main; head `1e4493a`. O PR registra extração de texto de PDF sintético, proveniência por página e Preview. | Validar acesso de paciente, falha/retentativa, processamento independente da aba e contrato de resultados estruturados. Não há aceite clínico ou incorporação na main. |
 | **IA3–IA6** | Plano futuro, sem entrega confirmada nesta revisão. | Gates e critérios do [plano de IA](PLANO_IA_CLINICA.md). |
@@ -86,9 +103,10 @@ para dados reais. Registros cuja origem não foi estabelecida devem ser preserva
 
 - PR #78 registra três migrations aplicadas ao projeto de teste compartilhado
   mesmo com o código fora da main. Em 08/10, o projeto tinha 60 migrations antes
-  do C3 e 62 depois. Os três arquivos IA2 continuam ausentes da main e da
+  do C3 e 63 depois, incluindo a correção da fila médica. Os três arquivos IA2
+  continuam ausentes da main e da
   branch C3; por isso, **não executar `db push` nem integrar/publicar C3 pela
-  pipeline de release** antes de reconciliar esse histórico. As duas migrations
+  pipeline de release** antes de reconciliar esse histórico. As três migrations
   C3 locais usam as versões exatas registradas remotamente.
 - [PR #79](https://github.com/vitormilanez/instituto-vivance/pull/79) continua aberto
   para atribuição Pulse; o registro vigente o mantém desligado. Não tratar o
