@@ -16,7 +16,7 @@ fora da `main` não forem reconciliadas com C3.
 | Ordem | Slice | Resultado observável | Estado em 08/10 |
 | --- | --- | --- | --- |
 | Agora | **C3 — exame solicitado** | Paciente responde ao pedido; médico revisa; paciente vê o recibo operacional. | [PR #93](https://github.com/vitormilanez/instituto-vivance/pull/93) draft, Preview parcial; aceite aberto. |
-| Depois | **C2/C3 — continuidade da pessoa** | Hoje e ficha mostram contexto com origem/data; consulta e retorno preservam o paciente em foco. | [PR #94](https://github.com/vitormilanez/instituto-vivance/pull/94) draft, baseado no C3; sem Preview ou aceite. |
+| Depois | **C2/C3 — continuidade da pessoa** | Hoje e ficha mostram contexto com origem/data; consulta e retorno preservam o paciente em foco. | [PR #94](https://github.com/vitormilanez/instituto-vivance/pull/94) draft, baseado no C3; Preview sintético parcial, sem aceite. |
 | Depois | **IA2 — fila confiável** | Extração sintética prossegue sem aba aberta, com permissão e retry verificados. | [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78) draft e com conflito; complemento apenas local. |
 | Depois | **IA2 — resultados conferíveis** | Médico compara cada item ao arquivo, página e trecho e registra revisão. | Contrato/persistência em elaboração; estruturador, tela e aceite pendentes. |
 | Paralelo, antes de IA clínica | **IA1 — governança** | Responsáveis decidem finalidade, fontes, fornecedor, dados e revisão. | [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) draft; decisão pendente. |
@@ -63,10 +63,14 @@ fora da `main` não forem reconciliadas com C3.
 - [x] Revisada a proposta local em
   `/Users/vitormilanez/Desktop/Codes/vivance-c3-contexto`: objetivo e prioridade
   declarados, fonte/data, link que abre o registro original e contexto da
-  consulta. A branch foi reconciliada com o HEAD `8440936` do PR #93 e publicada
+  consulta. A branch foi reconciliada com o PR #93 e publicada
   no [PR #94](https://github.com/vitormilanez/instituto-vivance/pull/94) draft.
-  Dezesseis testes focados e o CI do SHA `ee28f27` passaram; lint/typecheck
-  locais não concluíram por I/O do checkout iCloud. Preview e aceite pendentes.
+  Dezesseis testes focados e o CI passaram; lint/typecheck locais não concluíram
+  por I/O do checkout iCloud. O build do
+  [Preview C2/C3](https://instituto-vivance-rh0zu8cgg-vtr-consulting.vercel.app)
+  completou TypeScript. Na sessão médica autenticada, sem objetivo registrado
+  para o paciente observado, o componente novo não inventou conteúdo; a ficha
+  mostrou a próxima consulta. O fluxo consulta → retorno e o aceite pendem.
 - [ ] Confirmar coleta e precedência de objetivo, dificuldades, medidas e
   lacunas; ausência de dado não vira zero, interpretação ou risco automático.
 - [ ] Completar cenário **paciente → consulta → registro médico → orientação
@@ -117,4 +121,5 @@ checkbox e o próximo obstáculo, sem copiar relatórios inteiros. Em cada retom
 confira `AGENTS.md`, direção, status, HEAD dos PRs e destino do ambiente. A
 próxima ação no C3 é conferir isolamento na interface por outros papéis e
 vínculos e registrar aceite operacional. O [PR #94](https://github.com/vitormilanez/instituto-vivance/pull/94)
-prepara o contexto longitudinal, ainda sem Preview ou percurso de retorno.
+  prepara o contexto longitudinal, com Preview sintético parcial e sem percurso
+  de retorno validado.
