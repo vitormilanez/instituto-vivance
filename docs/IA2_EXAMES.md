@@ -48,7 +48,11 @@ O contrato original acumula etapas históricas: trechos de 03/10 falam em
 “manual e síncrono” e “migration pendente”. Para o último estado, prevalece sua
 seção **Fila do piloto — continuação de 04/10/2026**, sem apagar a cronologia.
 
-## Próxima entrega recomendada
+## Próxima entrega da frente IA2
+
+A prioridade entre frentes está em [Direção e slices](DIRECAO_E_SLICES.md).
+A avaliação de 08/10 propõe fechar um percurso C3 antes de ampliar IA2;
+essa proposta aguarda validação e não altera as evidências deste piloto.
 
 **Exames sintéticos conferíveis pelo médico**, continuando IA2-A/IA2-B sem criar
 outra frente. Valor: sair da leitura de páginas soltas para resultados e narrativas

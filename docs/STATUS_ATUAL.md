@@ -9,6 +9,16 @@ revalidados nesta organização**. Este documento não autoriza uso clínico.
 [Direção e prioridades](DIRECAO_E_SLICES.md) ·
 [Índice](README.md) · [Decisões e evidências históricas](historico/README.md)
 
+## Avaliação de UX e dados em 08/10
+
+A [avaliação Paciente × Médico × IA](AVALIACAO_JORNADA.md) acrescenta inspeção
+do código e observação autenticada, somente leitura, de Hoje médico e ficha
+sintética. Isso não revalida banco, sessão do paciente, jornada completa ou
+deployment servido. Identificou lacunas de vínculo pedido/resposta, continuidade
+da revisão e visibilidade para o paciente. A proposta de priorizar um slice C3
+de exames antes da ampliação de IA2 aguarda validação; nenhuma correção foi
+implementada e nenhum aceite foi promovido.
+
 ## Base confirmada no repositório
 
 - Aplicação em `apps/web`: Next.js, Node 24. `app/`, `db/` e `drizzle/` na raiz
@@ -67,8 +77,8 @@ para dados reais. Registros cuja origem não foi estabelecida devem ser preserva
 - [PR #40](https://github.com/vitormilanez/instituto-vivance/pull/40) permanece aberto
   para limpeza de cópias do iCloud. Esta organização remove os sete MDs antigos;
   reconciliar as exclusões sobrepostas antes de integrar aquele PR.
-- Próxima entrega recomendada: **IA2 — exames sintéticos conferíveis pelo médico**,
-  começando pelo aceite técnico da fila e contrato de resultados/narrativas por
-  página, conforme o [handoff IA2](IA2_EXAMES.md). C2/C3 continuam como validação
-  integrada pendente, sem bloquear o planejamento desse piloto sintético.
-  A organização dos MDs não inicia implementação, não publica e não fecha aceites.
+- Próxima entrega proposta após a avaliação: **C3 — fechar o ciclo de um exame
+  solicitado**, conforme [achados e aceites](AVALIACAO_JORNADA.md). Repriorização
+  ainda não aprovada. O [handoff IA2](IA2_EXAMES.md) permanece válido para retomar
+  o piloto; C2/C3 seguem sem aceite integrado. Esta documentação não inicia
+  implementação, não publica e não fecha aceites.

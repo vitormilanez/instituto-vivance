@@ -21,9 +21,11 @@ antiga (`5a64be9`) com alterações não commitadas; foi preservado, não é o p
 de partida. Não atualizar, limpar ou usar seu status por suposição. Esses caminhos
 são o mapa local de 08/10/2026; confirme sempre `git status`, remoto e SHA.
 
-**Próxima entrega recomendada:** exames sintéticos conferíveis pelo médico,
-aproveitando a fila/extração do PR #78. Resultados estruturados, Claude e aceite
-clínico ainda não estão entregues. A recomendação não inicia implementação.
+**Próxima entrega proposta:** fechar o ciclo de um exame solicitado, do pedido
+ao recibo e acompanhamento após revisão. A [avaliação de UX e dados](docs/AVALIACAO_JORNADA.md)
+propõe esse recorte C3 antes de ampliar IA2; aguarda validação do usuário.
+O PR #78 permanece preservado. Resultados estruturados, Claude e aceite clínico
+ainda não estão entregues. A recomendação não inicia implementação.
 
 ## Aplicação atual
 

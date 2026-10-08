@@ -44,16 +44,20 @@ obrigatórios antes de dados reais. Preservar registros de origem incerta.
 | 1 | **C2 — demonstração coerente** para paciente e médico | Reutilizar as contas mantidas por decisão de 29/09, sem nova limpeza; completar apenas lacunas sintéticas da jornada consulta/retorno. | Percurso verificável nos dois perfis, dados persistidos e originais preservados; não forjar decisão ou assinatura médica. |
 | 2 | **C3 — contexto e operação confiáveis** | Validar Hoje/Pacientes e a resposta do paciente com a base atual; corrigir falhas comprovadas dentro do escopo validado. Depende de cenário C2 coerente. | Paciente → solicitação/resposta → revisão médica → publicação autorizada → retorno, com contexto, datas e estados corretos; recarregar e conferir persistência. Registrar limites por papel. |
 | Paralelo | **IA1 — contrato de governança** | Finalidade, fontes, fornecedor, dados permitidos, privacidade, rastreabilidade e revisão; PR #64 em rascunho. | Decisão documentada dos responsáveis; não inferir autorização de envio a fornecedor. |
-| Próxima entrega sintética | **IA2 — extração verificável** | Continuar o piloto sintético do PR #78, sem confundi-lo com main; arquivo/página, unidades e revisão por item. | Corpus sintético com cobertura/erros medidos, falhas controladas, original navegável e revisão humana; processamento independente da aba antes de alegar fila autônoma. |
+| Piloto sintético em andamento | **IA2 — extração verificável** | Continuar o piloto sintético do PR #78, sem confundi-lo com main; arquivo/página, unidades e revisão por item. | Corpus sintético com cobertura/erros medidos, falhas controladas, original navegável e revisão humana; processamento independente da aba antes de alegar fila autônoma. |
 | Depois | **IA3 — biblioteca aprovada** | Poucas fontes versionadas com população, trecho, autoria e revisão. | Busca reproduzível apenas em fontes aprovadas/vigentes e retirada rastreável. |
 | Depois | **IA4–IA6 — evidência, revisão e validação** | Capacidades e critérios do plano de IA; dependem de IA1–IA3 e gates clínicos. | Verificação por afirmação, revisão/correção médica, publicação separada e métricas aceitas antes de liberação. |
 
-**Próxima entrega recomendada: IA2 — exames sintéticos conferíveis pelo médico.**
-Aproveitar o PR #78: fechar negação ao paciente e falha/retentativa da fila, definir
-o contrato de resultados e narrativas com origem por página e revisão por item.
-O [handoff IA2](IA2_EXAMES.md) delimita o que já funciona e o que falta. Claude,
-OCR e uso clínico permanecem fora desta retomada. A recomendação não inicia
-implementação; contrato novo e mudanças no fluxo devem ser validados antes.
+**Proposta revisada em 08/10: C3 — fechar o ciclo de um exame solicitado.**
+A [avaliação de UX e dados](AVALIACAO_JORNADA.md) identificou lacunas no vínculo
+pedido/resposta, acompanhamento após revisão e recibo do paciente. Recomenda-se
+entregar esse percurso delimitado antes de ampliar IA2; a sequência completa e
+os aceites estão na avaliação. A repriorização aguarda validação do usuário e
+não inicia implementação nem cancela o PR #78.
+
+Para IA2, preservar o [handoff](IA2_EXAMES.md): fechar negação ao paciente e
+falha/retentativa da fila, definir resultados/narrativas com origem por página
+e revisão por item. Claude, OCR e uso clínico continuam pendentes.
 
 C1/C2/C3 são trilha de prontidão operacional, não motivo para refazer o piloto
 sintético já validado. Evoluções adicionais de Hoje/Pacientes devem demonstrar
