@@ -26,10 +26,14 @@ promoveu aceite operacional ou clínico.
 criada sobre os dois commits documentais após `origin/main` `ebadaab8`. O código vincula
 o documento ao pedido explícito, conserva a fila quando a última revisão pede
 acompanhamento e mostra ao paciente somente estado operacional de revisão.
-O CI do SHA `430ee7d` passou e o [Preview C3](https://instituto-vivance-4a0xdl122-vtr-consulting.vercel.app)
-(`dpl_AiY3Arkkg8apRUCaXWjTBTcZb7h2`) ficou `Ready`, com `/login` HTTP 200
-via Vercel CLI. No projeto sintético confirmado `instituto-vivance-dev`, as
-migrations `20261008174209` e `20261008174346` foram aplicadas, e a Edge
+O CI do SHA `1e5af18` passou e o [Preview C3 atual](https://instituto-vivance-dkb5hxd6m-vtr-consulting.vercel.app)
+(`dpl_6myzQxMea2EPDkNcFnoVhWyyUvqL`) ficou `Ready` como Preview. Login real
+do paciente nesse Preview exibiu no comprovante "quinta-feira, 08/10/2026,
+15:29:57" e na lista "qui. · 08/10/2026, 15:29" após recarga. O título genérico
+passou a dizer "Exame enviado em 08/10/2026", sem confundir envio com a data de
+realização do exame, que ainda não é coletada. No projeto sintético confirmado
+`instituto-vivance-dev`, as migrations `20261008174209`, `20261008174346` e
+`20261008184620` foram aplicadas, e a Edge
 Function `private-documents` v5 foi publicada com JWT obrigatório; a fonte
 remota foi conferida contra o checkout. A segunda migration move a função
 privilegiada de recibo para `private`; o advisor deixou de apontá-la no
@@ -46,9 +50,9 @@ do mapeamento `patient_accounts` pelo profissional vinculado. A migration
 isolamento passaram, e o Preview mostrou 6 exames para esse paciente, incluindo
 o envio de 08/10 às 15:29, sem abrir o arquivo nem registrar revisão. A origem
 sintética do arquivo enviado ainda não foi confirmada; preservar esse registro.
-O timestamp de envio é persistido e aparece como data/hora local; um ajuste
-de interface nesta branch explicita o dia da semana e distingue a data de envio
-da data de realização do exame, que ainda não é coletada.
+O timestamp de envio é persistido e aparece como data/hora local; a interface
+explicita o dia da semana e distingue a data de envio da data de realização do
+exame, que ainda não é coletada.
 Revisão → recibo posterior, isolamento de UI entre outros papéis e aceite
 clínico seguem pendentes.
 C3 continua aberto.
