@@ -3,8 +3,9 @@
 Consolidado documental em **08/10/2026**, sobre a `origin/main`
 `ebadaab8e5fa64d49355c459dee92707edbe5557` (PR #92). Git e situação dos PRs
 foram conferidos nesta data. Os registros de publicação abaixo são evidências
-anteriores, até 07/10; banco, domínios e sessões autenticadas **não foram
-revalidados nesta organização**. Este documento não autoriza uso clínico.
+anteriores, até 07/10. O projeto Supabase sintético e o Preview C3 foram
+conferidos em 08/10; domínio público, produção separada e sessões autenticadas
+**não foram revalidados nesta implantação**. Este documento não autoriza uso clínico.
 
 [Direção e prioridades](DIRECAO_E_SLICES.md) ·
 [Índice](README.md) · [Decisões e evidências históricas](historico/README.md)
@@ -19,14 +20,21 @@ da revisão e visibilidade para o paciente. A proposta de priorizar um slice C3
 de exames antes da ampliação de IA2 foi aceita como ponto de partida; não
 promoveu aceite operacional ou clínico.
 
-**Branch local de execução:** `codex/c3-exame-solicitado-20261008`, criada sobre
-os dois commits documentais após `origin/main` `ebadaab8`. O código local vincula
+**Branch de execução:** `codex/c3-exame-solicitado-20261008`, publicada no
+[PR #93](https://github.com/vitormilanez/instituto-vivance/pull/93) em rascunho,
+criada sobre os dois commits documentais após `origin/main` `ebadaab8`. O código vincula
 o documento ao pedido explícito, conserva a fila quando a última revisão pede
 acompanhamento e mostra ao paciente somente estado operacional de revisão.
-Migration e Edge Function estão somente no checkout; não foram aplicadas ou
-publicadas. Os testes locais de contrato, isolamento, tipos e lint não substituem
-sessões autenticadas paciente/médico, recarga no Preview e conferência de acesso
-no projeto Supabase sintético. C3 continua sem aceite.
+O CI do SHA `b4182dd` passou e o [Preview C3](https://instituto-vivance-lpgp40mqr-vtr-consulting.vercel.app)
+(`dpl_5mhKBDkEQURdERpmgaG4cK8Ruk6p`) ficou `Ready`, com `/login` HTTP 200
+via Vercel CLI. No projeto sintético confirmado `instituto-vivance-dev`, as
+migrations `20261008174209` e `20261008174346` foram aplicadas, e a Edge
+Function `private-documents` v5 foi publicada com JWT obrigatório; a fonte
+remota foi conferida contra o checkout. A segunda migration move a função
+privilegiada de recibo para `private`; o advisor deixou de apontá-la no
+schema público. Isso é **implantação técnica sintética**, não aceite: o
+percurso autenticado paciente/médico e a persistência do pedido → resposta →
+revisão → recibo no Preview ainda não foram observados. C3 continua aberto.
 
 ## Base confirmada no repositório
 
@@ -63,7 +71,7 @@ não representam uma execução nova.
 | --- | --- | --- |
 | **C1 — base operacional** | Ambiente único temporário de testes sintéticos. Inventário de 29/09 registrou 57 migrations pareadas; contagem histórica, anterior ao piloto IA2. | Reconciliar migrations no destino confirmado, produção separada e backup/restauração antes de dados reais. [Registro C1](C1_BASE_OPERACIONAL_2026-09-29.md). |
 | **C2 — demonstração longitudinal** | Carga de autorrelatos sintéticos e documentos conferida parcialmente no médico em 29/09. As contagens antigas não são inventário atual. | Sessão do paciente, consulta/retorno e aceite da demonstração. Preservar origem incerta; nenhuma limpeza é autorizada por este texto. |
-| **C3 — contexto e operação** | Verificações parciais do médico e refinamentos publicados; sem aceite operacional registrado. | Jornada integrada paciente/médico, persistência, contexto correto e revisão/publicação. Outros papéis e isolamento exigem ciclo próprio. |
+| **C3 — contexto e operação** | PR #93 em rascunho; Preview e contrato de banco/Edge implantados somente no projeto sintético; sem aceite operacional registrado. | Jornada autenticada paciente/médico, persistência, envio avulso, seguimento após revisão e recibo. Outros papéis e isolamento exigem ciclo próprio. |
 | **IA1 — governança** | [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) aberto e em rascunho, confirmado em 08/10. | Decisão sobre finalidade, fontes, fornecedor, privacidade e revisão. |
 | **IA2 — extração verificável** | [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78) aberto e em rascunho, fora da main; head `1e4493a`. O PR registra extração de texto de PDF sintético, proveniência por página e Preview. | Validar acesso de paciente, falha/retentativa, processamento independente da aba e contrato de resultados estruturados. Não há aceite clínico ou incorporação na main. |
 | **IA3–IA6** | Plano futuro, sem entrega confirmada nesta revisão. | Gates e critérios do [plano de IA](PLANO_IA_CLINICA.md). |
@@ -76,19 +84,20 @@ para dados reais. Registros cuja origem não foi estabelecida devem ser preserva
 
 ## Trabalho paralelo e retomada
 
-- PR #78 registra migrations aplicadas ao projeto de teste compartilhado mesmo
-  com o código fora da main. Antes de uma próxima migration, comparar o histórico
-  remoto com os arquivos das branches pertinentes; não usar a fotografia de 57
-  versões como diagnóstico atual. Nesta organização não houve acesso ao banco.
+- PR #78 registra três migrations aplicadas ao projeto de teste compartilhado
+  mesmo com o código fora da main. Em 08/10, o projeto tinha 60 migrations antes
+  do C3 e 62 depois. Os três arquivos IA2 continuam ausentes da main e da
+  branch C3; por isso, **não executar `db push` nem integrar/publicar C3 pela
+  pipeline de release** antes de reconciliar esse histórico. As duas migrations
+  C3 locais usam as versões exatas registradas remotamente.
 - [PR #79](https://github.com/vitormilanez/instituto-vivance/pull/79) continua aberto
   para atribuição Pulse; o registro vigente o mantém desligado. Não tratar o
   webhook ou a importação Ads como integração operacional confirmada.
 - [PR #40](https://github.com/vitormilanez/instituto-vivance/pull/40) permanece aberto
   para limpeza de cópias do iCloud. Esta organização remove os sete MDs antigos;
   reconciliar as exclusões sobrepostas antes de integrar aquele PR.
-- Primeira entrega iniciada localmente: **C3 — fechar o ciclo de um exame
+- Primeira entrega em Preview sintético: **C3 — fechar o ciclo de um exame
   solicitado**, conforme [achados e aceites](AVALIACAO_JORNADA.md). O
-  [handoff IA2](IA2_EXAMES.md) permanece válido para retomar o piloto; C2/C3
-  seguem sem aceite integrado. Próximo marco: verificar migração/Edge Function
-  no destino sintético confirmado e percorrer pedido → resposta → revisão →
-  recibo nas duas sessões antes de declarar o slice concluído.
+  [handoff IA2](IA2_EXAMES.md) permanece válido; C2/C3 seguem sem aceite
+  integrado. Próximo marco: percorrer pedido → resposta → revisão → recibo nas
+  sessões sintéticas de paciente e médico, recarregar e conferir acesso.
