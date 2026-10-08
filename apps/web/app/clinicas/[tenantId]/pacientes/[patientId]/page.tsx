@@ -149,16 +149,18 @@ export default async function Patient({
       <section className="panel future-care">
         <h2>Onde continuar</h2>
         <p>
-          Use a Agenda para os próximos encontros e Atendimentos para os
-          registros de consulta disponíveis ao seu vínculo.
+          Use a Agenda para os próximos encontros. Quando houver um registro de
+          consulta finalizado, abra-o aqui sem perder o contexto deste paciente.
         </p>
         <div className="patient-record-next-links">
           <Link href={headerFacts?.nextAppointmentHref ?? `/clinicas/${tenantId}/agenda`}>
             {headerFacts?.nextAppointmentHref ? "Abrir próxima consulta" : "Abrir agenda"}
           </Link>
-          <Link href={headerFacts?.encounterHref ?? `/clinicas/${tenantId}/atendimentos`}>
-            {headerFacts?.encounterHref ? "Abrir última consulta" : "Ver atendimentos"}
-          </Link>
+          {headerFacts?.encounterHref ? (
+            <Link href={headerFacts.encounterHref}>Abrir última consulta</Link>
+          ) : (
+            <span>Nenhum registro de consulta finalizado para este paciente.</span>
+          )}
         </div>
       </section>
     </div>

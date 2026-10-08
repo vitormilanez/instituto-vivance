@@ -71,6 +71,10 @@ fora da `main` não forem reconciliadas com C3.
   completou TypeScript. Na sessão médica autenticada, sem objetivo registrado
   para o paciente observado, o componente novo não inventou conteúdo; a ficha
   mostrou a próxima consulta. O fluxo consulta → retorno e o aceite pendem.
+- [x] A ficha de Vitor levou à consulta de 08/10 na Agenda do mesmo paciente.
+  O agendamento de 06/10 continua com resultado pendente e não há atendimento
+  finalizado. Sem esse registro, “Onde continuar” agora informa a lacuna em vez
+  de levar a uma lista geral de atendimentos de outras pessoas.
 - [ ] Confirmar coleta e precedência de objetivo, dificuldades, medidas e
   lacunas; ausência de dado não vira zero, interpretação ou risco automático.
 - [ ] Completar cenário **paciente → consulta → registro médico → orientação
