@@ -1,0 +1,94 @@
+[
+  {
+    "host": "institutovivance.app",
+    "path": "/virada90",
+    "http": "200",
+    "ttfbSeconds": 0.077685,
+    "requestId": "gru1::9hzkb-1791428078686-ca9ff49a7588",
+    "location": null,
+    "matchesMain": true,
+    "sha256": "c8e30acb6cd9edfe7773b6116244ed1e06312a882ecb7d3a8955fc89b60bc87b"
+  },
+  {
+    "host": "institutovivance.app",
+    "path": "/virada90/conhecer",
+    "http": "200",
+    "ttfbSeconds": 0.143755,
+    "requestId": "gru1::8bzkd-1791428078702-3659a5a45420",
+    "location": null,
+    "matchesMain": true,
+    "sha256": "061c5506c75d0fa2f078a3c052b751e331fa1bd673f32eff7afe3421929469d2"
+  },
+  {
+    "host": "institutovivance.app",
+    "path": "/virada90/styles.css",
+    "http": "200",
+    "ttfbSeconds": 0.096356,
+    "requestId": "gru1::jz7zl-1791428078712-df428028b627",
+    "location": null,
+    "matchesMain": true,
+    "sha256": "298bf283c51b41f5d60b14472b473c444bd702f6c45c46e80656cf5c4197e7a4"
+  },
+  {
+    "host": "institutovivance.app",
+    "path": "/virada90/guided.css",
+    "http": "200",
+    "ttfbSeconds": 0.117363,
+    "requestId": "gru1::hzcss-1791428078721-8d3ba5900e07",
+    "location": null,
+    "matchesMain": true,
+    "sha256": "96ba6225f59367abf8dcd4882972d862531c0d8483f7901e8fb1b0a15184b21c"
+  },
+  {
+    "host": "institutovivance.app",
+    "path": "/virada90/guided.js",
+    "http": "200",
+    "ttfbSeconds": 0.113811,
+    "requestId": "gru1::kp9tz-1791428078686-df4dea7e26b9",
+    "location": null,
+    "matchesMain": true,
+    "sha256": "35c8e913d19fcf42c5e15bdaa3660c9fe5090089fbaac177aa44bce3c91d71fb"
+  },
+  {
+    "host": "institutovivance.app",
+    "path": "/virada90/measurement.js",
+    "http": "200",
+    "ttfbSeconds": 0.094005,
+    "requestId": "gru1::8pjh8-1791428078686-846f70fbbb2f",
+    "location": null,
+    "matchesMain": true,
+    "sha256": "290d417440b461d2e97f4e5e12de2af2a47d438edc40648e777fd463301679fb"
+  },
+  {
+    "host": "institutovivance.app",
+    "path": "/login",
+    "http": "200",
+    "ttfbSeconds": 0.286866,
+    "requestId": "gru1::gru1::hjlmf-1791428078772-bf1a974bfd7b",
+    "location": null
+  },
+  {
+    "host": "instituto-vivance.vercel.app",
+    "path": "/virada90",
+    "http": "307",
+    "ttfbSeconds": 0.059157,
+    "requestId": "gru1::n2pkg-1791428078799-827027e1c73c",
+    "location": "https://institutovivance.app/virada90"
+  },
+  {
+    "host": "instituto-vivance.vercel.app",
+    "path": "/virada90/conhecer",
+    "http": "307",
+    "ttfbSeconds": 0.056485,
+    "requestId": "gru1::8pjh8-1791428078799-88e3c92a7f63",
+    "location": "https://institutovivance.app/virada90/conhecer"
+  },
+  {
+    "host": "instituto-vivance.vercel.app",
+    "path": "/login",
+    "http": "307",
+    "ttfbSeconds": 0.039582,
+    "requestId": "gru1::rq7cr-1791428078804-56dd1e406fdf",
+    "location": "https://institutovivance.app/login"
+  }
+]

@@ -13,7 +13,13 @@ comercial exige acompanhamento do CRM, sem confundir navegação com venda.
 Branch `codex/virada90-conversion-refinement-20261007`; Asana `1219288382329047`.
 Implementado e validado localmente: 441 testes, lint, tipos e build aprovados;
 navegador em quatro larguras, sem overflow. [Evidências locais](../apps/web/.impeccable/review/virada90-conversion-refinement/evidence.md).
-Publicação pendente de CI/merge e promoção; sem mudança de banco, Ads ou Pulse.
+Publicado tecnicamente pelo [PR #91](https://github.com/vitormilanez/instituto-vivance/pull/91),
+merge `f1a7a575fc036aade44db4c8759bf2a834ef51ab`, com CI PR/main/release aprovados.
+Deployment `dpl_CX5tbs3FCgC9Jm94goAnHoikGTmj` promovido manualmente e confirmado
+nos dois domínios. Seis arquivos públicos idênticos ao merge; navegador público
+confirmou entradas, detalhes, etapas, preços e atalho sem erro ou overflow.
+[Registro final e limites](virada90/releases/2026-10-07-conversion-refinement/README.md).
+Sem mudança de banco, Ads ou Pulse.
 
 ## Virada 90: cinco etapas e comparação de formatos — 07/10/2026
 

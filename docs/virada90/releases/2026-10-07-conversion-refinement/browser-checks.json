@@ -1,0 +1,99 @@
+[
+  {
+    "landing": {
+      "overflow": false,
+      "entries": [
+        {
+          "position": "header",
+          "href": "/virada90/conhecer"
+        },
+        {
+          "position": "hero",
+          "href": "/virada90/conhecer"
+        },
+        {
+          "position": "method",
+          "href": "/virada90/conhecer"
+        },
+        {
+          "position": "discovery",
+          "href": "/virada90/conhecer"
+        },
+        {
+          "position": "landing_presencial",
+          "href": "/virada90/conhecer"
+        },
+        {
+          "position": "landing_online",
+          "href": "/virada90/conhecer"
+        },
+        {
+          "position": "faq",
+          "href": "/virada90/conhecer"
+        },
+        {
+          "position": "contact",
+          "href": "/virada90/conhecer"
+        }
+      ],
+      "formatText": "Presencial: calorimetria e bioimpedância em Presidente Prudente. Online: avaliação clínica e exames, para todo o Brasil, sem as medições feitas na clínica.",
+      "video": "/virada90/assets/virada90.mp4"
+    }
+  },
+  {
+    "methodDetail": true
+  },
+  {
+    "heroDestination": "https://institutovivance.app/virada90/conhecer"
+  },
+  {
+    "width": 390,
+    "step": "1",
+    "overflow": false,
+    "progress": "Etapa 1 de 5"
+  },
+  {
+    "width": 390,
+    "step": "3",
+    "overflow": false,
+    "progress": "Etapa 3 de 5"
+  },
+  {
+    "width": 390,
+    "step": "5",
+    "overflow": false,
+    "progress": "Etapa 5 de 5"
+  },
+  {
+    "width": 1440,
+    "step": "1",
+    "overflow": false,
+    "progress": "Etapa 1 de 5"
+  },
+  {
+    "width": 1440,
+    "step": "3",
+    "overflow": false,
+    "progress": "Etapa 3 de 5"
+  },
+  {
+    "width": 1440,
+    "step": "5",
+    "overflow": false,
+    "progress": "Etapa 5 de 5"
+  },
+  {
+    "planDetail": true
+  },
+  {
+    "skipAfterScroll": true
+  },
+  {
+    "finalPrices": [
+      "Investimento totalR$ 12.000Em 12 parcelas de R$ 1.000",
+      "Investimento totalR$ 6.500Em 12 parcelas"
+    ],
+    "googleScripts": 0,
+    "errors": []
+  }
+]
