@@ -50,6 +50,14 @@ fora da `main` não forem reconciliadas com C3.
 - [x] O documento permaneceu na fila de recebidos, e a Home médica mostrou
   **1 acompanhamento em aberto** após a revisão. O histórico e o estado
   “Precisa de acompanhamento” persistiram na ficha após recarga.
+- [x] Um novo pedido sintético (`775b1512-1dba-46c6-8dca-916db544550b`)
+  foi respondido com o PDF explicitamente fictício
+  `vivance-c3-exame-ficticio.pdf` (documento
+  `6b8ed9b5-08a1-474e-80ad-07361ac2b053`). O paciente viu o recibo
+  persistido com **quinta-feira, 08/10/2026, 17:17:22** e “Resposta ao pedido
+  de 08/10/2026”; o pedido deixou de aparecer como pendente. Na sessão médica,
+  o mesmo arquivo apareceu em “Para revisar” e passou a “Já aberto · revisão
+  não registrada”. Isso comprova pedido → resposta → fila, sem revisão clínica.
 - [ ] Completar isolamento na interface com outros papéis, clínicas e vínculos.
   Os 114 testes automatizados de isolamento passaram; a observação autenticada
   deste ciclo cobriu apenas paciente e médico vinculados.

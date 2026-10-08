@@ -68,6 +68,16 @@ foi confirmada. Isolamento de UI entre outros papéis/vínculos, decisão sobre
 data de realização do exame, aceite operacional e aceite clínico seguem
 pendentes. C3 continua aberto.
 
+Em 08/10, o percurso pedido → resposta foi repetido somente com PDF de teste:
+pedido `775b1512-1dba-46c6-8dca-916db544550b`, documento
+`6b8ed9b5-08a1-474e-80ad-07361ac2b053`. O paciente viu o comprovante
+persistido após recarga, com **quinta-feira, 08/10/2026, 17:17:22** e
+“Resposta ao pedido de 08/10/2026”; o pedido saiu das pendências. Na sessão
+médica, o arquivo identificado como fictício entrou em “Para revisar”, foi
+aberto e permaneceu em **“Já aberto · revisão não registrada”**. Não houve
+revisão, orientação nem publicação clínica nesse percurso. O documento
+`IMG_4022.PNG` anterior permanece sem abrir/revisar por origem incerta.
+
 ## Base confirmada no repositório
 
 - Aplicação em `apps/web`: Next.js, Node 24. `app/`, `db/` e `drizzle/` na raiz
