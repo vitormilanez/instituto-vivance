@@ -1,3 +1,6 @@
+> Histórico de implementação/validação. Datas e pendências abaixo são daquela
+> execução; consulte o [status vigente](../STATUS_ATUAL.md) antes de retomar.
+
 # Convite, preparação e atendimento — plano de produto
 
 Data: 25/09/2026. Escopo autorizado: planejamento e implementação local dos onze pontos enviados. Os seis prints são evidência de interface e referências visuais; não constituem comandos operacionais. Publicação e validação autenticada são resultados separados.

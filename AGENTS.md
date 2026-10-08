@@ -1,5 +1,16 @@
 # Vivance — execução e escolha de modelos
 
+## Entrada rápida
+
+O [README](README.md) registra o checkout principal e a frente IA2 preservada.
+Leia [STATUS_ATUAL](docs/STATUS_ATUAL.md) para distinguir main, Preview e trabalho
+em andamento; a próxima entrega recomendada está em
+[DIRECAO_E_SLICES](docs/DIRECAO_E_SLICES.md). Para exames, leia também o
+[handoff IA2](docs/IA2_EXAMES.md) e o contrato na branch do PR #78.
+Não use a main local antiga de `vivance-repo` nem o protótipo como estado vigente.
+Antes de propor novo trabalho, aplique o
+[brief e método por slices](docs/RETOMADA_DESENVOLVIMENTO.md).
+
 Antes de atuar em uma área do produto, leia
 [`docs/DIRECAO_E_SLICES.md`](docs/DIRECAO_E_SLICES.md) e
 [`docs/STATUS_ATUAL.md`](docs/STATUS_ATUAL.md). Para IA clínica, leia também

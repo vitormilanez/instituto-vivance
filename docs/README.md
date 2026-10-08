@@ -1,44 +1,68 @@
 # Documentação do Vivance
 
-Esta pasta contém apenas documentação ativa. Relatórios antigos de Preview,
-roteiros concluídos e prompts de ferramentas foram removidos do diretório de
-trabalho; o histórico continua disponível no Git.
+Organizada em 08/10/2026. Comece pelos documentos vigentes abaixo; evidências
+com data e material de protótipos ficam identificados como histórico.
 
-## Leia nesta ordem
+## Comece aqui
 
-1. [Direção e slices](DIRECAO_E_SLICES.md) — objetivo, sequência atual e decisões
-   de escopo, inclusive o ambiente temporário de testes.
-2. [Plano de IA clínica](PLANO_IA_CLINICA.md) — capacidade futura, governança e
-   gates próprios.
-3. [Estado atual](STATUS_ATUAL.md) — fotografia datada do que foi comprovado e
-   das pendências.
-4. [Funcionalidades](FUNCIONALIDADES.md) — contrato funcional consolidado da
-   aplicação atual.
-5. [Gate P](GATE_P.md) — critérios antes de usar dados clínicos reais.
-6. [Guia operacional Codex](GUIA_OPERACIONAL_CODEX.md) — passos para publicar,
-   promover o domínio e localizar as áreas do produto.
-7. [Pipeline de publicação](PIPELINE_PUBLICACAO.md) — como código, banco e
-   Vercel devem chegar ao mesmo commit.
+| Documento | Pergunta que responde |
+| --- | --- |
+| [Direção e slices](DIRECAO_E_SLICES.md) | O que estamos construindo e em que ordem? |
+| [Estado atual](STATUS_ATUAL.md) | O que existe, qual evidência o sustenta e o que falta? |
+| [Handoff dos exames IA2](IA2_EXAMES.md) | O que já funciona no PR #78 e qual é a próxima entrega? |
+| [Retomada do desenvolvimento](RETOMADA_DESENVOLVIMENTO.md) | Como preparar a próxima proposta e desenvolver/testar por slice? |
+| [Funcionalidades](FUNCIONALIDADES.md) | Quais contratos funcionais a aplicação preserva? |
+| [Plano de IA clínica](PLANO_IA_CLINICA.md) | Quais capacidades são futuras e quais gates exigem? |
+| [Gate P](GATE_P.md) | O que precisa estar aceito antes de dados clínicos reais? |
+
+## Implementação e operação
+
+- [Aplicação atual](../apps/web/README.md): entrada para `apps/web`.
+- [Guia operacional Codex](GUIA_OPERACIONAL_CODEX.md): localizar áreas, conferir
+  destinos, publicar, verificar e recuperar uma versão.
+- [Pipeline de publicação](PIPELINE_PUBLICACAO.md): contrato de código, banco e Vercel.
+- [Teleconsulta](TELECONSULTA.md): contrato do link externo e evidência datada.
+- [Briefing da consulta e peso](BRIEFING_CONSULTA_2026-10-07.md): contrato e evidências
+  dos PRs #82/#84; limites da conferência autenticada.
+
+## Virada 90 — frente comercial
+
+- [Jornada](VIRADA90_JORNADA.md), [conteúdo](virada90/CONTEUDO_E_IMAGENS.md) e
+  [design](virada90/DESIGN.md).
+- [Funil](virada90/FUNIL_COMERCIAL_LEVE.md), [medição Google](virada90/MEDICAO_GOOGLE.md)
+  e [acompanhamento no CRM](virada90/MODELO_ACOMPANHAMENTO.md).
+- [Último release registrado](virada90/releases/2026-10-07-conversion-refinement/README.md).
+  Os demais registros permanecem em `virada90/releases/`, por data.
+
+## Histórico e evidências
+
+- [Histórico útil](historico/README.md): decisões únicas e evidências de regressão;
+  cópias redundantes foram removidas, com recuperação pelo Git.
+- [C1 em 29/09](C1_BASE_OPERACIONAL_2026-09-29.md): inventário operacional daquela data.
+- [Plano de convite/atendimento de 25/09](historico/PLANO_CONVITE_E_ATENDIMENTO_2026-09-25.md)
+  e [entrega local correspondente](historico/ENTREGA_LOCAL_REFINAMENTOS_2026-09-25.md).
+- [QA da continuidade do paciente](qa/patient-continuity/README.md) e
+  [proposta de não visto](propostas/2026-09-22-nao-visto/README.md).
 
 ## Referências na raiz
 
-- [README](../README.md): entrada rápida para desenvolvimento.
-- [Produto](../PRODUCT.md): propósito, público e limites do produto.
-- [Design](../DESIGN.md): linguagem visual do Vivance.
-- [AGENTS](../AGENTS.md): regras para agentes que trabalham no repositório.
+[README](../README.md) · [Produto](../PRODUCT.md) · [Design](../DESIGN.md) ·
+[AGENTS](../AGENTS.md). `app/`, `db/` e `drizzle/` são legado; a aplicação atual
+fica em `apps/web/`.
 
-## Fonte de verdade
+## Como manter
 
-Em caso de divergência, vale esta ordem:
-
-1. código, migrations e evidência viva do ambiente para afirmar implementação;
-2. `DIRECAO_E_SLICES.md` e `PLANO_IA_CLINICA.md` para direção aprovada;
-3. `STATUS_ATUAL.md` para a fotografia técnica datada;
-4. `FUNCIONALIDADES.md`, `PRODUCT.md`, `DESIGN.md` e histórico do Git.
-
-O Asana acompanha a execução, mas pode estar atrasado em relação a uma decisão
-nova. Atualize o documento e a tarefa correspondente depois de conferir o
-estado vivo; não transforme um card em prova de entrega.
-
-Um build `READY`, HTTP 200 ou uma página pública não comprovam, sozinhos,
-migration aplicada, fluxo autenticado ou aceite clínico.
+- **Direção** guarda objetivos, decisões e sequência; **status** guarda o resumo
+  datado das evidências e pendências. Logs extensos e IDs de release ficam nos
+  registros específicos, com links a partir desses dois documentos.
+- Código, migrations e evidência viva sustentam afirmações de implementação.
+  Conversas autorizadas e direção aprovada sustentam escopo; uma não substitui a outra.
+- Distinguir `proposto`, `implementado`, `validado localmente`, `validado em Preview`,
+  `publicado tecnicamente` e `aceito clinicamente`. Não promover um estado por inferência.
+- Atualizar a seção correspondente, em vez de colar o mesmo relatório em vários MDs.
+  Usar links relativos e nomes sem sufixos de cópia, como ` 2.md`.
+- Após decisões de produto, reconciliar direção/status e a tarefa existente do Asana.
+  Um card pode estar atrasado; não comprova entrega. Esta organização documental
+  não altera tarefas nem declara um novo aceite.
+- Ao retomar um histórico, conferir novamente branch, PR, ambiente e permissões.
+  `READY`, HTTP 200 e uma captura não provam a jornada completa nem o Gate P.

@@ -1,3 +1,6 @@
+> Histórico de implementação/validação. Datas e pendências abaixo são daquela
+> execução; consulte o [status vigente](../STATUS_ATUAL.md) antes de retomar.
+
 # Doctor redesign — visual QA
 
 final result: passed

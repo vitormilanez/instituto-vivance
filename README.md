@@ -4,6 +4,27 @@ Plataforma de cuidado longitudinal supervisionado por profissionais de saúde.
 A aplicação organiza contexto antes da consulta, acompanhamento, comunicação e
 publicações ao paciente sem automatizar decisão clínica.
 
+## Comece aqui — próximo Codex
+
+1. Trabalhe em **`/Users/vitormilanez/Desktop/Codes/vivance-atual`**, checkout
+   principal desta organização, baseado na main remota `ebadaab8` de 07/10/2026.
+   A documentação foi consolidada na branch `codex/docs-organization-20261008`.
+2. Leia [AGENTS](AGENTS.md), [Estado atual](docs/STATUS_ATUAL.md) e
+   [Direção e próxima entrega](docs/DIRECAO_E_SLICES.md). A aplicação está em `apps/web`.
+3. Para continuar exames, use o checkout preservado
+   `/Users/vitormilanez/Desktop/Codes/vivance-ia2-exams`, branch
+   `codex/exames-consolidados-contrato-20261003`, PR #78, `1e4493a`.
+   Leia o [handoff IA2](docs/IA2_EXAMES.md) antes de tocar no piloto.
+
+`/Users/vitormilanez/Desktop/Codes/vivance-repo` permanece em uma main local
+antiga (`5a64be9`) com alterações não commitadas; foi preservado, não é o ponto
+de partida. Não atualizar, limpar ou usar seu status por suposição. Esses caminhos
+são o mapa local de 08/10/2026; confirme sempre `git status`, remoto e SHA.
+
+**Próxima entrega recomendada:** exames sintéticos conferíveis pelo médico,
+aproveitando a fila/extração do PR #78. Resultados estruturados, Claude e aceite
+clínico ainda não estão entregues. A recomendação não inicia implementação.
+
 ## Aplicação atual
 
 - Código: [`apps/web`](apps/web/README.md)
@@ -26,7 +47,9 @@ npm ci
 npm run dev
 ```
 
-Validação completa:
+Durante a edição, execute verificações dirigidas à mudança conforme o
+[método por slices](docs/RETOMADA_DESENVOLVIMENTO.md). No fechamento do slice
+ou release, cumpra os checks exigidos pelo lote/CI:
 
 ```bash
 npm test
