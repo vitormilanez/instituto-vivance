@@ -1,5 +1,36 @@
 # Estado atual do Vivance
 
+## Atualização do pacote local — 09/10/2026
+
+O checkout de integração `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`
+(`codex/vivance-package-20261009`) reúne localmente o C3 do PR #93, a
+continuidade do PR #94 e o código IA2 do PR #78, inclusive o complemento
+anteriormente staged no clone IA2. Não houve push, alteração de PR, deploy ou
+aplicação de migration nesta etapa. A `main` remota segue em `ebadaab8` na
+última conferência; PRs #93/#94/#78 continuam drafts e #78 permanece com
+conflito remoto. O clone IA2 original foi preservado.
+
+O projeto confirmado por leitura é `instituto-vivance-dev`
+(`oxuwrdjojsmgxoljqkuk`), com 63 migrations aplicadas até C3. Vault está
+instalado; `pg_cron` e `pg_net` estão disponíveis, ainda não instalados. A
+nova migration `20261009231639_ia2_structured_exam_items.sql` foi posicionada
+após C3 no pacote e não foi aplicada. Scripts locais preparam o agendamento
+sintético da Edge Function com segredo no Vault. `typecheck`, lint e
+`deno check` passaram; 115 testes PGlite passaram com a ordem final de
+migrations. Dois testes do parser fictício passaram; a extração do PDF de
+fixture gerado retornou 3 páginas, 44 marcadores e 1 trecho narrativo com
+fonte exata. O lint focado nos arquivos novos de serviço/interface passou; as
+execuções completas de typecheck/lint foram interrompidas por I/O lento do
+checkout sincronizado. O CI do SHA final deverá fechar esses checks.
+
+**Limites:** não há prova de fila autônoma, parser de resultados nem interface
+de revisão de itens no Preview, embora o recorte fictício esteja implementado
+localmente. C3 ainda precisa de isolamento visual por
+outros papéis/vínculos e aceite operacional; consulta → retorno depende de
+registro médico no cenário sintético; IA2 depende de contrato de laudo,
+execução do worker no dev e avaliação clínica separada. Não há autorização
+para dados reais; Gate P continua aberto. Ver [checkpoints](CHECKPOINTS_ENTREGAS.md).
+
 Consolidado documental em **08/10/2026**, sobre a `origin/main`
 `ebadaab8e5fa64d49355c459dee92707edbe5557` (PR #92). Git e situação dos PRs
 foram conferidos nesta data. Os registros de publicação abaixo são evidências

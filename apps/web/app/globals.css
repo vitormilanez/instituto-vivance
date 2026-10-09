@@ -4203,6 +4203,19 @@ a.more-tools-card:hover {
   border-top: 1px solid var(--border);
   background: var(--canvas);
 }
+.document-extraction-panel {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.document-extraction-panel > button { min-height: 36px; }
+.document-extraction-content { margin-top: 12px; }
+.document-extraction-content > p { margin: 0 0 12px; }
+.document-extraction-pages { display: grid; gap: 8px; padding-left: 24px; }
+.document-extraction-pages li { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; }
+.document-extraction-pages summary { cursor: pointer; font-weight: 700; }
+.document-extraction-pages pre { max-height: 360px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 13px; }
+.document-extraction-pages a { display: inline-block; margin-top: 8px; }
 .document-review-heading h4 { margin: 0; color: var(--ink); font-size: 16px; }
 .document-review-heading p { margin: 4px 0 16px; color: var(--muted); font-size: 13px; }
 .document-review-heading .document-original-filename { margin-top: -10px; overflow-wrap: anywhere; font-size: 12px; }

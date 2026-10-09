@@ -1,5 +1,25 @@
 # IA2 — continuidade dos exames sintéticos
 
+> **Atualização de 09/10/2026:** o pacote local de integração está em
+> `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`, branch
+> `codex/vivance-package-20261009`. Ele agrega o PR #78 ao C3/PR #94 e inclui
+> worker Edge e a migration local de itens revisáveis, renumerada para
+> `20261009231639_ia2_structured_exam_items.sql` após as migrations C3.
+> O worker reconhece apenas a fixture PDF explicitamente fictícia: 44
+> marcadores e um trecho narrativo ficam ligados a página/trecho, e a tela
+> médica oferece revisão versionada por item sem publicação ao paciente.
+> Parser e PDF de fixture passaram localmente; essa experiência ainda não foi
+> implantada nem validada no Preview.
+> Nada foi publicado ou aplicado. Os passos de ativação controlada estão em
+> `scripts/ops/activate-ia2-synthetic-worker.sql` e
+> `scripts/ops/deactivate-ia2-synthetic-worker.sql`; exigem projeto dev
+> confirmado, função publicada, `pg_cron`/`pg_net` instalados e Vault com
+> `vivance_ia2_worker_url` e `vivance_ia2_worker_cron_secret` correspondente
+> ao segredo Edge `EXAM_WORKER_CRON_SECRET`. Antes de uso, revisar os
+> privilégios do executor do job e conferir job, tentativa, falha/retry e
+> negação em sessão autenticada. O texto abaixo registra o estado histórico
+> do PR #78 e não substitui os [checkpoints atuais](CHECKPOINTS_ENTREGAS.md).
+
 Consolidado em **08/10/2026**. Este handoff resume o trabalho que existe fora da
 main e aponta ao contrato/evidências originais; não duplica o plano de IA.
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { maxDocumentBytes } from "@/modules/documents/validation";
@@ -21,6 +21,9 @@ import type {
   PatientDocuments,
   StaffDocuments,
 } from "@/modules/documents/service";
+import type { DocumentExtraction } from "@/modules/exams/service";
+import type { PatientExamOverview } from "@/modules/exams/overview-service";
+import { ExamOverviewPanel } from "./exam-overview-panel";
 import { clinicalTime } from "./encounter-editor";
 
 type DocumentItem =
@@ -39,6 +42,13 @@ const reviewLabels: Record<string, string> = {
   approved: "Conferido",
   rejected: "Não utilizável",
   needs_follow_up: "Precisa de acompanhamento",
+};
+const extractionFailureLabels: Record<string, string> = {
+  invalid_pdf: "O PDF não pôde ser lido.",
+  password_protected: "O PDF está protegido por senha.",
+  page_limit: "O PDF ultrapassa o limite de páginas deste piloto.",
+  text_limit: "O texto ultrapassa o limite deste piloto.",
+  incomplete_text: "A leitura não cobriu todas as páginas.",
 };
 
 export function byteLimit() {
@@ -289,12 +299,14 @@ function DocumentList({
   showPatient,
   reviews = [],
   canReview = false,
+  pilotDocumentIds = [],
 }: {
   documents: DocumentItem[];
   tenant: string;
   showPatient: boolean;
   reviews?: StaffDocuments["reviews"];
   canReview?: boolean;
+  pilotDocumentIds?: string[];
 }) {
   const [openReviewId, setOpenReviewId] = useState<string | null>(null);
   if (!documents.length)
@@ -377,11 +389,196 @@ function DocumentList({
                 originalFilename={document.original_filename}
               />
             )}
+            {pilotDocumentIds.includes(document.id) && (
+              <ExamTextPanel tenant={tenant} documentId={document.id} title={title} canExtract={canReview} />
+            )}
           </article>
         );
       })}
     </div>
   );
+}
+
+function ExamTextPanel({ tenant, documentId, title, canExtract }: {
+  tenant: string;
+  documentId: string;
+  title: string;
+  canExtract: boolean;
+}) {
+  const endpoint = `/api/v1/clinics/${tenant}/documents/${documentId}/extraction`;
+  const originalUrl = `/api/v1/clinics/${tenant}/documents/${documentId}/download`;
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [extraction, setExtraction] = useState<DocumentExtraction | null>(null);
+  const [job, setJob] = useState<{ status: string; attempt_count: number; max_attempts: number } | null>(null);
+  const [error, setError] = useState("");
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (pollTimer.current) clearTimeout(pollTimer.current); }, []);
+
+  async function load(showBusy = true) {
+    if (showBusy) setBusy(true);
+    setError("");
+    try {
+      const response = await fetch(endpoint, { cache: "no-store", signal: AbortSignal.timeout(20_000) });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "Não foi possível consultar o texto.");
+      setExtraction(body.extraction ?? null);
+      setJob(body.job ?? null);
+      setLoaded(true);
+      if (pollTimer.current) clearTimeout(pollTimer.current);
+      if (body.job?.status === "pending" || body.job?.status === "processing")
+        pollTimer.current = setTimeout(() => void load(false), 2500);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível consultar o texto.");
+    } finally {
+      if (showBusy) setBusy(false);
+    }
+  }
+
+  async function run() {
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(20_000),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "Não foi possível extrair o texto.");
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível extrair o texto.");
+      setBusy(false);
+    }
+  }
+
+  return <section className="document-extraction-panel" aria-label={`Texto extraído de ${title}`}>
+    <button type="button" className="secondary" disabled={busy} aria-expanded={open}
+      onClick={() => { setOpen(!open); if (open && pollTimer.current) clearTimeout(pollTimer.current); if (!open) void load(); }}>
+      {open ? "Fechar texto" : "Ver texto extraído"}
+    </button>
+    {open && <div className="document-extraction-content">
+      <p className="module-footnote">Transcrição automática das páginas, ainda sem interpretação ou revisão clínica. Confira o original antes de usar qualquer resultado.</p>
+      {busy && <p role="status">Lendo páginas…</p>}
+      {error && <p role="alert">{error}</p>}
+      {!busy && loaded && !extraction && <div>
+        {job?.status === "pending" || job?.status === "processing"
+          ? <p role="status">Extração na fila · tentativa {job.attempt_count} de {job.max_attempts}. A página atualiza o resultado automaticamente.</p>
+          : job?.status === "failed"
+            ? <p role="status">Não foi possível concluir o processamento automático. O original continua disponível para conferência.</p>
+            : <p>Este exame ainda não tem texto extraído.</p>}
+        {!job && canExtract && <button type="button" disabled={busy} onClick={() => void run()}>Extrair texto do PDF</button>}
+      </div>}
+      {!busy && extraction && <>
+        {extraction.status === "failed"
+          ? <p role="status">{extractionFailureLabels[extraction.failure_code ?? ""] ?? "Não foi possível ler o PDF."} O original continua disponível para conferência.</p>
+          : <p role="status">{extraction.page_count} página{extraction.page_count === 1 ? "" : "s"} · {extraction.extracted_page_count} com texto · {extraction.review_page_count} para conferência</p>}
+        <ol className="document-extraction-pages">
+          {extraction.pages.map((page) => <li key={page.page_number}>
+            <details>
+              <summary>Página {page.page_number} · {page.possible_duplicate_of_page
+                ? `Possível repetição da página ${page.possible_duplicate_of_page}`
+                : page.status === "extracted" ? "Texto disponível" : "Conferir no original"}</summary>
+              {page.possible_duplicate_of_page && <p>As páginas são muito semelhantes. Ambas foram preservadas; confira se há alguma diferença clínica antes de considerar uma repetição.</p>}
+              {page.extracted_text ? <pre>{page.extracted_text}</pre> : <p>Não foi encontrado texto selecionável nesta página.</p>}
+              <a href={`${originalUrl}#page=${page.page_number}`} target="_blank" rel="noreferrer">Abrir página no PDF original</a>
+            </details>
+          </li>)}
+        </ol>
+        {extraction.structuredUnavailable && <p role="status">A etapa de resultados conferíveis ainda não está ativa neste ambiente. O texto e o original seguem disponíveis para conferência.</p>}
+        {extraction.items.length > 0 && <details>
+          <summary>Itens fictícios para conferência · {extraction.items.filter((item) => item.reviews.length > 0).length} de {extraction.items.length} com decisão</summary>
+          <p className="module-footnote">Transcrição determinística restrita ao PDF de demonstração. Nenhum item está aprovado para uso clínico ou visível ao paciente. Compare o trecho e a página original antes de registrar a revisão.</p>
+          <ol className="document-extraction-pages">
+            {extraction.items.map((item) => <li key={item.id}>
+              <ExamResultItemReview item={item} originalUrl={originalUrl} endpoint={`${endpoint}/review`} canReview={canExtract} onReviewed={() => load(false)} />
+            </li>)}
+          </ol>
+        </details>}
+      </>}
+    </div>}
+  </section>;
+}
+
+function ExamResultItemReview({ item, originalUrl, endpoint, canReview, onReviewed }: {
+  item: DocumentExtraction["items"][number];
+  originalUrl: string;
+  endpoint: string;
+  canReview: boolean;
+  onReviewed: () => void;
+}) {
+  const [decision, setDecision] = useState<"confirmed" | "corrected" | "rejected">("confirmed");
+  const [replacement, setReplacement] = useState("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const requestRef = useRef<{ key: string; id: string } | null>(null);
+  const latest = item.reviews.at(-1);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const correctedData = decision === "corrected"
+        ? { [item.item_kind === "narrative" ? "narrative_text" : "literal_value"]: replacement.trim() }
+        : null;
+      const payloadKey = JSON.stringify({ decision, correctedData, note: note.trim() || null });
+      if (requestRef.current?.key !== payloadKey)
+        requestRef.current = { key: payloadKey, id: crypto.randomUUID() };
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId: item.id, requestId: requestRef.current.id, decision, correctedData, note: note.trim() || null }),
+        signal: AbortSignal.timeout(20_000),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "Não foi possível registrar a revisão.");
+      setReplacement("");
+      setNote("");
+      requestRef.current = null;
+      onReviewed();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível registrar a revisão.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <details>
+    <summary>{item.literal_name} · página {item.page_number} · {latest ? `revisão ${latest.version}: ${latest.decision}` : "sem revisão"}</summary>
+    <p><strong>Transcrição inicial:</strong> {item.item_kind === "narrative" ? item.narrative_text : <>{item.literal_value} {item.unit_text} · referência literal: {item.reference_text ?? "não informada"}</>}</p>
+    {item.requires_review_reason === "possible_duplicate" && <p role="status">Página semelhante a outra; confira ambas no original.</p>}
+    <p><strong>Trecho de origem:</strong> <q>{item.source_excerpt}</q></p>
+    <a href={`${originalUrl}#page=${item.page_number}`} target="_blank" rel="noreferrer">Abrir página {item.page_number} no PDF original</a>
+    {item.reviews.length > 0 && <ol>
+      {item.reviews.map((review) => <li key={review.id}>
+        Revisão {review.version} · {review.decision} · {clinicalTime(review.reviewed_at)}
+        {review.corrected_data && <> · correção: {JSON.stringify(review.corrected_data)}</>}
+        {review.note && <> · nota: {review.note}</>}
+      </li>)}
+    </ol>}
+    {canReview && <form onSubmit={(event) => void submit(event)}>
+      <label>Decisão sobre a transcrição
+        <select value={decision} onChange={(event) => setDecision(event.target.value as typeof decision)}>
+          <option value="confirmed">Confirmar transcrição</option>
+          <option value="corrected">Corrigir transcrição</option>
+          <option value="rejected">Descartar item</option>
+        </select>
+      </label>
+      {decision === "corrected" && <label>Texto corrigido pelo médico
+        <textarea required maxLength={item.item_kind === "narrative" ? 12000 : 500} value={replacement} onChange={(event) => setReplacement(event.target.value)} />
+      </label>}
+      <label>Nota {decision === "rejected" ? "obrigatória" : "opcional"}
+        <textarea required={decision === "rejected"} maxLength={2000} value={note} onChange={(event) => setNote(event.target.value)} />
+      </label>
+      {error && <p role="alert">{error}</p>}
+      <button type="submit" disabled={busy}>{busy ? "Registrando…" : "Registrar revisão do item"}</button>
+    </form>}
+  </details>;
 }
 
 function DocumentReviewPanel({
@@ -503,13 +700,18 @@ function DocumentReviewPanel({
 export function StaffPatientDocumentsPanel({
   initial,
   base,
+  pilotDocumentIds = [],
+  overview = null,
 }: {
   initial: StaffDocuments;
   base: string;
+  pilotDocumentIds?: string[];
+  overview?: PatientExamOverview | null;
 }) {
   const pageHref = (page: number) => `${base}&pagina=${page}`;
   return (
     <section className="document-board" aria-labelledby="patient-documents-title">
+      {overview && <ExamOverviewPanel overview={overview} tenant={initial.clinic.id} />}
       <div className="section-heading">
         <div>
           <h2 id="patient-documents-title">Documentos do paciente</h2>
@@ -523,6 +725,7 @@ export function StaffPatientDocumentsPanel({
         showPatient={false}
         reviews={initial.reviews}
         canReview={initial.canReview}
+        pilotDocumentIds={pilotDocumentIds}
       />
       <nav className="agenda-actions" aria-label="Páginas de documentos deste paciente">
         {initial.page > 1 && <Link href={pageHref(initial.page - 1)}>Anterior</Link>}

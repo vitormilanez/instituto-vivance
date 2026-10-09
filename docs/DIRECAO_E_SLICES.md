@@ -57,6 +57,13 @@ entregar esse percurso delimitado antes de ampliar IA2; a sequência completa e
 os aceites estão na avaliação. O usuário pediu iniciar na nova branch
 `codex/c3-exame-solicitado-20261008`; o PR #78 continua preservado.
 
+**Decisão de execução em 09/10:** avançar pela sequência dos
+[checkpoints](CHECKPOINTS_ENTREGAS.md) e reunir o código em um pacote de
+integração, sem publicar cada slice separadamente. O trabalho local está em
+`codex/vivance-package-20261009`; Preview, implantação sintética, aceite
+operacional, avaliação clínica e liberação para dados reais continuam gates
+distintos. A reunião de código não marca os aceites pendentes como concluídos.
+
 Para IA2, preservar o [handoff](IA2_EXAMES.md): fechar negação ao paciente e
 falha/retentativa da fila, definir resultados/narrativas com origem por página
 e revisão por item. Claude, OCR e uso clínico continuam pendentes.
@@ -65,11 +72,12 @@ C1/C2/C3 são trilha de prontidão operacional, não motivo para refazer o pilot
 sintético já validado. Evoluções adicionais de Hoje/Pacientes devem demonstrar
 lacuna, escopo e aceite, preservando o briefing/gráfico entregues.
 
-C3 validou parcialmente a sessão do paciente no Preview do exame; ainda precisa
-validar revisão/recibo posterior, troca de agendamento, origem/data/autoria,
-consulta/retorno e separação entre revisão e publicação. A decisão anterior de manter
-apenas Guilherme e Vitor não cobre admin, enfermagem ou isolamento entre pacientes;
-esses casos exigem outro ciclo de teste e não podem ser declarados aceitos.
+C3 validou parcialmente pedido/resposta, revisão e recibo posteriores no Preview
+com PDF fictício, preservando revisão separada de publicação. Ainda faltam
+consulta/retorno, data de realização do exame, isolamento de UI por outros
+papéis/vínculos e aceite operacional. A decisão de manter apenas Guilherme e
+Vitor não cobre admin, enfermagem ou isolamento entre pacientes; esses casos
+exigem outro ciclo de teste e não podem ser declarados aceitos.
 
 ## IA: escolher o recurso pelo problema
 

@@ -1067,6 +1067,103 @@ export type Database = {
           },
         ];
       };
+      document_extraction_runs: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          processing_job_id: string | null;
+          source_content_sha256: string;
+          extractor_name: string;
+          extractor_version: string;
+          status: string;
+          failure_code: string | null;
+          page_count: number;
+          extracted_page_count: number;
+          review_page_count: number;
+          failed_page_count: number;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      document_extracted_pages: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          extraction_run_id: string;
+          page_number: number;
+          status: string;
+          extraction_method: string;
+          extracted_text: string | null;
+          text_sha256: string | null;
+          possible_duplicate_of_page: number | null;
+          failure_code: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      exam_result_items: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          extraction_run_id: string;
+          source_page_id: string;
+          page_number: number;
+          item_index: number;
+          item_kind: string;
+          literal_name: string;
+          literal_value: string | null;
+          numeric_value: number | null;
+          unit_text: string | null;
+          reference_text: string | null;
+          issuer_flag: string | null;
+          method_text: string | null;
+          specimen_text: string | null;
+          observed_on: string | null;
+          narrative_text: string | null;
+          source_excerpt: string;
+          source_excerpt_sha256: string;
+          source_start: number;
+          source_end: number;
+          extraction_confidence: number | null;
+          requires_review_reason: string;
+          extractor_name: string;
+          extractor_version: string;
+          structured_content_sha256: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      exam_result_item_reviews: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          item_id: string;
+          review_request_id: string;
+          version: number;
+          decision: string;
+          corrected_data: Json | null;
+          note: string | null;
+          reviewed_by: string;
+          reviewed_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       patient_accounts: {
         Row: {
           created_at: string;
@@ -1510,6 +1607,97 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      persist_document_text_extraction: {
+        Args: {
+          target_tenant: string;
+          target_document: string;
+          source_content_sha256: string;
+          extractor_name: string;
+          extractor_version: string;
+          pages: Json;
+          failure_code?: string | null;
+          target_processing_job?: string | null;
+        };
+        Returns: string;
+      };
+      enqueue_synthetic_exam_text_extraction: {
+        Args: { target_tenant: string; target_document: string };
+        Returns: string;
+      };
+      claim_next_exam_text_extraction_job: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          job_id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          attempt_count: number;
+          max_attempts: number;
+          lease_token: string;
+        }[];
+      };
+      claim_doctor_exam_text_extraction_job: {
+        Args: { target_tenant: string; target_document: string };
+        Returns: {
+          job_id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          attempt_count: number;
+          max_attempts: number;
+          lease_token: string;
+        }[];
+      };
+      complete_doctor_exam_text_extraction_job: {
+        Args: { target_tenant: string; target_document: string; target_job: string; target_lease: string };
+        Returns: boolean;
+      };
+      fail_doctor_exam_text_extraction_job: {
+        Args: {
+          target_tenant: string; target_document: string; target_job: string;
+          target_lease: string; failure_code: string;
+        };
+        Returns: { status: string; available_at: string }[];
+      };
+      persist_doctor_exam_text_extraction: {
+        Args: {
+          target_job: string;
+          target_lease: string;
+          target_tenant: string;
+          target_document: string;
+          source_content_sha256: string;
+          extractor_name: string;
+          extractor_version: string;
+          pages: Json;
+          failure_code?: string | null;
+        };
+        Returns: string;
+      };
+      persist_queued_document_text_extraction: {
+        Args: {
+          target_job: string;
+          target_lease: string;
+          target_tenant: string;
+          target_document: string;
+          source_content_sha256: string;
+          extractor_name: string;
+          extractor_version: string;
+          pages: Json;
+          failure_code?: string | null;
+        };
+        Returns: string;
+      };
+      review_exam_result_item: {
+        Args: {
+          target_tenant: string;
+          target_item: string;
+          target_review_request: string;
+          decision: string;
+          corrected_data?: Json | null;
+          note?: string | null;
+        };
+        Returns: string;
+      };
       create_patient_for_care: {
         Args: {
           target_tenant: string;

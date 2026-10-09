@@ -3,3 +3,6 @@ verify_jwt = false
 
 [functions.invite-patient]
 verify_jwt = true
+
+[functions.exam-text-worker]
+verify_jwt = false
