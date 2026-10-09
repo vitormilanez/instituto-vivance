@@ -3570,6 +3570,11 @@ a.more-tools-card:hover {
   flex-wrap: wrap;
   gap: 8px 20px;
 }
+.patient-record-next-links span {
+  align-self: center;
+  color: var(--muted);
+  font-size: 13px;
+}
 
 /* A calm, task-first path through the patient portal. */
 .patient-portal-header {
