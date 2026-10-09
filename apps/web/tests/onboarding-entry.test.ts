@@ -13,6 +13,10 @@ const claimFunction = readFileSync(
   ),
   "utf8",
 );
+const examWorker = readFileSync(
+  new URL("../../../supabase/functions/exam-text-worker/index.ts", import.meta.url),
+  "utf8",
+);
 const onboardingWorkspace = readFileSync(
   new URL("../components/onboarding-workspace.tsx", import.meta.url),
   "utf8",
@@ -22,7 +26,7 @@ const invitationClaim = readFileSync(
   "utf8",
 );
 
-test("only the token-protected patient claim function is public", () => {
+test("JWT-free Edge Functions are limited to explicit token and cron-secret gates", () => {
   assert.match(
     config,
     /\[functions\.claim-patient-invitation\]\s+verify_jwt = false/,
@@ -31,7 +35,13 @@ test("only the token-protected patient claim function is public", () => {
     config,
     /\[functions\.invite-patient\]\s+verify_jwt = true/,
   );
-  assert.equal(config.match(/verify_jwt = false/g)?.length, 1);
+  assert.deepEqual(
+    [...config.matchAll(/\[functions\.([^\]]+)\]\s+verify_jwt = false/g)]
+      .map((match) => match[1]).sort(),
+    ["claim-patient-invitation", "exam-text-worker"],
+  );
+  assert.match(examWorker, /EXAM_WORKER_CRON_SECRET/);
+  assert.match(examWorker, /request\.headers\.get\("authorization"\) !== `Bearer \$\{cronSecret\}`/);
 });
 
 test("a recoverable claim failure restores the opaque token", () => {
