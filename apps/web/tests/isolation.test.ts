@@ -5064,6 +5064,25 @@ test("exam text persistence requires an explicitly registered synthetic document
     await denied(persistQueued, [firstJob.rows[0].id, randomUUID(), ...queuedValues.slice(2)]);
     const queuedRun = await db.query<{ id: string }>(persistQueued, queuedValues);
     assert.equal(queuedRun.rows.length, 1);
+    const metadataOnly = {
+      document_type: "laudo", title: "Laudo fictício sem resultados mensuráveis",
+      issuer: "Emissor fictício", observed_on: null, identity_text: null,
+      summary: ["Texto do emissor requer conferência no original."],
+      quality_notes: ["Nenhum item extraído com proveniência suficiente."],
+      model: "claude-test", prompt_version: "1", input_tokens: 12, output_tokens: 8,
+    };
+    const persistEmptyBundle = "select public.persist_exam_ai_extraction($1,'claude-test','1',$2::jsonb,$3::jsonb) count";
+    await db.exec("set local role service_role");
+    await db.query("select set_config('request.jwt.claims','{\"role\":\"service_role\"}',true)");
+    await denied(persistEmptyBundle, [queuedRun.rows[0].id, JSON.stringify({}), JSON.stringify(metadataOnly)]);
+    assert.equal((await db.query<{ count: number }>(persistEmptyBundle,
+      [queuedRun.rows[0].id, JSON.stringify([]), JSON.stringify(metadataOnly)])).rows[0].count, 0);
+    await db.exec("reset role");
+    assert.equal((await db.query("select id from public.exam_result_items where extraction_run_id=$1",
+      [queuedRun.rows[0].id])).rows.length, 0);
+    assert.equal((await db.query("select extraction_run_id from public.exam_document_metadata where extraction_run_id=$1",
+      [queuedRun.rows[0].id])).rows.length, 1);
+    await switchActor("doctor");
     await db.query("select public.complete_doctor_exam_text_extraction_job($1,$2,$3,$4)",
       [a, document, firstJob.rows[0].id, claim.rows[0].lease_token]);
     await denied(persistQueued, queuedValues);
@@ -5098,7 +5117,30 @@ test("exam text persistence requires an explicitly registered synthetic document
       "select public.persist_synthetic_exam_result_items($1,'synthetic-structure','1',$2::jsonb) count",
       [reviewed.rows[0].id, JSON.stringify(structuredItems)],
     )).rows[0].count, 1);
+    const aiItems = [{ ...structuredItems[0], item_index: 2, requires_review_reason: "ai_extraction" }];
+    const persistAiItems = "select public.persist_exam_result_items($1,'claude-test','1',$2::jsonb) count";
+    assert.equal((await db.query<{ count: number }>(persistAiItems,
+      [reviewed.rows[0].id, JSON.stringify(aiItems)])).rows[0].count, 1);
+    assert.equal((await db.query<{ count: number }>(persistAiItems,
+      [reviewed.rows[0].id, JSON.stringify(aiItems)])).rows[0].count, 0);
+    await denied(persistAiItems, [reviewed.rows[0].id,
+      JSON.stringify([{ ...aiItems[0], source_start: 1 }])]);
+    const metadata = {
+      document_type: "laudo", title: "Exame sintético", issuer: "Emissor fictício",
+      observed_on: null, identity_text: null, summary: ["LAUDO SINTETICO A"],
+      quality_notes: [], model: "claude-test", prompt_version: "1",
+      input_tokens: 12, output_tokens: 8,
+    };
+    const persistMetadata = "select public.persist_exam_document_metadata($1,$2::jsonb) id";
+    assert.equal((await db.query<{ id: string }>(persistMetadata,
+      [reviewed.rows[0].id, JSON.stringify(metadata)])).rows[0].id, reviewed.rows[0].id);
+    assert.equal((await db.query<{ id: string }>(persistMetadata,
+      [reviewed.rows[0].id, JSON.stringify(metadata)])).rows[0].id, reviewed.rows[0].id);
+    await denied(persistMetadata, [reviewed.rows[0].id,
+      JSON.stringify({ ...metadata, title: "Different" })]);
     await switchActor("doctor");
+    await denied(persistMetadata, [reviewed.rows[0].id, JSON.stringify(metadata)]);
+    await denied("select public.register_exam_ai_test_patient($1,$2)", [a, patient]);
     const item = await db.query<{ id: string }>(
       "select id from public.exam_result_items where extraction_run_id=$1",
       [reviewed.rows[0].id],
@@ -5140,6 +5182,9 @@ test("exam text persistence requires an explicitly registered synthetic document
     const retryJob = await db.query<{ id: string }>(enqueue, [a, retryDocument]);
     await db.exec("set local role service_role");
     await db.query("select set_config('request.jwt.claims','{\"role\":\"service_role\"}',true)");
+    await denied("select public.persist_exam_document_metadata($1,$2::jsonb)", [queuedRun.rows[0].id,
+      JSON.stringify({ document_type: "laudo", title: "Late metadata", summary: [],
+        quality_notes: [], model: "claude-test", prompt_version: "1" })]);
     const serviceClaim = await db.query<{ job_id: string; lease_token: string }>(
       "select * from public.claim_next_exam_text_extraction_job()",
     );
@@ -5160,7 +5205,119 @@ test("exam text persistence requires an explicitly registered synthetic document
     await db.query("select * from public.fail_processing_job($1,$2,'permanent')", [
       retryJob.rows[0].id, serviceRetry.rows[0].lease_token,
     ]);
+    await db.query("select public.register_exam_ai_test_patient($1,$2)", [a, patient]);
+    const imageReservation = await db.query<{ document_id: string; storage_path: string }>(
+      "select * from public.reserve_patient_document($1,$2,$3,'synthetic-image.png','image/png',6,'exam','shared')",
+      [a, patient, users.doctor.id],
+    );
+    const imageDocument = imageReservation.rows[0].document_id;
+    await db.exec("reset role");
+    await db.query("insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [imageReservation.rows[0].storage_path]);
+    await db.exec("set local role service_role");
+    await db.query("select public.complete_patient_document($1,$2,$3)",
+      [a, imageDocument, users.doctor.id]);
+    await db.exec("reset role");
+    const automaticJob = await db.query<{ id: string; created_by: string }>(
+      "select id,created_by from public.processing_jobs where tenant_id=$1 and idempotency_key=$2",
+      [a, imageDocument],
+    );
+    assert.equal(automaticJob.rows.length, 1);
+    assert.equal(automaticJob.rows[0].created_by, users.doctor.id);
+    await db.exec("set local role service_role");
+    await db.query("select set_config('request.jwt.claims','{\"role\":\"service_role\"}',true)");
+    const imageClaim = await db.query<{ job_id: string; lease_token: string }>(
+      "select * from public.claim_next_exam_text_extraction_job()",
+    );
+    assert.equal(imageClaim.rows[0].job_id, automaticJob.rows[0].id);
+    const imageText = "LAUDO SINTETICO EM IMAGEM";
+    const imageRun = await db.query<{ id: string }>(
+      "select public.persist_queued_document_text_extraction($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9) id",
+      [imageClaim.rows[0].job_id, imageClaim.rows[0].lease_token, a, imageDocument,
+        "d".repeat(64), "claude", "1", JSON.stringify([{ page_number: 1,
+          status: "extracted", extraction_method: "claude_vision",
+          extracted_text: imageText, text_sha256: pageHash(imageText),
+          possible_duplicate_of_page: null, failure_code: null }]), null],
+    );
+    await db.exec("reset role");
+    const imagePage = await db.query<{ id: string }>(
+      "select id from public.document_extracted_pages where extraction_run_id=$1",
+      [imageRun.rows[0].id],
+    );
+    await db.exec("set local role service_role");
+    await db.query("select set_config('request.jwt.claims','{\"role\":\"service_role\"}',true)");
+    const imageItems = [{ ...aiItems[0], source_page_id: imagePage.rows[0].id,
+      source_excerpt: imageText, source_end: imageText.length, narrative_text: imageText }];
+    const imageMetadata = { ...metadata, title: "Imagem sintética", summary: [imageText] };
+    const persistBundle = "select public.persist_exam_ai_extraction($1,'claude-test','1',$2::jsonb,$3::jsonb) count";
+    await denied(persistBundle, [imageRun.rows[0].id, JSON.stringify(imageItems),
+      JSON.stringify({ ...imageMetadata, title: "" })]);
+    await db.exec("reset role");
+    assert.equal((await db.query("select id from public.exam_result_items where extraction_run_id=$1",
+      [imageRun.rows[0].id])).rows.length, 0);
+    assert.equal((await db.query("select extraction_run_id from public.exam_document_metadata where extraction_run_id=$1",
+      [imageRun.rows[0].id])).rows.length, 0);
+    await db.exec("set local role service_role");
+    await db.query("select set_config('request.jwt.claims','{\"role\":\"service_role\"}',true)");
+    assert.equal((await db.query<{ count: number }>(persistBundle,
+      [imageRun.rows[0].id, JSON.stringify(imageItems), JSON.stringify(imageMetadata)])).rows[0].count, 1);
+    assert.equal((await db.query<{ count: number }>(persistBundle,
+      [imageRun.rows[0].id, JSON.stringify(imageItems), JSON.stringify(imageMetadata)])).rows[0].count, 0);
+    await db.query("select public.complete_processing_job($1,$2)",
+      [imageClaim.rows[0].job_id, imageClaim.rows[0].lease_token]);
+    await db.exec("reset role");
+    await db.exec("set local role service_role");
+    const privateReservation = await db.query<{ document_id: string; storage_path: string }>(
+      "select * from public.reserve_patient_document($1,$2,$3,'private-exam.png','image/png',6,'exam','internal')",
+      [a, patient, users.patient.id],
+    );
+    await db.exec("reset role");
+    await db.query("insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [privateReservation.rows[0].storage_path]);
+    await db.exec("set local role service_role");
+    await db.query("select public.complete_patient_document($1,$2,$3)",
+      [a, privateReservation.rows[0].document_id, users.patient.id]);
+    await db.exec("reset role");
+    assert.equal((await db.query("select id from public.processing_jobs where idempotency_key=$1",
+      [privateReservation.rows[0].document_id])).rows.length, 0);
+    await db.query(
+      "insert into public.patient_profile_context_submissions(tenant_id,patient_id,user_id,section,source_version,payload) values($1,$2,$3,'exams',1,$4::jsonb)",
+      [a, patient, users.patient.id, JSON.stringify({
+        status: "shared", documentIds: [privateReservation.rows[0].document_id],
+      })],
+    );
+    assert.equal((await db.query("select id from public.processing_jobs where idempotency_key=$1",
+      [privateReservation.rows[0].document_id])).rows.length, 1);
+    await db.exec("set local role service_role");
+    const photoReservation = await db.query<{ document_id: string; storage_path: string }>(
+      "select * from public.reserve_patient_document($1,$2,$3,'body-photo.png','image/png',6,'clinical_document','internal')",
+      [a, patient, users.patient.id],
+    );
+    await db.exec("reset role");
+    await db.query("insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [photoReservation.rows[0].storage_path]);
+    await db.exec("set local role service_role");
+    await db.query("select public.complete_patient_document($1,$2,$3)",
+      [a, photoReservation.rows[0].document_id, users.patient.id]);
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_profile_context_submissions(tenant_id,patient_id,user_id,section,source_version,payload) values($1,$2,$3,'photos',2,$4::jsonb)",
+      [a, patient, users.patient.id, JSON.stringify({ frontDocumentId: photoReservation.rows[0].document_id })],
+    );
+    assert.equal((await db.query("select id from public.processing_jobs where idempotency_key=$1",
+      [photoReservation.rows[0].document_id])).rows.length, 0);
+    await switchActor("doctor");
+    assert.equal((await db.query<{ id: string }>(
+      "select public.enqueue_exam_extraction($1,$2) id", [a, imageDocument],
+    )).rows[0].id, automaticJob.rows[0].id);
     await switchActor("patient");
+    assert.equal((await db.query<{ id: string }>(
+      "select public.enqueue_exam_extraction($1,$2) id", [a, imageDocument],
+    )).rows[0].id, automaticJob.rows[0].id);
+    assert.equal((await db.query(
+      "select extraction_run_id from public.exam_document_metadata where extraction_run_id=$1",
+      [reviewed.rows[0].id],
+    )).rows.length, 0);
     assert.equal(
       (await db.query("select id from public.document_extraction_runs where document_id=$1", [document])).rows.length,
       0,

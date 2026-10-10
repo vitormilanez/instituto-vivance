@@ -10,6 +10,9 @@ import { openWork } from "./open-work";
 import { staffRecentWeight } from "@/modules/longitudinal/service";
 import { preparationQuestions } from "@/modules/return-preparation/questionnaire";
 import { generateConsultationBrief } from "@/modules/ai/consultation-brief";
+import type { ConsultationBrief } from "@/modules/ai/consultation-brief";
+import { patientExamResults } from "@/modules/exams/results-service";
+import { examBriefTopics } from "@/modules/exams/results";
 import type { OpenWorkItem } from "./open-work-items";
 import type { ReceivedItem } from "./received-items";
 import {
@@ -154,15 +157,18 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
     const patientContext = contexts.get(item.id);
     return patientContext ? [{ item, patientContext }] : [];
   });
+  const examResultsByPatient = new Map(
+    [...new Set(briefCandidates.map(({ item }) => item.patient_id))]
+      .map((patientId) => [patientId, patientExamResults(id, patientId).catch(() => null)] as const),
+  );
   const briefs = new Map(
     await Promise.all(
       briefCandidates.map(async ({ item, patientContext }) => {
         const documentWork = work?.find(
           (entry) => entry.kind === "documents" && entry.patientId === item.patient_id,
         );
-        return [
-          item.id,
-          await generateConsultationBrief({
+        const [brief, examView] = await Promise.all([
+          generateConsultationBrief({
             tenantId: id,
             patientId: item.patient_id,
             appointment: { id: item.id, starts_at: item.starts_at },
@@ -175,6 +181,33 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
                   documentIds: documentWork?.unreviewedDocumentIds,
                 },
           }),
+          examResultsByPatient.get(item.patient_id) ?? Promise.resolve(null),
+        ]);
+        const examFacts = examView && !examView.unavailable
+          ? examBriefTopics(examView, id, item.patient_id) : null;
+        const examTopics = examFacts ? [
+          ...examFacts.topics.map((topic) => ({
+            kind: "exams" as const,
+            text: topic.text,
+            sources: [{
+              type: "exam_result_item",
+              id: topic.itemId,
+              date: examView!.documents.find((doc) => doc.id === topic.documentId)?.observedOn
+                ?? examView!.documents.find((doc) => doc.id === topic.documentId)?.receivedAt ?? item.starts_at,
+              href: topic.href,
+              label: "Resultado conferido · abrir origem",
+            }],
+          })),
+          ...(examFacts.pending ? [{
+            kind: "exams" as const,
+            text: `${examFacts.pending} ${examFacts.pending === 1 ? "resultado extraído aguarda" : "resultados extraídos aguardam"} conferência médica.`,
+            sources: [{ type: "exam_results", id: item.patient_id, date: item.starts_at, href: examFacts.href, label: "Exames organizados" }],
+          }] : []),
+        ] : [];
+        const combined: ConsultationBrief = { ...brief, topics: [...brief.topics, ...examTopics] };
+        return [
+          item.id,
+          combined,
         ] as const;
       }),
     ),

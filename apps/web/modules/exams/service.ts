@@ -3,32 +3,29 @@ import { DomainError } from "@/lib/errors";
 import { tenantId } from "@/lib/validation";
 import { documentId } from "@/modules/documents/validation";
 import { requireClinic } from "@/modules/identity/service";
-import { syntheticPilotAllows } from "./pilot";
 
 export class ExamExtractionError extends DomainError {}
 
-function pilotDocument(tenantInput: string, documentInput: string) {
+function validatedDocument(tenantInput: string, documentInput: string) {
   const tenant = tenantId(tenantInput);
   const document = documentId(documentInput);
-  if (!syntheticPilotAllows(document))
-    throw new ExamExtractionError("A extração está restrita aos exames sintéticos do piloto.", 403);
   return { tenant, document };
 }
 
 export async function enqueueDocumentText(tenantInput: string, documentInput: string) {
-  const { tenant, document } = pilotDocument(tenantInput, documentInput);
+  const { tenant, document } = validatedDocument(tenantInput, documentInput);
   const { client } = await requireClinic(tenant, ["doctor"]);
-  const result = await client.rpc("enqueue_synthetic_exam_text_extraction", {
+  const result = await client.rpc("enqueue_exam_extraction", {
     target_tenant: tenant,
     target_document: document,
   });
   if (result.error || !result.data)
-    throw new ExamExtractionError("Não foi possível colocar o exame na fila do piloto.", 503);
+    throw new ExamExtractionError("Não foi possível processar o exame. Confira se este paciente participa do teste de extração.", 503);
   return { jobId: result.data };
 }
 
 export async function documentExtraction(tenantInput: string, documentInput: string) {
-  const { tenant, document } = pilotDocument(tenantInput, documentInput);
+  const { tenant, document } = validatedDocument(tenantInput, documentInput);
   const { client } = await requireClinic(tenant, ["doctor", "nurse"]);
   const source = await client.from("patient_documents")
     .select("id,patient_id")
@@ -83,7 +80,7 @@ export async function documentExtraction(tenantInput: string, documentInput: str
 export type DocumentExtraction = NonNullable<Awaited<ReturnType<typeof documentExtraction>>["extraction"]>;
 
 export async function reviewExamItem(tenantInput: string, documentInput: string, input: unknown) {
-  const { tenant, document } = pilotDocument(tenantInput, documentInput);
+  const { tenant, document } = validatedDocument(tenantInput, documentInput);
   const { client } = await requireClinic(tenant, ["doctor"]);
   if (!input || typeof input !== "object") throw new ExamExtractionError("Revisão inválida.", 400);
   const value = input as Record<string, unknown>;

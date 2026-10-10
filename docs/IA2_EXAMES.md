@@ -1,100 +1,29 @@
-# IA2 — continuidade dos exames sintéticos
+# IA2 — exames sintéticos com origem verificável
 
-> **Estado em 09/10/2026:** o [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) reúne o PR #78 com C3/PRs #93 e #94. Checkout `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`. A migration `20261009231639_ia2_structured_exam_items.sql` está aplicada **somente** em `instituto-vivance-dev`; a Edge Function `exam-text-worker` v2 e o Cron sintético estão ativos nesse mesmo projeto. O job disparado pelo médico para o PDF fictício `vivance-ia2-synthetic-cron-20261009.pdf` terminou sem aba aberta, com 3 páginas e 45 itens ligados ao trecho e original. Uma revisão médica de transcrição fictícia persistiu; a conta de paciente não pôde ler a extração. O [Preview do pacote](https://instituto-vivance-m4cifg9re-vtr-consulting.vercel.app) e os IDs estão registrados no [status atual](STATUS_ATUAL.md).
->
-> O parser atual só reconhece a fixture explicitamente fictícia; resultados de exames reais, contrato de laudo, outras classes de falha externa, Claude, OCR, aceite clínico e dados reais continuam pendentes. A lease expirada foi simulada no job fictício; o Cron concluiu a segunda tentativa sem aba aberta, preservando uma execução e 45 itens. A rota web agora apenas enfileira; o Cron é o executor. Os scripts `scripts/ops/enable-ia2-synthetic-cron-extensions.sql`, `activate-ia2-synthetic-worker.sql` e `deactivate-ia2-synthetic-worker.sql` operam somente após confirmar o projeto dev e dependem de segredo Edge/Vault fora do Git. O texto histórico abaixo descreve o PR #78 antes desta integração; use os [checkpoints](CHECKPOINTS_ENTREGAS.md) para a próxima ação.
+**Estado em 10/10/2026:** a base de texto/página, fila, Edge/Cron e revisão por item foi integrada pelo [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95). A extração estruturada com Claude foi implementada e testada localmente e no projeto dev sintético na branch `codex/exames-claude-medico-20261010`; PR, Preview e publicação desta rodada permanecem pendentes. O [status](STATUS_ATUAL.md) contém evidência e limites.
 
-Consolidado em **08/10/2026**. Este handoff resume o trabalho que existe fora da
-main e aponta ao contrato/evidências originais; não duplica o plano de IA.
+## Contrato da rodada
 
-## Onde continuar
+- Claude Haiku 5.5 como modelo primário; Sonnet 5.5 como fallback controlado. Registrar modelo, versão, resultado, falha e custo/latência sem guardar conteúdo clínico em logs. Nenhum fornecedor está autorizado para dados reais por este piloto.
+- Campos estruturados devem preservar **texto literal**, página, trecho, arquivo, hash e metadados. Valor numérico, unidade, referência, data, método ou emissor só podem aparecer quando sustentados pelo original. Ausência, ambiguidade e possível duplicata exigem conferência; não viram fato silenciosamente. A revisão de 10/10 identificou título/data narrativos sem apoio suficiente; adapter .2/prompt .2/extractor .2 foram implementados com data de calendário/fonte ISO ou DD/MM, metadados literais, nome narrativo neutro e fallback ao título documental do banco. Edge v8 ACTIVE; reprocessamento das três fixtures QA pelo Cron está em andamento, sem aceite clínico.
+- Rota web enfileira de forma idempotente. O banco/Cron de um minuto executa a Edge Function no **dev sintético** sem sessão aberta, com lease, tentativas limitadas e resultado persistido. Falha de download, modelo ou validação não gera lista vazia falsamente concluída.
+- Médico autorizado vê documentos agrupados em tabela progressiva, andamento, itens, estado de revisão e original navegável. Revisão por item é ato humano versionado; aprovação e publicação são separadas. Paciente não lê extrações internas.
+- Briefing da próxima consulta mostra até três fatos revisados com origem e data, sem síntese clínica autônoma. Se não houver fatos revisados, não inventar resumo.
 
-- Checkout: `/Users/vitormilanez/Desktop/Codes/vivance-ia2-exams`.
-- Branch: `codex/exames-consolidados-contrato-20261003`.
-- [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78): aberto,
-  rascunho; HEAD `1e4493a3149a3b95efc597f1baa94847e7cf0b42`, árvore limpa
-  na conferência de 08/10.
-- [Contrato, formatos, critérios e evidências no commit conferido](https://github.com/vitormilanez/instituto-vivance/blob/1e4493a3149a3b95efc597f1baa94847e7cf0b42/docs/EXAMES_CONSOLIDADOS_IA2.md).
-  Localmente: `docs/EXAMES_CONSOLIDADOS_IA2.md` nesse checkout.
+## Evidência anterior que permanece válida
 
-Antes de implementar, comparar a branch com a main atual e preservar as mudanças
-do briefing e da campanha. Não copiar todo o status antigo da branch para a main,
-nem substituir seu código por uma versão anterior. Este handoff não fez merge,
-rebase, alteração no PR ou atualização do banco.
+No `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), um PDF **inteiramente fictício** de três páginas gerou 45 itens ligados a página/trecho/original. A Edge `exam-text-worker` v2 e o Cron sintético concluíram a tarefa sem aba aberta; uma lease expirada simulada foi retomada sem duplicar os itens. Uma revisão médica persistiu, e a sessão de paciente foi negada. A migration de itens estruturados integrada à main é `20261009231639_ia2_structured_exam_items.sql`; as migrations IA2 de 04/10 também foram reconciliadas. Este teste não demonstra leitura de laudos reais nem desempenho de Claude. O [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78) preserva o contrato original e histórico do piloto, mas sua documentação antiga sobre fila dependente da aba foi superada pelo Cron integrado.
 
-## O que já funciona no piloto
+## Evidência nova no dev sintético e avaliação privada
 
-- Upload privado do PDF fictício e autorização nominal em duas listas do piloto.
-- Execuções por documento/hash/versão e texto persistido por página, com RLS.
-- Extração convencional de texto embutido; possível repetição vira
-  `requires_review`, preservando texto e página original.
-- Enfileiramento idempotente pelo médico vinculado, resposta `202`, lease e
-  tentativas limitadas; worker usa a sessão médica, sem chave privilegiada no app.
-- Aba Documentos mostra o andamento, texto recolhido por página e acesso ao original.
+As migrations `20261010210749` e `20261010212152` foram aplicadas no projeto confirmado (67 versões no total). `exam-text-worker` v7 executou as fixtures iniciais; a v8 está ACTIVE após ajuste .2 e usa segredo Claude da Edge; o Cron job 1 `vivance-ia2-exam-text-worker-synthetic` continua a cada minuto. A conta QA sintética fez login real na interface local. Uploads de um PDF fictício de duas páginas e dois PNGs fictícios geraram 13, 6 e 5 itens, respectivamente, com metadados e jobs concluídos pelo Cron. Nos dois primeiros jobs, um campo `select.id` de metadados inexistente foi corrigido para `extraction_run_id`; retry automático concluiu ambos. O paciente recebeu 403 ao consultar a extração, o médico abriu o PDF privado com hash correspondente e confirmou um item pela UI; a revisão v1 persistiu. Os IDs de documento e revisão estão no [status](STATUS_ATUAL.md). Isso verifica o percurso **local autenticado**, não Preview.
 
-O registro de 04/10 documenta um segundo PDF inteiramente fictício no Preview
-`dpl_6sSuxXjivv2c6e4sFpTvFgWeuqDY`, código `127e046`: tarefa `completed` na
-primeira tentativa, três páginas persistidas e execução `requires_review` pela
-possível repetição na página 2. Persistência e interface foram conferidas na
-sessão médica. Esses resultados são evidências registradas, não um teste repetido
-em 08/10; IDs completos estão no contrato original.
+Na avaliação privada v1, não repetida após o ajuste .2, o PDF privado de 25 páginas e duas imagens JPEG foram processados **somente via API**, com arquivos em `/tmp`, fora da aplicação. Haiku propôs 70 campos no PDF: 53 com offset de trecho Unicode exato inicialmente, 60 após correção de caixa/espaço. Sonnet foi usado nas páginas 1, 11 e 21; final 61/73 com offset validado. JPEGs: 9/9 e 6/9. Ao todo, 76 itens aceitos tinham offset de trecho exato e 15 propostas foram descartadas. A cobertura é parcial; **offset exato não valida título/data narrativos, outros metadados, completude ou utilidade clínica**. Tokens e tempos estão no [status](STATUS_ATUAL.md); não há custo em USD confirmado. Modelo e tokens são metadados persistidos; latência deve ser lida dos tempos dos jobs.
 
-## O que ainda não está entregue
+## Avaliação desta rodada
 
-- Fila autônoma: a execução começa após a resposta HTTP e a leitura da aba retoma
-  tentativas vencidas; não há agendador independente para recuperação.
-- Validação autenticada com paciente e exercício de falha/retentativa no Preview.
-- Segmentação em laudos, resultados clínicos estruturados, narrativas atribuídas
-  ao emissor, consolidação e revisão por resultado.
-- Claude, OCR, interpretação clínica, aceite clínico ou liberação de dados reais.
+O teste privado ocorreu **somente via API**, sem mostrar os arquivos no app. A próxima verificação precisa concluir o reprocessamento das três fixtures QA e repetir os casos privados afetados se necessário, conferir campos/página/trecho e documentar falhas, custo quando houver preço verificado, latência, idempotência, retry e permissões. O resultado não é benchmark clínico nem autoriza dados reais. O contrato de laudo/resultado e a qualidade exigida devem ser avaliados com o médico. Os [checkpoints](CHECKPOINTS_ENTREGAS.md) separam dev, Preview, PR/CI, publicação e aceites.
 
-O contrato original acumula etapas históricas: trechos de 03/10 falam em
-“manual e síncrono” e “migration pendente”. Para o último estado, prevalece sua
-seção **Fila do piloto — continuação de 04/10/2026**, sem apagar a cronologia.
+## Operação segura
 
-## Próxima entrega da frente IA2
-
-A prioridade entre frentes está em [Direção e slices](DIRECAO_E_SLICES.md).
-A avaliação de 08/10 propõe fechar um percurso C3 antes de ampliar IA2;
-essa proposta aguarda validação e não altera as evidências deste piloto.
-
-**Exames sintéticos conferíveis pelo médico**, continuando IA2-A/IA2-B sem criar
-outra frente. Valor: sair da leitura de páginas soltas para resultados e narrativas
-com origem verificável, mantendo a decisão com o médico.
-
-1. Fechar a base técnica: testar negação em sessão de paciente, falha recuperável,
-   idempotência e comportamento sem aba aberta. Se o slice prometer recuperação
-   autônoma, implementar e comprovar o agendador; caso contrário explicitar o limite.
-2. Validar o contrato de laudos/observações: valor literal, unidade, referência
-   do emissor, data e página/trecho; distinguir arquivo, laudo e resultado.
-3. Implementar um recorte sintético numérico e narrativo com revisão por item,
-   correção versionada e acesso ao original. Ausência ou ambiguidade exige conferência.
-
-**Dependências e riscos:** reconciliar a branch com main e migrations aplicadas,
-preservar permissões/vínculo, fontes e correções humanas. Manter o corpus fictício
-autorizado; fornecedor/modelo exige IA1. Usar parser determinístico ou fixture
-explícita para o recorte sem afirmar extração genérica de qualquer PDF.
-
-**Aceite:** resultado liga arquivo/página/trecho; duplicatas não apagam fonte;
-reprocessar não duplica resultado nem sobrescreve revisão; correção é auditável;
-falha não vira vazio; permissões negadas e recarga/persistência conferidas.
-Nada é publicado automaticamente ao paciente. Testes dirigidos ao contrato,
-permissões e fila, seguidos de um percurso integrado sintético em Preview.
-A direção médica avalia cobertura/erros separadamente; aprovação de extração
-não equivale a aceite clínico. A implementação do próximo recorte depende da
-validação do contrato, conforme o [brief de retomada](RETOMADA_DESENVOLVIMENTO.md).
-
-## Banco e gates
-
-O PR registra estas migrations aplicadas no projeto único de teste
-`instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), compartilhado com o app publicado:
-
-- `20261004142437_ia2_document_text_extraction.sql`;
-- `20261004153431_exam_extraction_worker.sql`;
-- `20261004154416_exam_doctor_worker_access.sql`.
-
-Elas estão na branch IA2; não assumir que a main representa todo o histórico do
-banco. Antes de outra migration, conferir o destino e comparar os históricos
-sem reaplicar ou renumerar versões existentes. Nenhum acesso ao banco ocorreu
-nesta organização. O [plano de IA](PLANO_IA_CLINICA.md), IA1 e o
-[Gate P](GATE_P.md) permanecem aplicáveis. C2/C3 seguem sem aceite operacional.
+Confirmar ref do projeto antes de qualquer CLI, migration, Edge ou Cron. Scripts de ativação/desativação do piloto ficam em `scripts/ops/`; segredos Edge/Vault e credenciais de QA ficam fora do Git. `instituto-vivance-dev` é o único projeto temporário de testes sintéticos; preservar registros de origem incerta. Desativar o agendamento se o piloto causar processamento indevido. Produção separada e [Gate P](GATE_P.md) precedem dados reais. IA1 e o [plano de IA clínica](PLANO_IA_CLINICA.md) governam fornecedor, finalidade e uso clínico.

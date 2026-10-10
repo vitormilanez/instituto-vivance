@@ -1,15 +1,19 @@
 # IA clínica controlada — plano separado
 
-Atualizado em 28/09/2026 a partir da direção clínica apresentada por Dr. Guilherme Martins. Este documento planeja uma capacidade futura; **nenhuma análise clínica por IA está ativa**. A direção geral está em [Direção e slices](DIRECAO_E_SLICES.md).
+Direção clínica de 28/09/2026 apresentada por Dr. Guilherme Martins; estado técnico atualizado em 10/10/2026. Este plano rege capacidades futuras. O piloto sintético IA2 não autoriza análise clínica ou dados reais. A prioridade atual está em [Direção e slices](DIRECAO_E_SLICES.md).
 
 ## Estado da implementação
 
-Consolidação documental de 08/10/2026: o [piloto IA2](IA2_EXAMES.md) já tem
-fila e extração de texto validadas com PDF fictício no Preview do PR #78; segue
-fora da main. Resultados estruturados, Claude/OCR e aceite clínico permanecem
-pendentes. O [briefing integrado](BRIEFING_CONSULTA_2026-10-07.md) usa fallback
-determinístico, com IA desligada na última conferência. Este plano descreve
-capacidades futuras; não deve ser lido como inventário da main ou do Preview.
+O [piloto IA2](IA2_EXAMES.md) de texto por página, fila/Cron e itens revisáveis
+foi integrado à main pelo PR #95 e validado com PDF inteiramente fictício no
+dev sintético. Extração estruturada com Claude Haiku 5.5 e fallback Sonnet 5.5
+foi testada localmente e no dev sintético, com cobertura parcial; não há Preview,
+publicação nem aceite clínico desta rodada declarados. OCR genérico, biblioteca clínica, interpretação
+e uso de dados reais continuam fora do piloto. O
+[briefing integrado](BRIEFING_CONSULTA_2026-10-07.md) tinha fallback
+determinístico na última conferência publicada; a nova proposta limita-se a até
+três fatos **revisados** da próxima consulta. Consulte o [status](STATUS_ATUAL.md)
+para evidência atual e não leia este plano como inventário de deploy.
 
 ## Objetivo e limite
 

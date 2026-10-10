@@ -1,174 +1,30 @@
 # Direção do Vivance e próximos slices
 
-**Estado vigente em 10/10, 17h38:** PRs #103/#104 publicados no domínio principal;
-e-mail novo recebido no Gmail e percurso real de Vitor concluído: senha → aceite →
-onboarding com retomada/edição → Hoje → alimentação → fotos → exames → ficha
-médica. Link de WhatsApp/troca para identidade correta e convite repetido
-conferidos; nenhuma mensagem de WhatsApp enviada. Impeccable revisou
-desktop/mobile. Dados, arquivos e Auth de Vitor apagados ao final; médico e QA
-preservados. Evidência/publicação e limites no [status](STATUS_ATUAL.md).
+**Decisão vigente em 10/10/2026:** cuidado longitudinal supervisionado: convite → contexto inicial → preparação → consulta → registro médico → acompanhamento → retorno. O médico interpreta e decide. Relato literal, dado extraído, cálculo, revisão, aprovação e publicação têm origem e estados separados. O [status](STATUS_ATUAL.md) distingue implementação, teste e publicação.
 
-**Próximo:** usuário repetir manualmente com convite novo para
-`vitor.milanezz@gmail.com`; não recriar a conta ou preencher antes dele, nem
-reutilizar links consumidos/antigos. Após seu aceite de usabilidade, retomar C3
-operacional e contrato/avaliação IA2. QR coletivo/OAuth não estão entregues;
-aceite clínico/Gate P separados.
+## Prioridade em execução — exames sintéticos verificáveis
 
-**Direção de convites:** ação na própria área de Pacientes, estados recentes
-visíveis e ficha sem app discreta, conforme conceito do Claude adaptado à
-identidade Vivance. QR coletivo requer contrato de aprovação do médico;
-Google Sign-In depende de configuração OAuth real antes de oferecer botão.
+Continuar IA2 sobre o pacote já integrado pelo [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95). Na branch `codex/exames-claude-medico-20261010`, a extração estruturada com Claude Haiku 5.5 e fallback Sonnet 5.5 foi validada localmente e no dev sintético com arquivo, página e offsets de trecho; a cobertura do teste privado v1 foi parcial. Adapter .2/prompt .2/extractor .2 corrigem título/data narrativos sem apoio, Edge v8 está ACTIVE e o reprocessamento das três fixtures QA segue em andamento; o benchmark privado v1 não foi repetido. A rota web enfileira e o banco/Cron processam a cada minuto no piloto sintético, sem depender da aba aberta. A ficha médica agrupa resultados por documento em tabela progressiva, abre o original e mantém revisão por item como ação humana separada. O briefing da próxima consulta, limitado a fatos revisados com origem, foi conferido no navegador médico local; PR, Preview e publicação desta rodada não foram declarados.
 
-Consolidada em **08/10/2026**, preservando decisões anteriores e incorporando
-as orientações do usuário para a retomada. O [status](STATUS_ATUAL.md) separa
-código integrado, pilotos e evidências; o [histórico útil](historico/README.md)
-preserva decisões únicas e aponta às evidências anteriores. Reorganizar este plano não aprova novos slices.
-Para executar a sequência sem misturar evidência e aceite, use os
-[checkpoints das entregas](CHECKPOINTS_ENTREGAS.md).
+Critério de passagem: testes sintéticos dirigidos de formato, falha, retry/idempotência, permissões e persistência; corpus fictício e, com autorização específica, um PDF privado de 25 páginas e duas imagens JPEG via API apenas, sem expô-los na aplicação. Medir campos corretos/incertos, página/trecho, latência e custo. Avaliação médica do contrato e qualidade é gate separado. [IA2_EXAMES](IA2_EXAMES.md) e [checkpoints](CHECKPOINTS_ENTREGAS.md) trazem execução e limites.
 
-## Resultado que estamos construindo
+## Sequência e dependências
 
-Cuidado longitudinal supervisionado: **convite → contexto inicial → preparação
-→ consulta → registro médico → acompanhamento → retorno**. Paciente e médico
-compartilham uma linha do tempo com relato original, documento, medida, consulta,
-mensagem, revisão profissional e orientação publicada.
-
-O médico decide interpretação e conduta. Mostrar origem, data, autoria e estado
-de revisão; lacunas continuam visíveis. O fluxo manual permanece disponível.
-Preservar papéis, clínica/vínculo, RLS, auditoria, versionamento, oito ações rápidas
-da equipe, Agenda e a distinção entre aprovar, publicar e exportar.
-
-## Prioridade atual — onboarding paciente
-
-**Decisão em 09/10:** antes de retomar ampliações C3/IA2, entregar o
-[onboarding progressivo](ONBOARDING_PACIENTE.md): contexto e objetivo inicial →
-conclusão animada → Hoje → alimentação → fotos → exames anteriores. Reutilizar
-coleta existente e remover a repetição das cinco perguntas genéricas no caminho
-padrão. O pacote único foi integrado à `main` pelo PR #95 e publicado
-tecnicamente em 09/10, sem publicação individual dos slices. Implementação,
-Preview, domínio principal e aceite permanecem checkpoints separados; o smoke
-test autenticado com as duas contas sintéticas está no [status](STATUS_ATUAL.md).
-O wizard inicial foi percorrido em 09/10 com uma conta nova sintética no celular:
-convite, retomada, envio, conclusão e Hoje. Os ajustes descobertos estão na
-branch `codex/onboarding-novo-paciente-20261009`; ainda faltam revisão dessa
-branch e aceite de usabilidade. Permanecem os limites C3/IA2 e Gate P.
-
-## Experiência médica — orientação para a próxima proposta
-
-- **Hoje:** leitura operacional de agenda, próxima consulta, solicitações e itens
-  para revisão. Preservar o briefing já entregue e evitar repetir detalhes de
-  todos os pacientes ou classificar urgência automaticamente.
-- **Pacientes:** identificação e medidas disponíveis; objetivos, expectativas e
-  dificuldades declaradas; condições, medicamentos, alergias e histórico
-  informados; evolução, pendências e documentos com acesso ao original.
-- Separar visualmente relato literal, dado extraído, cálculo e interpretação
-  profissional. Medida ausente não é zero; ausência de registro não prova baixa adesão.
-- Leitura rápida com detalhes progressivos e histórico completo acessível.
-  Preservar a identidade existente; não criar outro design system nem redesenhar
-  partes fora do escopo. Cada novo campo exige confirmar coleta e persistência reais.
-
-## Frentes e dependências
-
-**Ambiente:** manter temporariamente `instituto-vivance-dev`
-(`oxuwrdjojsmgxoljqkuk`) somente para testes sintéticos. C2/C3 podem continuar
-nesse destino; produção separada, restauração e [Gate P](GATE_P.md) seguem
-obrigatórios antes de dados reais. Preservar registros de origem incerta.
-
-| Ordem | Slice e valor | Escopo e dependências | Conclusão e validação |
-| --- | --- | --- | --- |
-| Base contínua | **C1 — ambiente confiável** | Confirmar destinos, migrations, papéis, Storage, backups e reversão. Aproveitar o inventário, atualizando o que mudou. | Evidência do destino, diferenças resolvidas e restauração testada; operação clínica exige separação e Gate P. |
-| 1 | **C2 — demonstração coerente** para paciente e médico | Reutilizar as contas mantidas por decisão de 29/09, sem nova limpeza; completar apenas lacunas sintéticas da jornada consulta/retorno. | Percurso verificável nos dois perfis, dados persistidos e originais preservados; não forjar decisão ou assinatura médica. |
-| 2 | **C3 — contexto e operação confiáveis** | Validar Hoje/Pacientes e a resposta do paciente com a base atual; corrigir falhas comprovadas dentro do escopo validado. Depende de cenário C2 coerente. | Paciente → solicitação/resposta → revisão médica → publicação autorizada → retorno, com contexto, datas e estados corretos; recarregar e conferir persistência. Registrar limites por papel. |
-| Paralelo | **IA1 — contrato de governança** | Finalidade, fontes, fornecedor, dados permitidos, privacidade, rastreabilidade e revisão; PR #64 em rascunho. | Decisão documentada dos responsáveis; não inferir autorização de envio a fornecedor. |
-| Piloto sintético em andamento | **IA2 — extração verificável** | Continuar o piloto sintético do PR #78, sem confundi-lo com main; arquivo/página, unidades e revisão por item. | Corpus sintético com cobertura/erros medidos, falhas controladas, original navegável e revisão humana; processamento independente da aba antes de alegar fila autônoma. |
-| Depois | **IA3 — biblioteca aprovada** | Poucas fontes versionadas com população, trecho, autoria e revisão. | Busca reproduzível apenas em fontes aprovadas/vigentes e retirada rastreável. |
-| Depois | **IA4–IA6 — evidência, revisão e validação** | Capacidades e critérios do plano de IA; dependem de IA1–IA3 e gates clínicos. | Verificação por afirmação, revisão/correção médica, publicação separada e métricas aceitas antes de liberação. |
-
-**Primeira entrega aceita como ponto de partida em 08/10: C3 — fechar o ciclo de um exame solicitado.**
-A [avaliação de UX e dados](AVALIACAO_JORNADA.md) identificou lacunas no vínculo
-pedido/resposta, acompanhamento após revisão e recibo do paciente. Recomenda-se
-entregar esse percurso delimitado antes de ampliar IA2; a sequência completa e
-os aceites estão na avaliação. O usuário pediu iniciar na nova branch
-`codex/c3-exame-solicitado-20261008`; o PR #78 continua preservado.
-
-**Decisão de execução em 09/10:** avançar pela sequência dos
-[checkpoints](CHECKPOINTS_ENTREGAS.md) e reunir o código em um pacote de
-integração, sem publicar cada slice separadamente. O pacote está na branch `codex/vivance-package-20261009`,
-[PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) draft.
-Preview e implantação técnica **somente no dev sintético** foram conferidos;
-aceite operacional, avaliação clínica, integração à main e liberação para dados
-reais continuam marcos distintos. A reunião de código não fecha esses aceites.
-
-Para IA2, o [handoff](IA2_EXAMES.md) registra o worker agendado, negação ao
-paciente e um percurso fictício de 45 itens com revisão versionada por item.
-Uma lease expirada simulada no dev foi recuperada pelo Cron, com segunda tentativa
-concluída e sem duplicar os 45 itens. Faltam avaliar outras classes de falha e
-definir com o médico o contrato de laudos/resultados antes de ampliar a fixture. Claude, OCR e uso clínico
-continuam pendentes.
-
-C1/C2/C3 são trilha de prontidão operacional, não motivo para refazer o piloto
-sintético já validado. Evoluções adicionais de Hoje/Pacientes devem demonstrar
-lacuna, escopo e aceite, preservando o briefing/gráfico entregues.
-
-C3 validou parcialmente pedido/resposta, revisão e recibo posteriores no Preview
-com PDF fictício, preservando revisão separada de publicação. Em 09/10, o
-percurso sintético pré-consulta → registro médico → plano aprovado e publicado →
-retorno também foi observado nos dois perfis; a correção do rótulo de publicação
-no fechamento passou no novo Preview do pacote. Ainda faltam decidir a coleta da data de
-realização do exame, isolamento de UI por outros papéis/vínculos e aceite
-operacional. A decisão de manter apenas Guilherme e
-Vitor não cobre admin, enfermagem ou isolamento entre pacientes; esses casos
-exigem outro ciclo de teste e não podem ser declarados aceitos.
-
-## IA: escolher o recurso pelo problema
-
-| Necessidade | Direção |
+| Frente | Decisão |
 | --- | --- |
-| Idade, IMC, unidades, variações, cronologia, estados e pendências | Dados estruturados, consultas e regras determinísticas, com testes de cálculo e ausência de dados. |
-| Resposta aberta e resumo longitudinal | Avaliar LLM apenas se a organização literal/estruturada não resolver; preservar original, fonte e validação médica. Não ampliar silenciosamente o contrato do briefing atual. |
-| Exames/documentos | Tentar extração convencional do texto; OCR somente quando necessário. Qualquer extração liga arquivo/página e fica para conferência quando incerta. |
-| Localizar informação médica | Começar pelos registros autorizados e fontes aprovadas; biblioteca clínica/RAG depende de curadoria e versionamento. |
+| Onboarding/convites | [PRs #103/#104](STATUS_ATUAL.md) publicados tecnicamente e jornada real testada; Vitor repetirá manualmente com convite novo. Usabilidade dele permanece pendente. QR coletivo exige contrato de aprovação médica; Google Sign-In exige OAuth real. |
+| C2/C3 operacional | Validar continuidade paciente → pedido/resposta → revisão → recibo → consulta/retorno, inclusive outros papéis/vínculos e persistência. Código do PR #95 não fecha aceite operacional. Não forjar assinatura/conduta médica. |
+| IA1 — governança | Decidir finalidade, fornecedor, dados permitidos, privacidade, rastreabilidade e revisão antes de ampliar além do piloto sintético. [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) é rascunho, sem aprovação inferida. |
+| IA2 — extração | Entregar a rodada sintética atual, original navegável, revisão humana e avaliação mensurada; OCR genérico e uso clínico não estão aprovados. |
+| IA3–IA6 | Biblioteca aprovada/versionada, interpretação com evidência, verificação, validação médica e operação somente após gates do [plano de IA](PLANO_IA_CLINICA.md). |
+| C1/Gate P | `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`) é destino temporário único para testes sintéticos. Separar produção e cumprir [Gate P](GATE_P.md) antes de dados reais; preservar registros de origem incerta. |
 
-Comparar qualidade, custo, latência, privacidade e rastreabilidade por tarefa antes
-de escolher modelo. Fornecedor ou modelo não está aprovado por esta tabela.
-O briefing atual preserva texto literal; o [plano separado](PLANO_IA_CLINICA.md)
-rege capacidades futuras. IA não diagnostica, prescreve, classifica urgência,
-escolhe conduta nem publica orientação autonomamente.
+## Experiência médica
 
-## Frente comercial separada
+Manter menu superior, lista de pacientes, Agenda e oito ações rápidas. Em Hoje, mostrar agenda e pendências operacionais; na ficha, identificação, objetivos, medidas, histórico informado, evolução e documentos com original. Ausência de dado não é zero e ausência de registro não prova baixa adesão. Mostrar rapidamente apenas o necessário, com detalhe progressivo; cada campo exige coleta/persistência real. Preservar identidade Vivance e o briefing já entregue. Consulta, aprovação e publicação não se confundem.
 
-Virada 90 mantém a [jornada de cinco etapas](VIRADA90_JORNADA.md), valores na
-etapa final e WhatsApp editável. [Medição](virada90/MEDICAO_GOOGLE.md) e
-[funil](virada90/FUNIL_COMERCIAL_LEVE.md) preservam consentimento e distinguem
-clique, conversa recebida, avaliação, comparecimento e entrada no programa.
-O [acompanhamento](virada90/MODELO_ACOMPANHAMENTO.md) usa o CRM existente.
-Validar mensagem recebida, atribuição consentida e deduplicação antes de
-considerar ativação do PR #79 ou importação Ads. Os releases ficam nos registros
-comerciais, sem alterar gates ou prioridades clínicas por inferência.
+## Como escolher IA
 
-## Execução
+Dados estruturados e regras determinísticas cobrem idade, IMC, unidades, variações, cronologia e estados. Modelo de linguagem só organiza informação autorizada quando isso agrega valor e passa avaliação de qualidade, custo, latência, privacidade e rastreabilidade. OCR entra quando texto embutido falha. RAG exige biblioteca clínica curada e vigente; MCP não substitui contrato de dados ou revisão médica. Não habilitar dados reais ou interpretação clínica por causa de um resultado sintético.
 
-Aplicar o [brief de retomada e método por slices](RETOMADA_DESENVOLVIMENTO.md):
-diagnóstico curto, proposta validada, implementação delimitada, testes proporcionais,
-fechamento integrado e evidência. Manter implementação, Preview, publicação técnica
-e aceite clínico como marcos distintos. Decisões novas devem atualizar esta direção,
-o status e a tarefa correspondente no Asana após reconciliação com Git/ambientes.
-
-### Refinamento aprovado — pacientes e convites, 10/10
-
-Adotar a estrutura do Claude com identidade Vivance: convite inline, acompanhamento
-com estados reais e cadastro sem app secundário na lateral. Atalho explícito
-“Adicionar novo paciente” no menu desktop/mobile. Entregar como pacote; layout
-local não equivale a publicação. QR da recepção deve incluir entrada coletiva e
-aprovação; Google exige configuração OAuth. Não confundir convite aceito com
-cadastro inicial enviado ou acolhimento concluído.
-
-### Ajuste de entrada aprovado — 10/10
-
-Priorizar conta correta e continuidade do cadastro: convite nunca aproveita
-silenciosamente a sessão de outra pessoa; login retoma o onboarding em rascunho.
-Altura apresentada em metros e armazenada em centímetros, com decimal local.
-“Salvar e sair” é a saída persistente; dashboard após envio destaca alimentação,
-fotos e exames. Revisão completa com Impeccable e fluxo sintético antes do
-pacote autorizado. Recebimento real de e-mail novo permanece um checkpoint
-separado de conta existente, que não recebe nova mensagem.
+A frente comercial Virada 90 segue separada nos [documentos próprios](virada90/). Decisões novas devem atualizar direção, status e tarefa Asana após confronto com Git e ambiente.

@@ -1164,6 +1164,29 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      exam_document_metadata: {
+        Row: {
+          extraction_run_id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          document_type: string;
+          title: string;
+          issuer: string | null;
+          observed_on: string | null;
+          identity_text: string | null;
+          summary: Json;
+          quality_notes: Json;
+          model: string;
+          prompt_version: string;
+          input_tokens: number | null;
+          output_tokens: number | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       patient_accounts: {
         Row: {
           created_at: string;
@@ -1643,6 +1666,37 @@ export type Database = {
       enqueue_synthetic_exam_text_extraction: {
         Args: { target_tenant: string; target_document: string };
         Returns: string;
+      };
+      enqueue_exam_extraction: {
+        Args: { target_tenant: string; target_document: string };
+        Returns: string;
+      };
+      register_exam_ai_test_patient: {
+        Args: { target_tenant: string; target_patient: string };
+        Returns: boolean;
+      };
+      persist_exam_result_items: {
+        Args: {
+          target_run: string;
+          structured_extractor_name: string;
+          structured_extractor_version: string;
+          items: Json;
+        };
+        Returns: number;
+      };
+      persist_exam_document_metadata: {
+        Args: { target_run: string; metadata: Json };
+        Returns: string;
+      };
+      persist_exam_ai_extraction: {
+        Args: {
+          target_run: string;
+          structured_extractor_name: string;
+          structured_extractor_version: string;
+          items: Json;
+          metadata: Json;
+        };
+        Returns: number;
       };
       claim_next_exam_text_extraction_job: {
         Args: Record<PropertyKey, never>;

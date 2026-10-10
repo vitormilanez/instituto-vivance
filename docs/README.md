@@ -1,6 +1,6 @@
 # Documentação do Vivance
 
-Organizada em 08/10/2026. Comece pelos documentos vigentes abaixo; evidências
+Atualizada em 10/10/2026. Comece pelos documentos vigentes abaixo; evidências
 com data e material de protótipos ficam identificados como histórico.
 
 ## Comece aqui
@@ -12,7 +12,9 @@ com data e material de protótipos ficam identificados como histórico.
 | [Checkpoints das entregas](CHECKPOINTS_ENTREGAS.md) | Qual item executar agora e o que falta para marcar cada slice? |
 | [Onboarding paciente](ONBOARDING_PACIENTE.md) | Como o paciente começa e completa alimentação, fotos e exames? |
 | [Avaliação Paciente × Médico × IA](AVALIACAO_JORNADA.md) | Quais lacunas de UX/dados foram encontradas e qual sequência está proposta? |
-| [Handoff dos exames IA2](IA2_EXAMES.md) | O que já funciona no PR #78 e qual é a próxima entrega? |
+| [Handoff dos exames IA2](IA2_EXAMES.md) | Qual é a base integrada, o contrato Claude sintético e seus limites? |
+| [Conta permanente de QA](CONTA_TESTE.md) | Como preparar a identidade sintética sem registrar credenciais no Git? |
+| [Consolidação dos checkouts](CONSOLIDACAO_REPOSITORIO.md) | Qual é o único checkout canônico e o que falta remover? |
 | [Retomada do desenvolvimento](RETOMADA_DESENVOLVIMENTO.md) | Como preparar a próxima proposta e desenvolver/testar por slice? |
 | [Funcionalidades](FUNCIONALIDADES.md) | Quais contratos funcionais a aplicação preserva? |
 | [Plano de IA clínica](PLANO_IA_CLINICA.md) | Quais capacidades são futuras e quais gates exigem? |

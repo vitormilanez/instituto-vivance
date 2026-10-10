@@ -3,11 +3,12 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "@supabase/supabase-js";
 import { extractText, getDocumentProxy } from "unpdf";
 import { parseSyntheticFixture, type SourcePage } from "./synthetic-structure.ts";
+import { extractTextWithClaude, requestClaude, groundedItems, groundedMetadata, primaryModel, fallbackModel, promptVersion, type ClaudeResult } from "./claude-extraction.ts";
 
 const bucket = "vivance-documents";
 const extractorName = "unpdf-embedded-text";
-const extractorVersion = "1.8.1+vivance-edge-repeat-review.1";
-const maxPages = 100;
+const extractorVersion = "1.8.1+vivance-claude.2";
+const maxPages = 50;
 const maxPageCharacters = 80_000;
 const maxDocumentCharacters = 500_000;
 
@@ -102,6 +103,36 @@ async function extractPdf(bytes: Uint8Array) {
   }
 }
 
+function base64(bytes: Uint8Array) {
+  let value = "";
+  for (let index = 0; index < bytes.length; index += 8192)
+    value += String.fromCharCode(...bytes.subarray(index, index + 8192));
+  return btoa(value);
+}
+
+async function extractVisual(bytes: Uint8Array, contentType: string, pageNumbers: number[], apiKey: string) {
+  if (pageNumbers.length > 20) throw new Error("ocr_page_limit");
+  const content = [
+    { type: contentType === "application/pdf" ? "document" : "image", source: {
+      type: "base64", media_type: contentType, data: base64(bytes),
+    } },
+    { type: "text", text: `Transcreva SOMENTE as páginas ${pageNumbers.join(", ")}. Preserve a numeração original e todos os resultados.` },
+  ];
+  let result = await requestClaude(apiKey, primaryModel, content);
+  if (pageNumbers.some((number) => !result.pages.find((p) => p.page_number === number)?.source_text))
+    result = await requestClaude(apiKey, fallbackModel, content);
+  if (pageNumbers.some((number) => !result.pages.some((p) => p.page_number === number)))
+    throw new Error("claude_incomplete");
+  const pages = [];
+  for (const number of pageNumbers) {
+    const value = result.pages.find((p) => p.page_number === number)?.source_text?.replace(/\r\n?/g, "\n").trim() || null;
+    if (value && value.length > maxPageCharacters) throw new Error("text_limit");
+    pages.push({ page_number: number, status: "requires_review", extraction_method: value ? "claude_vision" : "none",
+      extracted_text: value, text_sha256: value ? await sha256(value) : null, failure_code: null, possible_duplicate_of_page: null });
+  }
+  return { pages, result };
+}
+
 Deno.serve(async (request) => {
   if (request.method !== "POST") return json({ error: "Método inválido." }, 405);
   const cronSecret = Deno.env.get("EXAM_WORKER_CRON_SECRET") ?? "";
@@ -118,12 +149,12 @@ Deno.serve(async (request) => {
   let outcome: "retryable" | "permanent" = "retryable";
   try {
     const source = await client.from("patient_documents")
-      .select("id,patient_id,storage_path,byte_size,content_type")
+      .select("id,patient_id,storage_path,byte_size,content_type,display_title,original_filename")
       .eq("tenant_id", job.tenant_id).eq("id", job.document_id)
       .eq("patient_id", job.patient_id).eq("status", "available")
       .eq("attached_to", "documents").maybeSingle();
     if (source.error) throw new Error("source_unavailable");
-    if (!source.data || source.data.content_type !== "application/pdf") outcome = "permanent";
+    if (!source.data || !["application/pdf", "image/jpeg", "image/png"].includes(source.data.content_type)) outcome = "permanent";
     else {
       const download = await client.storage.from(bucket).download(source.data.storage_path);
       if (download.error || !download.data) throw new Error("download_failed");
@@ -131,11 +162,30 @@ Deno.serve(async (request) => {
       if (bytes.length !== source.data.byte_size) outcome = "permanent";
       else {
         const sourceHash = await sha256(bytes);
-        const pages = await extractPdf(bytes);
-        const saved = await client.rpc("persist_queued_document_text_extraction", {
+        const apiKey = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
+        if (!apiKey) throw new Error("claude_configuration");
+        const prior = await client.from("document_extraction_runs").select("id")
+          .eq("document_id", job.document_id).eq("tenant_id", job.tenant_id)
+          .eq("source_content_sha256", sourceHash).eq("extractor_version", extractorVersion).maybeSingle();
+        if (prior.error) throw new Error("prior_run_unavailable");
+        let pages;
+        let visualResult: ClaudeResult | null = null;
+        if (!prior.data && source.data.content_type === "application/pdf") {
+          pages = await extractPdf(bytes);
+          const unreadable = pages.filter((p) => !p.extracted_text || p.extracted_text.length < 50).map((p) => p.page_number);
+          if (unreadable.length) {
+            const visual = await extractVisual(bytes, source.data.content_type, unreadable, apiKey);
+            pages = pages.map((page) => visual.pages.find((p) => p.page_number === page.page_number) ?? page);
+          }
+        } else if (!prior.data) {
+          const visual = await extractVisual(bytes, source.data.content_type, [1], apiKey);
+          pages = visual.pages;
+          visualResult = visual.result;
+        }
+        const saved = prior.data ? { data: prior.data.id, error: null } : await client.rpc("persist_queued_document_text_extraction", {
           target_job: job.job_id, target_lease: job.lease_token,
           target_tenant: job.tenant_id, target_document: job.document_id,
-          source_content_sha256: sourceHash, extractor_name: extractorName,
+          source_content_sha256: sourceHash, extractor_name: source.data.content_type === "application/pdf" ? extractorName : "claude-vision",
           extractor_version: extractorVersion, pages, failure_code: null,
         });
         if (saved.error || !saved.data) throw new Error("persist_failed");
@@ -144,13 +194,44 @@ Deno.serve(async (request) => {
           .eq("extraction_run_id", saved.data)
           .order("page_number", { ascending: true });
         if (storedPages.error) throw new Error("structured_source_unavailable");
-        const structured = parseSyntheticFixture((storedPages.data ?? []) as SourcePage[]);
-        if (structured.length) {
+        const existing = await client.from("exam_document_metadata").select("extraction_run_id").eq("extraction_run_id", saved.data).maybeSingle();
+        if (existing.error) throw new Error("metadata_unavailable");
+        const sourcePages = (storedPages.data ?? []) as SourcePage[];
+        const structured = parseSyntheticFixture(sourcePages);
+        if (!existing.data && structured.length) {
           const persisted = await client.rpc("persist_synthetic_exam_result_items", {
             target_run: saved.data,
             structured_extractor_name: "vivance-synthetic-fixture",
             structured_extractor_version: "1",
             items: structured,
+          });
+          if (persisted.error) throw new Error("structured_persist_failed");
+        } else if (!existing.data) {
+          const result = visualResult ?? await extractTextWithClaude(apiKey, sourcePages);
+          let grounded = groundedItems(sourcePages, result);
+          if (grounded.discarded) {
+            // A stronger model is used only for source-grounding failures, once per document.
+            const affected = sourcePages.filter((page) => grounded.rejectedPages.includes(page.page_number));
+            const retry = await extractTextWithClaude(apiKey, affected, fallbackModel);
+            retry.metadata.input_tokens = Number(retry.metadata.input_tokens) + Number(result.metadata.input_tokens);
+            retry.metadata.output_tokens = Number(retry.metadata.output_tokens) + Number(result.metadata.output_tokens);
+            result.pages = result.pages.map((page) => retry.pages.find((entry) => entry.page_number === page.page_number) ?? page);
+            result.metadata = { ...result.metadata, model: `${primaryModel}+${fallbackModel}`,
+              input_tokens: retry.metadata.input_tokens, output_tokens: retry.metadata.output_tokens };
+            grounded = groundedItems(sourcePages, result);
+          }
+          const quality = Array.isArray(result.metadata.quality_notes) ? result.metadata.quality_notes as string[] : [];
+          if (grounded.discarded) quality.push(`${grounded.discarded} item(ns) não puderam ser vinculados literalmente à página; conferir original.`);
+          if (!grounded.items.length) quality.push("Não foi possível organizar resultados com fonte verificável. Confira o documento original.");
+          result.metadata.quality_notes = quality.slice(0, 10);
+          const allText = sourcePages.map((page) => page.extracted_text ?? "").join("\n");
+          result.metadata.summary = (Array.isArray(result.metadata.summary) ? result.metadata.summary : [])
+            .filter((entry: unknown) => typeof entry === "string" && allText.includes(entry)).slice(0, 3);
+          result.metadata.prompt_version = promptVersion;
+          result.metadata = groundedMetadata(sourcePages, result.metadata, source.data.display_title);
+          const persisted = await client.rpc("persist_exam_ai_extraction", {
+            target_run: saved.data, structured_extractor_name: "claude-factual-extraction",
+            structured_extractor_version: promptVersion, items: grounded.items, metadata: result.metadata,
           });
           if (persisted.error) throw new Error("structured_persist_failed");
         }
@@ -162,8 +243,10 @@ Deno.serve(async (request) => {
       }
     }
   } catch (error) {
-    if (error instanceof Error && ["invalid_pdf", "page_limit", "text_limit", "incomplete_text"].includes(error.message))
+    if (error instanceof Error && ["invalid_pdf", "page_limit", "ocr_page_limit", "text_limit", "incomplete_text", "claude_configuration"].includes(error.message))
       outcome = "permanent";
+    // Operational codes only: no document text, personal information or provider response.
+    console.error("exam_worker", error instanceof Error && /^[a-z_]+$/.test(error.message) ? error.message : "processing_failed");
   }
   await client.rpc("fail_processing_job", {
     target_job: job.job_id, target_lease: job.lease_token, failure_code: outcome,
