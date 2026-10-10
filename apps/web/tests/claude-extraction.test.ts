@@ -74,6 +74,48 @@ test("retry merge retains repeated identical results at different source positio
   assert.equal(merged.items.length, 2);
 });
 
+test("retry merge keeps five synthetic measurements when number and unit are split differently", () => {
+  const measurements = [
+    ["Massa A", "72,4", "kg", " "], ["Comprimento A", "1,70", "m", ""],
+    ["Circunferência A", "84", "cm", " "], ["Medida B", "12", "mm", " "], ["Proporção B", "18", "%", " "],
+  ];
+  const text = `LAUDO FICTÍCIO — APENAS TESTE\nData: 06/03/2024\n${measurements.map(([name, value, unit, space]) => `${name}: ${value}${space}${unit}`).join("\n")}`;
+  const page = [{ id: "synthetic-measures", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const attempt = (split: boolean) => ({ pages: [{ page_number: 1, source_text: null,
+    items: measurements.map(([name, value, unit, space]) => ({ item_kind: "laboratory", literal_name: name,
+      literal_value: split ? value : `${value}${space}${unit}`, unit_text: split ? unit : null,
+      observed_on: split ? "2024-03-06" : null, source_excerpt: `${name}: ${value}${space}${unit}` })) }], metadata: {} });
+  for (const attempts of [[attempt(false), attempt(true)], [attempt(true), attempt(false)]]) {
+    const merged = mergeGroundedAttempts(page, attempts);
+    assert.equal(merged.discarded, 0);
+    assert.equal(merged.items.length, 5);
+    assert.deepEqual(merged.items.map((item) => [item.literal_name, item.literal_value, item.unit_text, item.observed_on]),
+      measurements.map(([name, value, unit]) => [name, value, unit, "2024-03-06"]));
+    for (const item of merged.items)
+      assert.equal(Array.from(text).slice(Number(item.source_start), Number(item.source_end)).join(""), item.source_excerpt);
+  }
+});
+
+test("retry merge retains distinct percent and absolute columns at the same source anchor", () => {
+  const text = "Composição A: 72,4 kg | 18 %";
+  const page = [{ id: "columns", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const result = { pages: [{ page_number: 1, source_text: null, items: [
+    { item_kind: "laboratory", literal_name: "Composição A", literal_value: "72,4", unit_text: "kg", source_excerpt: text },
+    { item_kind: "laboratory", literal_name: "Composição A", literal_value: "18 %", unit_text: "%", source_excerpt: text },
+  ] }], metadata: {} };
+  const merged = mergeGroundedAttempts(page, [result, result]);
+  assert.equal(merged.discarded, 0);
+  assert.deepEqual(merged.items.map((item) => item.literal_value), ["72,4", "18 %"]);
+
+  const repeated = "Composição B: 10 kg | 10 %";
+  const sameNumber = { pages: [{ page_number: 1, source_text: null, items: [
+    { item_kind: "laboratory", literal_name: "Composição B", literal_value: "10", unit_text: "kg", source_excerpt: repeated },
+    { item_kind: "laboratory", literal_name: "Composição B", literal_value: "10", unit_text: "%", source_excerpt: repeated },
+  ] }], metadata: {} };
+  const withDifferentUnits = mergeGroundedAttempts([{ ...page[0], extracted_text: repeated }], [sameNumber]);
+  assert.deepEqual(withDifferentUnits.items.map((item) => item.unit_text), ["kg", "%"]);
+});
+
 test("coverage audit detects a missing source row without any grounding rejection", () => {
   const entry = corpus.cases[0];
   const page = [{ id: entry.id, page_number: entry.page_number, extracted_text: entry.text, possible_duplicate_of_page: null }];

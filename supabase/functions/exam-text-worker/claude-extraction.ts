@@ -210,6 +210,24 @@ export function mergeGroundedAttempts(pages: GroundingPage[], attempts: ClaudeRe
   const items: Record<string, unknown>[] = [];
   const rejectedPages = new Set<number>();
   let discarded = 0;
+  const literal = (value: unknown) => typeof value === "string" ? value : null;
+  const numericLiteral = (value: string) => /^-?\d+(?:[.,]\d+)*$/u.test(value);
+  const sameMeasurement = (a: Record<string, unknown>, b: Record<string, unknown>) => {
+    const aValue = literal(a.literal_value), bValue = literal(b.literal_value);
+    const aUnit = literal(a.unit_text), bUnit = literal(b.unit_text);
+    if (aValue === bValue) return aUnit === bUnit;
+    // Only collapse a copied number+unit when the other attempt split that
+    // very same literal number and unit. Never normalize digits or units.
+    const joined = (whole: string | null, wholeUnit: string | null, number: string | null, unit: string | null) =>
+      whole !== null && wholeUnit === null && number !== null && unit !== null
+      && numericLiteral(number) && whole.startsWith(number) && whole.endsWith(unit)
+      && /^[ \t]*$/u.test(whole.slice(number.length, -unit.length));
+    return joined(aValue, aUnit, bValue, bUnit) || joined(bValue, bUnit, aValue, aUnit);
+  };
+  const separatedFields = (item: Record<string, unknown>) => {
+    const value = literal(item.literal_value);
+    return value !== null && numericLiteral(value) && literal(item.unit_text) !== null;
+  };
   const anchor = (item: Record<string, unknown>) => {
     const excerpt = String(item.source_excerpt);
     const target = String(item.item_kind === "laboratory" ? item.literal_name : item.narrative_text);
@@ -221,14 +239,22 @@ export function mergeGroundedAttempts(pages: GroundingPage[], attempts: ClaudeRe
     discarded += grounded.discarded;
     grounded.rejectedPages.forEach((number) => rejectedPages.add(number));
     for (const item of grounded.items) {
-      const duplicate = items.some((existing) => existing.source_page_id === item.source_page_id
+      const duplicateIndex = items.findIndex((existing) => existing.source_page_id === item.source_page_id
         && existing.item_kind === item.item_kind
         && existing.literal_name === item.literal_name
-        && existing.literal_value === item.literal_value
         && existing.narrative_text === item.narrative_text
-        && existing.observed_on === item.observed_on
+        && (!existing.observed_on || !item.observed_on || existing.observed_on === item.observed_on)
+        && (item.item_kind === "narrative" || sameMeasurement(existing, item))
         && anchor(existing) === anchor(item));
-      if (!duplicate) items.push(item);
+      if (duplicateIndex < 0) items.push(item);
+      else {
+        const existing = items[duplicateIndex];
+        // Keep the numeric value and unit in separate, grounded fields when
+        // retries describe the same occurrence in different literal forms.
+        const selected = separatedFields(item) && !separatedFields(existing) ? item : existing;
+        selected.observed_on ??= existing.observed_on ?? item.observed_on;
+        items[duplicateIndex] = selected;
+      }
     }
   }
   const order = new Map(pages.map((page, index) => [page.id, index]));
