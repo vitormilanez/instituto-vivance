@@ -93,11 +93,14 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
   revisão 1 e confirmou apenas leitura. O retorno de 16/10 às 20:55 apareceu
   na Agenda médica e na Home do paciente após recarga. Isso valida o percurso
   técnico, não avaliação nem aceite clínico.
-- [ ] Publicar novo Preview do pacote e conferir que o fechamento do atendimento
-  mostra “Publicado para a pessoa” quando `source_version` coincide com
-  `care_plans.version`; no Preview anterior, comparava com `revision` e exibia
-  “Aprovado, ainda não publicado” apesar da publicação real. Conferir também
-  o rótulo “Para sua próxima consulta” no convite automático de pré-consulta.
+- [x] No [novo Preview do pacote](https://instituto-vivance-iyod72j1u-vtr-consulting.vercel.app),
+  o fechamento do atendimento mostrou “Publicado para a pessoa” quando
+  `source_version` coincidiu com `care_plans.version`. O Preview anterior
+  comparava com `revision` e exibia “Aprovado, ainda não publicado” apesar da
+  publicação real. A Home paciente mostrou “Para sua próxima consulta” no
+  convite automático, sem atribuir o pedido ao médico. CI do HEAD `d91127d`
+  e build/TypeScript do Preview passaram. A conta paciente recebeu página
+  indisponível nas rotas internas do atendimento e da edição do plano.
 - [ ] Validar a tarefa de localizar contexto, pendências, mudanças factuais e
   originais em Hoje/ficha, inclusive estados vazios e falhas. Registrar aceite
   operacional sem alegar aceite clínico por uma avaliação heurística.
@@ -131,7 +134,7 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
 2. [x] Gerar Preview do pacote no projeto Vercel confirmado (`vtr-consulting/instituto-vivance`), com flags IA2 restritas ao Preview e ao documento fictício. Deployment `dpl_4xTHa8p8DKKRrQWQ9gCYZ5RSC8Q7` é Preview `Ready`; a sessão médica autenticada confirmou no Preview final `ea199ee` os 45 itens, a revisão persistida e o rótulo em português.
 3. [x] Comparar migrations e aplicar somente `20261009231639` ao dev sintético confirmado. Worker v2 e Cron instalados; job real da fixture concluiu sem aba e a revisão persistiu.
 4. [x] Verificação controlada de lease expirada/retry no dev sintético. Revisar diff/segredos no fechamento do pacote; manter PR em rascunho até o aceite operacional C3.
-5. [ ] Fechar isolamento visual C3, novo Preview das correções e aceite operacional; consulta → retorno já passou no percurso sintético. Registrar avaliação clínica separadamente. Só depois decidir merge/release. Gate P continua obrigatório antes de dados reais.
+5. [ ] Fechar isolamento visual C3 com outros papéis/vínculos e aceite operacional; novo Preview das correções e consulta → retorno já passaram no percurso sintético. Registrar avaliação clínica separadamente. Só depois decidir merge/release. Gate P continua obrigatório antes de dados reais.
 
 ## Como atualizar este checklist
 

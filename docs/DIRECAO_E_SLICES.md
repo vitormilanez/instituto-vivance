@@ -80,7 +80,7 @@ C3 validou parcialmente pedido/resposta, revisão e recibo posteriores no Previe
 com PDF fictício, preservando revisão separada de publicação. Em 09/10, o
 percurso sintético pré-consulta → registro médico → plano aprovado e publicado →
 retorno também foi observado nos dois perfis; a correção do rótulo de publicação
-no fechamento aguarda novo Preview. Ainda faltam decidir a coleta da data de
+no fechamento passou no novo Preview do pacote. Ainda faltam decidir a coleta da data de
 realização do exame, isolamento de UI por outros papéis/vínculos e aceite
 operacional. A decisão de manter apenas Guilherme e
 Vitor não cobre admin, enfermagem ou isolamento entre pacientes; esses casos
