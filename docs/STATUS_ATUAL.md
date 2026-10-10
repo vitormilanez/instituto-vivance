@@ -49,7 +49,11 @@ mensagem de WhatsApp; conta existente não recebe novo e-mail.
 compartilhado. Correção usa nascimento cadastrado prioritariamente e, quando
 vazio, o informado pelo paciente, com origem explícita, sem escrever na ficha
 clínica. `/clinicas` sem vínculo ativo deixa de mostrar texto destinado à equipe.
-480 testes, typecheck, lint sem erros (um aviso preexistente) e build passaram.
+Um segundo convite à mesma clínica após o cadastro mostrou erro de identidade
+já existente. A tela de convites agora apresenta “Você já faz parte desta clínica
+como paciente” e “Abrir meu cuidado” para vínculos patient ativos da mesma clínica,
+preservando aceite explícito para outras clínicas; nenhum vínculo é criado ou
+alterado por essa apresentação. Testes comportamentais cobrem ambos os estados.
 Publicação desses ajustes e reset final de Vitor em andamento. A tentativa
 inicial com redirect antigo foi removida; não usar aquele e-mail para entrar.
 

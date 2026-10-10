@@ -29,7 +29,10 @@ export default async function Clinics({ searchParams }: { searchParams: Promise<
         <h1>Minhas clínicas</h1>
         <p>Escolha a clínica para continuar.</p>
         <ClinicInvitations invitations={context.invitations} />
-        <PatientInvitations invitations={patientInvitations} />
+        <PatientInvitations
+          invitations={patientInvitations}
+          activePatientTenantIds={context.clinics.filter((clinic) => clinic.role === "patient").map((clinic) => clinic.id)}
+        />
         {context.clinics.length === 0 &&
         context.invitations.length === 0 &&
         patientInvitations.length === 0 ? (
