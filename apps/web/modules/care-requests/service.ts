@@ -64,7 +64,7 @@ export async function myPendingCareRequests(id: string) {
   const { client } = await requireClinic(tenant, ["patient"]);
   const result = await client
     .from("patient_care_requests")
-    .select("kind,requested_at,preparation_id,requested_intake_version")
+    .select("id,kind,requested_at,preparation_id,requested_intake_version")
     .eq("tenant_id", tenant)
     .eq("status", "requested")
     .order("requested_at")
@@ -72,7 +72,7 @@ export async function myPendingCareRequests(id: string) {
   if (result.error && ["42703", "PGRST204"].includes(result.error.code)) {
     const legacy = await client
       .from("patient_care_requests")
-      .select("kind,requested_at")
+      .select("id,kind,requested_at")
       .eq("tenant_id", tenant)
       .eq("status", "requested")
       .order("requested_at")

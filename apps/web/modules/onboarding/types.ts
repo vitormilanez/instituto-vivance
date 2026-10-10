@@ -2,11 +2,28 @@ export type InvitationChannel = "email" | "whatsapp";
 export type InvitationStatus = "pending" | "accepted" | "revoked" | "expired";
 export type InvitationDeliveryStatus = "requested" | "not_applicable" | "failed";
 export type OnboardingStatus = "draft" | "submitted";
+export type HealthStatus = "" | "yes" | "no" | "unknown" | "discuss";
+export type HealthAnswer = { status: HealthStatus; details: string };
+export type HealthContext = {
+  medications: HealthAnswer;
+  conditions: HealthAnswer;
+  allergies: HealthAnswer;
+  surgeries: HealthAnswer;
+  familyHistory: HealthAnswer;
+};
+export function emptyHealthContext(): HealthContext {
+  return Object.fromEntries(["medications", "conditions", "allergies", "surgeries", "familyHistory"]
+    .map((key) => [key, { status: "", details: "" }])) as HealthContext;
+}
 export type OnboardingStep =
   | "profile"
   | "measurements"
   | "questions"
   | "exams"
+  | "medications"
+  | "history"
+  | "family"
+  | "goal"
   | "review";
 
 export type PatientInvitation = {
@@ -44,6 +61,7 @@ export type OnboardingRecord = {
     treatments: string;
     questions: string;
   };
+  healthContext: HealthContext;
   shareConsent: boolean;
   submittedAt: string | null;
   updatedAt: string;

@@ -102,6 +102,38 @@ test("a refused reservation never reaches the storage bucket", async () => {
   assert.equal(error.serverMessage, "Vínculo de cuidado inativo.");
 });
 
+test("an explicit care request is sent only with the reservation", async () => {
+  const calls: Call[] = [];
+  await uploadDocument({
+    tenantId: "clinica-1",
+    patientId: "paciente-1",
+    file: file(),
+    category: "exam",
+    visibility: "shared",
+    careRequestId: "11111111-1111-4111-8111-111111111111",
+    fetchImpl: fetchStub(
+      [
+        {
+          ok: true,
+          body: {
+            documentId: "doc-1",
+            uploadPath: "clinica-1/doc-1",
+            uploadToken: "token-1",
+          },
+        },
+        { ok: true, body: {} },
+      ],
+      calls,
+    ),
+    upload: async () => ({ error: null }),
+  });
+  assert.equal(
+    (calls[0].body as Record<string, unknown>).care_request_id,
+    "11111111-1111-4111-8111-111111111111",
+  );
+  assert.deepEqual(calls[1].body, { confirmed: true });
+});
+
 test("a rejected upload is reported as upload, not as completion", async () => {
   const calls: Call[] = [];
   const error = await uploadDocument({

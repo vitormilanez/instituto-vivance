@@ -1,4 +1,11 @@
 import Link from "next/link";
+import { Figtree } from "next/font/google";
+import "@/app/patient.css";
+import { PatientProfileWorkspace } from "@/components/patient-profile-workspace";
+import { ProfileCompletionPrompt } from "@/components/patient/profile-completion";
+import { emptyHealthContext } from "@/modules/onboarding/types";
+import { emptyNutrition, emptyPhotos, type PatientProfileContext } from "@/modules/onboarding/profile-types";
+const figtree = Figtree({subsets:["latin"],variable:"--font-figtree"});
 import { notFound } from "next/navigation";
 import { DoctorShell } from "@/components/doctor-shell";
 import { ConsultationBlock } from "@/components/consultation-block";
@@ -41,8 +48,13 @@ export default async function RefinementsPreview({ searchParams }: {
     profile: { photoDocumentId: null, birthDate: null },
     measurements: { weightKg: 78.8, heightCm: 173, waistCm: null, measuredOn: today },
     answers: { goal: "Cuidar do peso", history: "Quero cuidar melhor da minha rotina.", routine: "Sono irregular durante a semana.", treatments: "Conversar com a médica.", questions: "Como organizar os próximos passos?" },
+    healthContext: emptyHealthContext(),
     examDocumentIds: [], shareConsent: false, submittedAt: null, updatedAt: now.toISOString(),
   };
+  if (["onboarding","onboarding-complete","alimentacao","fotos","exames","perfil-home"].includes(tela??"")) {
+    const initialProfile:PatientProfileContext={tenantId:tenant,patientId:patient,version:1,nutrition:emptyNutrition(),photos:emptyPhotos(),examsStatus:"not_started",examsDocumentIds:[],nutritionSubmittedAt:null,photosSubmittedAt:null,examsSubmittedAt:null,updatedAt:null};
+    return <div className={`pv pv-is-task ${figtree.variable}`}><main id="conteudo" className="pv-main"><p className="pv-muted">Prévia local · dados fictícios</p>{tela==="onboarding"||tela==="onboarding-complete"?<OnboardingWorkspace tenantId={tenant} clinicName="Instituto Vivance" doctorName="Dra. Marina" initial={{...draft,currentStep:"profile",version:1,status:tela==="onboarding-complete"?"submitted":"draft"}}/>:tela==="perfil-home"?<ProfileCompletionPrompt tenantId={tenant} profile={initialProfile}/>:<PatientProfileWorkspace tenantId={tenant} initial={initialProfile} section={tela==="fotos"?"photos":tela==="exames"?"exams":"nutrition"}/>}</main></div>;
+  }
   const context: PatientCareContext = {
     relationshipId: "synthetic-relationship", canReviewPreparation: true,
     encounter: { id: "synthetic-previous", finalized_at: instant(-1440), evolution: "Registro demonstrativo de acompanhamento." },

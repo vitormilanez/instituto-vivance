@@ -1067,6 +1067,103 @@ export type Database = {
           },
         ];
       };
+      document_extraction_runs: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          processing_job_id: string | null;
+          source_content_sha256: string;
+          extractor_name: string;
+          extractor_version: string;
+          status: string;
+          failure_code: string | null;
+          page_count: number;
+          extracted_page_count: number;
+          review_page_count: number;
+          failed_page_count: number;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      document_extracted_pages: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          extraction_run_id: string;
+          page_number: number;
+          status: string;
+          extraction_method: string;
+          extracted_text: string | null;
+          text_sha256: string | null;
+          possible_duplicate_of_page: number | null;
+          failure_code: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      exam_result_items: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          extraction_run_id: string;
+          source_page_id: string;
+          page_number: number;
+          item_index: number;
+          item_kind: string;
+          literal_name: string;
+          literal_value: string | null;
+          numeric_value: number | null;
+          unit_text: string | null;
+          reference_text: string | null;
+          issuer_flag: string | null;
+          method_text: string | null;
+          specimen_text: string | null;
+          observed_on: string | null;
+          narrative_text: string | null;
+          source_excerpt: string;
+          source_excerpt_sha256: string;
+          source_start: number;
+          source_end: number;
+          extraction_confidence: number | null;
+          requires_review_reason: string;
+          extractor_name: string;
+          extractor_version: string;
+          structured_content_sha256: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      exam_result_item_reviews: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          patient_id: string;
+          item_id: string;
+          review_request_id: string;
+          version: number;
+          decision: string;
+          corrected_data: Json | null;
+          note: string | null;
+          reviewed_by: string;
+          reviewed_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       patient_accounts: {
         Row: {
           created_at: string;
@@ -1108,6 +1205,7 @@ export type Database = {
       };
       patient_documents: {
         Row: {
+          care_request_id: string | null;
           attached_to: string;
           available_at: string | null;
           byte_size: number;
@@ -1141,6 +1239,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "memberships";
             referencedColumns: ["tenant_id", "user_id"];
+          },
+          {
+            foreignKeyName: "patient_documents_care_request_fkey";
+            columns: ["tenant_id", "care_request_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patient_care_requests";
+            referencedColumns: ["tenant_id", "id", "patient_id"];
           },
         ];
       };
@@ -1232,6 +1337,23 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      patient_profile_context: {
+        Row: {
+          tenant_id: string; patient_id: string; user_id: string;
+          nutrition: Json; photos: Json; exams_status: string;
+          exams_document_ids: string[]; version: number; updated_at: string;
+          nutrition_submitted_at: string | null; photos_submitted_at: string | null;
+          exams_submitted_at: string | null;
+        };
+        Insert: never; Update: never; Relationships: [];
+      };
+      patient_profile_context_submissions: {
+        Row: {
+          id: string; tenant_id: string; patient_id: string; user_id: string;
+          section: string; source_version: number; payload: Json; submitted_at: string;
+        };
+        Insert: never; Update: never; Relationships: [];
+      };
       patient_onboarding: {
         Row: {
           tenant_id: string; patient_id: string; user_id: string;
@@ -1244,6 +1366,7 @@ export type Database = {
           answer_history: string; answer_routine: string;
           answer_treatments: string; answer_questions: string;
           share_consent: boolean; version: number;
+          health_context: Json;
           expected_version: number | null; submitted_at: string | null;
           created_at: string; updated_at: string;
         };
@@ -1257,6 +1380,7 @@ export type Database = {
           answer_history?: string; answer_routine?: string;
           answer_treatments?: string; answer_questions?: string;
           share_consent?: boolean; expected_version: number;
+          health_context?: Json;
         };
         Relationships: [];
       };
@@ -1272,6 +1396,7 @@ export type Database = {
           answer_history: string; answer_routine: string;
           answer_treatments: string; answer_questions: string;
           share_consent: boolean; submitted_at: string;
+          health_context: Json;
         };
         Insert: never;
         Update: never;
@@ -1454,6 +1579,8 @@ export type Database = {
           cancelled_at: string | null;
           preparation_id: string | null;
           requested_intake_version: number | null;
+          response_document_id: string | null;
+          response_actor_id: string | null;
         };
         Insert: never;
         Update: never;
@@ -1479,6 +1606,20 @@ export type Database = {
             referencedRelation: "return_preparation_requests";
             referencedColumns: ["tenant_id", "id"];
           },
+          {
+            foreignKeyName: "patient_care_requests_response_document_fkey";
+            columns: ["tenant_id", "response_document_id", "patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patient_documents";
+            referencedColumns: ["tenant_id", "id", "patient_id"];
+          },
+          {
+            foreignKeyName: "patient_care_requests_response_actor_fkey";
+            columns: ["tenant_id", "response_actor_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
         ];
       };
     };
@@ -1486,6 +1627,97 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      persist_document_text_extraction: {
+        Args: {
+          target_tenant: string;
+          target_document: string;
+          source_content_sha256: string;
+          extractor_name: string;
+          extractor_version: string;
+          pages: Json;
+          failure_code?: string | null;
+          target_processing_job?: string | null;
+        };
+        Returns: string;
+      };
+      enqueue_synthetic_exam_text_extraction: {
+        Args: { target_tenant: string; target_document: string };
+        Returns: string;
+      };
+      claim_next_exam_text_extraction_job: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          job_id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          attempt_count: number;
+          max_attempts: number;
+          lease_token: string;
+        }[];
+      };
+      claim_doctor_exam_text_extraction_job: {
+        Args: { target_tenant: string; target_document: string };
+        Returns: {
+          job_id: string;
+          tenant_id: string;
+          patient_id: string;
+          document_id: string;
+          attempt_count: number;
+          max_attempts: number;
+          lease_token: string;
+        }[];
+      };
+      complete_doctor_exam_text_extraction_job: {
+        Args: { target_tenant: string; target_document: string; target_job: string; target_lease: string };
+        Returns: boolean;
+      };
+      fail_doctor_exam_text_extraction_job: {
+        Args: {
+          target_tenant: string; target_document: string; target_job: string;
+          target_lease: string; failure_code: string;
+        };
+        Returns: { status: string; available_at: string }[];
+      };
+      persist_doctor_exam_text_extraction: {
+        Args: {
+          target_job: string;
+          target_lease: string;
+          target_tenant: string;
+          target_document: string;
+          source_content_sha256: string;
+          extractor_name: string;
+          extractor_version: string;
+          pages: Json;
+          failure_code?: string | null;
+        };
+        Returns: string;
+      };
+      persist_queued_document_text_extraction: {
+        Args: {
+          target_job: string;
+          target_lease: string;
+          target_tenant: string;
+          target_document: string;
+          source_content_sha256: string;
+          extractor_name: string;
+          extractor_version: string;
+          pages: Json;
+          failure_code?: string | null;
+        };
+        Returns: string;
+      };
+      review_exam_result_item: {
+        Args: {
+          target_tenant: string;
+          target_item: string;
+          target_review_request: string;
+          decision: string;
+          corrected_data?: Json | null;
+          note?: string | null;
+        };
+        Returns: string;
+      };
       create_patient_for_care: {
         Args: {
           target_tenant: string;
@@ -1688,6 +1920,14 @@ export type Database = {
         Args: { target_tenant: string; read_version: number; explicit_share_consent: boolean };
         Returns: number;
       };
+      save_patient_profile_context: {
+        Args: { target_tenant: string; read_version: number; patch: Json };
+        Returns: number;
+      };
+      submit_patient_profile_context: {
+        Args: { target_tenant: string; read_version: number; target_section: string; explicit_share_consent: boolean };
+        Returns: number;
+      };
       get_my_patient_onboarding_context: {
         Args: { target_tenant: string };
         Returns: { clinic_name: string; doctor_name: string }[];
@@ -1840,10 +2080,21 @@ export type Database = {
           input_byte_size: number;
           input_category: string;
           input_visibility: string;
+          target_care_request: string | null;
         };
         Returns: {
           document_id: string;
           storage_path: string;
+        }[];
+      };
+      get_own_patient_document_status: {
+        Args: {
+          target_tenant: string;
+          target_document: string;
+        };
+        Returns: {
+          document_id: string;
+          operational_status: string;
         }[];
       };
       complete_patient_document: {

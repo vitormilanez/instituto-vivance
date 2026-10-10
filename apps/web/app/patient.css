@@ -565,6 +565,19 @@
   border-bottom: 0;
 }
 
+.pv-sent-meta {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  max-width: 60%;
+  text-align: right;
+}
+
+.pv-sent-meta small {
+  color: var(--pv-muted);
+  line-height: 1.35;
+}
+
 .pv-sent-when {
   display: inline-flex;
   align-items: center;
@@ -577,6 +590,22 @@
 
 .pv-sent-when svg {
   color: var(--pv-ink);
+}
+
+@media (max-width: 600px) {
+  .pv-list > .pv-sent-item {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding-block: 8px;
+  }
+
+  .pv-sent-meta {
+    justify-items: start;
+    max-width: 100%;
+    text-align: left;
+  }
 }
 
 .pv-notice {
@@ -1987,6 +2016,61 @@
   margin: 0;
   font-weight: 600;
   overflow-wrap: anywhere;
+}
+
+.pv-correction {
+  overflow: hidden;
+  border: 1px solid var(--pv-line);
+  border-radius: 16px;
+  background: var(--pv-surface);
+}
+
+.pv-correction-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 72px;
+  padding: 16px 20px;
+  border: 0;
+  background: transparent;
+  color: var(--pv-ink);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pv-correction-toggle:hover { background: var(--pv-canvas); }
+.pv-correction-toggle > span { display: grid; gap: 2px; min-width: 0; }
+.pv-correction-toggle strong { font-size: 16px; }
+.pv-correction-toggle small { color: var(--pv-muted); font-size: 14px; }
+.pv-correction-toggle > svg { flex: none; transition: transform .18s ease-out; }
+.pv-correction-toggle[aria-expanded="true"] > svg { transform: rotate(90deg); }
+
+.pv-correction-options {
+  display: grid;
+  gap: 12px;
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--pv-line);
+}
+
+.pv-correction-options p { margin: 0; color: var(--pv-muted); font-size: 15px; }
+.pv-correction-options .pv-button { width: 100%; }
+.pv-correction-history {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--pv-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.pv-correction-history:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-correction-toggle > svg { transition: none; }
 }
 
 /* Mapa de efeitos */

@@ -170,9 +170,9 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
             documentReview: work === null
               ? null
               : {
-                  pending: Boolean(documentWork),
-                  total: documentWork?.total ?? 0,
-                  documentIds: documentWork?.documentIds,
+                  pending: Boolean(documentWork?.unreviewedDocumentIds?.length),
+                  total: documentWork?.unreviewedDocumentIds?.length ?? 0,
+                  documentIds: documentWork?.unreviewedDocumentIds,
                 },
           }),
         ] as const;
@@ -258,7 +258,14 @@ export type PatientCareContext = {
   documents: { total: number | null; latest_at: string | null };
   documentItems: { id: string; title: string; created_at: string }[];
   measurements: { total: number | null; latest_at: string | null };
-  intake: { hasGoal: boolean; updatedAt: string | null } | null;
+  intake: {
+    hasGoal: boolean;
+    expectedOutcome?: string | null;
+    firstPriority?: string | null;
+    source?: "staff_assisted" | "patient_reported" | null;
+    recordedByName?: string | null;
+    updatedAt: string | null;
+  } | null;
   // Pendências abertas com o paciente: só o tipo e a data entram no card.
   requests: { id: string; kind: string; requested_at: string }[];
   prescriptions: { total: number | null; available: boolean };
@@ -384,6 +391,7 @@ export async function patientCareContext(
       .eq("status", "available")
       // Foto de refeição é parte do relato, não exame: fica fora.
       .eq("attached_to", "documents")
+      .or("category.eq.exam,visibility.eq.shared")
       .order("created_at", { ascending: false })
       .order("id")
       .limit(6),
@@ -397,7 +405,7 @@ export async function patientCareContext(
       .limit(1),
     client
       .from("patient_intake_contexts")
-      .select("expected_outcome,first_priority,updated_at")
+      .select("expected_outcome,first_priority,source,recorded_by_name,updated_at")
       .eq("tenant_id", id)
       .eq("patient_id", patientId)
       .maybeSingle(),
@@ -544,6 +552,12 @@ export async function patientCareContext(
           hasGoal: Boolean(
             intakeRow.expected_outcome?.trim() || intakeRow.first_priority?.trim(),
           ),
+          expectedOutcome: intakeRow.expected_outcome?.trim() || null,
+          firstPriority: intakeRow.first_priority?.trim() || null,
+          source: intakeRow.source === "staff_assisted" || intakeRow.source === "patient_reported"
+            ? intakeRow.source
+            : null,
+          recordedByName: intakeRow.recorded_by_name?.trim() || null,
           updatedAt: intakeRow.updated_at,
         }
       : null,

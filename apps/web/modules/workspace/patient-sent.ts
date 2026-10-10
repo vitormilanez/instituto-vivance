@@ -47,6 +47,9 @@ export async function patientRecentSent(id: string): Promise<SentItem[] | null> 
         .eq("patient_id", patient)
         .eq("uploaded_by", user.id)
         .eq("status", "available")
+        // Arquivos do perfil ficam no histórico da seção; não têm revisão
+        // individual e não devem ocupar os últimos envios como exames avulsos.
+        .eq("visibility", "shared")
         // Foto de refeição é parte do relato, não exame: fica fora.
         .eq("attached_to", "documents")
         .order("created_at", { ascending: false })
@@ -127,5 +130,42 @@ export async function patientRecentSent(id: string): Promise<SentItem[] | null> 
     if (row.submitted_at) items.push({ kind: "preparation", key: row.id, at: row.submitted_at, detail: null });
   for (const row of messages.data ?? [])
     items.push({ kind: "message", key: row.id, at: row.sent_at, detail: null });
-  return recentSent(items);
+  const recent = recentSent(items);
+  const sentDocuments = recent.filter((item) => item.kind === "document");
+  if (!sentDocuments.length) return recent;
+
+  // A associação ao pedido e o estado da revisão são projeções separadas.
+  // Falhar em uma delas não apaga o comprovante do envio já carregado.
+  const requests = await (async () => {
+    try {
+      return await client
+        .from("patient_care_requests")
+        .select("requested_at,response_document_id")
+        .eq("tenant_id", tenant)
+        .eq("patient_id", patient)
+        .eq("kind", "exams")
+        .in("response_document_id", sentDocuments.map((item) => item.key));
+    } catch {
+      return null;
+    }
+  })();
+  const requestAt = new Map((requests?.data ?? []).filter((row) => row.response_document_id)
+    .map((row) => [row.response_document_id!, row.requested_at]));
+  const statuses = await Promise.all(sentDocuments.map(async (item) => {
+    let status: string | undefined;
+    try {
+      const result = await client.rpc("get_own_patient_document_status", {
+        target_tenant: tenant,
+        target_document: item.key,
+      });
+      status = result.data?.[0]?.operational_status;
+    } catch {
+      // Os demais envios continuam visíveis mesmo se este estado falhar.
+    }
+    return [item.key, status === "received" || status === "review_recorded" ? status : "unavailable"] as const;
+  }));
+  const statusByDocument = new Map(statuses);
+  return recent.map((item) => item.kind === "document"
+    ? { ...item, reviewStatus: statusByDocument.get(item.key), requestAt: requestAt.get(item.key) }
+    : item);
 }

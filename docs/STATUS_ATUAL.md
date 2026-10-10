@@ -1,298 +1,197 @@
 # Estado atual do Vivance
 
-## Virada 90: refinamento de clareza e conversão — 07/10/2026
+## Pacote integrado — 09/10/2026
 
-O usuário aprovou aplicar os cinco achados da revisão Impeccable, com o modelo
-6.1: leitura mais compacta, formatos claros desde a abertura, navegação móvel
-legível, alvos de toque maiores e personalização discreta. Implementado e
-validado localmente (441 testes, lint, tipos e build; navegador em quatro
-larguras, sem overflow) na branch `codex/virada90-conversion-refinement-20261007`.
-Publicado tecnicamente pelo [PR #91](https://github.com/vitormilanez/instituto-vivance/pull/91),
-merge `f1a7a575fc036aade44db4c8759bf2a834ef51ab`, com CI PR/main/release aprovados.
-Deployment `dpl_CX5tbs3FCgC9Jm94goAnHoikGTmj` promovido manualmente; principal
-e secundário confirmados no mesmo artefato. Seis arquivos públicos idênticos ao
-merge. Navegador público validou entrada pelo hero, detalhes, etapas 1/3/5 em
-390/1440px, preços finais e atalho após rolagem, sem overflow ou erro de página.
-[Registro final](virada90/releases/2026-10-07-conversion-refinement/README.md).
-[Parecer local anterior à publicação](../apps/web/.impeccable/review/virada90-conversion-refinement/evidence.md).
-Asana `1219288382329047`. A hipótese comercial será avaliada junto ao CRM;
-esta revisão não comprova contatos recebidos ou vendas.
+**Checkout oficial para continuar:** `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`, branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) em rascunho. Reúne C3/PR #93, contexto longitudinal/PR #94 e IA2/PR #78 sem alterar os três PRs de origem nem o clone IA2. `origin/main` estava em `ebadaab8` na última conferência; o pacote ainda não foi integrado à `main`.
 
-## Virada 90: cinco etapas e comparação de formatos — 07/10/2026
+**Prioridade nova — onboarding paciente, 09/10:** implementação no pacote:
+contexto inicial de saúde e medidas, objetivo final, conclusão animada e entrada
+direta em Hoje; aviso no app leva a alimentação, fotos e exames. Rascunhos e
+submissões por seção são separados, e a equipe lê somente versões enviadas.
+TypeScript, lint, build local, 459 testes e CI do `ddedfc7` passaram.
+O [contrato e a evidência](ONBOARDING_PACIENTE.md) descrevem o fluxo. A migration
+`20261010011422_patient_profile_context.sql` foi aplicada somente ao dev sintético
+confirmado, com migrations locais/remotas pareadas, RLS e grant da RPC de gravação
+conferidos. O [Preview do onboarding](https://instituto-vivance-qwhf4iopw-vtr-consulting.vercel.app)
+(`dpl_C5X5CJEZWJQXVGnEqRYfCNZzTo38`, código `ddedfc7`) ficou `Ready` como
+`preview`, com build/TypeScript aprovados. Em login real da conta paciente de
+teste, a alimentação foi salva, retomada após recarga e enviada; o aviso de Hoje
+avançou para fotos, depois exames, e desapareceu ao completar as três seções.
+Três PNGs identificados como sintéticos e um PDF fictício foram enviados; a
+ficha médica autenticada mostrou a alimentação literal e as seções de fotos e
+exames compartilhadas. O cadastro inicial do paciente já estava enviado antes
+da rodada: seu novo wizard completo foi validado apenas com fixture local,
+sem prova autenticada de novo cadastro. Nenhum dado clínico real ou aceite
+clínico decorre desse teste.
 
-Pedido aprovado: agrupar o conteúdo em cinco etapas; atalho fixo para valores; padronizar total e parcelamento; ampliar cor e animação moderada, sem falsa escassez. Cookies compactos, com aceitar e recusar acessíveis. Implementação na branch `codex/virada90-five-step-presentation-20261007`; 441 testes, lint, tipos e build aprovados localmente. Navegador local validado em 320/390/768/1440px: cinco etapas, mídia, preços apenas no final, atalho fixo, teclado/foco e preferências de cookies; nenhuma mensagem enviada. Publicado tecnicamente pelo [PR #89](https://github.com/vitormilanez/instituto-vivance/pull/89), merge `df175c5`, CI PR/main/release aprovados; deployment `dpl_dTKFioAg97ySk7ZNBnCS4YYQdzSj` promovido manualmente e confirmado nos dois domínios. Navegador público validou as cinco etapas e atalho nas quatro larguras, sem erro. [Registro do release](virada90/releases/2026-10-07-five-steps/README.md). [Contrato atualizado](VIRADA90_JORNADA.md). Asana `1219287767285117`. Sem banco, checkout, alteração de Ads ou ativação de webhook.
+**Ajuste encontrado na validação:** os arquivos internos do perfil apareciam
+na Home paciente com estado de revisão indisponível e as fotos entravam na
+contagem de exames/documentos para revisar do médico. O pacote filtra a Home
+para envios avulsos compartilhados e a fila/contagem médica para exames ou
+documentos compartilhados, mantendo fotos no perfil e na lista de documentos.
+O CI e o novo Preview do `7569dd5` passaram; a diferença foi observada nas
+sessões autenticadas, sem apagar os arquivos originais do histórico.
 
-## Virada 90: apresentação antes do contato — 07/10/2026
+**Preview mais recente verificado do pacote:** [Vercel](https://instituto-vivance-jsxvpzwi9-vtr-consulting.vercel.app), deployment `dpl_9Aa3FtPpHAFhnmiPQbhsjViND15H`, alvo `preview`, código `7569dd5`; build/TypeScript e CI do mesmo SHA passaram. Em sessões autenticadas, Hoje médico passou de 11 para 7 documentos aguardando revisão, sem as três fotos sintéticas no briefing; o exame fictício continuou na fila. Hoje paciente voltou a mostrar os envios avulsos anteriores com seus estados corretos, sem os arquivos internos do perfil. A ficha médica continua mostrando as seções enviadas no Preview anterior. No [Preview IA2 anterior](https://instituto-vivance-m4cifg9re-vtr-consulting.vercel.app), deployment `dpl_4xTHa8p8DKKRrQWQ9gCYZ5RSC8Q7`, código `ea199ee`, o médico autenticado viu o paciente fictício, os documentos e os itens IA2, inclusive “revisão 1: transcrição confirmada” e o contador persistido “1 de 45 com decisão”. A tela de Processamentos atual já está no Preview do pacote; uma falha permanente ainda não foi observada ali.
 
-Publicado tecnicamente pelo [PR #87](https://github.com/vitormilanez/instituto-vivance/pull/87),
-merge `a436d3004379ec9da18ec14ff4573b7aa57c0895`:
-oito entradas da landing para `/virada90/conhecer`, com acesso no menu e hero,
-bloco editorial, links contextuais e cards de formato. WhatsApp permanece na
-etapa final da apresentação, com seletor para quem já conhece o programa.
-O evento consentido de entrada mede navegação, sem conversão Ads. 440 testes,
-lint, tipos e build passaram; navegador conferido em 320/390/1440px.
-[Decisão e limites](virada90/FUNIL_COMERCIAL_LEVE.md). Verificações do PR e
-main aprovadas. Deployment `dpl_6sQpUfwvD6nSGCWYhau5FJ554uY4`, READY e do
-mesmo SHA, promovido manualmente e confirmado nos dois domínios. Navegador
-público confirmou entrada pelo hero e formato, seletor até o contato e recusa
-de medição, sem enviar mensagem. [Registro do release](virada90/releases/2026-10-07-discovery/README.md).
-A qualidade dos contatos exige acompanhamento do CRM.
+**Banco e worker sintéticos:** destino confirmado `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), com 65 migrations após aplicar também `20261010011422_patient_profile_context.sql`. A Edge Function `exam-text-worker` v2 foi implantada com autenticação própria por segredo; `pg_cron`/`pg_net` foram instalados e o job `vivance-ia2-exam-text-worker-synthetic` está ativo a cada minuto, com URL e segredo guardados no Vault. Uma chamada sem segredo recebeu 401; com segredo e fila vazia, 204. Nenhuma credencial foi gravada no Git.
 
-Fotografia técnica verificada entre 28 e 29/09/2026. Para prioridades, leia
-[Direção e slices](DIRECAO_E_SLICES.md). Este arquivo não autoriza uso clínico.
+**Teste integrado IA2, exclusivamente fictício:** o médico enviou `vivance-ia2-synthetic-cron-20261009.pdf` para `Paciente Sintético IA2` como arquivo interno (documento `d1c16e38-6aaf-482b-83c5-0e335fc4d8a2`). Após enfileirar, a aba foi fechada. O job `38c3bcfc-17de-4da1-b556-0d2c1f7919df` permaneceu pendente até o Cron e terminou em uma tentativa às **21:02 de 09/10, horário de São Paulo**: 3 páginas, 45 itens (44 marcadores fictícios e 1 trecho narrativo), execução `requires_review`. No Preview, a sessão médica exibiu página, trecho e link ao original; uma confirmação de transcrição fictícia ficou como revisão 1 e persistiu após recarga. A sessão autenticada de paciente foi negada no endpoint de extração. O primeiro envio fictício da rodada (`cc18f7f1-a6e6-43b9-8846-34830775f748`) registrou 3 páginas sem itens porque a rota web antiga consumiu o job antes do Cron; o commit `f21cf09` retirou esse executor concorrente, e o segundo teste comprovou o caminho agendado. Ambos permanecem no dev como registros de teste, sem revisão clínica.
 
-## Resumo executivo — 29/09/2026
+**Falha controlada IA2:** no mesmo job exclusivamente fictício, uma lease já concluída foi simulada como expirada no dev. O Cron recuperou o job e concluiu a segunda tentativa às **21:15 de 09/10** (São Paulo), sem aba aberta. Permaneceram **1 execução de extração e 45 itens**; não houve duplicação. Isso comprova recuperação de lease expirada e idempotência nesse cenário, não cobre todas as falhas externas. Na pré-consulta, o link ambíguo de correção foi substituído por uma ação que permite explicar a divergência à equipe ou consultar os registros, deixando explícito que o comentário não altera o original. A edição de uma resposta na revisão agora salva e retorna à revisão.
 
-| Frente | Status atual | Próximo marco |
+**Pré-consulta no Preview do pacote:** o código `4e61963` foi publicado apenas em [Preview](https://instituto-vivance-kt43rdyvx-vtr-consulting.vercel.app), deployment `dpl_5XAP25dfw4pcGGpBqeFGpPeivXSE`, alvo `preview`, `Ready`; o CI passou. Na sessão autenticada da conta paciente de teste, a correção do resumo foi preenchida, salva, reapareceu na pergunta “O que mudou”, foi editada pela revisão e voltou à revisão sem refazer as outras etapas. O texto persistiu após recarga. Capturas em 390 px e desktop e conferência a 320 px não mostraram transbordamento horizontal. Ficou somente como rascunho sintético; nenhuma pré-consulta foi enviada ou aprovada.
+
+**Percurso C2/C3 em 09/10, somente sintético:** no [Preview do pacote](https://instituto-vivance-kt43rdyvx-vtr-consulting.vercel.app), a conta paciente enviou a pré-consulta da consulta de 08/10 às 21:37 (Brasília); as respostas originais apareceram no preparo médico. O médico de teste abriu e finalizou o atendimento `3bc111f5-149e-4cf0-9850-409fd702cfca`, com registro que declara expressamente não conter avaliação, diagnóstico, prescrição nem conduta clínica. O plano demonstrativo `b0e8de2b-8772-4ea3-93be-a89f625229f2` percorreu rascunho → revisão → aprovação → publicação em ações separadas. A conta paciente viu a revisão 1 em “Orientações médicas” e confirmou apenas a leitura. Um retorno sintético foi agendado para **sexta-feira, 16/10/2026, 20:55–21:25**; Agenda médica e Home paciente mostraram o mesmo horário após recarga. Isso fecha a verificação técnica do percurso, não o aceite clínico.
+
+**Falhas de UX corrigidas no pacote:** no Preview anterior, o fechamento da consulta dizia “Aprovado, ainda não publicado” apesar da publicação confirmada pelo banco e pelo paciente: `care_plan_publications.source_version=3` corresponde a `care_plans.version=3`, enquanto a UI comparava com `revision=1`. O PR #95 passou a comparar as versões técnicas corretas e a exigir plano aprovado para esse rótulo. A Home também deixou de atribuir ao médico uma pré-consulta gerada automaticamente para o retorno. O CI do HEAD `d91127d` passou; o [novo Preview](https://instituto-vivance-iyod72j1u-vtr-consulting.vercel.app) (`dpl_CKSnZPPubfSTCXcoD1o8WKSLbe4f`, somente Preview) completou build e TypeScript. Em sessões autenticadas, o fechamento mostrou “Publicado para a pessoa”, a Home paciente mostrou “Para sua próxima consulta” e o paciente recebeu página indisponível ao tentar as rotas internas do atendimento e da edição do plano. Isso não cobre admin, enfermagem ou outros vínculos.
+
+**Isolamento C3 — limite verificado em 09/10:** inventário somente leitura de `auth.users` e `public.memberships` no projeto dev confirmou dois vínculos ativos na mesma clínica: Guilherme como médico e Vitor como paciente. Uma terceira identidade Auth não tem vínculo. Não existem, nesse destino, perfis vinculados de admin, enfermagem, outro paciente ou outra clínica para percorrer a UI; nenhum foi criado nesta rodada. A suíte de isolamento do PR #95 cobre permissões de documentos, revisão médica, revogação e leitura dos pedidos por outro vínculo, e o CI do HEAD `1b37f84` passou. A observação autenticada em Preview cobre apenas os dois perfis vinculados; isolamento visual entre outras identidades permanece pendente.
+
+**IA2 — aviso interno em preparo:** a tela de Processamentos do PR #95 agora dá nome correto à tarefa “Leitura de exame” e destaca falhas encerradas na página, com orientação para conferir o original. O CI do commit `0bcd6c9` passou (testes, lint, typecheck e build). Ainda não foi observada tarefa falha no Preview. Essa indicação depende de abrir a tela; não substitui monitoramento proativo nem os testes de download, erro permanente e serviço externo.
+
+**Limites:** C3 ainda precisa de isolamento visual por outros papéis/vínculos e aceite operacional. IA2 ainda precisa de contrato de laudo com o médico, avaliação de cobertura e aceite clínico. O parser reconhece somente a fixture explicitamente fictícia, sem Claude, OCR ou interpretação clínica. Não há autorização para dados reais; C1/Gate P e separação de produção seguem abertos. [Checkpoints](CHECKPOINTS_ENTREGAS.md) distingue cada entrega.
+
+O restante deste documento preserva evidências anteriores a este pacote; quando houver divergência temporal, prevalece a seção acima.
+
+Consolidado documental em **08/10/2026**, sobre a `origin/main`
+`ebadaab8e5fa64d49355c459dee92707edbe5557` (PR #92). Git e situação dos PRs
+foram conferidos nesta data. Os registros de publicação abaixo são evidências
+anteriores, até 07/10. O projeto Supabase sintético e o Preview C3 foram
+conferidos em 08/10; as sessões do Preview foram revalidadas parcialmente
+como descrito abaixo. Domínio público e produção separada **não foram
+revalidados nesta implantação**. Este documento não autoriza uso clínico.
+
+[Direção e prioridades](DIRECAO_E_SLICES.md) ·
+[Checkpoints das entregas](CHECKPOINTS_ENTREGAS.md) · [Índice](README.md) ·
+[Decisões e evidências históricas](historico/README.md)
+
+## Avaliação de UX e dados em 08/10
+
+A [avaliação Paciente × Médico × IA](AVALIACAO_JORNADA.md) acrescenta inspeção
+do código e observação autenticada, somente leitura, de Hoje médico e ficha
+sintética. Isso não revalida banco, sessão do paciente, jornada completa ou
+deployment servido. Identificou lacunas de vínculo pedido/resposta, continuidade
+da revisão e visibilidade para o paciente. A proposta de priorizar um slice C3
+de exames antes da ampliação de IA2 foi aceita como ponto de partida; não
+promoveu aceite operacional ou clínico.
+
+**Branch de execução:** `codex/c3-exame-solicitado-20261008`, publicada no
+[PR #93](https://github.com/vitormilanez/instituto-vivance/pull/93) em rascunho,
+criada sobre os dois commits documentais após `origin/main` `ebadaab8`. O código vincula
+o documento ao pedido explícito, conserva a fila quando a última revisão pede
+acompanhamento e mostra ao paciente somente estado operacional de revisão.
+O CI do SHA `1e5af18` passou e o [Preview C3 atual](https://instituto-vivance-dkb5hxd6m-vtr-consulting.vercel.app)
+(`dpl_6myzQxMea2EPDkNcFnoVhWyyUvqL`) ficou `Ready` como Preview. Login real
+do paciente nesse Preview exibiu no comprovante "quinta-feira, 08/10/2026,
+15:29:57" e na lista "qui. · 08/10/2026, 15:29" após recarga. O título genérico
+passou a dizer "Exame enviado em 08/10/2026", sem confundir envio com a data de
+realização do exame, que ainda não é coletada. No projeto sintético confirmado
+`instituto-vivance-dev`, as migrations `20261008174209`, `20261008174346` e
+`20261008184620` foram aplicadas, e a Edge
+Function `private-documents` v5 foi publicada com JWT obrigatório; a fonte
+remota foi conferida contra o checkout. A segunda migration move a função
+privilegiada de recibo para `private`; o advisor deixou de apontá-la no
+schema público. Isso é **implantação técnica sintética**, não aceite.
+
+No Preview, houve login real com os dois perfis de teste: o médico criou um
+pedido de exame e o paciente respondeu com uma imagem em 08/10/2026 às
+15:29 (São Paulo). O banco confirmou `completed` no pedido e vínculo com o
+documento; após recarga, a Home mostrou o envio ligado ao pedido e o
+comprovante preservou data/hora e estado "disponível para revisão". A fila
+"Para revisar" inicialmente ocultava envios do paciente por falta de leitura
+do mapeamento `patient_accounts` pelo profissional vinculado. A migration
+`20261008184620` corrigiu a política de leitura no projeto dev: 114 testes de
+isolamento passaram, e o Preview mostrou 6 exames para esse paciente, incluindo
+o envio de 08/10 às 15:29, sem abrir o arquivo nem registrar revisão. A origem
+sintética do arquivo enviado ainda não foi confirmada; preservar esse registro.
+O timestamp de envio é persistido e aparece como data/hora local; a interface
+explicita o dia da semana e distingue a data de envio da data de realização do
+exame, que ainda não é coletada.
+Em 08/10, um segundo envio **avulso, inteiramente fictício**
+(`vivance-c3-exame-ficticio.pdf`, documento
+`5acc7676-7950-457e-b08c-b5b228d8d1de`) mostrou data e dia no comprovante
+às 16:54:16. O original foi visto no perfil médico com a marca explícita de
+teste. O médico registrou `needs_follow_up` às 16:55 e uma nota interna sem
+conduta clínica. Após recarga, a ficha manteve o histórico, a fila conservou o
+envio e a Home médica mostrou **1 acompanhamento em aberto**. Na conta do
+paciente, Home e recibo mostraram apenas “Revisão registrada pela equipe”, sem
+nota/decisão interna ou orientação. A imagem do envio solicitado anterior
+continua preservada, **sem abrir ou revisar**, pois sua origem sintética não
+foi confirmada. Isolamento de UI entre outros papéis/vínculos, decisão sobre
+data de realização do exame, aceite operacional e aceite clínico seguem
+pendentes. C3 continua aberto.
+
+Em 08/10, o percurso pedido → resposta foi repetido somente com PDF de teste:
+pedido `775b1512-1dba-46c6-8dca-916db544550b`, documento
+`6b8ed9b5-08a1-474e-80ad-07361ac2b053`. O paciente viu o comprovante
+persistido após recarga, com **quinta-feira, 08/10/2026, 17:17:22** e
+“Resposta ao pedido de 08/10/2026”; o pedido saiu das pendências. Na sessão
+médica, o arquivo identificado como fictício entrou em “Para revisar”, foi
+aberto e permaneceu em **“Já aberto · revisão não registrada”**. Não houve
+revisão, orientação nem publicação clínica nesse percurso. O documento
+`IMG_4022.PNG` anterior permanece sem abrir/revisar por origem incerta.
+
+## Base confirmada no repositório
+
+- Aplicação em `apps/web`: Next.js, Node 24. `app/`, `db/` e `drizzle/` na raiz
+  são protótipo legado e não participam do deploy atual.
+- Código de identidade por clínica/papel, vínculos, onboarding, pré-consulta,
+  agenda, atendimento versionado, planos, check-ins, refeições, medidas,
+  documentos privados, mensagens, pedidos e relatórios. Ver [contratos](FUNCIONALIDADES.md).
+- Briefing contínuo, relatos literais com fontes, pendências, documentos,
+  gráfico factual de peso, navegação persistente e ajustes de Mensagens
+  integrados pelos PRs #82/#84. [Contrato e validações](BRIEFING_CONSULTA_2026-10-07.md).
+- O [serviço do briefing](../apps/web/modules/ai/consultation-brief.ts) tem fallback
+  determinístico e exige ativação/configuração explícita para chamar o provedor.
+  A última conferência registrada encontrou a IA desligada; isso não foi
+  reconsultado no ambiente em 08/10.
+- Virada 90 com apresentação em cinco etapas e refinamento de leitura/conversão
+  integrado pelos PRs #87/#89/#91; [contrato atual](VIRADA90_JORNADA.md).
+
+## Entregas e limites da evidência
+
+| Frente | Último registro disponível | Limite que permanece |
 | --- | --- | --- |
-| **C1 · Base operacional** | Projeto único de testes autorizado; 57 migrations pareadas no histórico do projeto atual. Sem restauração testada nem produção separada. | Confirmar destino de cada ferramenta antes de escrita e manter a separação como requisito prévio a dados reais. |
-| **C2 · Demonstração longitudinal** | Limpeza e carga histórica parcial executadas. Restam Guilherme e Vitor no Auth e um prontuário; Vitor tem 21 dias seguidos de check-in e 18 refeições fictícias. Quatro exames receberam títulos conferidos. A lista e um PDF original foram validados na sessão autenticada do médico. | Validar a sessão do paciente e completar consulta/retorno sem forjar conduta ou assinatura médica. |
-| **C3 · Contexto e aceite operacional** | Iniciado na sessão do médico: abas e fontes verificadas; unidade de altura legada corrigida; check-ins diários agora visíveis em ordem de referência na Linha do tempo. Sem aceite operacional. | Exercitar a sessão do paciente, troca de agendamento, revisão/publicação e consulta/retorno; planejar outro ciclo para admin, enfermagem e isolamento entre pacientes. |
-| **IA1 · Governança** | Contrato documental no [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64), ainda sem aprovação dos responsáveis. | Fechar finalidade, fonte, fornecedor, privacidade e revisão médica. |
-| **IA2–IA6** | Planejados; não há análise clínica por IA ativa. | Iniciar apenas após os gates próprios, com material sintético nas etapas iniciais. |
-| **Gate P** | Aberto. O deployment está tecnicamente `READY`, sem aceite clínico. | Separar produção, conferir migrations/backup/restauração, segurança e percursos antes de dados reais. |
+| Área médica | PR #84, `5466eb2`, publicação em 07/10; 439 testes e checks registrados; navegação e Mensagens conferidas com sessão médica. | Card minimizável e grupos do briefing conferidos na prévia sintética; sem consulta futura na conferência publicada. Não fecha C3. |
+| Virada 90 | PR #91, `f1a7a57`, publicação em 07/10; 441 testes e checks registrados; navegador público conferido. [Evidência](virada90/releases/2026-10-07-conversion-refinement/README.md). | Não comprova conversa recebida, venda ou conversão real no Ads. |
+| Medição comercial | [Modelo de acompanhamento](virada90/MODELO_ACOMPANHAMENTO.md) e [funil](virada90/FUNIL_COMERCIAL_LEVE.md). | Clique em WhatsApp permanece distinto de mensagem recebida e das etapas do CRM. |
 
-O [PR #63](https://github.com/vitormilanez/instituto-vivance/pull/63) foi integrado à `main` em `a1ba2e9` e publicado tecnicamente em 29/09/2026. As correções posteriores dos [PRs #66](https://github.com/vitormilanez/instituto-vivance/pull/66) e [#67](https://github.com/vitormilanez/instituto-vivance/pull/67) também foram publicadas e verificadas no navegador.
+Os SHAs acima identificam entregas específicas, não afirmam qual deployment
+está servindo o domínio agora. Contagens de testes também são daquele lote;
+não representam uma execução nova.
 
-**Decisão de 29/09/2026:** o projeto `instituto-vivance-dev` será o ambiente único temporário para testes com dados sintéticos. A separação dos ambientes fica para antes de dados reais e do fechamento do Gate P; não foi dispensada.
+## Slices e bloqueios
 
-**Decisão final de escopo em 29/09/2026:** o usuário substituiu a proposta de
-três sintéticos por **apenas Guilherme e Vitor** e dispensou manter cópia dos
-registros removidos. No projeto `oxuwrdjojsmgxoljqkuk`, a limpeza excluiu
-seis contas Auth, 19 prontuários e os respectivos registros dependentes; seis
-arquivos não vinculados a Vitor foram removidos pela API do Storage. A leitura
-após a operação confirmou duas contas ativas, dois memberships, um
-patient_account, um prontuário, cinco agendamentos, um atendimento, cinco
-documentos e cinco objetos no Storage. Todos os documentos têm objeto, e não
-há objeto órfão. Nenhuma tabela pública com `patient_id` mantém linha de
-outro paciente. Os registros técnicos de auditoria permanecem como trilha
-histórica; a limpeza não constitui aceite clínico.
+| Frente | Estado conferido | Próxima evidência |
+| --- | --- | --- |
+| **C1 / Gate P** | Dev único temporário para testes sintéticos; 65 migrations no destino confirmado. | Produção separada, restauração, segurança e papéis antes de dados reais. |
+| **C2/C3 — continuidade** | PR #95 inclui contexto longitudinal do PR #94; percurso sintético da pré-consulta ao retorno observado nos dois perfis; CI e novo Preview das correções passaram. | Aceite operacional e clínico separados; isolamento de outros papéis/vínculos. |
+| **C3 — exame solicitado** | PR #95 inclui pedido/resposta, fila, revisão e recibos do PR #93; Preview anterior com PDF fictício. | Isolamento visual por outros papéis/vínculos e aceite operacional; preservar `IMG_4022.PNG` sem abrir/revisar. |
+| **IA2 — extração e itens** | PR #95 inclui PR #78, Edge/Cron no dev; PDF fictício concluído sem aba, 3 páginas/45 itens, uma revisão persistida e paciente negado. | Falha/retry sintéticos, contrato de laudo e avaliação clínica. |
+| **IA1 / IA3–IA6** | PR #64 de governança e plano futuro sem decisão clínica. | Finalidade, fornecedor, dados, fontes versionadas e gates de IA. |
 
-**Carga histórica C2 em 29/09/2026:** o script repetível
-[`seed_vitor_history.sql`](../scripts/demo/seed_vitor_history.sql) acrescentou
-19 check-ins retrospectivos (08–28/09, sem duplicar 23 e 24/09) e 18
-refeições fictícias (19–28/09). Todos os textos novos têm marcador
-`DEMONSTRAÇÃO`; as datas técnicas de criação refletem a carga, enquanto a
-data de referência representa o histórico simulado. Um ensaio com
-`ROLLBACK`, a execução e uma segunda execução sem novas linhas passaram.
-Contagem após a carga: 21 check-ins e 18 refeições para Vitor, duas contas
-Auth e um prontuário. Agendamentos, atendimento, mensagens, documentos,
-medidas e Storage existentes não foram alterados pelo script. A aba Evolução
-foi vista na sessão autenticada do médico; o aceite médico segue pendente.
+**Decisão preservada de 29/09:** `instituto-vivance-dev`
+(`oxuwrdjojsmgxoljqkuk`) é o único projeto temporário de testes sintéticos.
+A existência de um frontend publicado não o transforma em banco liberado
+para dados reais. Registros cuja origem não foi estabelecida devem ser preservados.
 
-**Documentos C2 em 29/09/2026:** a migration
-`20260929234224_patient_document_display_title` acrescentou um título de
-exibição opcional, sem sobrescrever `original_filename` nem ampliar permissão
-de escrita. No projeto de teste `oxuwrdjojsmgxoljqkuk`, os quatro PDFs de exame
-de Vitor receberam títulos conferidos contra o cabeçalho dos próprios laudos;
-o quinto documento permanece com título genérico. A leitura de controle
-encontrou 57 versões de migration, cinco documentos disponíveis, quatro com
-título e RLS ainda ativa. A listagem compacta e a revisão em linha passaram
-por prévia local com dados fictícios em desktop e celular, além de build,
-typecheck, lint e testes. Após a publicação, a sessão autenticada do médico
-mostrou os cinco documentos, os quatro títulos e o formulário de revisão que
-abre e fecha sem gravar. A rota de download gerou redirecionamento assinado,
-mas o Chrome bloqueou o domínio do Storage com `ERR_BLOCKED_BY_CLIENT`. O
-PR #66 passou a entregar o arquivo pelo domínio do app após a autorização no
-servidor. No deployment `dpl_EB7ddcDXVvbMj37WmWowkQmwvtAu` do merge
-`dacd3d3`, um PDF original abriu no visualizador do Chrome na sessão real do
-médico, sem desvio para o Storage. Os outros originais não foram abertos
-nesta rodada. A sessão do
-paciente e o aceite da demonstração seguem pendentes. Nenhum resultado de
-exame foi interpretado.
+## Trabalho paralelo e retomada
 
-**Primeira verificação C3 em 29/09/2026:** Visão geral, Documentos, Linha do
-tempo e Evolução foram acessados na sessão real do médico, mantendo Vitor no
-contexto. Evolução exibiu os check-ins retrospectivos marcados
-`DEMONSTRAÇÃO` e medidas com fonte. A altura legada `1,73` foi mostrada como
-`1,73 cm` no cartão e na tabela; o PR #67 corrigiu apenas a apresentação
-para `173 cm`, sem alterar o valor persistido. O merge `b4e8a42` teve CI
-completo aprovado e foi publicado em
-`dpl_FSM8Yof4tsz5SiTYgXyQ7PfhSoaT`; a sessão do médico confirmou
-`173 cm` no cartão e na tabela. A Linha do tempo inicialmente mostrou estado
-vazio embora Evolução listasse check-ins diários. Os PRs #69 e #70 incluíram
-esses relatos no feed de médico e paciente e os ordenaram pela data de
-referência, com a data técnica do envio visível. O merge `f81929f` teve CI
-completo aprovado e foi publicado no deployment
-`dpl_H9iT6aFsFm5B3W2egwdbymE8PEGn`. Na sessão do médico, a sequência
-28/09, 27/09, 26/09… apareceu com o marcador `DEMONSTRAÇÃO` e envio em
-29/09 nos registros retrospectivos. A sessão do paciente não foi testada;
-nenhum aceite operacional foi registrado.
-
-**Inventário C2 anterior à limpeza:** havia 8 contas Auth, 20 prontuários e 87
-agendamentos. Vitor já tinha 5 agendamentos, 4 exames disponíveis com objeto no
-Storage, 2 check-ins diários e 5 mensagens. A solicitação anterior de três
-pacientes completos **não foi concluída**. Esta fotografia foi superada pela
-decisão final de manter somente Vitor e Guilherme.
-
-## Código e publicação
-
-- A aplicação é `apps/web`; as migrations estão em `supabase/`. O protótipo da raiz não participa do deploy.
-- O código da aplicação foi verificado no merge `f81929f` do PR #70. Os checks de PR e `verify` do release passaram nos PRs #66, #67, #69 e #70, incluindo testes, lint, typecheck e build. Não houve nova migration nessas correções.
-- Pela CLI, a migration foi confirmada no Supabase de testes: 57 versões pareadas, cinco documentos disponíveis, quatro titulados e RLS ativa. A Vercel gerou `dpl_DLq5cWoGxkAw69BNzMZwyGv4Qmki`, `production`, `READY`, com `gitSource.sha=a1ba2e9`; a promoção manual apontou ambos os domínios ao mesmo deployment. Três chamadas a `/login` no domínio principal deram HTTP 200 (TTFB 1,03 s, 0,36 s e 0,11 s); três no secundário deram HTTP 307 para o principal. Isso comprova publicação técnica, não aceite clínico.
-- Para as correções sem migration, a Vercel gerou `dpl_EB7ddcDXVvbMj37WmWowkQmwvtAu` do merge `dacd3d3` e depois `dpl_FSM8Yof4tsz5SiTYgXyQ7PfhSoaT` do merge `b4e8a42`. A CLI confirmou `production`, `READY` e o `gitSource.sha` de cada um, promoveu após CI e verificou ambos os domínios no último deployment. O domínio principal respondeu HTTP 200 em `/login`. PDF e altura foram verificados em sessão autenticada do médico, sem constituir aceite clínico.
-- O feed longitudinal foi publicado em `dpl_CjcM8zQNy39B8LaCLqEwfJF7GMHe` (merge `85034cd`) e sua ordem corrigida em `dpl_H9iT6aFsFm5B3W2egwdbymE8PEGn` (merge `f81929f`). A CLI confirmou o último deployment `production`, `READY`, `gitSource.sha=f81929f` e ambos os domínios nele após promoção. A sessão autenticada do médico confirmou a ordem; a sessão do paciente ainda não.
-- A variável pública de Supabase do deployment de produção aponta para `oxuwrdjojsmgxoljqkuk`, projeto chamado `instituto-vivance-dev`. A separação produção/desenvolvimento exigida pelo Gate P **não está demonstrada**. Outra variável de servidor aponta para projeto distinto; nunca inferir o destino de migrations por nome ou `.env`.
-- O histórico remoto de `oxuwrdjojsmgxoljqkuk` lista migrations até `20260929234224_patient_document_display_title`. A comparação completa com um banco de produção separado não foi feita nesta revisão.
-
-## Consolidado na aplicação
-
-Há identidade por clínica e papel, vínculo de cuidado, agenda, atendimento versionado, pré-consulta, onboarding, contexto em abas, evolução, check-ins, diário alimentar, documentos privados, conversas, pedidos ao paciente, receitas anteriores, teleconsulta por link externo e relatórios manuais. A fundação de tarefas de processamento existe; **não há worker de OCR/IA clínica ativo**, biblioteca médica controlada ou análise automática liberada. Os contratos e limites estão em [Funcionalidades](FUNCIONALIDADES.md).
-
-## Pendências que governam os próximos slices
-
-1. Usar o projeto atual para testes sintéticos controlados; identificar e separar os ambientes, conferir migrations e testar restauração antes de dados reais.
-2. Fechar o [Gate P](GATE_P.md) com percursos autenticados por papel e negações entre pacientes/clínicas.
-3. Concluir C2 somente com Vitor e Guilherme. A limpeza e a carga de
-   autorrelatos sintéticos foram executadas e verificadas no banco; marcos de
-   consulta/retorno e aceite pela interface ainda estão pendentes.
-4. Continuar C3: verificar a sessão de Vitor, a troca de agendamento e a
-   separação entre revisão e publicação. Com apenas duas contas, não aceitar
-   admin, enfermagem ou isolamento entre pacientes.
-5. Definir finalidade, governança e avaliação regulatória da IA antes de qualquer análise clínica. Ver [Plano de IA clínica](PLANO_IA_CLINICA.md).
-
-`READY`, HTTP 200 e migrations listadas são evidências técnicas delimitadas. Não comprovam a jornada completa, nem autorizam dados de saúde reais.
-
-## Landing Virada 90 — 30/09/2026
-
-Publicação autorizada em `/virada90` no domínio Vivance para o Instituto
-Guilherme Martins. Página pública estática, com textos, vídeo, foto e três
-links de WhatsApp do material aprovado. Não altera autenticação clínica,
-banco, CRM ou regras de cuidado. Publicação técnica confirmada no PR #72, merge `1803dd1`, deployment
-`dpl_Gz8nJKSKPbXswJLFML47aYGsGBXc` promovido pela CLI. Ambos os domínios
-resolvem para esse artefato. `/virada90` e `/login` responderam HTTP 200.
-416 testes, lint, typecheck e build passaram no release `36755802273`;
-migrations não necessárias e promoção automática skipped. Navegador no
-domínio público confirmou vídeo de 38,3 s, FAQ, três links originais e ausência
-de overflow em 390 e 1440 px. Nenhum envio ao CRM realizado.
-
-## Jornada comercial Virada 90 — 02/10/2026
-
-Revisão de 02/10: após apontar conteúdo incompleto, o usuário forneceu as doze telas do protocolo. A apresentação em `/virada90/conhecer` passa a dez tópicos cobrindo pilares, avaliação, plano, acompanhamento, manutenção, exames, suplementos, dúvidas e formatos. [Contrato](VIRADA90_JORNADA.md) e [cobertura das telas](virada90/CONTEUDO_E_IMAGENS.md).
-
-Ambos os programas duram três meses. Presencial com aplicações e medições quando indicadas: 12× R$ 1.000 (total R$ 12.000). Online com acompanhamento e plano alimentar: R$ 6.500 no total em 12×. Valores apenas no último tópico; não há limite de três consultas ou promessa de parcelamento sem juros.
-
-A única saída comercial final prepara mensagem revisável no WhatsApp. Cadastro intermediário, checkout e espaços “video” foram retirados; três imagens editoriais substituem a mídia reservada. Objetivo e formato são opcionais, sem armazenamento. Não há CRM, gravação no banco ou envio automático. Revisão local na branch `codex/virada90-guided-form`, PR #74: 416 testes, lint, typecheck e build passaram com Node 24. Navegação, imagens, valores finais e enquadramentos de 320/390/1440 px foram conferidos; [evidências e limites locais](../apps/web/.impeccable/review/virada90-complete/evidence.md).
-
-[PR #74](https://github.com/vitormilanez/instituto-vivance/pull/74) mesclado e publicado em 02/10/2026. Commit da aplicação `5d6fe4c02fbd9bbb65d0a9b5abf4146b4c95c99d`, deployment `dpl_51T4TDH34NRadvymSWK3XbCBsm5x`, execução `gru1`. O release `37056735229` aprovou testes, lint, typecheck e build; as etapas efetivas de migration e promoção automática foram skipped. Não há mudança de banco neste lote; a promoção foi realizada pela CLI após os checks. Ambos os domínios foram conferidos no mesmo artefato. `/virada90`, `/virada90/conhecer`, CSS, JS e três imagens responderam HTTP 200 e corresponderam byte a byte ao código publicado. O navegador público confirmou os dez tópicos, valores finais, escolhas opcionais e destino de WhatsApp, sem enviar mensagem. [Evidências e limites da publicação](virada90/releases/2026-10-02/README.md).
-
-### Medição Google — 03/10/2026
-
-Branch `codex/virada90-google-tags`: GA4 `G-L8QMHVRV68`, Ads `AW-818747876`
-e conversão WhatsApp `AW-818747876/zzjqCNb0r4wYEOSztIYD` conferidos no
-container público do site do Instituto Guilherme Martins. Implementação
-restrita às duas páginas de campanha no domínio principal, após consentimento,
-sem respostas de saúde nos eventos. 424 testes, lint, typecheck e build aprovados
-localmente. Navegador conferiu recusa, continuidade da atribuição, etapa final,
-aviso em 390 px e abertura da mensagem preparada no WhatsApp sem Google.
-Publicado pelo [PR #76](https://github.com/vitormilanez/instituto-vivance/pull/76),
-merge `a97f94d`; release `37132467559` aprovado. Promoção automática skipped;
-deployment `dpl_GG3xheoUfPTYcjjoxfCz2kHbxVxy` promovido manualmente e
-conferido em ambos os domínios. Arquivos públicos corresponderam ao checkout;
-o navegador mostrou SDK somente após aceite e retirou seu carregamento após
-revogação. [Registro](virada90/releases/2026-10-03/README.md),
-[contrato](virada90/MEDICAO_GOOGLE.md).
-
-Pulse `/integration` foi consultado na sessão autenticada: Webhooks incluem
-mensagens recebidas; widget registra origem da visita. Nenhuma configuração
-foi alterada. Recebimento no Google, conversão primária da campanha e integração
-de conversa efetiva no CRM não foram validados.
-
-### Funil comercial enxuto — 06/10/2026
-
-Publicado tecnicamente em 06/10/2026 pelo [PR #80](https://github.com/vitormilanez/instituto-vivance/pull/80): rótulo curto da origem paga no texto editável do WhatsApp, apenas após consentimento e quando reconhecida no link. O CRM existente da closer continua sendo a fonte para conversa recebida, agendamento, comparecimento e entrada no Virada 90 presencial ou online. [Contrato operacional](virada90/FUNIL_COMERCIAL_LEVE.md) e [registro do release](virada90/releases/2026-10-06/README.md). Verificação da `main` aprovada, deployment `dpl_AgWG4tj1AQ3QeyGpiqpGpRRRXZvv` promovido manualmente e confirmado em ambos os domínios. O navegador público confirmou recusa, aceite e revogação sem enviar mensagem. Recebimento no Pulse e conversão real no Ads não foram validados. PR #79 permanece rascunho/desligado. Gate P aberto.
-
-### Google Ads e modelo de acompanhamento — 07/10/2026
-
-Na conta `CA - Dr. Guilherme Martins` (`421-617-2711`), a ação
-**“Botão do Whatsapp”** usa a label publicada
-`AW-818747876/zzjqCNb0r4wYEOSztIYD` e está ativa como **Contatos**. A ação
-antiga **“Clique no WhatsApp”** usa outra label, não recebia ping desde julho
-e permanece sem alteração. A última conversão da ação ativa foi registrada em
-03/10 no nível da conta; isso **não comprova** conversão do Virada 90.
-
-As campanhas `VIRADA90 | ONLINE | BRASIL | SEARCH` (`24310407311`) e
-`VIRADA90 | PRESENCIAL | 100KM PRUDENTE | SEARCH` (`24316075414`) herdavam
-metas padrão sem **Contatos**. Em 07/10, ambas foram configuradas com a meta
-específica **Contatos**, sem alterar orçamento, anúncios ou lances (ambas
-continuam em **Maximizar cliques**). A janela de 07/09 a 06/10 mostrou,
-respectivamente, 66 cliques em anúncios/R$ 276,12 e 24 cliques/R$ 158,56;
-as campanhas indicavam zero conversões nessa janela. Clique no anúncio,
-clique no WhatsApp e mensagem recebida são eventos distintos.
-
-O [modelo semanal de acompanhamento](virada90/MODELO_ACOMPANHAMENTO.md) está
-pronto. Ele usa o CRM existente para conversa recebida, avaliação agendada,
-comparecimento e entrada no programa, com origem não identificada quando
-faltar evidência. No Pulse, não foi validado webhook ativo para mensagem
-recebida; o PR #79 segue rascunho/desligado. Não há comprovação de
-conversão real atribuída ao Virada 90 nem autorização para importar conversas
-com dados reais ao banco clínico. Gate P permanece aberto.
-
-
-
-## Briefing da consulta e peso — 07/10/2026, publicado
-
-Na branch `codex/consultation-brief-20261007`, iniciada da `main` atualizada
-(`0e28011`), a Home do médico troca as abas da próxima consulta por leitura
-contínua: identidade e ação contextual, relatos com fontes, pré-consulta
-mais recente aberta, comparação de originais e fatos compactos. As pendências
-da pessoa selecionada ficam no briefing; a revisão dos demais inclui documentos
-sem somar os mesmos arquivos duas vezes e abre a coleção correta. Agenda,
-solicitações, aceite de vínculo e ações rápidas do médico são preservados.
-
-O gráfico usa datas reais no eixo, seleção por toque/teclado, peso e data de
-cada registro, variação factual em kg/percentual, tabela acessível e cadastro
-como referência separada. Não determina peso ideal, gravidade ou conduta.
-
-O serviço de IA fica no servidor, desligado por padrão. O fallback cita
-literalmente relatos e calcula lacunas por regra. A IA só pode selecionar
-fatos existentes com fontes válidas, mantendo a ordem do servidor; texto
-reescrito ou sem fonte é descartado. Não há nova persistência nem migration.
-Ativar o envio de dados clínicos ao provedor exige decisão expressa do usuário
-sobre fornecedor/LGPD e os gates aplicáveis.
-
-Validação inicial local e sintética; publicação autorizada e concluída em
-07/10/2026 pelo [PR #82](https://github.com/vitormilanez/instituto-vivance/pull/82),
-merge `abefcb3`. Testes, lint, typecheck e build da main passaram. Deployment
-de produção `dpl_AKdqxwrBgQuVjrwAJjRMVXJ6frAR`, READY, promovido manualmente e
-confirmado em ambos os domínios. A Home e suas interações foram conferidas na
-sessão autenticada existente do médico; os oito atalhos da rota foram preservados.
-IA permanece desligada, sem migration ou escrita no Supabase nesta publicação.
-C3 permanece sem aceite operacional e Gate P aberto.
-[Contrato, evidências de publicação e limites](BRIEFING_CONSULTA_2026-10-07.md).
-
-### Refinamento solicitado — 07/10/2026, em validação local
-
-O briefing foi reagrupado em relatos literais, respostas pendentes e documentos
-para revisão; links de documentos apontam para linhas identificáveis, com data.
-A próxima consulta pode ser minimizada e expandida pelo teclado ou toque,
-movendo as seções seguintes no fluxo normal da página. A causa observada do
-menu desaparecer na troca era o fallback global `Carregando sua clínica…`, que
-substituía todo o shell; essa tela de carregamento foi removida e os links do
-menu indicam navegação pendente. No compositor médico, as referências opcionais
-ficam recolhidas e abrem sobre a conversa no desktop, mantendo o envio visível;
-o histórico abre no último registro. Um teste autorizado enviou mensagem curta
-sem dados clínicos na sessão autenticada do médico, confirmada no histórico.
-Os demais comportamentos foram conferidos localmente com dados fictícios;
-publicação da nova versão e aceite clínico ainda são etapas distintas.
-
-### Publicação técnica do refinamento — 07/10/2026
-
-PR #84 integrado à `main` no commit `5466eb2a19bb7b8b74515a4add1a27b2cc4abe6a`.
-Foundation CI e `verify` do release passaram com 439 testes, lint, tipos e build.
-O workflow não aplicou migrations nem Edge Functions e ignorou a promoção por
-configuração protegida ausente. Não houve alteração de banco neste lote. O
-deployment production `dpl_2VxpTEMTUimABXpCW3Kyy1xS9K2y`, do mesmo commit,
-foi promovido manualmente; `institutovivance.app` e
-`instituto-vivance.vercel.app` resolvem para esse ID. `/login` respondeu 200
-no principal e 307 no alias, redirecionando ao principal.
-
-Na sessão autenticada do médico, navegar de Teleconsulta para Mensagens e de
-Mensagens para Hoje preservou o menu durante a transição; o painel publicado
-mostrou referências recolhidas, último registro visível e botão de envio dentro
-da área de trabalho. O teste de envio autorizado ocorreu antes desta versão e
-foi confirmado no histórico depois da publicação; não houve segundo envio.
-O card minimizável e os grupos do briefing foram conferidos na prévia sintética;
-na sessão publicada a consulta do dia já havia passado e não havia próxima
-consulta, portanto essa interação não foi revalidada no domínio.
-Publicação técnica não fecha C3, Gate P nem aceite clínico.
+- As três migrations do PR #78 e as três C3 já aplicadas foram reconciliadas
+  por versão com o checkout do pacote. Em 09/10, aplicou-se somente a nova
+  `20261009231639` ao dev, totalizando 64. O código permanece fora da main;
+  qualquer próxima migration ou release exige nova comparação de destino e
+  histórico, sem `db push` cego.
+- [PR #79](https://github.com/vitormilanez/instituto-vivance/pull/79) continua aberto
+  para atribuição Pulse; o registro vigente o mantém desligado. Não tratar o
+  webhook ou a importação Ads como integração operacional confirmada.
+- [PR #40](https://github.com/vitormilanez/instituto-vivance/pull/40) permanece aberto
+  para limpeza de cópias do iCloud. Esta organização remove os sete MDs antigos;
+  reconciliar as exclusões sobrepostas antes de integrar aquele PR.
+- Primeira entrega em Preview sintético: **C3 — fechar o ciclo de um exame
+  solicitado**, conforme [achados e aceites](AVALIACAO_JORNADA.md). O
+  [handoff IA2](IA2_EXAMES.md) permanece válido; C2/C3 seguem sem aceite
+  integrado. O percurso do PDF inteiramente fictício chegou à revisão e ao
+  recibo após recarga. Próximo marco: isolamento por outros papéis/vínculos,
+  aceite operacional C3 e consulta → retorno no PR #94.

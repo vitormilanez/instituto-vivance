@@ -147,7 +147,7 @@ test("lembretes: horários de 15 em 15 minutos, texto sem saúde e agendador pro
   assert.match(cron, /secret\.length < 32/);
   assert.doesNotMatch(cron, /SERVICE_ROLE|sb_secret/);
   const page = read("../app/clinicas/[tenantId]/meu-cuidado/[section]/page.tsx");
-  assert.match(page, /reminder === undefined\)\s*redirect\(`\/clinicas\/\$\{tenantId\}\/meu-cuidado\/boas-vindas`\)/);
+  assert.doesNotMatch(page, /reminder === undefined\)\s*redirect/);
   // A permissão de notificação só é pedida depois da escolha do horário.
   const welcome = read("../components/patient/welcome-flow.tsx");
   assert.ok(welcome.indexOf("await save(enabled)") < welcome.indexOf("subscribeThisDevice(tenantId)"));

@@ -28,3 +28,23 @@ test("envia todos os exames em sequência e preserva sucesso parcial", async () 
     [names[2], names[2], false],
   ]);
 });
+
+test("encaminha o pedido explícito para a reserva do exame", async () => {
+  const requestId = "11111111-1111-4111-8111-111111111111";
+  let received: string | undefined;
+  await uploadPatientDocumentBatch(
+    {
+      tenantId: "clinica-1",
+      patientId: "paciente-1",
+      category: "exam",
+      files: [{ key: "resposta", file: new File(["sintético"], "resposta.pdf") }],
+      careRequestId: requestId,
+    },
+    () => {},
+    async (input) => {
+      received = input.careRequestId;
+      return { documentId: "documento-1" };
+    },
+  );
+  assert.equal(received, requestId);
+});

@@ -26,6 +26,7 @@ test("document intent accepts only bounded private-document metadata", () => {
       byteSize: 512,
       category: "exam",
       visibility: "shared",
+      careRequestId: null,
     },
   );
   assert.throws(() =>
@@ -56,6 +57,44 @@ test("document intent accepts only bounded private-document metadata", () => {
       byte_size: maxDocumentBytes + 1,
       category: "exam",
       visibility: "shared",
+    }),
+  );
+});
+
+test("document intent binds only a shared exam to an explicit care request", () => {
+  const requestId = "22222222-2222-4222-8222-222222222222";
+  assert.equal(
+    documentIntent({
+      patient_id: patientId,
+      filename: "resposta.pdf",
+      content_type: "application/pdf",
+      byte_size: 512,
+      category: "exam",
+      visibility: "shared",
+      care_request_id: requestId,
+    }).careRequestId,
+    requestId,
+  );
+  assert.throws(() =>
+    documentIntent({
+      patient_id: patientId,
+      filename: "interno.pdf",
+      content_type: "application/pdf",
+      byte_size: 512,
+      category: "exam",
+      visibility: "internal",
+      care_request_id: requestId,
+    }),
+  );
+  assert.throws(() =>
+    documentIntent({
+      patient_id: patientId,
+      filename: "documento.pdf",
+      content_type: "application/pdf",
+      byte_size: 512,
+      category: "clinical_document",
+      visibility: "shared",
+      care_request_id: requestId,
     }),
   );
 });

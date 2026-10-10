@@ -42,6 +42,16 @@ test("uma ação em destaque: consulta em andamento vence; depois a primeira tar
   assert.ok(!first.rest.some((task) => task.title === first.focus.title));
 });
 
+test("pedido de exame abre o envio ligado à solicitação, sem mudar o atalho avulso", () => {
+  const [task] = patientTodayTasks({
+    base,
+    hasMeasurement: true,
+    careRequests: [{ id: "pedido-1", kind: "exams", requested_at: "2026-09-20T12:00:00Z" }],
+  });
+  assert.equal(task.href, `${base}/documentos?pedido=pedido-1#enviar-documento`);
+  assert.equal(quickLogs({ base, doctorName: null, latestMeasurement: null })[2].href, `${base}/documentos#enviar-documento`);
+});
+
 test("sem nada pendente, a tela diz que está tudo em dia e convida a registrar", () => {
   const clear = patientFocus({ base, consultationInProgress: false, tasks: [] });
   assert.equal(clear.focus.kind, "clear");
@@ -135,7 +145,7 @@ test("a Home não repete a navegação nem promete o que não existe", () => {
 test("envios do paciente: só da própria autoria, lidos com a sessão dele", () => {
   const service = read("../modules/workspace/patient-sent.ts");
   assert.match(service, /requireClinic\(tenant, \["patient"\]\)/);
-  assert.equal((service.match(/\.eq\("patient_id", patient\)/g) ?? []).length, 6);
+  assert.equal((service.match(/\.eq\("patient_id", patient\)/g) ?? []).length, 7);
   assert.match(service, /\.eq\("actor_user_id", user\.id\)/);
   assert.match(service, /\.eq\("uploaded_by", user\.id\)/);
   assert.match(service, /\.eq\("sender_id", user\.id\)/);

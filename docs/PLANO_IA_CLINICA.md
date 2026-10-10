@@ -2,6 +2,15 @@
 
 Atualizado em 28/09/2026 a partir da direção clínica apresentada por Dr. Guilherme Martins. Este documento planeja uma capacidade futura; **nenhuma análise clínica por IA está ativa**. A direção geral está em [Direção e slices](DIRECAO_E_SLICES.md).
 
+## Estado da implementação
+
+Consolidação documental de 08/10/2026: o [piloto IA2](IA2_EXAMES.md) já tem
+fila e extração de texto validadas com PDF fictício no Preview do PR #78; segue
+fora da main. Resultados estruturados, Claude/OCR e aceite clínico permanecem
+pendentes. O [briefing integrado](BRIEFING_CONSULTA_2026-10-07.md) usa fallback
+determinístico, com IA desligada na última conferência. Este plano descreve
+capacidades futuras; não deve ser lido como inventário da main ou do Preview.
+
 ## Objetivo e limite
 
 A IA ajuda o médico a localizar, organizar e confrontar dados de exames com fontes autorizadas. Ela não comunica diagnósticos, escolhe tratamento, prescreve, determina urgência nem publica conclusões ao paciente. O médico pode corrigir, rejeitar ou aprovar uma análise preliminar; aprovação e publicação são atos diferentes. Falta de dado ou evidência permanece visível.

@@ -67,6 +67,8 @@ export function PreparationFlow({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState<string | null>(null);
+  const [correctionOpen, setCorrectionOpen] = useState(false);
+  const [returnToReview, setReturnToReview] = useState<number | null>(null);
   const firstStep = summary.length ? 0 : 1;
   const total = questions.length + 3 - firstStep; // resumo, se houver + perguntas + prioridades + revisão
   const answered = questions.filter((question) => answers[question.id]?.trim()).length;
@@ -169,7 +171,10 @@ export function PreparationFlow({
     busy.current = true;
     setPending(true);
     setError("");
-    if (await saveDraft()) setStep(next);
+    if (await saveDraft()) {
+      setStep(next);
+      if (next === questions.length + 2) setReturnToReview(null);
+    }
     busy.current = false;
     setPending(false);
   }
@@ -252,9 +257,29 @@ export function PreparationFlow({
               ))}
             </dl>
           </div>
-          <button type="button" className="pv-link" onClick={() => setStep(questions.findIndex((item) => item.id === "changes") + 1 || 1)}>
-            Quero corrigir ou acrescentar algo
-          </button>
+          <div className="pv-correction">
+            <button type="button" className="pv-correction-toggle" aria-expanded={correctionOpen} aria-controls="pv-correction-options" onClick={() => setCorrectionOpen(!correctionOpen)}>
+              <span><strong>Algo diferente ou faltando?</strong><small>Conte à equipe o que precisa ser corrigido.</small></span>
+              <Icon name="chevR" size={20} />
+            </button>
+            {correctionOpen && (
+              <div id="pv-correction-options" className="pv-correction-options">
+                <p>Este resumo reúne registros já enviados. Sua observação fica na pré-consulta para a equipe conferir; ela não altera os registros originais.</p>
+                <label className="pv-field">
+                  <span>O que está diferente ou faltando?</span>
+                  <textarea
+                    rows={4}
+                    maxLength={4000}
+                    value={answers.changes ?? ""}
+                    onChange={(event) => { setAnswers({ ...answers, changes: event.target.value }); setDirty(true); }}
+                    disabled={pending}
+                  />
+                  <small>Você poderá revisar esta resposta antes de enviar.</small>
+                </label>
+                <Link className="pv-correction-history" href={`${base}/evolucao`}><Icon name="chart" size={19} /> Ver meus registros <Icon name="chevR" size={18} /></Link>
+              </div>
+            )}
+          </div>
         </>
       )}
 
@@ -332,7 +357,7 @@ export function PreparationFlow({
                     <strong>{shortLabels[item.id] ?? `Pergunta ${index + 1}`}</strong>
                     <small className={value ? undefined : "pv-missing"}>{value || "Falta responder"}</small>
                   </span>
-                  <button type="button" className="pv-link" onClick={() => setStep(index + 1)}>
+                  <button type="button" className="pv-link" onClick={() => { setReturnToReview(index + 1); setStep(index + 1); }}>
                     {value ? "Editar" : "Responder"}
                   </button>
                 </li>
@@ -347,7 +372,7 @@ export function PreparationFlow({
                     : "Nenhuma escolhida (opcional)"}
                 </small>
               </span>
-              <button type="button" className="pv-link" onClick={() => setStep(questions.length + 1)}>Editar</button>
+              <button type="button" className="pv-link" onClick={() => { setReturnToReview(questions.length + 1); setStep(questions.length + 1); }}>Editar</button>
             </li>
           </ul>
         </>
@@ -367,7 +392,9 @@ export function PreparationFlow({
 
       <div className="pv-checkin-actions">
         {step > firstStep ? (
-          <button type="button" className="pv-link" onClick={() => go(step - 1)} disabled={pending}>Voltar</button>
+          <button type="button" className="pv-link" onClick={() => go(returnToReview === step ? questions.length + 2 : step - 1)} disabled={pending}>
+            {returnToReview === step ? "Voltar à revisão" : "Voltar"}
+          </button>
         ) : (
           <button type="button" className="pv-link" disabled={pending} onClick={() => saveAndLeave()}>Salvar e sair</button>
         )}
@@ -377,8 +404,8 @@ export function PreparationFlow({
           {pending ? "Enviando…" : complete ? "Enviar pré-consulta" : `Faltam ${questions.length - answered} respostas`}
         </button>
       ) : (
-        <button type="button" className="pv-button is-center" disabled={pending} onClick={() => go(step + 1)}>
-          {pending ? "Salvando…" : step === 0 ? "Está certo, continuar" : "Continuar"}
+        <button type="button" className="pv-button is-center" disabled={pending} onClick={() => go(returnToReview === step ? questions.length + 2 : step + 1)}>
+          {pending ? "Salvando…" : returnToReview === step ? "Salvar e voltar à revisão" : step === 0 && dirty ? "Salvar e continuar" : step === 0 ? "Está certo, continuar" : "Continuar"}
         </button>
       )}
     </div>

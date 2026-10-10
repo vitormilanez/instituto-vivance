@@ -128,6 +128,9 @@ export type SentItem = {
   key: string;
   at: string;
   detail: string | null;
+  // Estado operacional do documento, sem decisão ou nota interna do médico.
+  reviewStatus?: "received" | "review_recorded" | "unavailable";
+  requestAt?: string;
 };
 
 export const sentLabels: Record<SentKind, string> = {
@@ -237,6 +240,10 @@ export function appointmentWhen(startsAt: string, endsAt: string, today: string)
 // Confirmação que a Home mostra ao voltar de um registro (?enviado=peso).
 // Só valores conhecidos: o texto nunca vem da URL.
 const justSentLabels: Record<string, string> = {
+  cadastro: "Contexto inicial compartilhado",
+  alimentacao: "Alimentação compartilhada",
+  fotos: "Fotos compartilhadas",
+  exames: "Etapa de exames concluída",
   peso: "Peso enviado",
   medidas: "Medidas enviadas",
   refeicao: "Refeição enviada",

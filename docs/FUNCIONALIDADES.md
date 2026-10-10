@@ -88,8 +88,13 @@ implementação pertencem ao código, às migrations e aos testes da `main`.
 
 - Existe uma fundação privada para tarefas idempotentes, tentativas e reserva de
   executor.
-- Não há worker, áudio, transcrição, modelo de IA, diagnóstico ou decisão
-  clínica automática ativos.
+- Na main, o briefing médico usa fallback determinístico e contém uma chamada
+  opcional a modelo, desligada na última conferência registrada. Áudio,
+  transcrição e decisão clínica automática permanecem inativos.
+- O [piloto IA2](IA2_EXAMES.md), fora da main no PR #78, já tem worker e extração
+  de texto validados em Preview com PDF fictício. Ainda não entrega resultados
+  estruturados, OCR, Claude ou fila independente da aba. Não confundir esse
+  piloto com funcionalidade clínica liberada.
 - Qualquer uso futuro de IA deve preparar ou organizar informação para revisão
   humana; aprovação e publicação continuam explícitas e médicas.
 

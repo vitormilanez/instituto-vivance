@@ -1,0 +1,98 @@
+/* Patient context: one question group at a time, within the patient identity. */
+.pv .vi-intake { --vi-ink:#0a1b33; --vi-muted:#506075; --vi-line:#ddd8ce; --vi-gold:#cba354; color:var(--vi-ink); max-width:620px; margin:0 auto; padding:16px 0 36px; }
+.vi-intake * { box-sizing:border-box; }
+.vi-intake-header { display:flex; align-items:center; gap:10px; margin-bottom:34px; font-size:14px; font-weight:650; }
+.vi-intake-header .vi-text-button { margin-left:auto; }
+.vi-intake h1 { font-size:clamp(30px,4vw,42px); line-height:1.12; letter-spacing:-.035em; font-weight:700; margin:0 0 18px; text-wrap:balance; outline:none; }
+.vi-lead { font-size:18px; line-height:1.55; color:var(--vi-muted); margin:0 0 28px; }
+.vi-support { color:var(--vi-muted); font-size:15px; line-height:1.55; margin:20px 0 28px; }
+.vi-progress { margin-bottom:32px; }
+.vi-progress-line { height:5px; overflow:hidden; border-radius:8px; background:#e5e0d7; }
+.vi-progress-line span { display:block; height:100%; background:var(--vi-gold); transform-origin:left; transition:transform 220ms ease; }
+.vi-progress p { display:flex; justify-content:space-between; font-size:13px; color:var(--vi-muted); margin:10px 0 0; }
+.vi-intake-body { animation:vi-enter 240ms cubic-bezier(.2,.8,.2,1) both; }
+.vi-welcome-route { border-block:1px solid var(--vi-line); display:grid; grid-template-columns:repeat(3,1fr); gap:18px; padding:24px 0; margin:30px 0; }
+.vi-welcome-route span { display:flex; gap:10px; align-items:center; font-size:15px; font-weight:600; }
+.vi-welcome-route svg { color:#a47a2e; flex-shrink:0; }
+.vi-basics { display:grid; gap:24px; }
+.vi-field { display:flex; flex-direction:column; gap:9px; font-size:16px; font-weight:600; min-width:0; }
+.vi-field input:not([type=checkbox]), .vi-field textarea, .vi-field select { width:100%; min-height:54px; border:1px solid #b9c0c9; border-radius:12px; color:var(--vi-ink); background:#fff; font:inherit; font-size:17px; font-weight:400; padding:14px 16px; box-shadow:none; }
+.vi-field textarea { line-height:1.5; resize:vertical; }
+.vi-field input:focus-visible,.vi-field textarea:focus-visible,.vi-field select:focus-visible { outline:3px solid #cba35466; outline-offset:2px; border-color:#9c732c; }
+.vi-field small { color:var(--vi-muted); font-size:13px; font-weight:400; line-height:1.5; }
+.vi-measure-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.vi-unit-input { position:relative; }
+.vi-unit-input input { padding-right:44px!important; }
+.vi-unit-input span { position:absolute; top:18px; right:14px; color:var(--vi-muted); font-size:14px; font-weight:400; pointer-events:none; }
+.vi-help { margin-top:-8px; font-size:14px; line-height:1.55; color:var(--vi-muted); }
+.vi-help summary { cursor:pointer; text-decoration:underline; text-underline-offset:4px; padding:8px 0; }
+.vi-health-question { border:0; padding:0; margin:0 0 30px; min-width:0; }
+.vi-health-question legend { font-size:18px; font-weight:600; line-height:1.4; margin-bottom:12px; }
+.vi-choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-bottom:16px; }
+.vi-choices button { border:1px solid #c4c9cf; background:#fff; color:var(--vi-ink); border-radius:12px; min-height:52px; padding:12px 14px; font:inherit; font-size:15px; cursor:pointer; transition:background 150ms,border-color 150ms; }
+.vi-choices button[aria-pressed=true] { border-color:var(--vi-ink); background:var(--vi-ink); color:#fff; }
+.vi-choices button:hover:not([aria-pressed=true]) { background:#ede9e1; border-color:#9a9fa7; }
+.vi-primary { display:flex; justify-content:center; align-items:center; gap:12px; min-height:56px; border:0; border-radius:14px; background:var(--vi-ink); color:#fff; width:100%; padding:16px 22px; font:inherit; font-size:17px; font-weight:650; cursor:pointer; text-decoration:none; transition:background 150ms,transform 150ms; }
+.vi-primary:hover { background:#18334f; }
+.vi-primary:active { transform:scale(.99); }
+.vi-primary:disabled { opacity:.5; cursor:default; }
+.vi-text-button { border:0; background:none; color:var(--vi-ink); padding:10px 4px; font:inherit; font-size:14px; font-weight:600; cursor:pointer; text-decoration:underline; text-underline-offset:4px; }
+.vi-intake button:focus-visible,.vi-intake a:focus-visible { outline:3px solid var(--vi-gold); outline-offset:3px; }
+.vi-intake-actions { margin-top:32px; display:grid; gap:10px; }
+.vi-save-state { min-height:24px; font-size:13px; color:var(--vi-muted); text-align:center; margin:12px 0 0; }
+.vi-save-state.is-error { color:#8b342d; font-size:15px; text-align:left; padding:12px; background:#fff2eb; border-radius:10px; }
+.vi-save-state button { display:block; background:none; border:0; color:inherit; font:inherit; text-decoration:underline; padding:8px 0; cursor:pointer; }
+.vi-review { margin:0; border-top:1px solid var(--vi-line); }
+.vi-review > div { padding:16px 0; border-bottom:1px solid var(--vi-line); }
+.vi-review dt { display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:13px; font-weight:600; color:var(--vi-muted); }
+.vi-review dt button { background:none; border:0; font:inherit; color:var(--vi-ink); text-decoration:underline; text-underline-offset:3px; padding:8px; cursor:pointer; }
+.vi-review dd { margin:5px 0 0; font-size:16px; line-height:1.55; overflow-wrap:anywhere; white-space:pre-line; }
+.vi-consent { display:flex; align-items:flex-start; gap:12px; font-size:15px; line-height:1.5; margin:24px 0 0; cursor:pointer; }
+.vi-consent input { margin:2px 0 0; width:20px; height:20px; flex-shrink:0; accent-color:var(--vi-ink); }
+.vi-complete { text-align:center; padding-top:30px!important; }
+.vi-success-art { width:180px; margin:0 auto 30px; }
+.vi-success-art svg { width:100%; overflow:visible; }
+.vi-success-route { stroke:var(--vi-gold); stroke-width:3; stroke-linecap:round; }
+.vi-success-check { stroke:var(--vi-ink); stroke-width:6; stroke-linecap:round; stroke-linejoin:round; }
+.vi-complete-new .vi-success-route { stroke-dasharray:280; stroke-dashoffset:280; animation:vi-draw 650ms cubic-bezier(.2,.7,.2,1) forwards; }
+.vi-complete-new .vi-success-check { stroke-dasharray:60; stroke-dashoffset:60; animation:vi-draw 450ms 250ms ease forwards; }
+.vi-complete-new h1,.vi-complete-new .vi-lead { animation:vi-enter 350ms 300ms both; }
+.vi-goal-quote { text-align:left; margin:28px 0; padding:20px 24px; border-left:1px solid var(--vi-gold); background:#eee9df; border-radius:0 14px 14px 0; }
+.vi-goal-quote span { color:var(--vi-muted); font-size:13px; }
+.vi-goal-quote p { margin:8px 0 0; font-size:18px; line-height:1.5; overflow-wrap:anywhere; }
+.vi-meal { border-bottom:1px solid var(--vi-line); padding:20px 0; }
+.vi-meal:first-child { padding-top:0; }
+.vi-meal h2 { font-size:18px; margin:0 0 14px; }
+.vi-meal-fields { display:grid; grid-template-columns:140px minmax(0,1fr); gap:16px; }
+.vi-photo-guide { border-left:1px solid var(--vi-gold); padding:4px 0 4px 18px; margin-bottom:24px; }
+.vi-photo-guide p { font-size:15px; line-height:1.55; color:var(--vi-muted); margin:0 0 10px; }
+.vi-photo-guide p:last-child { margin-bottom:0; }
+.vi-photo-list { display:grid; gap:16px; margin-top:28px; }
+.vi-photo-item { padding:20px; border:1px solid var(--vi-line); border-radius:16px; background:#fff; }
+.vi-photo-item h2 { font-size:18px; margin:0; display:flex; gap:12px; align-items:center; }
+.vi-photo-item h2 span { color:#a47a2e; font-size:13px; }
+.vi-photo-item p { color:var(--vi-muted); font-size:14px; line-height:1.5; }
+.vi-photo-item input { width:100%; font-size:14px; }
+.vi-photo-item input::file-selector-button,.vi-intake .onboarding-upload input::file-selector-button { background:#edf0f3; border:0; color:var(--vi-ink); border-radius:8px; padding:10px 12px; margin-right:10px; font:inherit; cursor:pointer; }
+.vi-photo-received { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:14px; font-size:14px; color:#27604d; }
+.vi-photo-received a { color:var(--vi-ink); }
+.vi-intake .onboarding-upload { margin-top:20px; }
+.vi-intake .onboarding-upload .button { border-radius:12px; background:var(--vi-ink); color:white; padding:14px 18px; }
+.vi-intake .onboarding-upload input[type=file] { max-width:100%; }
+.vi-profile-prompt { border:1px solid #d6c6a7; border-radius:18px; background:#f0e9dc; padding:22px; }
+.vi-profile-prompt p { margin:0 0 8px; color:#506075; font-size:15px; line-height:1.5; }
+.vi-profile-prompt h2 { color:#0a1b33; font-size:24px; line-height:1.2; margin:8px 0 10px; letter-spacing:-.02em; }
+.vi-profile-prompt a { display:inline-flex; align-items:center; gap:10px; margin-top:12px; color:#0a1b33; font-weight:650; text-decoration:underline; text-underline-offset:4px; min-height:44px; }
+.vi-profile-prompt ol { display:flex; gap:18px; list-style:none; padding:14px 0 0; margin:12px 0 0; border-top:1px solid #d6c6a7; font-size:12px; color:#506075; flex-wrap:wrap; }
+.vi-profile-prompt .is-done { color:#27604d; }
+@keyframes vi-enter { from { opacity:.85; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+@keyframes vi-draw { to { stroke-dashoffset:0; } }
+@media(max-width:600px) { .pv .vi-intake { padding-top:0; } .vi-intake-header { margin-bottom:24px; font-size:12px; } .vi-intake-header .vi-text-button { font-size:12px; } .vi-progress { margin-bottom:26px; } .vi-lead { font-size:17px; } .vi-welcome-route { grid-template-columns:1fr; gap:18px; } .vi-measure-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .vi-measure-grid .vi-field:last-child { grid-column:1/-1; } .vi-meal-fields { grid-template-columns:1fr; } .vi-meal-fields .vi-field:first-child { max-width:160px; } .vi-profile-prompt { padding:20px; } }
+@media(prefers-reduced-motion:reduce) { .vi-intake-body,.vi-complete-new h1,.vi-complete-new .vi-lead,.vi-complete-new .vi-success-route,.vi-complete-new .vi-success-check { animation:none; } .vi-complete-new .vi-success-route,.vi-complete-new .vi-success-check { stroke-dashoffset:0; } .vi-intake * { transition:none!important; } }
+.vi-workspace-fields { border:0; padding:0; margin:0; min-width:0; }
+.vi-workspace-fields:disabled { opacity:.75; }
+
+.vi-intake ::selection { background:#dec692; color:#0a1b33; }
+.vi-intake input,.vi-intake textarea { caret-color:#8d6622; }
+
+.pv .vi-intake h1:focus-visible { outline:none; }

@@ -2,900 +2,211 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { maxDocumentBytes } from "@/modules/documents/validation";
-import { DocumentUploadError, uploadDocument } from "@/lib/document-upload";
-import {
-  examByteLimit,
-  examFileLabel,
-  examSelectionConsented,
-  examSelectionPhrase,
-  examSelectionReady,
-  examSelectionReducer,
-  examSentPhrase,
-  examStateLabel,
-  initialExamSelection,
-  maxExamFiles,
-  type ExamSelectionItem,
-} from "@/modules/onboarding/exam-selection";
-import { onboardingProgress } from "@/modules/onboarding/progress";
+import { uploadDocument, DocumentUploadError } from "@/lib/document-upload";
+import { examByteLimit, examFileLabel, examSelectionConsented, examSelectionPhrase,
+  examSelectionReady, examSelectionReducer, examSentPhrase, examStateLabel,
+  initialExamSelection, maxExamFiles, type ExamSelectionItem } from "@/modules/onboarding/exam-selection";
+import type { OnboardingRecord } from "@/modules/onboarding/types";
+import { onboardingMeasurements } from "@/modules/onboarding/display";
+import { Icon, Mark } from "./patient/icons";
 
-export type OnboardingDraft = {
-  tenantId: string;
-  patientId: string;
-  status: "draft" | "submitted";
-  currentStep: "profile" | "measurements" | "questions" | "exams" | "review";
-  skippedSteps: string[];
-  version: number;
-  profile: { photoDocumentId: string | null; birthDate: string | null };
-  measurements: {
-    weightKg: number | null;
-    heightCm: number | null;
-    waistCm: number | null;
-    measuredOn: string | null;
-  };
-  answers: {
-    goal: string;
-    history: string;
-    routine: string;
-    treatments: string;
-    questions: string;
-  };
-  examDocumentIds: string[];
-  shareConsent: boolean;
-  submittedAt: string | null;
-  updatedAt: string;
+export type OnboardingDraft = Omit<OnboardingRecord, "questionnaireVersion"> & {
+  questionnaireVersion?: OnboardingRecord["questionnaireVersion"];
 };
-
-type Step = "welcome" | OnboardingDraft["currentStep"];
-const questionFields = [
-  [
-    "goal",
-    "O que trouxe você à Vivance e o que gostaria de melhorar?",
-    "Conte do seu jeito; você pode deixar para conversar na consulta.",
-  ],
-  [
-    "history",
-    "Há quanto tempo isso acontece e o que mudou recentemente?",
-    "Um ponto de partida simples já ajuda a equipe a ouvir você melhor.",
-  ],
-  [
-    "routine",
-    "Como estão seu sono, alimentação, movimento e disposição? O que mais pesa no seu dia a dia?",
-    "Fale só do que fizer sentido para você hoje.",
-  ],
-  [
-    "treatments",
-    "O que já tentou e quais tratamentos, medicamentos ou suplementos usa hoje?",
-    "Liste apenas o que lembrar. O médico revisará isso com você.",
-  ],
-  [
-    "questions",
-    "Quais dúvidas ou preocupações você quer conversar com o médico nesta consulta?",
-    "Suas perguntas ajudam a preparar a conversa.",
-  ],
-] as const;
-
-const goalChoices = [
-  "Ter mais disposição",
-  "Cuidar do peso",
-  "Melhorar sono e rotina",
-  "Entender sintomas",
-] as const;
-
-function dateValue(value: string | null) {
-  return value ?? "";
-}
-function numberValue(value: number | null) {
-  return value ?? "";
-}
-function hasProgress(draft: OnboardingDraft) {
-  return (
-    draft.version > 1 ||
-    draft.currentStep !== "profile" ||
-    draft.skippedSteps.length > 0 ||
-    Boolean(
-      draft.profile.photoDocumentId ||
-      draft.profile.birthDate ||
-      draft.measurements.weightKg ||
-      draft.measurements.heightCm ||
-      draft.measurements.waistCm ||
-      draft.measurements.measuredOn ||
-      draft.examDocumentIds.length ||
-      Object.values(draft.answers).some(Boolean),
-    )
-  );
+type Health = OnboardingRecord["healthContext"];
+type HealthKey = keyof Health;
+type Step = "welcome" | "profile" | "medications" | "history" | "family" | "goal" | "review";
+const steps: Exclude<Step, "welcome">[] = ["profile", "medications", "history", "family", "goal", "review"];
+const labels = ["Sobre você", "Medicamentos", "Sua saúde", "Sua família", "Seu objetivo", "Conferir"];
+const emptyHealth = (): Health => ({
+  medications: { status: "", details: "" }, conditions: { status: "", details: "" },
+  allergies: { status: "", details: "" }, surgeries: { status: "", details: "" },
+  familyHistory: { status: "", details: "" },
+});
+const healthLabels: Record<HealthKey, string> = {
+  medications: "Medicamentos e suplementos", conditions: "Condições de saúde",
+  allergies: "Alergias", surgeries: "Cirurgias", familyHistory: "Saúde na família",
+};
+const healthStatusLabels: Record<Health[HealthKey]["status"], string> = {
+  "": "Não informado", yes: "Sim", no: "Não", unknown: "Não sei", discuss: "Prefiro conversar",
+};
+function initialStep(initial: OnboardingDraft): Step {
+  if (initial.status === "submitted" || initial.currentStep === "review") return "review";
+  if (["medications","history","family","goal"].includes(initial.currentStep)) return initial.currentStep as Step;
+  if (initial.currentStep === "questions") {
+    const health = initial.healthContext ?? emptyHealth();
+    if (!health.medications.status || !health.allergies.status) return "medications";
+    if (!health.conditions.status || !health.surgeries.status) return "history";
+    if (!health.familyHistory.status) return "family";
+    return "goal";
+  }
+  if (["measurements", "exams"].includes(initial.currentStep)) return initial.currentStep === "exams" ? "goal" : "profile";
+  return initial.version > 1 ? "profile" : "welcome";
 }
 
-export function OnboardingWorkspace({
-  tenantId,
-  clinicName,
-  doctorName,
-  initial,
-  skipQuestions = false,
-}: {
-  tenantId: string;
-  clinicName: string;
-  doctorName: string;
-  initial: OnboardingDraft;
-  skipQuestions?: boolean;
+export function OnboardingWorkspace({ tenantId, clinicName, doctorName, initial }: {
+  tenantId: string; clinicName: string; doctorName: string; initial: OnboardingDraft;
 }) {
   const router = useRouter();
-  const [draft, setDraft] = useState(initial);
-  const [step, setStep] = useState<Step>(
-    hasProgress(initial)
-      ? skipQuestions && initial.currentStep === "questions"
-        ? "exams"
-        : initial.currentStep
-      : "welcome",
-  );
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [saveState, setSaveState] = useState<
-    "idle" | "saving" | "saved" | "error"
-  >("idle");
+  const [draft, setDraft] = useState<OnboardingDraft>({ ...initial, healthContext: initial.healthContext ?? emptyHealth(), measurements:{...initial.measurements, heightCm:initial.measurements.heightCm && initial.measurements.heightCm<3 ? Math.round(initial.measurements.heightCm*100) : initial.measurements.heightCm} });
+  const [step, setStep] = useState<Step>(initialStep(initial));
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [message, setMessage] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [photoConsent, setPhotoConsent] = useState(false);
-  const queue = useRef<Promise<boolean>>(Promise.resolve(true));
+  const [navigating, setNavigating] = useState(false);
+  const [justCompleted, setJustCompleted] = useState(false);
+  const [returnToReview, setReturnToReview] = useState(false);
+  const [editingMeasure, setEditingMeasure] = useState(false);
   const draftRef = useRef(draft);
   const changed = useRef(false);
   const revision = useRef(0);
+  const queue = useRef<Promise<boolean>>(Promise.resolve(true));
+  const heading = useRef<HTMLHeadingElement>(null);
+  const busy = useRef(false);
+  const home = `/clinicas/${tenantId}/meu-cuidado/hoje`;
 
   function update(next: Partial<OnboardingDraft>) {
     const merged = { ...draftRef.current, ...next };
-    changed.current = true;
-    revision.current += 1;
-    draftRef.current = merged;
-    setDraft(merged);
-    setSaveState("idle");
-    setMessage("");
+    draftRef.current = merged; changed.current = true; revision.current += 1;
+    setDraft(merged); setState("idle"); setMessage("");
   }
-  function payload(next: OnboardingDraft) {
-    return {
-      version: next.version,
-      currentStep: next.currentStep,
-      skippedSteps: next.skippedSteps,
-      profile: next.profile,
-      measurements: next.measurements,
-      answers: next.answers,
-      examDocumentIds: next.examDocumentIds,
-      shareConsent: next.shareConsent,
-    };
-  }
-  const persist = useCallback(async () => {
+  const persist = useCallback(async (): Promise<boolean> => {
     if (!changed.current) return true;
-    setSaveState("saving");
-    const request = async (): Promise<boolean> => {
+    setState("saving");
+    const request = async () => {
       const snapshot = draftRef.current;
       const snapshotRevision = revision.current;
       const response = await fetch(`/api/v1/clinics/${tenantId}/onboarding`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload(snapshot)),
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ version: snapshot.version, currentStep: snapshot.currentStep,
+          skippedSteps: snapshot.skippedSteps, profile: snapshot.profile, measurements: snapshot.measurements,
+          answers: snapshot.answers, healthContext: snapshot.healthContext,
+          examDocumentIds: snapshot.examDocumentIds, shareConsent: snapshot.shareConsent }),
       });
-      const body = (await response.json()) as {
-        onboarding?: OnboardingDraft;
-        error?: string;
-      };
-      if (!response.ok) {
-        if (response.status === 409)
-          throw new Error(
-            "Este cadastro foi alterado em outra sessão. Atualize a página para continuar sem substituir alterações.",
-          );
-        throw new Error(body.error ?? "Não foi possível salvar agora.");
-      }
-      if (!body.onboarding)
-        throw new Error("Não recebemos a confirmação do salvamento.");
-      if (snapshotRevision === revision.current) {
-        changed.current = false;
-        draftRef.current = body.onboarding;
-        setDraft(body.onboarding);
-      } else {
-        const merged = {
-          ...draftRef.current,
-          version: body.onboarding.version,
-          updatedAt: body.onboarding.updatedAt,
-        };
-        draftRef.current = merged;
-        setDraft(merged);
-      }
-      setSaveState("saved");
-      return true;
+      const body = await response.json() as { onboarding?: OnboardingDraft; error?: string };
+      if (!response.ok || !body.onboarding) throw new Error(response.status === 409
+        ? "Seu cadastro mudou em outra tela. Atualize a página para continuar."
+        : body.error ?? "Não conseguimos salvar. Tente novamente.");
+      const saved = body.onboarding;
+      if (revision.current === snapshotRevision) { changed.current = false; draftRef.current = saved; setDraft(saved); }
+      else { const merged = { ...draftRef.current, version: saved.version, updatedAt: saved.updatedAt }; draftRef.current = merged; setDraft(merged); }
+      setState("saved"); return true;
     };
-    queue.current = queue.current
-      .then(request, request)
-      .catch((error: unknown) => {
-        setSaveState("error");
-        setMessage(
-          error instanceof Error
-            ? error.message
-            : "Não foi possível salvar agora.",
-        );
-        return false;
-      });
+    queue.current = queue.current.then(request, request).catch((reason: unknown) => {
+      setState("error"); setMessage(reason instanceof Error ? reason.message : "Não conseguimos salvar. Tente novamente."); return false;
+    });
     return queue.current;
   }, [tenantId]);
   useEffect(() => {
-    if (!changed.current || saveState === "saving" || saveState === "error")
-      return;
-    const timeout = window.setTimeout(() => void persist(), 700);
-    return () => window.clearTimeout(timeout);
-  }, [draft, persist, saveState]);
+    if (!changed.current || state === "saving" || state === "error" || editingMeasure || draft.status === "submitted") return;
+    const timer = window.setTimeout(() => void persist(), 900);
+    return () => window.clearTimeout(timer);
+  }, [draft, persist, state, editingMeasure]);
+  useEffect(() => { heading.current?.focus({ preventScroll: true }); }, [step, justCompleted]);
 
-  async function move(next: Step, skipped?: string) {
-    const nextDraft = {
-      ...draftRef.current,
-      currentStep: next === "welcome" ? "profile" : next,
-      skippedSteps:
-        skipped && !draftRef.current.skippedSteps.includes(skipped)
-          ? [...draftRef.current.skippedSteps, skipped]
-          : draftRef.current.skippedSteps,
-    };
-    update({
-      currentStep: nextDraft.currentStep,
-      skippedSteps: nextDraft.skippedSteps,
-    });
+  async function move(next: Step) {
+    if (busy.current) return false;
+    busy.current = true; setNavigating(true);
+    update({ currentStep: next === "welcome" ? "profile" : next });
     const saved = await persist();
-    if (saved) setStep(next);
+    if (saved) { setStep(next); window.scrollTo({ top: 0, behavior: "instant" }); }
+    busy.current = false; setNavigating(false);
+    return saved;
   }
-  async function uploadPhoto(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (
-      !["image/jpeg", "image/png"].includes(file.type) ||
-      file.size > maxDocumentBytes
-    ) {
-      setMessage("Escolha uma foto JPG ou PNG de até 5 MB.");
-      setSaveState("error");
-      return;
-    }
-    setUploading(true);
-    setMessage("");
-    try {
-      const { documentId } = await uploadDocument({
-        tenantId,
-        patientId: draftRef.current.patientId,
-        file,
-        category: "clinical_document",
-        visibility: "internal",
-      }).catch((reason) => {
-        throw reason instanceof DocumentUploadError
-          ? new Error(
-              reason.stage === "upload"
-                ? "A foto não foi recebida. Tente novamente."
-                : (reason.serverMessage ??
-                  (reason.stage === "prepare"
-                    ? "Não foi possível preparar a foto."
-                    : "Não foi possível conferir a foto.")),
-            )
-          : reason;
-      });
-      const next = {
-        ...draftRef.current,
-        profile: {
-          ...draftRef.current.profile,
-          photoDocumentId: documentId,
-        },
-      };
-      update({ profile: next.profile });
-      await persist();
-    } catch (reason) {
-      setSaveState("error");
-      setMessage(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível enviar a foto.",
-      );
-    } finally {
-      setUploading(false);
-      event.target.value = "";
-    }
-  }
-  async function submit() {
-    const saved = await persist();
-    if (!saved) return;
-    setSaveState("saving");
-    setMessage("");
-    try {
-      const response = await fetch(
-        `/api/v1/clinics/${tenantId}/onboarding/submit`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            version: draftRef.current.version,
-            shareConsent: true,
-          }),
-        },
-      );
-      const body = (await response.json()) as {
-        onboarding?: OnboardingDraft;
-        error?: string;
-      };
-      if (!response.ok || !body.onboarding)
-        throw new Error(body.error ?? "Não foi possível concluir agora.");
-      setDraft(body.onboarding);
-      draftRef.current = body.onboarding;
-      setSaveState("saved");
-      setMessage(
-        "Informações enviadas para a equipe. Você pode seguir para o início.",
-      );
-    } catch (reason) {
-      setSaveState("error");
-      setMessage(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível concluir agora.",
-      );
-    }
+  async function edit(next: Step) { setReturnToReview(true); await move(next); }
+  async function advance() {
+    if (step === "goal" && !draftRef.current.answers.goal.trim()) { setMessage("Conte seu objetivo em uma frase para a equipe conhecer o que importa para você."); setState("error"); heading.current?.focus(); return; }
+    if (await move(returnToReview ? "review" : steps[index + 1])) setReturnToReview(false);
   }
   async function leave() {
-    const saved = await persist();
-    if (saved) router.push(`/clinicas/${tenantId}/meu-cuidado/hoje`);
+    if (busy.current) return;
+    busy.current = true; setNavigating(true);
+    if (draft.status === "submitted" || await persist()) { router.push(home); router.refresh(); }
+    busy.current = false; setNavigating(false);
   }
-  const progressLabels = skipQuestions
-    ? ["Perfil", "Medidas", "Exames", "Revisão"]
-    : ["Perfil", "Medidas", "Pré-consulta", "Exames", "Revisão"];
-  const progress = step === "welcome"
-    ? 0
-    : progressLabels.indexOf(
-        step === "profile"
-          ? "Perfil"
-          : step === "measurements"
-            ? "Medidas"
-            : step === "questions"
-              ? "Pré-consulta"
-              : step === "exams"
-                ? "Exames"
-                : "Revisão",
-      ) + 1;
-  const question = questionFields[questionIndex];
-  const progressState = onboardingProgress(step, questionIndex, skipQuestions);
-  const progressPercent = Math.round((progressState.value / progressState.max) * 100);
-
-  function chooseGoal(choice: string) {
-    update({
-      answers: { ...draft.answers, goal: choice },
-    });
+  async function submit() {
+    if (!draftRef.current.answers.goal.trim()) { await edit("goal"); return; }
+    if (busy.current || !draft.shareConsent) return;
+    busy.current = true; setNavigating(true); setMessage("");
+    try {
+      if (!(await persist())) return;
+      setState("saving");
+      const response = await fetch(`/api/v1/clinics/${tenantId}/onboarding/submit`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ version: draftRef.current.version, shareConsent: true }),
+      });
+      const body = await response.json() as { onboarding?: OnboardingDraft; error?: string };
+      if (!response.ok || !body.onboarding) throw new Error(body.error ?? "Seu cadastro não foi enviado. Tente novamente.");
+      draftRef.current = body.onboarding; setDraft(body.onboarding); changed.current = false;
+      setState("saved"); setJustCompleted(true);
+    } catch (reason) { setState("error"); setMessage(reason instanceof Error ? reason.message : "Não conseguimos concluir. Tente novamente."); }
+    finally { busy.current = false; setNavigating(false); }
   }
+  function updateHealth(key: HealthKey, value: Partial<Health[HealthKey]>) {
+    update({ healthContext: { ...draftRef.current.healthContext, [key]: { ...draftRef.current.healthContext[key], ...value } } });
+  }
+  const disabled = navigating || state === "saving";
+  const index = steps.indexOf(step as Exclude<Step, "welcome">);
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+  const completed = draft.status === "submitted";
 
-  return (
-    <section className="onboarding-workspace onboarding-refined">
-      <header className="onboarding-header">
-        <div>
-          <h1>Seu começo na {clinicName}</h1>
-          <p>
-            Vamos reunir o que você quiser compartilhar antes da conversa com{" "}
-            {doctorName}. Você pode pular e voltar quando precisar.
-          </p>
+  if (completed) return <section className={`vi-intake vi-complete${justCompleted ? " vi-complete-new" : ""}`}>
+    <div className="vi-success-art" aria-hidden="true">
+      <svg viewBox="0 0 180 150" fill="none"><path className="vi-success-route" d="M15 116C15 58 66 106 90 58C114 106 165 58 165 116"/><path className="vi-success-check" d="m69 51 14 14 29-31"/></svg>
+    </div>
+    <h1 ref={heading} tabIndex={-1}>Seu primeiro passo está dado.</h1>
+    <p className="vi-lead">Agora vamos avançar juntos, no seu ritmo, em direção ao que importa para você.</p>
+    {draft.answers.goal && <blockquote className="vi-goal-quote"><span>Seu objetivo</span><p>{draft.answers.goal}</p></blockquote>}
+    <p className="vi-support">{doctorName} e a equipe da {clinicName} receberam seu contexto inicial. Você pode completar alimentação, fotos e exames pelo seu início.</p>
+    <button type="button" className="vi-primary" onClick={() => { router.replace(`${home}?enviado=cadastro`); router.refresh(); }}>Vamos para meu início <Icon name="arrow" size={20}/></button>
+  </section>;
+
+  return <section className="vi-intake">
+    <header className="vi-intake-header"><Mark size={34}/><span>Seu começo na Vivance</span><button type="button" className="vi-text-button" onClick={() => void leave()} disabled={disabled}>Salvar e sair</button></header>
+    {step !== "welcome" && <div className="vi-progress">
+      <div className="vi-progress-line" role="progressbar" aria-label="Progresso do cadastro" aria-valuemin={0} aria-valuemax={6} aria-valuenow={index + 1}><span style={{ transform: `scaleX(${(index + 1) / 6})` }}/></div>
+      <p><span>{labels[index]}</span><span>{index + 1} de 6</span></p>
+    </div>}
+    <div key={step} className="vi-intake-body">
+      {step === "welcome" ? <>
+        <h1 ref={heading} tabIndex={-1}>Um cuidado que começa por conhecer você.</h1>
+        <p className="vi-lead">Conte um pouco sobre sua saúde e o que busca com a Vivance. A equipe terá um ponto de partida para a primeira conversa.</p>
+        <div className="vi-welcome-route"><span><Icon name="user"/>Sobre você</span><span><Icon name="heart"/>Sua saúde</span><span><Icon name="arrow"/>Seu objetivo</span></div>
+        <p className="vi-support">Só o essencial agora. Alimentação, fotos e exames ficam para depois. Seu rascunho é salvo enquanto você avança.</p>
+        <button type="button" className="vi-primary" disabled={disabled} onClick={() => void move("profile")}>{disabled ? "Salvando…" : "Vamos começar"}<Icon name="arrow" size={20}/></button>
+      </> : step === "profile" ? <>
+        <h1 ref={heading} tabIndex={-1}>Vamos começar por você.</h1><p className="vi-lead">Sua idade e suas medidas ajudam a contextualizar o acompanhamento. Tudo bem deixar em branco o que não souber agora.</p>
+        <div className="vi-basics"><label className="vi-field vi-birth">Data de nascimento<input type="date" max={today} min="1900-01-01" value={draft.profile.birthDate ?? ""} onChange={event => update({profile:{...draft.profile,birthDate:event.target.value || null}})}/><small>A idade será calculada pela sua data de nascimento.</small></label>
+          <div className="vi-measure-grid">{([['weightKg','Peso','kg',500],['heightCm','Altura','cm',300],['waistCm','Cintura','cm',400]] as const).map(([key,label,unit,max]) => <label className="vi-field" key={key}>{label}<div className="vi-unit-input"><input type="number" inputMode="decimal" min={key === 'heightCm' ? 50 : 1} max={max} step="0.1" value={draft.measurements[key] ?? ""} aria-label={`${label} em ${unit}`} onFocus={() => setEditingMeasure(true)} onBlur={() => setEditingMeasure(false)} onChange={event => update({measurements:{...draft.measurements,[key]:event.target.value === "" ? null : Number(event.target.value)}})}/><span>{unit}</span></div>{key === 'heightCm' && <small>Ex.: 173 cm</small>}</label>)}</div>
+          <details className="vi-help"><summary>Como medir a cintura?</summary><p>Use uma fita entre a última costela e o topo do quadril. Mantenha-a reta, sem apertar, e meça ao soltar o ar naturalmente. Se não tiver fita, deixe para depois.</p></details>
+          <label className="vi-field">Quando você mediu?<input type="date" max={today} value={draft.measurements.measuredOn ?? ""} onChange={event => update({measurements:{...draft.measurements,measuredOn:event.target.value || null}})}/><small>Essa é a data das medidas, não do preenchimento.</small></label>
         </div>
-        <button
-          className="secondary"
-          type="button"
-          onClick={() => void leave()}
-          disabled={saveState === "saving" || uploading}
-        >
-          Sair para o início
-        </button>
-      </header>
-      <ol className="onboarding-progress" aria-label="Etapas do cadastro">
-        {progressLabels.map(
-          (label, index) => (
-            <li
-              key={label}
-              className={
-                index === progress - 1
-                  ? "current"
-                  : index < progress
-                    ? "complete"
-                    : ""
-              }
-              // A etapa não é dita só por cor: leitor de tela ouve "etapa
-              // atual" e "concluída", e a concluída mostra um visto.
-              aria-current={index === progress - 1 ? "step" : undefined}
-            >
-              <span aria-hidden="true">
-                {index < progress - 1 ? "✓" : index + 1}
-              </span>
-              {label}
-              {index < progress - 1 ? (
-                <small className="sr-only"> (concluída)</small>
-              ) : null}
-            </li>
-          ),
-        )}
-      </ol>
-      <div
-        className="onboarding-progress-meter"
-        role="progressbar"
-        aria-label="Progresso do cadastro"
-        aria-valuemin={0}
-        aria-valuemax={progressState.max}
-        aria-valuenow={progressState.value}
-        aria-valuetext={
-          step === "questions" && !skipQuestions
-            ? `Pré-consulta, pergunta ${questionIndex + 1} de ${questionFields.length}`
-            : `${progress} de ${progressLabels.length} etapas`
-        }
-      >
-        <span style={{ width: `${progressPercent}%` }} />
-      </div>
-      <p className="onboarding-progress-text" aria-hidden="true">
-        {step === "welcome"
-          ? "Você decide o que compartilhar."
-          : step === "questions" && !skipQuestions
-            ? `Pré-consulta: pergunta ${questionIndex + 1} de ${questionFields.length}`
-            : `${progress} de ${progressLabels.length} etapas`}
-      </p>
-      <p
-        className={
-          saveState === "error" ? "feedback save-feedback" : "save-feedback"
-        }
-        role={saveState === "error" ? "alert" : "status"}
-      >
-        {message ||
-          (saveState === "saving"
-            ? "Salvando rascunho…"
-            : saveState === "saved"
-              ? "Rascunho salvo"
-              : "")}
-      </p>
-      <section className="panel onboarding-card">
-        {step === "welcome" ? (
-          <>
-            <h2>Bem-vindo(a)</h2>
-            <p>
-              Conte o que importa para você. Seu médico usará essas informações
-              para preparar a primeira conversa.
-            </p>
-            <ul className="onboarding-welcome-expectations">
-              <li>Leva apenas alguns minutos, no seu ritmo.</li>
-              <li>
-                Tudo é salvo automaticamente; você pode pausar e continuar
-                quando quiser.
-              </li>
-              <li>Cada etapa é opcional — pule o que preferir conversar pessoalmente.</li>
-            </ul>
-            <button type="button" onClick={() => void move("profile")}>
-              Começar
-            </button>
-          </>
-        ) : null}
-        {step === "profile" ? (
-          <>
-            <h2>Um pouco sobre você</h2>
-            <p>
-              Preencha se quiser. Você decide o que compartilhar na última
-              etapa.
-            </p>
-            <div className="onboarding-fields">
-              <div className="field">
-                <label htmlFor="birth-date">Data de nascimento</label>
-                <input
-                  id="birth-date"
-                  type="date"
-                  value={dateValue(draft.profile.birthDate)}
-                  onChange={(event) =>
-                    update({
-                      profile: {
-                        ...draft.profile,
-                        birthDate: event.target.value || null,
-                      },
-                    })
-                  }
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="profile-photo">Foto opcional</label>
-                <label className="publication-confirm">
-                  <input
-                    type="checkbox"
-                    checked={photoConsent}
-                    onChange={(event) => setPhotoConsent(event.target.checked)}
-                    disabled={uploading}
-                  />
-                  Quero adicionar uma foto ao meu cadastro.
-                </label>
-                <input
-                  id="profile-photo"
-                  type="file"
-                  accept="image/jpeg,image/png"
-                  onChange={uploadPhoto}
-                  disabled={uploading || !photoConsent}
-                />
-                <small>
-                  {draft.profile.photoDocumentId
-                    ? "Foto privada recebida."
-                    : "JPG ou PNG, até 5 MB."}
-                </small>
-              </div>
-            </div>
-            <div className="onboarding-actions">
-              <button
-                type="button"
-                disabled={uploading}
-                onClick={() => void move("measurements")}
-              >
-                Continuar
-              </button>
-              <button
-                className="secondary"
-                type="button"
-                disabled={uploading}
-                onClick={() => void move("measurements", "profile")}
-              >
-                Pular por enquanto
-              </button>
-            </div>
-          </>
-        ) : null}
-        {step === "measurements" ? (
-          <>
-            <h2>Medidas, se quiser registrar</h2>
-            <p>
-              Você pode preencher valores aproximados ou deixar para conversar
-              na consulta. Peso e outras medidas também podem ser enviados mais
-              tarde pela sua área.
-            </p>
-            <div className="onboarding-fields measurement-fields">
-              <div className="field">
-                <label htmlFor="weight">Peso (kg)</label>
-                <input
-                  id="weight"
-                  type="number"
-                  min="1"
-                  max="500"
-                  step="0.1"
-                  value={numberValue(draft.measurements.weightKg)}
-                  onChange={(event) =>
-                    update({
-                      measurements: {
-                        ...draft.measurements,
-                        weightKg:
-                          event.target.value === ""
-                            ? null
-                            : Number(event.target.value),
-                      },
-                    })
-                  }
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="height">Altura (cm)</label>
-                <input
-                  id="height"
-                  type="number"
-                  min="30"
-                  max="300"
-                  aria-describedby="height-hint"
-                  onBlur={() => {
-                    // 1,73 é altura em metros: guardamos 173 cm.
-                    const height = draft.measurements.heightCm;
-                    if (height && height > 0 && height < 3)
-                      update({
-                        measurements: { ...draft.measurements, heightCm: Math.round(height * 100) },
-                      });
-                  }}
-                  value={numberValue(draft.measurements.heightCm)}
-                  onChange={(event) =>
-                    update({
-                      measurements: {
-                        ...draft.measurements,
-                        heightCm:
-                          event.target.value === ""
-                            ? null
-                            : Number(event.target.value),
-                      },
-                    })
-                  }
-                />
-                <small id="height-hint">Em centímetros, por exemplo 173.</small>
-              </div>
-              <div className="field">
-                <label htmlFor="waist">Cintura (cm)</label>
-                <input
-                  id="waist"
-                  type="number"
-                  min="1"
-                  max="300"
-                  step="0.1"
-                  value={numberValue(draft.measurements.waistCm)}
-                  onChange={(event) =>
-                    update({
-                      measurements: {
-                        ...draft.measurements,
-                        waistCm:
-                          event.target.value === ""
-                            ? null
-                            : Number(event.target.value),
-                      },
-                    })
-                  }
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="measured-on">Data da medida</label>
-                <input
-                  id="measured-on"
-                  type="date"
-                  value={dateValue(draft.measurements.measuredOn)}
-                  onChange={(event) =>
-                    update({
-                      measurements: {
-                        ...draft.measurements,
-                        measuredOn: event.target.value || null,
-                      },
-                    })
-                  }
-                />
-              </div>
-            </div>
-            <div className="onboarding-actions">
-              <button type="button" onClick={() => void move(skipQuestions ? "exams" : "questions")}>
-                Continuar
-              </button>
-              <button
-                className="secondary"
-                type="button"
-                onClick={() => void move(skipQuestions ? "exams" : "questions", "measurements")}
-              >
-                Pular por enquanto
-              </button>
-            </div>
-          </>
-        ) : null}
-        {step === "questions" && !skipQuestions ? (
-          <>
-            <p className="question-counter">
-              Pergunta {questionIndex + 1} de {questionFields.length}
-            </p>
-            <h2>{question[1]}</h2>
-            <p>{question[2]}</p>
-            {question[0] === "goal" ? (
-              <div className="onboarding-choice-group" aria-label="Escolhas de objetivo">
-                <p>Escolha uma opção ou escreva do seu jeito.</p>
-                <div>
-                  {goalChoices.map((choice) => (
-                    <button
-                      className={draft.answers.goal === choice ? "selected" : "secondary"}
-                      type="button"
-                      key={choice}
-                      aria-pressed={draft.answers.goal === choice}
-                      onClick={() => chooseGoal(choice)}
-                    >
-                      {choice}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-            <div className="field">
-              <label className="sr-only" htmlFor="preconsult-answer">
-                Sua resposta
-              </label>
-              <textarea
-                id="preconsult-answer"
-                value={draft.answers[question[0]]}
-                maxLength={4000}
-                onChange={(event) =>
-                  update({
-                    answers: {
-                      ...draft.answers,
-                      [question[0]]: event.target.value,
-                    },
-                  })
-                }
-              />
-            </div>
-            <div className="onboarding-actions">
-              {questionIndex > 0 ? (
-                <button
-                  className="secondary"
-                  type="button"
-                  onClick={() => setQuestionIndex(questionIndex - 1)}
-                >
-                  Voltar
-                </button>
-              ) : null}
-              <button
-                type="button"
-                onClick={() =>
-                  questionIndex === questionFields.length - 1
-                    ? void move("exams")
-                    : setQuestionIndex(questionIndex + 1)
-                }
-              >
-                {questionIndex === questionFields.length - 1
-                  ? "Continuar"
-                  : "Próxima pergunta"}
-              </button>
-              <button
-                className="secondary"
-                type="button"
-                onClick={() =>
-                  questionIndex === questionFields.length - 1
-                    ? void move("exams", "questions")
-                    : setQuestionIndex(questionIndex + 1)
-                }
-              >
-                Responder depois
-              </button>
-              <button
-                className="secondary"
-                type="button"
-                onClick={() => void move("exams", "questions")}
-              >
-                Pular pré-consulta por enquanto
-              </button>
-            </div>
-          </>
-        ) : null}
-        {step === "exams" ? (
-          <>
-            <h2>Exames para a equipe</h2>
-            <p>
-              Se desejar, envie exames em PDF, JPG ou PNG. Você também pode
-              enviar depois pela sua área. Os arquivos ficam privados e só serão
-              disponibilizados ao médico responsável depois que você enviar esta
-              versão com consentimento.
-            </p>
-            <OnboardingExamUpload
-              onPendingChange={setUploading}
-              tenantId={tenantId}
-              patientId={draft.patientId}
-              receivedIds={draft.examDocumentIds}
-              onComplete={async (ids) => {
-                update({
-                  examDocumentIds: [
-                    ...draftRef.current.examDocumentIds,
-                    ...ids,
-                  ],
-                });
-                if (!(await persist()))
-                  throw new Error(
-                    "O arquivo foi recebido, mas falta salvar sua associação ao cadastro. Tente novamente para concluir.",
-                  );
-                setSaveState("saved");
-              }}
-            />
-            <div className="onboarding-actions">
-              <button
-                type="button"
-                disabled={uploading}
-                onClick={() => void move("review")}
-              >
-                Revisar informações
-              </button>
-              <button
-                className="secondary"
-                type="button"
-                disabled={uploading}
-                onClick={() => void move("review", "exams")}
-              >
-                Pular por enquanto
-              </button>
-            </div>
-          </>
-        ) : null}
-        {step === "review" && draft.status === "submitted" ? (
-          <>
-            <h2>Informações enviadas</h2>
-            <p>
-              Esta versão foi compartilhada com a equipe para preparar sua
-              consulta. Ela permanece registrada como foi enviada.
-            </p>
-            <div className="onboarding-actions">
-              <a
-                className="button"
-                href={`/clinicas/${tenantId}/meu-cuidado/hoje`}
-              >
-                Ir para meu cuidado
-              </a>
-              <a
-                className="button secondary"
-                href={`/clinicas/${tenantId}/meu-cuidado/documentos`}
-              >
-                Ver documentos
-              </a>
-            </div>
-          </>
-        ) : null}
-        {step === "review" && draft.status !== "submitted" ? (
-          <>
-            <h2>Revise antes de enviar</h2>
-            <p>
-              Confira o que será compartilhado com a equipe para preparar sua
-              consulta.
-            </p>
-            <dl className="onboarding-review">
-              <div>
-                <dt>Perfil</dt>
-                <dd>
-                  {draft.profile.birthDate
-                    ? `Nascimento: ${new Date(`${draft.profile.birthDate}T12:00:00`).toLocaleDateString("pt-BR")}`
-                    : "Ainda não informado"}
-                  {draft.profile.photoDocumentId
-                    ? " · Foto privada adicionada"
-                    : ""}
-                </dd>
-              </div>
-              <div>
-                <dt>Medidas</dt>
-                <dd>
-                  {[
-                    [
-                      "Peso",
-                      draft.measurements.weightKg &&
-                        `${draft.measurements.weightKg} kg`,
-                    ],
-                    [
-                      "Altura",
-                      draft.measurements.heightCm &&
-                        `${draft.measurements.heightCm} cm`,
-                    ],
-                    [
-                      "Cintura",
-                      draft.measurements.waistCm &&
-                        `${draft.measurements.waistCm} cm`,
-                    ],
-                    ["Data", draft.measurements.measuredOn],
-                  ]
-                    .filter(([, value]) => value)
-                    .map(([label, value]) => `${label}: ${value}`)
-                    .join(" · ") || "Ainda não informado"}
-                </dd>
-              </div>
-              {!skipQuestions && questionFields.map(([key, title]) => (
-                <div key={key}>
-                  <dt>{title}</dt>
-                  <dd
-                    style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}
-                  >
-                    {draft.answers[key] || "Deixado para conversar na consulta"}
-                  </dd>
-                </div>
-              ))}
-              <div>
-                <dt>Exames</dt>
-                <dd>
-                  {draft.examDocumentIds.length
-                    ? `${draft.examDocumentIds.length} arquivo${draft.examDocumentIds.length > 1 ? "s" : ""} recebido${draft.examDocumentIds.length > 1 ? "s" : ""}`
-                    : "Nenhum arquivo enviado"}
-                </dd>
-              </div>
-            </dl>
-            <label className="publication-confirm">
-              <input
-                type="checkbox"
-                checked={draft.shareConsent}
-                onChange={(event) =>
-                  update({ shareConsent: event.target.checked })
-                }
-              />
-              Confirmo que quero compartilhar estas informações com a equipe da
-              clínica para preparar minha consulta.
-            </label>
-            <div className="onboarding-actions">
-              <button
-                type="button"
-                disabled={!draft.shareConsent || saveState === "saving"}
-                onClick={() => void submit()}
-              >
-                Enviar para a equipe
-              </button>
-              <button
-                className="secondary"
-                type="button"
-                disabled={saveState === "saving"}
-                onClick={() => void move("profile")}
-              >
-                Editar informações
-              </button>
-            </div>
-          </>
-        ) : null}
-      </section>
-    </section>
-  );
+      </> : step === "medications" ? <>
+        <h1 ref={heading} tabIndex={-1}>O que faz parte do seu cuidado hoje?</h1><p className="vi-lead">Um nome já ajuda. Os detalhes podem ficar para a consulta.</p>
+        <HealthQuestion id="medications" title="Usa algum medicamento ou suplemento?" hint="Nome e dose, se souber. Inclua os de uso eventual." value={draft.healthContext.medications} onChange={value => updateHealth('medications',value)}/>
+        <HealthQuestion id="allergies" title="Tem alguma alergia conhecida?" hint="Medicamentos, alimentos ou outras substâncias. Conte qual reação costuma ter." value={draft.healthContext.allergies} onChange={value => updateHealth('allergies',value)}/>
+      </> : step === "history" ? <>
+        <h1 ref={heading} tabIndex={-1}>Sua história ajuda a cuidar de você.</h1><p className="vi-lead">Compartilhe o que já sabe sobre sua saúde.</p>
+        <HealthQuestion id="conditions" title="Tem alguma condição de saúde diagnosticada?" hint="Ex.: pressão alta, diabetes ou uma condição da tireoide. Não precisa usar termos médicos." value={draft.healthContext.conditions} onChange={value => updateHealth('conditions',value)}/>
+        <HealthQuestion id="surgeries" title="Já passou por alguma cirurgia?" hint="Qual cirurgia e quando, se lembrar. Inclua cirurgia bariátrica." value={draft.healthContext.surgeries} onChange={value => updateHealth('surgeries',value)}/>
+      </> : step === "family" ? <>
+        <h1 ref={heading} tabIndex={-1}>E a saúde na sua família?</h1><p className="vi-lead">Pense em pais, irmãos e avós. Pode compartilhar só o que lembrar.</p>
+        <HealthQuestion id="familyHistory" title="Há alguma condição de saúde frequente na família?" hint="Ex.: diabetes, pressão alta, doenças do coração ou câncer. Diga a condição e o parentesco, sem precisar informar nomes." value={draft.healthContext.familyHistory} onChange={value => updateHealth('familyHistory',value)}/>
+      </> : step === "goal" ? <>
+        <h1 ref={heading} tabIndex={-1}>O que você quer conquistar com a Vivance?</h1><p className="vi-lead">Em uma ou duas frases, conte o que deseja melhorar e o que faria diferença na sua vida.</p>
+        <label className="vi-field">Seu objetivo<textarea rows={5} maxLength={Math.max(600,draft.answers.goal.length)} value={draft.answers.goal} placeholder="Quero cuidar do meu peso e ter mais disposição para brincar com meus filhos." onChange={event => update({answers:{...draft.answers,goal:event.target.value}})}/></label>
+        <p className="vi-support">Pode ser cuidar do peso, ter mais energia, envelhecer com saúde ou entender melhor seu corpo. O objetivo é seu; os próximos passos serão construídos com a equipe.</p>
+      </> : <>
+        <h1 ref={heading} tabIndex={-1}>Um último olhar antes de começar.</h1><p className="vi-lead">Confira seu ponto de partida. Você pode voltar a qualquer parte para ajustar.</p>
+        <dl className="vi-review"><div><dt>Sobre você<button type="button" onClick={() => void edit('profile')}>Editar</button></dt><dd>{draft.profile.birthDate ? `Nascimento: ${draft.profile.birthDate.split('-').reverse().join('/')}` : 'Nascimento não informado'}<br/>{onboardingMeasurements(draft.measurements)}</dd></div>{(['medications','conditions','allergies','surgeries','familyHistory'] as const).map(key => <div key={key}><dt>{healthLabels[key]}<button type="button" onClick={() => void edit(key === 'familyHistory' ? 'family' : ['conditions','surgeries'].includes(key) ? 'history' : 'medications')}>Editar</button></dt><dd>{healthStatusLabels[draft.healthContext[key].status]}{draft.healthContext[key].details && ` · ${draft.healthContext[key].details}`}</dd></div>)}<div><dt>Seu objetivo<button type="button" onClick={() => void edit('goal')}>Editar</button></dt><dd>{draft.answers.goal || 'Para conversar com a equipe'}</dd></div></dl>
+        <label className="vi-consent"><input type="checkbox" checked={draft.shareConsent} onChange={event => update({shareConsent:event.target.checked})}/><span>Quero compartilhar estas informações com minha equipe de cuidado.</span></label>
+      </>}
+    </div>
+    {step !== 'welcome' && <footer className="vi-intake-actions"><button type="button" className="vi-primary" disabled={disabled || (step === 'review' && !draft.shareConsent)} onClick={() => step === 'review' ? void submit() : void advance()}>{disabled ? 'Salvando…' : step === 'review' ? 'Começar meu cuidado' : 'Continuar'}<Icon name="arrow" size={20}/></button><button type="button" className="vi-text-button" disabled={disabled} onClick={() => void move(index === 0 ? 'welcome' : steps[index - 1])}>Voltar</button></footer>}
+    <p className={`vi-save-state${state === 'error' ? ' is-error' : ''}`} role={state === 'error' ? 'alert' : 'status'}>{message || (state === 'saving' ? 'Salvando…' : state === 'saved' ? 'Salvo' : '')}{state === 'error' && <button type="button" onClick={() => void persist()}>Tentar salvar novamente</button>}</p>
+  </section>;
+}
+function HealthQuestion({ id,title,hint,value,onChange }: {id:string;title:string;hint:string;value:Health[HealthKey];onChange:(value:Partial<Health[HealthKey]>)=>void}) {
+  return <fieldset className="vi-health-question"><legend>{title}</legend><div className="vi-choices">{(['yes','no','unknown','discuss'] as const).map(status => <button type="button" key={status} aria-pressed={value.status === status} onClick={() => onChange({status})}>{healthStatusLabels[status]}</button>)}</div>{(value.status === 'yes' || Boolean(value.details)) && <label className="vi-field">{value.status === 'yes' ? 'Conte um pouco' : 'Observação que você já registrou'}<textarea rows={3} maxLength={2000} value={value.details} placeholder={hint} onChange={event => onChange({details:event.target.value})}/></label>}</fieldset>;
 }
 
 // O motivo da falha no vocabulário do estágio que falhou. Quando o arquivo já
@@ -919,7 +230,7 @@ function examFailure(reason: unknown): string {
 // Um arquivo por linha, cada um com o próprio estado, erro e reenvio: um arquivo
 // que falha não derruba os outros, e remover um não perde os demais. O
 // consentimento vale para a lista efetivamente selecionada.
-function OnboardingExamUpload({
+export function OnboardingExamUpload({
   tenantId,
   patientId,
   receivedIds,

@@ -21,7 +21,7 @@ export type PatientTodayTasksInput = {
   hasMeasurement: boolean;
   // Pedidos abertos do médico. São pendências operacionais do paciente, nunca
   // risco ou urgência.
-  careRequests?: { kind: string; requested_at: string; preparation_id?: string | null; preparation_starts_at?: string | null }[];
+  careRequests?: { id?: string; kind: string; requested_at: string; preparation_id?: string | null; preparation_starts_at?: string | null }[];
 };
 
 const dayMonth = (value: string) =>
@@ -34,7 +34,7 @@ const dayMonth = (value: string) =>
 // Cada pedido abre direto o formulário que o resolve.
 function careRequestTask(
   input: PatientTodayTasksInput,
-  request: { kind: string; requested_at: string; preparation_id?: string | null; preparation_starts_at?: string | null },
+  request: { id?: string; kind: string; requested_at: string; preparation_id?: string | null; preparation_starts_at?: string | null },
 ): PatientTodayTask | null {
   const asked = `Pedido em ${dayMonth(request.requested_at)}.`;
   const preparation = request.preparation_id;
@@ -64,7 +64,9 @@ function careRequestTask(
     }[request.kind]!,
     href: {
       preparation: preparation ? `${input.base}/preconsulta?preparo=${preparation}` : `${input.base}/consultas`,
-      exams: `${input.base}/documentos#enviar-documento`,
+      exams: request.id
+        ? `${input.base}/documentos?pedido=${encodeURIComponent(request.id)}#enviar-documento`
+        : `${input.base}/documentos#enviar-documento`,
       measurements: `${input.base}/peso`,
       goals: `${input.base}/metas`,
     }[request.kind]!,

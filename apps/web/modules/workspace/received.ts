@@ -152,6 +152,7 @@ export async function receivedForPatients(
               .eq("status", "available")
               // Foto de refeição é parte do relato, não exame: fica fora.
               .eq("attached_to", "documents")
+              .or("category.eq.exam,visibility.eq.shared")
               .in("patient_id", patientIds),
             "available_at",
           ),

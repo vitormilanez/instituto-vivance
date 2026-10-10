@@ -54,6 +54,7 @@ export function documentIntent(value: unknown) {
           "byte_size",
           "category",
           "visibility",
+          "care_request_id",
         ].includes(key),
     ) ||
     typeof body.patient_id !== "string" ||
@@ -67,6 +68,23 @@ export function documentIntent(value: unknown) {
   )
     throw new InputError("Confira o paciente, o formato e a visibilidade do documento.");
   const contentType = body.content_type as DocumentContentType;
+  if (
+    body.care_request_id !== undefined &&
+    body.care_request_id !== null &&
+    typeof body.care_request_id !== "string"
+  )
+    throw new InputError("Solicitação inválida.");
+  const careRequestId =
+    typeof body.care_request_id === "string"
+      ? tenantId(body.care_request_id)
+      : null;
+  if (
+    careRequestId !== null &&
+    (body.category !== "exam" || body.visibility !== "shared")
+  )
+    throw new InputError(
+      "A resposta a uma solicitação deve ser um exame compartilhado.",
+    );
   return {
     patientId: tenantId(body.patient_id),
     filename: filename(body.filename, contentType),
@@ -74,6 +92,7 @@ export function documentIntent(value: unknown) {
     byteSize: body.byte_size as number,
     category: body.category as DocumentCategory,
     visibility: body.visibility as DocumentVisibility,
+    careRequestId,
   };
 }
 

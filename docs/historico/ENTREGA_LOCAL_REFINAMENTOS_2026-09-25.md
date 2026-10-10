@@ -1,3 +1,6 @@
+> Histórico de implementação/validação. Datas e pendências abaixo são daquela
+> execução; consulte o [status vigente](../STATUS_ATUAL.md) antes de retomar.
+
 # Entrega local — convite, atendimento e histórico
 
 25/09/2026 · Instituto Vivance · código em `apps/web` · base `1507f6f`.

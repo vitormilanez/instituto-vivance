@@ -4,6 +4,32 @@ Plataforma de cuidado longitudinal supervisionado por profissionais de saúde.
 A aplicação organiza contexto antes da consulta, acompanhamento, comunicação e
 publicações ao paciente sem automatizar decisão clínica.
 
+## Comece aqui — próximo Codex
+
+1. Trabalhe em **`/Users/vitormilanez/Desktop/Codes/vivance-atual`**, checkout
+   principal desta organização, baseado na main remota `ebadaab8` de 07/10/2026.
+   A documentação foi consolidada na branch `codex/docs-organization-20261008`.
+   O desenvolvimento agora segue na branch `codex/c3-exame-solicitado-20261008`,
+   criada sobre essa base; confira o HEAD antes de continuar.
+2. Leia [AGENTS](AGENTS.md), [Estado atual](docs/STATUS_ATUAL.md) e
+   [Direção e próxima entrega](docs/DIRECAO_E_SLICES.md). A aplicação está em `apps/web`.
+3. Para continuar exames, use o checkout preservado
+   `/Users/vitormilanez/Desktop/Codes/vivance-ia2-exams`, branch
+   `codex/exames-consolidados-contrato-20261003`, PR #78, `1e4493a`.
+   Leia o [handoff IA2](docs/IA2_EXAMES.md) antes de tocar no piloto.
+
+`/Users/vitormilanez/Desktop/Codes/vivance-repo` permanece em uma main local
+antiga (`5a64be9`) com alterações não commitadas; foi preservado, não é o ponto
+de partida. Não atualizar, limpar ou usar seu status por suposição. Esses caminhos
+são o mapa local de 08/10/2026; confirme sempre `git status`, remoto e SHA.
+
+**Primeira entrega em andamento na branch local:** fechar o ciclo de um exame
+solicitado, do pedido ao recibo e acompanhamento após revisão. A
+[avaliação de UX e dados](docs/AVALIACAO_JORNADA.md) sustenta esse recorte C3,
+aceito pelo usuário como ponto de partida em 08/10.
+O PR #78 permanece preservado. Resultados estruturados, Claude e aceite clínico
+ainda não estão entregues. Implementação local não equivale a publicação ou aceite.
+
 ## Aplicação atual
 
 - Código: [`apps/web`](apps/web/README.md)
@@ -26,7 +52,9 @@ npm ci
 npm run dev
 ```
 
-Validação completa:
+Durante a edição, execute verificações dirigidas à mudança conforme o
+[método por slices](docs/RETOMADA_DESENVOLVIMENTO.md). No fechamento do slice
+ou release, cumpra os checks exigidos pelo lote/CI:
 
 ```bash
 npm test

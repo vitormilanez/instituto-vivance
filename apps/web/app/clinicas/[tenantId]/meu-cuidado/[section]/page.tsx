@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getPatientProfileContext } from "@/modules/onboarding/profile-service";
 import { PrescriptionsPanel } from "@/components/prescriptions-panel";
 import { patientDailyHistory, patientReceipt } from "@/modules/workspace/patient-receipts";
 import { PatientReceiptView } from "@/components/patient/receipt";
@@ -59,7 +60,7 @@ export default async function PatientAreaPage({
   searchParams,
 }: {
   params: Promise<{ tenantId: string; section: string }>;
-  searchParams: Promise<{ periodo?: string; enviado?: string; pagina?: string; preparo?: string; medico?: string | string[]; inicio?: string; fim?: string; cursor?: string }>;
+  searchParams: Promise<{ periodo?: string; enviado?: string; pagina?: string; preparo?: string; pedido?: string; medico?: string | string[]; inicio?: string; fim?: string; cursor?: string }>;
 }) {
   const { tenantId, section: slug } = await params;
   const section = findPatientSection(slug);
@@ -98,6 +99,7 @@ export default async function PatientAreaPage({
     checkIn,
     reminder,
     clinicInfo,
+    profileContext,
   ] = await Promise.all([
     // onboarding
     patient && slug === "hoje"
@@ -166,7 +168,7 @@ export default async function PatientAreaPage({
     ? patientMeasurementSummary(tenantId)
     : null,
     // careRequests: o que a equipe pediu vira tarefa no "Hoje"
-    patient && slug === "hoje"
+    patient && ["hoje", "documentos"].includes(slug)
     ? myPendingCareRequests(tenantId)
     : [],
     // sent: o que a pessoa já enviou; falha vira ausência da seção
@@ -193,10 +195,8 @@ export default async function PatientAreaPage({
     ["alerta", "consultas", "cuidado"].includes(slug)
       ? clinicPatientInfo(tenantId).catch(() => noClinicInfo)
       : noClinicInfo,
+    patient && slug === "hoje" ? getPatientProfileContext(tenantId) : null,
   ]);
-  // Primeiro acesso: antes da Home, as boas-vindas (uma vez só).
-  if (slug === "hoje" && patient && reminder === undefined)
-    redirect(`/clinicas/${tenantId}/meu-cuidado/boas-vindas`);
   // Pré-consulta: a pedida pelo link ou a primeira que ainda espera a pessoa.
   const preparationItem =
     slug === "preconsulta"
@@ -315,7 +315,7 @@ export default async function PatientAreaPage({
       ) : slug === "conversas" && messages ? (
         <PatientMessagesWorkspace initial={messages} />
       ) : slug === "documentos" && documents ? (
-        <PatientDocumentsWorkspace initial={documents} />
+        <PatientDocumentsWorkspace initial={documents} pendingExamRequests={careRequests.filter((request) => request.kind === "exams")} selectedRequestId={query.pedido ?? null} />
       ) : slug === "evolucao" && longitudinal ? (
         <PatientEvolution data={longitudinal} base={base} period={evolution.key} checkIn={checkIn} />
       ) : slug === "diario" && checkIns && meals ? (
@@ -363,6 +363,7 @@ export default async function PatientAreaPage({
           <>
             <PatientHome
               base={base}
+              profileContext={onboarding?.status === "submitted" ? profileContext : null}
               tenantId={tenantId}
               now={requestDate}
               justSent={justSentLabel(query.enviado)}

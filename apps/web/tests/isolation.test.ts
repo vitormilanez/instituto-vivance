@@ -5,7 +5,7 @@ import { btree_gist } from "@electric-sql/pglite/contrib/btree_gist";
 import { before, after, test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 const db = new PGlite({ extensions: { btree_gist } });
 const a = randomUUID(),
@@ -2364,6 +2364,49 @@ test("linked patient reads only their record and cannot modify data or their lin
   }
 });
 
+test("received-items account mapping is visible only to its active care professional and patient", async () => {
+  await db.exec("begin");
+  try {
+    await switchActor("doctor");
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,user_id,patient_id) values($1,$2,$3)",
+      [a, users.patient.id, pa],
+    );
+    await db.query(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'active')",
+      [a, pa, users.doctor.id],
+    );
+    for (const [actor, expected] of [
+      ["doctor", 1],
+      ["patient", 1],
+      ["colleague", 0],
+      ["nurse", 0],
+      ["admin", 0],
+    ] as const) {
+      await switchActor(actor);
+      const accounts = await db.query<{ patient_id: string; user_id: string }>(
+        "select patient_id,user_id from public.patient_accounts where tenant_id=$1 and patient_id=$2",
+        [a, pa],
+      );
+      assert.equal(accounts.rows.length, expected, actor);
+      if (expected) assert.equal(accounts.rows[0].user_id, users.patient.id);
+    }
+    await db.exec("reset role");
+    await db.query(
+      "update public.memberships set status='suspended' where tenant_id=$1 and user_id=$2",
+      [a, users.doctor.id],
+    );
+    await switchActor("doctor");
+    assert.equal(
+      (await db.query("select user_id from public.patient_accounts where tenant_id=$1 and patient_id=$2", [a, pa])).rows.length,
+      0,
+    );
+  } finally {
+    await db.exec("rollback");
+  }
+});
+
 test("patient profile stops being visible immediately after membership suspension", async () => {
   await db.exec("begin");
   try {
@@ -3118,9 +3161,17 @@ async function reservePrivateDocumentAs(
   filename: string,
   category: "exam" | "clinical_document",
   visibility: "internal" | "shared",
+  careRequestId: string | null = null,
 ) {
   await db.exec("set local role service_role");
   try {
+    if (careRequestId !== null)
+      return (
+        await db.query<{ document_id: string; storage_path: string }>(
+          "select * from public.reserve_patient_document($1,$2,$3,$4,'application/pdf',6,$5,$6,$7)",
+          [a, pa, users[actor].id, filename, category, visibility, careRequestId],
+        )
+      ).rows[0];
     return (
       await db.query<{ document_id: string; storage_path: string }>(
         "select * from public.reserve_patient_document($1,$2,$3,$4,'application/pdf',6,$5,$6)",
@@ -4926,6 +4977,208 @@ test("onboarding draft is patient-private, versioned and exposes immutable conse
   });
 });
 
+test("exam text persistence requires an explicitly registered synthetic document", async () => {
+  await asUser("doctor", async () => {
+    const patient = pa;
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'active')",
+      [a, patient, users.doctor.id],
+    );
+    await db.query(
+      "insert into public.patient_accounts(tenant_id,patient_id,user_id) values($1,$2,$3)",
+      [a, patient, users.patient.id],
+    );
+    await db.exec("set local role service_role");
+    const reservation = await db.query<{ document_id: string; storage_path: string }>(
+      "select * from public.reserve_patient_document($1,$2,$3,'synthetic-exam.pdf','application/pdf',6,'exam','internal')",
+      [a, patient, users.doctor.id],
+    );
+    const document = reservation.rows[0].document_id;
+    await db.exec("reset role");
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [reservation.rows[0].storage_path],
+    );
+    await db.exec("set local role service_role");
+    await db.query("select public.complete_patient_document($1,$2,$3)", [a, document, users.doctor.id]);
+    await switchActor("doctor");
+    const extraction = "select public.persist_document_text_extraction($1,$2,$3,$4,$5,$6::jsonb,$7) as id";
+    const values = [a, document, "a".repeat(64), "synthetic-test", "1", "[]", "invalid_pdf"];
+    await denied(extraction, values);
+    await denied(
+      "insert into private.synthetic_exam_pilot_documents(tenant_id,document_id,patient_id) values($1,$2,$3)",
+      [a, document, patient],
+    );
+    await db.exec("reset role");
+    await db.query(
+      "insert into private.synthetic_exam_pilot_documents(tenant_id,document_id,patient_id) values($1,$2,$3)",
+      [a, document, patient],
+    );
+    await switchActor("doctor");
+    const saved = await db.query<{ id: string }>(extraction, values);
+    assert.equal(saved.rows.length, 1);
+    const firstText = "LAUDO SINTETICO A";
+    const secondText = "LAUDO SINTETICO B";
+    const pageHash = (value: string) => createHash("sha256").update(value).digest("hex");
+    const pages = [
+      {
+        page_number: 1, status: "extracted", extraction_method: "embedded_text",
+        extracted_text: firstText, text_sha256: pageHash(firstText),
+        possible_duplicate_of_page: null, failure_code: null,
+      },
+      {
+        page_number: 2, status: "requires_review", extraction_method: "embedded_text",
+        extracted_text: secondText, text_sha256: pageHash(secondText),
+        possible_duplicate_of_page: 1, failure_code: null,
+      },
+    ];
+    const reviewed = await db.query<{ id: string }>(extraction, [
+      a, document, "b".repeat(64), "synthetic-test", "1", JSON.stringify(pages), null,
+    ]);
+    assert.equal(reviewed.rows.length, 1);
+    assert.deepEqual((await db.query<{ status: string; review_page_count: number }>(
+      "select status,review_page_count from public.document_extraction_runs where id=$1",
+      [reviewed.rows[0].id],
+    )).rows, [{ status: "requires_review", review_page_count: 1 }]);
+    assert.equal((await db.query<{ possible_duplicate_of_page: number }>(
+      "select possible_duplicate_of_page from public.document_extracted_pages where extraction_run_id=$1 and page_number=2",
+      [reviewed.rows[0].id],
+    )).rows[0].possible_duplicate_of_page, 1);
+    const enqueue = "select public.enqueue_synthetic_exam_text_extraction($1,$2) id";
+    const firstJob = await db.query<{ id: string }>(enqueue, [a, document]);
+    const repeatedJob = await db.query<{ id: string }>(enqueue, [a, document]);
+    assert.equal(firstJob.rows[0].id, repeatedJob.rows[0].id);
+    await switchActor("patient");
+    await denied(enqueue, [a, document]);
+    await denied("select * from public.claim_doctor_exam_text_extraction_job($1,$2)", [a, document]);
+    await switchActor("doctor");
+    const claim = await db.query<{ job_id: string; document_id: string; lease_token: string }>(
+      "select * from public.claim_doctor_exam_text_extraction_job($1,$2)", [a, document],
+    );
+    assert.equal(claim.rows[0].job_id, firstJob.rows[0].id);
+    assert.equal(claim.rows[0].document_id, document);
+    const persistQueued = "select public.persist_doctor_exam_text_extraction($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9) id";
+    const queuedValues = [firstJob.rows[0].id, claim.rows[0].lease_token, a, document,
+      "c".repeat(64), "synthetic-test", "1", JSON.stringify(pages), null];
+    await denied(persistQueued, [firstJob.rows[0].id, randomUUID(), ...queuedValues.slice(2)]);
+    const queuedRun = await db.query<{ id: string }>(persistQueued, queuedValues);
+    assert.equal(queuedRun.rows.length, 1);
+    await db.query("select public.complete_doctor_exam_text_extraction_job($1,$2,$3,$4)",
+      [a, document, firstJob.rows[0].id, claim.rows[0].lease_token]);
+    await denied(persistQueued, queuedValues);
+    const sourcePage = await db.query<{ id: string }>(
+      "select id from public.document_extracted_pages where extraction_run_id=$1 and page_number=1",
+      [reviewed.rows[0].id],
+    );
+    const structuredItems = [{
+      source_page_id: sourcePage.rows[0].id,
+      page_number: 1,
+      item_index: 1,
+      item_kind: "narrative",
+      literal_name: "Conclusão literal",
+      literal_value: null,
+      numeric_value: null,
+      unit_text: null,
+      reference_text: null,
+      issuer_flag: null,
+      method_text: null,
+      specimen_text: null,
+      observed_on: null,
+      narrative_text: firstText,
+      source_excerpt: firstText,
+      source_start: 0,
+      source_end: firstText.length,
+      extraction_confidence: null,
+      requires_review_reason: "synthetic_pilot",
+    }];
+    await db.exec("set local role service_role");
+    await db.query("select set_config('request.jwt.claims','{\"role\":\"service_role\"}',true)");
+    assert.equal((await db.query<{ count: number }>(
+      "select public.persist_synthetic_exam_result_items($1,'synthetic-structure','1',$2::jsonb) count",
+      [reviewed.rows[0].id, JSON.stringify(structuredItems)],
+    )).rows[0].count, 1);
+    await switchActor("doctor");
+    const item = await db.query<{ id: string }>(
+      "select id from public.exam_result_items where extraction_run_id=$1",
+      [reviewed.rows[0].id],
+    );
+    const reviewRequest = randomUUID();
+    const review = await db.query<{ id: string }>(
+      "select public.review_exam_result_item($1,$2,$3,'confirmed',null,null) id",
+      [a, item.rows[0].id, reviewRequest],
+    );
+    assert.equal((await db.query<{ id: string }>(
+      "select public.review_exam_result_item($1,$2,$3,'confirmed',null,null) id",
+      [a, item.rows[0].id, reviewRequest],
+    )).rows[0].id, review.rows[0].id);
+    await denied(
+      "select public.review_exam_result_item($1,$2,$3,'rejected',null,'Different decision')",
+      [a, item.rows[0].id, reviewRequest],
+    );
+    await denied(
+      "select public.review_exam_result_item($1,$2,$3,'corrected',$4::jsonb,null)",
+      [a, item.rows[0].id, randomUUID(), JSON.stringify({ diagnosis: "not allowed" })],
+    );
+    await db.exec("reset role");
+    await db.exec("set local role service_role");
+    const retryReservation = await db.query<{ document_id: string; storage_path: string }>(
+      "select * from public.reserve_patient_document($1,$2,$3,'synthetic-retry.pdf','application/pdf',6,'exam','internal')",
+      [a, patient, users.doctor.id],
+    );
+    const retryDocument = retryReservation.rows[0].document_id;
+    await db.exec("reset role");
+    await db.query("insert into storage.objects(bucket_id,name) values('vivance-documents',$1)", [retryReservation.rows[0].storage_path]);
+    await db.exec("set local role service_role");
+    await db.query("select public.complete_patient_document($1,$2,$3)", [a, retryDocument, users.doctor.id]);
+    await db.exec("reset role");
+    await db.query(
+      "insert into private.synthetic_exam_pilot_documents(tenant_id,document_id,patient_id) values($1,$2,$3)",
+      [a, retryDocument, patient],
+    );
+    await switchActor("doctor");
+    const retryJob = await db.query<{ id: string }>(enqueue, [a, retryDocument]);
+    await db.exec("set local role service_role");
+    await db.query("select set_config('request.jwt.claims','{\"role\":\"service_role\"}',true)");
+    const serviceClaim = await db.query<{ job_id: string; lease_token: string }>(
+      "select * from public.claim_next_exam_text_extraction_job()",
+    );
+    assert.equal(serviceClaim.rows[0].job_id, retryJob.rows[0].id);
+    assert.deepEqual((await db.query<{ status: string }>(
+      "select status from public.fail_processing_job($1,$2,'retryable')",
+      [retryJob.rows[0].id, serviceClaim.rows[0].lease_token],
+    )).rows, [{ status: "pending" }]);
+    await db.exec("reset role");
+    await db.query("update public.processing_jobs set available_at=clock_timestamp() where id=$1", [retryJob.rows[0].id]);
+    await db.exec("set local role service_role");
+    await db.query("select set_config('request.jwt.claims','{\"role\":\"service_role\"}',true)");
+    const serviceRetry = await db.query<{ job_id: string; lease_token: string; attempt_count: number }>(
+      "select * from public.claim_next_exam_text_extraction_job()",
+    );
+    assert.equal(serviceRetry.rows[0].job_id, retryJob.rows[0].id);
+    assert.equal(serviceRetry.rows[0].attempt_count, 2);
+    await db.query("select * from public.fail_processing_job($1,$2,'permanent')", [
+      retryJob.rows[0].id, serviceRetry.rows[0].lease_token,
+    ]);
+    await switchActor("patient");
+    assert.equal(
+      (await db.query("select id from public.document_extraction_runs where document_id=$1", [document])).rows.length,
+      0,
+    );
+    assert.equal((await db.query(
+      "select id from public.exam_result_items where document_id=$1", [document],
+    )).rows.length, 0);
+    assert.equal((await db.query(
+      "select id from public.exam_result_item_reviews where item_id=$1", [item.rows[0].id],
+    )).rows.length, 0);
+    await denied(
+      "select public.review_exam_result_item($1,$2,$3,'confirmed',null,null)",
+      [a, item.rows[0].id, randomUUID()],
+    );
+    await denied(extraction, values);
+  });
+});
+
 test("patient invitation revocation is creator-or-admin controlled and consumes WhatsApp token", async () => {
   await asUser("doctor", async () => {
     await db.exec("reset role");
@@ -5477,6 +5730,168 @@ test("a solicitação ao paciente é única por tipo, idempotente por chave e ch
       "o paciente recebe um aviso no app",
     );
     await switchActor("doctor");
+  });
+});
+
+test("só o exame explicitamente ligado conclui a solicitação e preserva a autoria", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const care = (await requestCare("exams", randomUUID(), "Envie o exame solicitado.")).rows[0].id;
+
+    // Um exame avulso posterior não é uma resposta ao pedido.
+    const unrelated = await reservePrivateDocumentAs(
+      "patient",
+      "unrelated.pdf",
+      "exam",
+      "shared",
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [unrelated.storage_path],
+    );
+    await completePrivateDocumentAs("patient", unrelated.document_id);
+    await switchActor("doctor");
+    assert.deepEqual(
+      (
+        await db.query<{
+          status: string;
+          response_document_id: string | null;
+          response_actor_id: string | null;
+        }>(
+          "select status,response_document_id,response_actor_id from public.patient_care_requests where id=$1",
+          [care],
+        )
+      ).rows,
+      [{ status: "requested", response_document_id: null, response_actor_id: null }],
+    );
+
+    const response = await reservePrivateDocumentAs(
+      "patient",
+      "requested-response.pdf",
+      "exam",
+      "shared",
+      care,
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [response.storage_path],
+    );
+    await completePrivateDocumentAs("patient", response.document_id);
+    await switchActor("doctor");
+    assert.deepEqual(
+      (
+        await db.query<{
+          status: string;
+          response_document_id: string;
+          response_actor_id: string;
+        }>(
+          "select status,response_document_id,response_actor_id from public.patient_care_requests where id=$1",
+          [care],
+        )
+      ).rows,
+      [
+        {
+          status: "completed",
+          response_document_id: response.document_id,
+          response_actor_id: users.patient.id,
+        },
+      ],
+    );
+  });
+});
+
+test("resposta assistida registra o profissional e não aceita pedido incompatível", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const examCare = (await requestCare("exams")).rows[0].id;
+    const goalCare = (await requestCare("goals")).rows[0].id;
+
+    await db.exec("set local role service_role");
+    await denied(
+      "select * from public.reserve_patient_document($1,$2,$3,'wrong.pdf','application/pdf',6,'exam','shared',$4)",
+      [a, pa, users.patient.id, goalCare],
+    );
+    await db.exec("reset role");
+    await db.query(
+      "insert into public.care_relationships(tenant_id,patient_id,professional_id,status) values($1,$2,$3,'active')",
+      [a, pa, users.nurse.id],
+    );
+
+    const assisted = await reservePrivateDocumentAs(
+      "nurse",
+      "assisted-response.pdf",
+      "exam",
+      "shared",
+      examCare,
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [assisted.storage_path],
+    );
+    await completePrivateDocumentAs("nurse", assisted.document_id);
+    await switchActor("doctor");
+    assert.deepEqual(
+      (
+        await db.query<{ response_document_id: string; response_actor_id: string }>(
+          "select response_document_id,response_actor_id from public.patient_care_requests where id=$1",
+          [examCare],
+        )
+      ).rows,
+      [
+        {
+          response_document_id: assisted.document_id,
+          response_actor_id: users.nurse.id,
+        },
+      ],
+    );
+  });
+});
+
+test("paciente vê apenas o estado operacional da revisão do próprio documento", async () => {
+  await asUser("doctor", async () => {
+    await careRequestFixture();
+    const care = (await requestCare("exams")).rows[0].id;
+    const response = await reservePrivateDocumentAs(
+      "patient",
+      "review-status.pdf",
+      "exam",
+      "shared",
+      care,
+    );
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
+      [response.storage_path],
+    );
+    await completePrivateDocumentAs("patient", response.document_id);
+    assert.deepEqual(
+      (
+        await db.query<{ document_id: string; operational_status: string }>(
+          "select * from public.get_own_patient_document_status($1,$2)",
+          [a, response.document_id],
+        )
+      ).rows,
+      [{ document_id: response.document_id, operational_status: "received" }],
+    );
+
+    await switchActor("doctor");
+    await db.query(
+      "select public.review_patient_document($1,$2,'needs_follow_up','Solicitar complemento.',true)",
+      [a, response.document_id],
+    );
+    await denied("select * from public.get_own_patient_document_status($1,$2)", [
+      a,
+      response.document_id,
+    ]);
+    await switchActor("patient");
+    assert.deepEqual(
+      (
+        await db.query<{ document_id: string; operational_status: string }>(
+          "select * from public.get_own_patient_document_status($1,$2)",
+          [a, response.document_id],
+        )
+      ).rows,
+      [{ document_id: response.document_id, operational_status: "review_recorded" }],
+    );
   });
 });
 
@@ -6248,5 +6663,74 @@ test("telefone e sinais de alerta: equipe cadastra, só médico aprova a lista, 
     await db.exec("reset role");
     const audit = await db.query("select 1 from public.audit_events where entity_type='clinic_patient_info'");
     assert.ok(audit.rows.length >= 3);
+  });
+});
+
+test("profile context keeps health snapshot and nutrition draft private until explicit share", async () => {
+  await asUser("outsider", async () => {
+    await db.exec("reset role");
+    await db.query("update auth.users set email='profile-context@example.com',email_confirmed_at=clock_timestamp() where id=$1", [users.outsider.id]);
+    const invitation = await db.query<{ id: string }>(
+      "insert into public.patient_invitations(tenant_id,display_name,channel,recipient_email,doctor_id,invited_by) values($1,'Profile Patient','email','profile-context@example.com',$2,$2) returning id",
+      [a, users.doctor.id],
+    );
+    await switchActor("outsider");
+    const patient = (await db.query<{ patient_id: string }>("select patient_id from public.accept_patient_invitation($1,true)", [invitation.rows[0].id])).rows[0].patient_id;
+    const health = Object.fromEntries(["medications", "conditions", "allergies", "surgeries", "familyHistory"].map((key) => [key, { status: key === "allergies" ? "yes" : "unknown", details: key === "allergies" ? "Synthetic pollen" : "" }]));
+    await db.query("update public.patient_onboarding set health_context=$3,expected_version=1 where tenant_id=$1 and patient_id=$2", [a, patient, JSON.stringify(health)]);
+    await db.query("update public.patient_onboarding set current_step='goal',skipped_steps=array['family']::text[],expected_version=2 where tenant_id=$1 and patient_id=$2", [a, patient]);
+    assert.deepEqual((await db.query<{ current_step: string; answer_goal: string }>("select current_step,answer_goal from public.patient_onboarding where patient_id=$1", [patient])).rows,
+      [{ current_step: "goal", answer_goal: "" }]);
+    await db.query("select public.submit_patient_onboarding($1,3,true)", [a]);
+    await switchActor("doctor");
+    const snapshot = await db.query<{ health_context: Record<string, { details: string }> }>("select health_context from public.patient_onboarding_submissions where patient_id=$1", [patient]);
+    assert.equal(snapshot.rows[0].health_context.allergies.details, "Synthetic pollen");
+    assert.deepEqual((await db.query<{ current_step: string; skipped_steps: string[] }>("select current_step,skipped_steps from public.patient_onboarding_submissions where patient_id=$1", [patient])).rows,
+      [{ current_step: "goal", skipped_steps: ["family"] }]);
+    assert.equal((await db.query("select * from public.patient_profile_context where patient_id=$1", [patient])).rows.length, 0);
+    await switchActor("outsider");
+    const nutrition = { pattern: "vegetarian", preferences: "Synthetic preference", avoidedFoods: "", mealRoutine: [{ id: "breakfast", time: "08:00", description: "Synthetic breakfast" }] };
+    await db.query("select public.save_patient_profile_context($1,1,$2::jsonb)", [a, JSON.stringify({ nutrition })]);
+    await denied("select public.save_patient_profile_context($1,1,$2::jsonb)", [a, JSON.stringify({ nutrition })]);
+    await denied("select public.save_patient_profile_context($1,2,$2::jsonb)", [a, JSON.stringify({ photos: { frontDocumentId: randomUUID(), sideDocumentId: null, backDocumentId: null } })]);
+    await switchActor("doctor");
+    assert.equal((await db.query("select * from public.patient_profile_context where patient_id=$1", [patient])).rows.length, 0);
+    assert.equal((await db.query("select * from public.patient_profile_context_submissions where patient_id=$1", [patient])).rows.length, 0);
+    await switchActor("outsider");
+    await db.query("select public.submit_patient_profile_context($1,2,'nutrition',true)", [a]);
+    await switchActor("doctor");
+    const shared = await db.query<{ payload: { preferences: string } }>("select payload from public.patient_profile_context_submissions where patient_id=$1", [patient]);
+    assert.equal(shared.rows[0].payload.preferences, "Synthetic preference");
+    await db.exec("reset role");
+    const photoIds: string[] = [];
+    for (const side of ["front", "side", "back"]) {
+      await db.exec("set local role service_role");
+      const reserved = await db.query<{ document_id: string; storage_path: string }>(
+        "select * from public.reserve_patient_document($1,$2,$3,$4,'image/png',6,'clinical_document','internal')",
+        [a, patient, users.outsider.id, `${side}.png`],
+      );
+      await db.exec("reset role");
+      await db.query("insert into storage.objects(bucket_id,name) values('vivance-documents',$1)", [reserved.rows[0].storage_path]);
+      await db.exec("set local role service_role");
+      await db.query("select public.complete_patient_document($1,$2,$3)", [a, reserved.rows[0].document_id, users.outsider.id]);
+      await db.exec("reset role");
+      photoIds.push(reserved.rows[0].document_id);
+    }
+    await switchActor("outsider");
+    await db.query("select public.save_patient_profile_context($1,3,$2::jsonb)", [a, JSON.stringify({ photos: {
+      frontDocumentId: photoIds[0], sideDocumentId: photoIds[1], backDocumentId: photoIds[2],
+    } })]);
+    await switchActor("doctor");
+    assert.equal((await db.query("select id from public.patient_documents where id = any($1::uuid[])", [photoIds])).rows.length, 0);
+    await switchActor("outsider");
+    await db.query("select public.submit_patient_profile_context($1,4,'photos',true)", [a]);
+    await switchActor("doctor");
+    assert.equal((await db.query("select id from public.patient_documents where id = any($1::uuid[])", [photoIds])).rows.length, 3);
+    await switchActor("other");
+    assert.equal((await db.query("select * from public.patient_profile_context_submissions where patient_id=$1", [patient])).rows.length, 0);
+    await db.exec("reset role");
+    await db.query("update public.care_relationships set status='revoked' where tenant_id=$1 and patient_id=$2", [a, patient]);
+    await switchActor("doctor");
+    assert.equal((await db.query("select * from public.patient_profile_context_submissions where patient_id=$1", [patient])).rows.length, 0);
   });
 });

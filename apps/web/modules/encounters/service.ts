@@ -99,7 +99,7 @@ export async function loadEncounter(
     addendumQuery,
     client
       .from("care_plans")
-      .select("id,title,status,revision,updated_at")
+      .select("id,title,status,revision,version,updated_at")
       .eq("tenant_id", clinicId)
       .eq("encounter_id", encounterId)
       .order("updated_at", { ascending: false })

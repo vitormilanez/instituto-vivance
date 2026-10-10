@@ -1,5 +1,7 @@
 import { TeleconsultationLink } from "./teleconsultation-link";
 import Link from "next/link";
+import type { PatientProfileContext } from "@/modules/onboarding/profile-types";
+import { ProfileCompletionPrompt } from "./patient/profile-completion";
 import type { Appointment } from "@/modules/agenda/service";
 import { patientTodayTasks } from "@/modules/workspace/patient-today-tasks";
 import { patientNextAppointment } from "@/modules/workspace/patient-appointment";
@@ -30,6 +32,7 @@ const logIcons: Record<string, IconName> = {
 // fez e o que o médico publicou.
 export function PatientHome({
   base,
+  profileContext = null,
   tenantId,
   today,
   now,
@@ -49,6 +52,7 @@ export function PatientHome({
   sent,
 }: {
   base: string;
+  profileContext?: PatientProfileContext | null;
   tenantId: string;
   today: string;
   now: Date;
@@ -73,7 +77,7 @@ export function PatientHome({
     measure_unit: string;
     reported_on: string;
   } | null;
-  careRequests: { kind: string; requested_at: string; preparation_id?: string | null; preparation_starts_at?: string | null }[];
+  careRequests: { id?: string; kind: string; requested_at: string; preparation_id?: string | null; preparation_starts_at?: string | null }[];
   sent: SentItem[] | null;
 }) {
   const next = patientNextAppointment(appointments, currentTime);
@@ -104,6 +108,7 @@ export function PatientHome({
   const isCheckIn = !dailyDue && focus.kind === "task" && firstTask?.id.startsWith("check-in-");
   const isRequired = focus.kind === "task" && firstTask?.id === "required-preparation";
   const logs = quickLogs({ base, doctorName, latestMeasurement });
+  const profilePending = profileContext && (!profileContext.nutritionSubmittedAt || !profileContext.photosSubmittedAt || !profileContext.examsSubmittedAt);
   const greeting = homeGreeting(now, firstName);
   const when = next ? appointmentWhen(next.starts_at, next.ends_at, today) : null;
 
@@ -119,6 +124,8 @@ export function PatientHome({
         <p>{greeting.date}</p>
         <h1>{greeting.hello}</h1>
       </div>
+
+      {profileContext && <ProfileCompletionPrompt tenantId={tenantId} profile={profileContext}/>}
 
       {dailyDue ? (
         <section className="pv-hero" aria-labelledby="pv-focus-title">
@@ -140,7 +147,7 @@ export function PatientHome({
             <Icon name="arrow" size={22} />
           </Link>
         </section>
-      ) : focus.kind === "clear" ? (
+      ) : focus.kind === "clear" && profilePending ? null : focus.kind === "clear" ? (
         <section className="pv-card pv-clear-card" aria-labelledby="pv-focus-title">
           <div className="pv-clear-layout">
             <div className="pv-clear-copy">
@@ -177,7 +184,7 @@ export function PatientHome({
             {focus.kind === "consultation"
               ? "Agora"
               : isRequired && requiredPreparation
-                ? `Pedido de ${requiredPreparation.doctorDisplayName}`
+                ? "Para sua próxima consulta"
                 : "Seu próximo passo"}
           </p>
           <h2 id="pv-focus-title" className="pv-big">{focus.title}</h2>
@@ -281,12 +288,20 @@ export function PatientHome({
           {sent.length ? (
             <ul className="pv-list">
               {sent.slice(0, 3).map((item) => (
-                <li key={`${item.kind}-${item.key}`}>
+                <li className="pv-sent-item" key={`${item.kind}-${item.key}`}>
                   <Link className="pv-link" href={sentHref(base, item)}>{sentLabels[item.kind]}</Link>
-                  <time className="pv-sent-when" dateTime={item.at}>
-                    <Icon name="check" size={16} />
-                    Enviado {sentWhen(item.at, today)}
-                  </time>
+                  <span className="pv-sent-meta">
+                    <time className="pv-sent-when" dateTime={item.at}>
+                      <Icon name="check" size={16} />
+                      Enviado {sentWhen(item.at, today)}
+                    </time>
+                    {item.kind === "document" && <small className="pv-muted">
+                      {item.requestAt ? `Resposta ao pedido de ${sentWhen(item.requestAt, today)} · ` : ""}
+                      {item.reviewStatus === "review_recorded" ? "Revisão registrada pela equipe" :
+                        item.reviewStatus === "received" ? "Disponível para revisão da equipe" :
+                          "Estado da revisão indisponível no momento"}
+                    </small>}
+                  </span>
                 </li>
               ))}
             </ul>

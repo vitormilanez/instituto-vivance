@@ -21,6 +21,7 @@ type DocumentIntent = {
   byteSize: number;
   category: "exam" | "clinical_document";
   visibility: "internal" | "shared";
+  careRequestId: string | null;
 };
 
 class RequestError extends Error {
@@ -100,6 +101,7 @@ function reserveIntent(body: Record<string, unknown>): DocumentIntent {
     "byte_size",
     "category",
     "visibility",
+    "care_request_id",
   ]);
   if (body.action !== "reserve")
     throw new RequestError("Ação inválida.", 400);
@@ -114,6 +116,18 @@ function reserveIntent(body: Record<string, unknown>): DocumentIntent {
   )
     throw new RequestError("Confira o paciente, o formato e a visibilidade do documento.", 400);
   const contentType = body.content_type as ContentType;
+  const careRequestId =
+    body.care_request_id === undefined || body.care_request_id === null
+      ? null
+      : validId(body.care_request_id, "Solicitação inválida.");
+  if (
+    careRequestId !== null &&
+    (body.category !== "exam" || body.visibility !== "shared")
+  )
+    throw new RequestError(
+      "A resposta a uma solicitação deve ser um exame compartilhado.",
+      400,
+    );
   return {
     tenantId: validId(body.tenant_id, "Clínica inválida."),
     patientId: validId(body.patient_id, "Paciente inválido."),
@@ -122,6 +136,7 @@ function reserveIntent(body: Record<string, unknown>): DocumentIntent {
     byteSize: body.byte_size as number,
     category: body.category,
     visibility: body.visibility,
+    careRequestId,
   };
 }
 
@@ -233,6 +248,7 @@ async function reserveDocument(request: Request, body: Record<string, unknown>) 
     input_byte_size: values.byteSize,
     input_category: values.category,
     input_visibility: values.visibility,
+    target_care_request: values.careRequestId,
   });
   if (reserved.error) databaseError(reserved.error.code);
   const document = (reserved.data as { document_id: string; storage_path: string }[] | null)?.[0];

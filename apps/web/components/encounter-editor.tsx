@@ -113,10 +113,13 @@ export function EncounterEditor({
   function planPublicationLabel(plan: EncounterDetail["linkedPlans"][number]) {
     if (
       plan.status === "approved" &&
-      plan.publishedSourceVersion !== plan.revision
+      plan.publishedSourceVersion !== plan.version
     )
       return "Aprovado, ainda não publicado";
-    if (plan.publishedSourceVersion === plan.revision)
+    if (
+      plan.status === "approved" &&
+      plan.publishedSourceVersion === plan.version
+    )
       return "Publicado para a pessoa";
     if (plan.status === "in_review") return "Em revisão médica";
     if (plan.status === "draft") return "Rascunho";
