@@ -490,7 +490,7 @@
 .dv .dv-invitation-tracker > h2 { font-size:17px; }
 .dv .dv-invitation-tracker > p { color:var(--dv-muted); font-size:13px; }
 .dv .dv-invitation-filters { display:flex; margin-top:16px; border-block:1px solid var(--dv-line); }
-.dv .dv-invitation-filters button { flex:1; min-width:0; padding:14px 12px; border:0; border-radius:0; background:#fcfbf8; color:var(--dv-muted); text-align:left; }
+.dv .dv-invitation-filters button { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:4px; flex:1; min-width:0; padding:14px 12px; border:0; border-radius:0; background:#fcfbf8; color:var(--dv-muted); text-align:left; }
 .dv .dv-invitation-filters button + button { border-left:1px solid var(--dv-line); }
 .dv .dv-invitation-filters strong, .dv .dv-invitation-filters span { display:block; }
 .dv .dv-invitation-filters strong { font-size:21px; font-variant-numeric:tabular-nums; }
