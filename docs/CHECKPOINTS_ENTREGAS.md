@@ -1,5 +1,14 @@
 # Checkpoints das próximas entregas
 
+**Convites, 10/10:** formulário médico compacto acima da lista, estado correto
+para conta existente e orientação de primeiro acesso em implementação local.
+Sessão médica local vista em desktop e 390 px; convite fictício visto em 390 px;
+7 testes focados passaram. [ ] Repetir lint/typecheck completos. [ ] Validar
+em Preview um convite novo por WhatsApp com conta existente e outro por
+e-mail com conta nova, incluindo aceite e chegada ao onboarding. [ ] Configurar
+e verificar Google OAuth no Supabase antes de mostrar Google Sign-In. Os links
+antigos de 10/10 foram apagados no reset; usar convite novo.
+
 **Reset em 10/10:** os três pacientes e dados dependentes do dev sintético foram
 removidos a pedido do usuário; os 18 arquivos também saíram do Storage.
 As marcações abaixo registram verificações históricas, não dados ainda

@@ -1,5 +1,12 @@
 # Direção do Vivance e próximos slices
 
+**Ajuste prioritário de 10/10:** facilitar convite e primeiro acesso antes de
+avaliar novamente o onboarding. Adotar do conceito do Claude a ação de convite
+na própria área de Pacientes, estados recentes visíveis e alternativa discreta
+para ficha sem app, adaptados ao azul-marinho e componentes do Vivance. Não
+copiar o QR de recepção sem contrato de aprovação do médico e prevenção de
+cadastros não autorizados. Google Sign-In depende de configuração OAuth real.
+
 **Estado do cenário de teste em 10/10:** após pedido explícito de limpar todos
 os pacientes, o dev sintético está sem fichas, vínculos de paciente ou arquivos.
 O convite pendente para `vitor.milanezz@gmail.com` permite recomeçar o

@@ -55,9 +55,8 @@ export function PatientInvitationList({
       setPending(undefined);
     }
   }
-  if (!invitations.length) return null;
   const labels: Record<string, string> = {
-    pending: "Aguardando aceite",
+    pending: "Aguardando paciente",
     accepted: "Aceito",
     revoked: "Cancelado",
     expired: "Expirado",
@@ -65,12 +64,13 @@ export function PatientInvitationList({
   return (
     <section className="panel">
       <h2>Convites recentes</h2>
-      <p>Até 100 convites. Cancelar um convite pendente desativa seu link.</p>
+      <p>Veja quem ainda precisa abrir ou aceitar o convite.</p>
       {error && (
         <p role="alert" className="feedback">
           {error}
         </p>
       )}
+      {!invitations.length && <p className="invitation-empty">Nenhum convite enviado ainda.</p>}
       <ul className="list">
         {invitations.map((invitation) => (
           <li key={invitation.id}>

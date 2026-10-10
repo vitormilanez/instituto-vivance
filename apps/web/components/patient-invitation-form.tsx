@@ -27,7 +27,7 @@ export function PatientInvitationForm({
   targetPatient?: { id: string; displayName: string };
 }) {
   const router = useRouter();
-  const [channel, setChannel] = useState<"email" | "whatsapp">("whatsapp");
+  const [contact, setContact] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [created, setCreated] = useState<CreatedInvitation>();
@@ -38,7 +38,9 @@ export function PatientInvitationForm({
     event.preventDefault();
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
-    const enteredPhone = String(form.get("phone") ?? "").trim();
+    const enteredContact = String(form.get("contact") ?? "").trim();
+    const channel = enteredContact.includes("@") ? "email" : "whatsapp";
+    const enteredPhone = enteredContact;
     const phoneDigits = enteredPhone.replace(/\D/g, "");
     const phone = enteredPhone.startsWith("+")
       ? `+${phoneDigits}`
@@ -58,7 +60,7 @@ export function PatientInvitationForm({
             displayName: String(form.get("displayName") ?? "").trim(),
             channel,
             ...(channel === "email"
-              ? { email: String(form.get("email") ?? "").trim() }
+              ? { email: enteredContact }
               : { phone }),
             ...(role === "admin"
               ? { doctorId: String(form.get("doctorId") ?? "") }
@@ -77,11 +79,11 @@ export function PatientInvitationForm({
       setCopied(false);
       setWhatsappUrl(
         channel === "whatsapp" && payload.shareUrl
-          ? `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Olá! Você recebeu um convite da Vivance. Comece seu cadastro por este link: ${window.location.origin}${payload.shareUrl}`)}`
+          ? `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Olá! Você recebeu um convite da Vivance. Abra este link, confirme seu e-mail e entre na sua conta ou crie seu acesso: ${window.location.origin}${payload.shareUrl}`)}`
           : "",
       );
       formElement.reset();
-      setChannel("whatsapp");
+      setContact("");
     } catch (reason) {
       setError(
         reason instanceof Error
@@ -115,13 +117,13 @@ export function PatientInvitationForm({
       <h2 id="patient-invitation-title">
         {targetPatient ? "Enviar acolhimento ao paciente" : "Convidar para o app"}
       </h2>
-      <p>
+      <p className="invitation-intro">
         {targetPatient
-          ? "A pessoa confirma a própria identidade, aceita o acesso e continua no mesmo prontuário."
-          : "O paciente recebe um link seguro, confirma a própria identidade e começa o cadastro."}
+          ? "Envie o acesso para que a pessoa confirme sua identidade e continue na mesma ficha."
+          : "Informe nome e contato. Você poderá enviar o link pelo WhatsApp ou convidar por e-mail."}
       </p>
       <form onSubmit={submit}>
-        <div className="field">
+        <div className="field invitation-name">
           <label htmlFor="patient-invitation-name">Pessoa convidada</label>
           <input
             id="patient-invitation-name"
@@ -160,75 +162,38 @@ export function PatientInvitationForm({
             </select>
           </div>
         ) : null}
-        <fieldset className="channel-choice">
-          <legend>Como enviar o convite?</legend>
-          <label>
-            <input
-              type="radio"
-              name="channel"
-              checked={channel === "email"}
-              onChange={() => setChannel("email")}
-              disabled={pending}
-            />{" "}
-            Enviar por e-mail
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="channel"
-              checked={channel === "whatsapp"}
-              onChange={() => setChannel("whatsapp")}
-              disabled={pending}
-            />{" "}
-              Gerar link para WhatsApp
-          </label>
-        </fieldset>
-        {channel === "email" ? (
-          <div className="field">
-            <label htmlFor="patient-invitation-email">E-mail</label>
-            <input
-              id="patient-invitation-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              maxLength={254}
-              required
-              disabled={pending}
-            />
-          </div>
-        ) : (
-          <div className="field">
-            <label htmlFor="patient-invitation-phone">Telefone com DDD</label>
-            <input
-              id="patient-invitation-phone"
-              name="phone"
-              type="tel"
-              autoComplete="tel"
-              maxLength={32}
-              required
-              disabled={pending}
-            />
-            <small>
-              Você receberá um link para enviar. A pessoa informará e
-              confirmará o próprio e-mail antes de entrar.
-            </small>
-          </div>
-        )}
+        <div className="field invitation-contact">
+          <label htmlFor="patient-invitation-contact">WhatsApp com DDD ou e-mail</label>
+          <input
+            id="patient-invitation-contact"
+            name="contact"
+            type="text"
+            autoComplete="off"
+            maxLength={254}
+            value={contact}
+            onChange={(event) => setContact(event.target.value)}
+            placeholder="(11) 99999-9999 ou nome@email.com"
+            required
+            disabled={pending}
+          />
+        </div>
         <button
           type="submit"
+          className="invitation-submit"
           disabled={pending || (role === "admin" && !doctors.length)}
         >
           {pending
             ? "Criando convite…"
-            : targetPatient
-              ? channel === "whatsapp"
-                ? "Gerar link de acolhimento"
-                : "Enviar convite por e-mail"
-              : channel === "whatsapp"
-                ? "Gerar link seguro"
-                : "Enviar convite por e-mail"}
+            : contact.includes("@")
+              ? "Convidar por e-mail"
+              : "Gerar link para WhatsApp"}
         </button>
       </form>
+      {!created && <p className="invitation-help">
+        {contact.includes("@")
+          ? "Se a pessoa já tiver conta, o convite aparecerá ao entrar em Minhas clínicas; nenhum novo e-mail será enviado."
+          : "Após gerar, abra o WhatsApp para enviar o link. A pessoa confirmará o e-mail antes de começar."}
+      </p>}
       {error ? (
         <p className="feedback" role="alert">
           {error}
@@ -239,7 +204,7 @@ export function PatientInvitationForm({
           <h3>Convite pronto</h3>
           <p>
             {created.shareUrl
-              ? "Envie este link à pessoa convidada. Ela confirmará a própria identidade antes de acessar o cadastro."
+              ? "Link gerado. Envie pelo WhatsApp e peça que a pessoa confirme o e-mail. Se já tiver conta, ela entra com o acesso existente."
               : "O convite está registrado. Confira abaixo o status do envio."}
           </p>
           {whatsappUrl && (
@@ -274,7 +239,7 @@ export function PatientInvitationForm({
               {created.invitation.delivery?.status === "failed"
                 ? "O e-mail não foi enviado. Você pode criar um convite por WhatsApp ou pedir à clínica para verificar o serviço de e-mail."
                 : created.invitation.delivery?.status === "not_applicable"
-                  ? "Esta pessoa já tem uma conta. Peça que entre com seu e-mail e senha para revisar o convite em Minhas clínicas."
+                  ? "Esta pessoa já tem uma conta; nenhum novo e-mail foi enviado. Peça que entre em Minhas clínicas para aceitar o convite."
                   : "O envio do e-mail foi solicitado. A pessoa deve conferir também a caixa de spam."}
             </p>
           )}

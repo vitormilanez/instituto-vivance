@@ -10,7 +10,11 @@ const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf
 test("convite: cada canal diz a própria entrega, e a falha do e-mail não invalida o link", () => {
   const whatsapp = (deliveryStatus: string) =>
     invitationDeliveryLabel({ channel: "whatsapp", status: "pending", deliveryStatus });
-  assert.equal(whatsapp("not_applicable"), "Link de WhatsApp ativo, ainda não aberto");
+  assert.equal(whatsapp("not_applicable"), "Link ativo · quem já tem conta entra para aceitar");
+  assert.equal(
+    invitationDeliveryLabel({ channel: "email", status: "pending", deliveryStatus: "not_applicable" }),
+    "Conta existente · entrar para aceitar, sem novo e-mail",
+  );
   assert.equal(
     whatsapp("failed"),
     "Link de WhatsApp ativo · o e-mail de criação de conta não foi enviado",

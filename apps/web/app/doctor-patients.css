@@ -24,13 +24,83 @@
   gap: 20px;
 }
 
-.dv .dv-directory-heading {
-  margin-bottom: 20px;
-}
 .dv .dv-directory-heading h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .dv .dv-directory-heading p { display: none; }
-.dv .dv-directory-heading { justify-content: flex-end; margin-bottom: 12px; }
+.dv .dv-directory-heading { margin-bottom: 0; }
 .dv .dv-directory-panel .dv-section-heading { display: none; }
+
+.dv .dv-invite-workspace {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  scroll-margin-top: 20px;
+}
+.dv .dv-invite-workspace .patient-invitation-form {
+  margin: 0;
+  padding: 22px 24px;
+  border-color: var(--dv-line);
+  box-shadow: 0 4px 18px rgba(10, 26, 51, 0.045);
+}
+.dv .dv-invite-workspace .patient-invitation-form h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  color: var(--dv-ink);
+}
+.dv .dv-invite-workspace .invitation-intro {
+  margin: 0 0 16px;
+  color: var(--dv-muted);
+}
+.dv .dv-invite-workspace .patient-invitation-form form {
+  max-width: none;
+  grid-template-columns: minmax(180px, 1fr) minmax(240px, 1.2fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+.dv .dv-invite-workspace .patient-invitation-form .field {
+  min-width: 0;
+}
+.dv .dv-invite-workspace .patient-invitation-form .field input {
+  margin-bottom: 0;
+}
+.dv .dv-invite-workspace .invitation-submit {
+  min-height: 48px;
+  white-space: nowrap;
+  background: var(--dv-ink);
+}
+.dv .dv-invite-workspace .invitation-help {
+  margin: 10px 0 0;
+  color: var(--dv-muted);
+  font-size: 14px;
+}
+.dv .dv-invite-followup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+.dv .dv-invite-followup > .panel,
+.dv .dv-invite-followup > .dv-disclosure {
+  margin: 0;
+  border: 1px solid var(--dv-line);
+  border-radius: 12px;
+  background: #fff;
+}
+.dv .dv-invite-followup > .panel { padding: 16px 20px; }
+.dv .dv-invite-followup > .panel h2 { margin: 0 0 6px; font-size: 16px; }
+.dv .dv-invite-followup > .panel > p { margin: 0 0 10px; font-size: 14px; }
+.dv .dv-invite-followup > .dv-disclosure { min-width: 230px; }
+@media (max-width: 900px) {
+  .dv .dv-invite-workspace .patient-invitation-form form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dv .dv-invite-workspace .invitation-submit { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .dv .dv-invite-workspace .patient-invitation-form { padding: 18px; }
+  .dv .dv-invite-workspace .patient-invitation-form form,
+  .dv .dv-invite-followup { grid-template-columns: minmax(0, 1fr); }
+  .dv .dv-invite-workspace .invitation-submit { width: 100%; }
+}
 
 .dv .dv-directory-heading h1,
 .dv .dv-section-heading h2 {
