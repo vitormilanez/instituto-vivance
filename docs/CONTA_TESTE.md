@@ -1,6 +1,6 @@
 # Conta permanente de QA — paciente sintético
 
-**Criada e usada em 10/10/2026 no dev sintético confirmado.** A identidade `paciente.teste@vivance.example` serve para testes repetíveis de autenticação, convite, onboarding, documentos e isolamento no projeto temporário `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`). Houve login real pela interface local e no percurso pós-publicação sintético; médico e paciente foram conferidos no domínio publicado. O domínio `.example` identifica uma conta de fixture; não presumir entrega de e-mail. Ela não representa pessoa real nem autorização para importar dados clínicos.
+**Criada e preservada em 10/10/2026 no dev sintético confirmado.** A identidade `paciente.teste@vivance.example` serve para testes repetíveis de autenticação, convite, onboarding, documentos e isolamento no projeto temporário `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`). Houve login real pela interface local e no percurso pós-publicação sintético; médico e paciente foram conferidos no domínio publicado. A conta permaneceu intacta após as rodadas #109/#110. O domínio `.example` identifica uma conta de fixture; não presumir entrega de e-mail. Ela não representa pessoa real nem autorização para importar dados clínicos.
 
 ## Preparação e registro
 
@@ -22,5 +22,7 @@
 | Onboarding sintético | Submissão `9eefdc89-03d9-4219-8888-cd88783be0a4`, versão 3, enviada por RPC para a fixture |
 | Data e login | 10/10/2026; login real pela interface local e no domínio publicado confirmado |
 | Consentimento de compartilhamento sintético | `patient_onboarding.share_consent=true` e submissão confirmados por SQL; não equivale a consentimento de pessoa real |
+
+Na rodada #109, a fixture médica original do item sintético de Glicose `c56ba11a-9fa3-4a5e-aab0-67c8c5da228a` foi restaurada pela interface após a conferência das revisões v2–v4; a restauração gerou v5. Isso não altera as credenciais ou os IDs da conta QA e não constitui publicação de resultado ao paciente. No #110, o Cron reprocessou somente a fixture de medidas e salvou cinco resultados sem duplicatas na run `17d4fdf6-8be5-4159-9829-d7ee597a4b43`; execuções anteriores foram preservadas. Após recarga autenticada do médico no domínio final, havia 25 resultados e 24 pendentes, com a revisão v5 intacta. As credenciais e IDs continuam os mesmos.
 
 A conta de QA não substitui o teste manual de Vitor com convite novo. Sua existência não fecha C2/C3, aceite clínico ou [Gate P](GATE_P.md).
