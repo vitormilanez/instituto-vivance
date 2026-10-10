@@ -1,4 +1,36 @@
-# Briefing da consulta e gráfico de peso — 07/10/2026
+# Briefing da consulta e gráfico de peso
+
+## Refinamento vigente — 10/10/2026
+
+Checkout único: `/Users/vitormilanez/Desktop/Codes/vivance`. Branch
+`codex/ux-briefing-medico-20261010`. Publicação técnica e identificadores vigentes
+devem ser consultados no [status](STATUS_ATUAL.md) e nos
+[checkpoints](CHECKPOINTS_ENTREGAS.md); os registros abaixo de 07/10 são históricos.
+
+- Objetivo estruturado aparece antes dos relatos. Quando ausente, o objetivo
+  literal do cadastro inicial recebe destaque e fonte, sem repetição na lista.
+- Exames, documentos e trabalho documental ficam juntos. Fontes são unidas por
+  tipo/id entre resumo, contexto e recebidos; arquivos recentes ficam recolhidos.
+  Contagem de disponíveis é distinta de pendências. Fatos conferidos conservam
+  a origem e extrações pendentes continuam somente como contagem.
+- Pré-consulta e demais originais começam recolhidos; comparação permanece
+  acessível ao abrir a pré-consulta. O texto deixa de anunciar um preparo aberto
+  quando não existe pré-consulta.
+- Peso único mostra valor, data e origem, sem gráfico/controles redundantes.
+  Cadastro idêntico não se repete. Séries e estabilidade entre datas continuam
+  disponíveis, com teclado e tabela textual.
+- Atendimento, ficha, mensagens, solicitações, receitas, Agenda e oito atalhos
+  mantêm destinos e permissões. Sem novos endpoints, chamadas de IA ou banco.
+
+Implementação por GPT-6 Sol, revisão independente com raciocínio Ultra e
+Impeccable 4.5.0. Conferência local agrupada em 1440, 390 e 320 px: sem overflow,
+controles visíveis de pelo menos 44 px; arquivos e cadastro abriram por expansão,
+gráfico respondeu Home/End, comparação abriu e falhas ficaram explícitas.
+Capturas e métricas locais em `output/playwright/20261010-briefing-ux/` (ignorados
+pelo Git). Fixture temporária restaurada antes de integrar; esta conferência
+local não prova publicação ou aceite médico.
+
+## Histórico — 07/10/2026
 
 Implementação na branch `codex/consultation-brief-20261007`, criada da main atualizada `0e280111af4e81c075e25f5ce2ee47187ccf3633`, publicada após autorização em 07/10/2026 pelo PR #82. O checkout usado é `/Users/vitormilanez/Developer/vivance-consultation-brief-20261007`; a pasta de protótipo aberta inicialmente no Codex não foi modificada.
 

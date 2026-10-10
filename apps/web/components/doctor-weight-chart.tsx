@@ -22,8 +22,11 @@ export function DoctorWeightChart({ points, href, initialWeight }: { points: Wei
   const latest = model?.points.at(-1);
   const active = model?.points[activeIndex];
   const baseline = initialWeight && validWeightPoint(initialWeight) ? initialWeight : null;
+  const baselineRepeatsLatest = Boolean(baseline && latest && baseline.value === latest.value && baseline.date.slice(0, 10) === latest.date.slice(0, 10));
   const comparison = baseline ?? (model && model.points.length > 1 ? model.points[0] : null);
   const variation = latest ? weightVariation(latest, comparison) : null;
+  const showVariation = Boolean(variation && comparison && !baselineRepeatsLatest && (comparison.value !== latest?.value || comparison.date.slice(0, 10) !== latest?.date.slice(0, 10)));
+  const singlePoint = model?.points.length === 1;
   const select = (index: number, focus = false) => {
     if (!model) return;
     const next = Math.max(0, Math.min(model.points.length - 1, index));
@@ -40,8 +43,8 @@ export function DoctorWeightChart({ points, href, initialWeight }: { points: Wei
       <p className="dweight-origin">Informado pelo paciente</p>
       {points === null ? <div className="dweight-empty"><p>Histórico de peso indisponível agora.</p><RetryButton /></div> : !model || !latest ? <div className="dweight-empty"><p>{points.length ? "Os registros disponíveis não têm peso e data válidos para exibir o gráfico." : "Nenhum peso informado até agora."}</p><p>Os próximos registros do paciente aparecerão aqui.</p></div> : <>
         <div className="dweight-current"><span>Atual informado</span><strong>{weightLabel.format(latest.value)} <small>kg</small></strong><time dateTime={latest.date}>{dateLabel(latest.date)}</time></div>
-        <p className="dweight-variation">{variation ? <><strong>{signedLabel.format(variation.kilograms)} kg · {signedLabel.format(variation.percent)}%</strong><span>{baseline ? "em relação ao cadastro" : "desde o primeiro registro exibido"}</span></> : "Variação ainda sem referência para comparar."}</p>
-        <div className="dweight-chart" role="group" aria-label="Gráfico de peso. Selecione um registro ou use as setas do teclado.">
+        {showVariation && <p className="dweight-variation"><strong>{signedLabel.format(variation!.kilograms)} kg · {signedLabel.format(variation!.percent)}%</strong><span>{baseline ? "em relação ao cadastro" : "desde o primeiro registro exibido"}</span></p>}
+        {!singlePoint && <><div className="dweight-chart" role="group" aria-label="Gráfico de peso. Selecione um registro ou use as setas do teclado.">
           <span className="dweight-unit">kg</span>
           <div className="dweight-y-axis" aria-hidden="true">{model.ticks.map((tick, index) => <span key={index} style={{ top: `${index * 50}%` }}>{weightLabel.format(tick)}</span>)}</div>
           <div className="dweight-plot">
@@ -58,11 +61,12 @@ export function DoctorWeightChart({ points, href, initialWeight }: { points: Wei
           <p id={`${id}-selection`} aria-live="polite" aria-atomic="true"><strong>{active && weightLabel.format(active.value)} kg</strong><span>{active && dateLabel(active.date)} · {activeIndex + 1}/{model.points.length}</span></p>
           <button type="button" aria-label="Próximo registro" disabled={activeIndex === model.points.length - 1} onClick={() => select(activeIndex + 1)}><ChevronRight size={17} aria-hidden="true" /></button>
         </div>
-        {model.points.length === 1 && <p className="dweight-caption">Um registro. A linha aparece quando houver outro peso informado.</p>}
+        </>}
+        {singlePoint && <p className="dweight-caption">Um registro informado até agora.</p>}
         {points.length > model.points.length && <p className="dweight-caption">{points.length - model.points.length} registro(s) sem peso ou data válidos não aparecem no gráfico.</p>}
-        <details className="dweight-details"><summary>Detalhes dos {model.points.length} registros</summary><table><caption className="sr-only">Pesos informados pelo paciente, em ordem de data</caption><thead><tr><th scope="col">Data</th><th scope="col">Peso</th></tr></thead><tbody>{model.points.map((point, index) => <tr key={`${point.date}-${index}`}><td><time dateTime={point.date}>{dateLabel(point.date)}</time></td><td>{weightLabel.format(point.value)} kg</td></tr>)}</tbody></table></details>
+        {!singlePoint && <details className="dweight-details"><summary>Detalhes dos {model.points.length} registros</summary><table><caption className="sr-only">Pesos informados pelo paciente, em ordem de data</caption><thead><tr><th scope="col">Data</th><th scope="col">Peso</th></tr></thead><tbody>{model.points.map((point, index) => <tr key={`${point.date}-${index}`}><td><time dateTime={point.date}>{dateLabel(point.date)}</time></td><td>{weightLabel.format(point.value)} kg</td></tr>)}</tbody></table></details>}
       </>}
-        <div className="dweight-baseline"><span>Peso inicial · cadastro</span>{baseline ? <p><strong>{weightLabel.format(baseline.value)} kg</strong><time dateTime={baseline.date}>{dateLabel(baseline.date)}</time></p> : <p>Não informado</p>}</div>
+        {!baselineRepeatsLatest && <div className="dweight-baseline"><span>Peso inicial · cadastro</span>{baseline ? <p><strong>{weightLabel.format(baseline.value)} kg</strong><time dateTime={baseline.date}>{dateLabel(baseline.date)}</time></p> : <p>Não informado</p>}</div>}
     </section>
   );
 }

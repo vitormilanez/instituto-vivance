@@ -35,10 +35,6 @@ function feedEntries(context: PatientCareContext, received: ReceivedView | null,
     const key = `preparation:${prep.id}`;
     items.set(key, { ...items.get(key), key, kind: "preparation", id: prep.id, at: prep.submitted_at, label: "Pré-consulta", href: `${base}/preparo?solicitacao=${prep.id}#preparo-${prep.id}`, answers: prep.answers, preview: prep.answers?.goal, current: context.preparation?.id === prep.id });
   }
-  for (const doc of context.documentItems ?? []) {
-    const key = `documents:${doc.id}`;
-    items.set(key, { ...items.get(key), key, kind: "documents", id: doc.id, at: doc.created_at, label: doc.title || "Exame ou documento", href: `${base}/pacientes/${patientId}?aba=Documentos#documento-${doc.id}` });
-  }
   if (context.onboarding) {
     const initial = context.onboarding;
     items.set(`onboarding:${initial.id}`, { key: `onboarding:${initial.id}`, kind: "onboarding", id: initial.id ?? "initial", at: initial.submittedAt, label: "Contexto de base", href: `${base}/pacientes/${patientId}?aba=Vis%C3%A3o%20geral`, initial, preview: initial.answers.goal });
@@ -52,15 +48,13 @@ function Answers({ answers, initial = false }: { answers: Record<string, string>
 }
 
 function PatientFeed({ context, received, base, patientId, tenantId }: { context: PatientCareContext; received: ReceivedView | null; base: string; patientId: string; tenantId: string }) {
-  const items = feedEntries(context, received, base, patientId);
+  const items = feedEntries(context, received, base, patientId).filter((item) => item.kind !== "documents");
   const preparations = items.filter((item) => item.kind === "preparation" && item.answers);
   const latest = preparations[0];
   const previous = preparations[1];
   const incomplete = !received || received.failedLabels.length > 0 || (context.failed ?? []).some((failure) => ["preparation", "preparationHistory", "preparationAnswers", "documents", "onboarding"].includes(failure));
-  return <section className="brief-patient-feed" aria-labelledby={`feed-${patientId}`}>
-    <div className="brief-section-heading"><h3 id={`feed-${patientId}`}>O que o paciente trouxe</h3><span>Mais recente primeiro</span></div>
-    {items.length ? <ol className="brief-feed">{items.map((item) => <li key={item.key}>
-      <details open={item.key === latest?.key} className={`brief-submission${item.kind === "preparation" ? " brief-submission-preparation" : ""}`}>
+  const renderItem = (item: FeedEntry) => <li key={item.key}>
+      <details className={`brief-submission${item.kind === "preparation" ? " brief-submission-preparation" : ""}`}>
         <summary>
           <span className="brief-feed-icon" aria-hidden="true">{item.kind === "preparation" ? <ClipboardList size={18} /> : item.kind === "onboarding" ? <History size={18} /> : <FileText size={18} />}</span>
           <span className="brief-feed-copy"><strong>{item.label}{item.current ? " desta consulta" : item.kind === "preparation" ? " anterior" : ""}</strong><small>{fullDay(item.at)} · {item.kind === "documents" ? "Documento disponível" : "Enviado pelo paciente"}</small>{item.key !== latest?.key && item.preview?.trim() && <span className="brief-feed-preview">{item.preview}</span>}</span>
@@ -75,7 +69,13 @@ function PatientFeed({ context, received, base, patientId, tenantId }: { context
           {item.kind === "onboarding" ? <Link className="brief-source-link" href={item.href}>Abrir contexto de base <ChevronRight size={14} aria-hidden="true" /></Link> : <ReceivedLink tenantId={tenantId} kind={item.kind} itemId={item.id} href={item.href} unseen={item.seen === false}>Abrir registro original <ChevronRight size={14} aria-hidden="true" /></ReceivedLink>}
         </div>
       </details>
-    </li>)}</ol> : <p>{incomplete ? "Não foi possível conferir todos os relatos e documentos. Tente carregar novamente." : "O paciente ainda não enviou relatos ou documentos."}</p>}
+    </li>;
+  return <section className="brief-patient-feed" aria-labelledby={`feed-${patientId}`}>
+    <div className="brief-section-heading"><h3 id={`feed-${patientId}`}>Registros originais</h3><span>Com datas e fontes</span></div>
+    {items.length ? <>
+      {latest && <ol className="brief-feed">{renderItem(latest)}</ol>}
+      {items.filter((item) => item.key !== latest?.key).length > 0 && <details className="brief-feed-history"><summary>{latest ? "Ver histórico e cadastro" : "Ver registros do paciente"} ({items.length - (latest ? 1 : 0)})</summary><ol className="brief-feed">{items.filter((item) => item.key !== latest?.key).map(renderItem)}</ol></details>}
+    </> : <p>{incomplete ? "Não foi possível conferir todos os relatos. Tente carregar novamente." : "O paciente ainda não enviou relatos."}</p>}
     {Boolean(received?.failedLabels.length) && <div className="brief-load-error" role="status"><p>Alguns envios não carregaram: {received!.failedLabels.join(", ")}.</p><RetryButton /></div>}
   </section>;
 }
@@ -96,11 +96,24 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
   const failed = context?.failed ?? [];
   const work = workItems?.filter((item) => item.patientId === appointment.patient_id) ?? [];
   const pendingWork = work.filter((item) => !(item.kind === "encounter" && item.id === draft?.id && action.label === "Retomar atendimento"));
+  const documentWork = pendingWork.filter((item) => item.kind === "documents");
+  const otherWork = pendingWork.filter((item) => item.kind !== "documents");
   const prep = context?.preparation?.submitted_at ? context.preparation : context?.previousPreparation;
   const patientTopics = brief?.topics.filter((topic) => topic.kind === "patient") ?? [];
   const pendingTopics = brief?.topics.filter((topic) => topic.kind === "pending") ?? [];
   const documentTopics = brief?.topics.filter((topic) => topic.kind === "documents") ?? [];
   const examTopics = brief?.topics.filter((topic) => topic.kind === "exams") ?? [];
+  const documentsHref = `${base}/pacientes/${appointment.patient_id}?aba=Documentos`;
+  const documentSources: ConsultationBriefSource[] = [...new Map([
+    ...[...(received?.visible ?? []), ...(received?.more ?? [])].filter((item) => item.kind === "documents").map((item) => ({ type: "patient_document", id: item.id, date: item.at, href: item.href, label: item.label || "Exame ou documento" })),
+    ...documentTopics.flatMap((topic) => topic.sources),
+    ...(context?.documentItems ?? []).map((document) => ({ type: "patient_document", id: document.id, date: document.created_at, href: `${documentsHref}#documento-${document.id}`, label: document.title || "Exame ou documento" })),
+  ].map((source) => [`${source.type}:${source.id}`, source] as const)).values()];
+  const hasLiteralGoal = Boolean(context?.preparation?.answers?.goal?.trim() || context?.previousPreparation?.answers?.goal?.trim() || context?.onboarding?.answers?.goal?.trim());
+  const initialGoal = context?.onboarding?.answers.goal?.trim();
+  const showInitialGoal = Boolean(initialGoal && !context?.intake?.expectedOutcome?.trim() && !context?.intake?.firstPriority?.trim());
+  const initialGoalTopic = patientTopics.find((topic) => topic.text === initialGoal && topic.sources.some((source) => source.type === "patient_onboarding_submission" && source.id === context?.onboarding?.id));
+  const remainingPatientTopics = patientTopics.filter((topic) => !(showInitialGoal && topic === initialGoalTopic));
   return <article className="home-consultation doctor-consultation consultation-briefing" aria-labelledby={`consulta-${appointment.id}-titulo`}>
     <details className="brief-expandable" open>
       <summary className="brief-collapse-summary">
@@ -111,8 +124,6 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
     <header className="brief-header">
       {context && link.status === "active" && <ul className="brief-readiness" aria-label="Fontes disponíveis para o preparo">
         {prep?.submitted_at && <li><Link href={`${base}/preparo?solicitacao=${prep.id}#preparo-${prep.id}`}><ClipboardList size={14} aria-hidden="true" />Pré-consulta {day(prep.submitted_at)}</Link></li>}
-        {!failed.includes("documents") && context.documents.total !== null && context.documents.total > 0 && <li><a href={`${base}/pacientes/${appointment.patient_id}?aba=Documentos`}><FileText size={14} aria-hidden="true" />{context.documents.total} exames{context.documents.latest_at ? ` · ${day(context.documents.latest_at)}` : ""}</a></li>}
-        {weight && weight.length > 0 && <li><a href={`#peso-${appointment.id}`}>{weight.length} pesos recentes</a></li>}
       </ul>}
       <div className="home-consultation-actions brief-actions">
         {link.status === "active" && <><Link className="button" href={action.href}>{action.label}</Link><Link className="button secondary" href={`${base}/pacientes/${appointment.patient_id}`}>Abrir ficha</Link><Link className="button secondary" href={`${base}/mensagens?paciente=${appointment.patient_id}`}>Mensagem</Link>{context && !failed.includes("requests") && <ConsultationRequests tenantId={tenantId} patientId={appointment.patient_id} requests={context.requests} />}</>}
@@ -128,14 +139,34 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
           <section className="brief-summary" aria-labelledby={`brief-${appointment.id}`}>
             <div className="brief-section-heading"><h3 id={`brief-${appointment.id}`}>Para esta consulta</h3></div>
             <p className="brief-mode">{brief?.mode === "ai" ? "Seleção assistida de trechos literais · conferir as fontes" : "Trechos literais e pendências · conferir as fontes"}</p>
+            {context.intake && <DoctorCurrentGoal
+              expectedOutcome={context.intake.expectedOutcome ?? null}
+              firstPriority={context.intake.firstPriority ?? null}
+              source={context.intake.source ?? null}
+              recordedByName={context.intake.recordedByName ?? null}
+              updatedAt={context.intake.updatedAt}
+              awaitingPatient={context.requests.some((request) => request.kind === "goals")}
+              href={`${base}/pacientes/${appointment.patient_id}?aba=Vis%C3%A3o%20geral&acolhimento=ver#patient-intake-context`}
+            />}
+            {showInitialGoal && context.onboarding && <section className="brief-goal" aria-labelledby={`goal-${appointment.id}`}>
+              <h4 id={`goal-${appointment.id}`}>Objetivo informado no cadastro inicial</h4>
+              <blockquote>{initialGoal}</blockquote>
+              <div className="brief-sources">{initialGoalTopic ? initialGoalTopic.sources.map((source) => <BriefSource key={`${source.type}:${source.id}`} source={source} received={received} tenantId={tenantId} />) : <Link href={`${base}/pacientes/${appointment.patient_id}?aba=Vis%C3%A3o%20geral`}>Cadastro inicial · {day(context.onboarding.submittedAt)}<ChevronRight size={12} aria-hidden="true" /></Link>}</div>
+            </section>}
             <div className="brief-topic-group">
               <h4>Relatos do paciente</h4>
               <p className="brief-group-note">Respostas enviadas pelo paciente, sem interpretação.</p>
-              {patientTopics.length ? <ul className="brief-topics">{patientTopics.map((topic, index) => <li key={index}><blockquote>{topic.text}</blockquote><div className="brief-sources">{topic.sources.map((source) => <BriefSource key={`${source.type}:${source.id}`} source={source} received={received} tenantId={tenantId} />)}</div></li>)}</ul> : <p className="brief-group-empty">Nenhum relato disponível neste recorte. Consulte os registros originais abaixo.</p>}
+              {remainingPatientTopics.length ? <ul className="brief-topics">{remainingPatientTopics.map((topic, index) => <li key={index}><blockquote>{topic.text}</blockquote><div className="brief-sources">{topic.sources.map((source) => <BriefSource key={`${source.type}:${source.id}`} source={source} received={received} tenantId={tenantId} />)}</div></li>)}</ul> : <p className="brief-group-empty">Nenhum outro relato disponível neste recorte. Consulte os registros originais abaixo.</p>}
             </div>
             {pendingTopics.length > 0 && <div className="brief-topic-group"><h4>Respostas pendentes</h4><ul className="brief-topics">{pendingTopics.map((topic, index) => <li key={index}><p>{topic.text}</p><div className="brief-sources">{topic.sources.map((source) => <span className="brief-source-with-date" key={`${source.type}:${source.id}`}><BriefSource source={source} received={received} tenantId={tenantId} /><time dateTime={source.date}>{day(source.date)}</time></span>)}</div></li>)}</ul></div>}
-            {documentTopics.length > 0 && <div className="brief-topic-group"><h4>Documentos para revisar</h4>{documentTopics.map((topic, index) => <div key={index}><p className="brief-document-count">{topic.text}</p><ol className="brief-document-list">{topic.sources.map((source, sourceIndex) => <li key={`${source.type}:${source.id}`}><span className="brief-document-number">Arquivo {sourceIndex + 1}</span><BriefSource source={source} received={received} tenantId={tenantId} /><time dateTime={source.date}>{day(source.date)}</time></li>)}</ol></div>)}</div>}
-            {examTopics.length > 0 && <div className="brief-topic-group"><h4>Resultados de exames</h4><p className="brief-group-note">Valores literais conferidos por médico; extrações pendentes aparecem apenas como contagem.</p><ul className="brief-topics">{examTopics.map((topic, index) => <li key={index}><p>{topic.text}</p><div className="brief-sources">{topic.sources.map((source) => <BriefSource key={`${source.type}:${source.id}`} source={source} received={received} tenantId={tenantId} />)}</div></li>)}</ul></div>}
+            <section className="brief-topic-group brief-documents" aria-labelledby={`documents-${appointment.id}`}>
+              <div className="brief-section-heading"><h4 id={`documents-${appointment.id}`}>Exames e documentos</h4>{!documentWork.some((item) => item.href === documentsHref) && <Link href={documentsHref}>Abrir Documentos</Link>}</div>
+              <p className="brief-document-count">{failed.includes("documents") || context.documents.total === null ? "Contagem indisponível" : `${context.documents.total} ${context.documents.total === 1 ? "documento disponível" : "documentos disponíveis"}${context.documents.latest_at ? ` · último em ${day(context.documents.latest_at)}` : ""}`}</p>
+              {documentWork.length === 0 && documentTopics.map((topic, index) => <p className="brief-document-count" key={index}>{topic.text}</p>)}
+              {examTopics.length > 0 && <div className="brief-exam-results"><h5>Resultados de exames</h5><p className="brief-group-note">Os estados de revisão aparecem em cada linha; valores revisados mantêm acesso à fonte.</p><ul className="brief-topics">{examTopics.map((topic, index) => <li key={index}><p>{topic.text}</p><div className="brief-sources">{topic.sources.map((source) => <BriefSource key={`${source.type}:${source.id}`} source={source} received={received} tenantId={tenantId} />)}</div></li>)}</ul></div>}
+              {documentSources.length > 0 && <details className="brief-document-details"><summary>Ver arquivos recentes ({documentSources.length})</summary><ol className="brief-document-list">{documentSources.map((source, index) => <li key={`${source.type}:${source.id}`}><span className="brief-document-number">Arquivo {index + 1}</span><BriefSource source={source} received={received} tenantId={tenantId} /><time dateTime={source.date}>{day(source.date)}</time></li>)}</ol></details>}
+              {documentWork.map((item) => <Link className="brief-document-work" key={`${item.kind}:${item.id}`} href={item.href}>{item.state} · {item.action}</Link>)}
+            </section>
             {brief?.retry && <div className="brief-load-error" role="status"><p>O resumo assistido não carregou. Os relatos originais continuam disponíveis.</p><RetryButton /></div>}
           </section>
           <PatientFeed context={context} received={received} base={base} patientId={appointment.patient_id} tenantId={tenantId} />
@@ -143,22 +174,12 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
         <aside className="brief-facts" aria-label="Evolução e fatos da consulta">
           <div id={`peso-${appointment.id}`}><DoctorWeightChart initialWeight={context.onboarding?.measurements.weightKg != null && context.onboarding.measurements.measuredOn ? { value: context.onboarding.measurements.weightKg, date: context.onboarding.measurements.measuredOn } : null} points={weight} href={`${base}/acompanhamento?aba=evolucao&paciente=${appointment.patient_id}`} /></div>
           <h3>Fatos da consulta</h3>
-          {context.intake && <DoctorCurrentGoal
-            expectedOutcome={context.intake.expectedOutcome ?? null}
-            firstPriority={context.intake.firstPriority ?? null}
-            source={context.intake.source ?? null}
-            recordedByName={context.intake.recordedByName ?? null}
-            updatedAt={context.intake.updatedAt}
-            awaitingPatient={context.requests.some((request) => request.kind === "goals")}
-            href={`${base}/pacientes/${appointment.patient_id}?aba=Vis%C3%A3o%20geral&acolhimento=ver#patient-intake-context`}
-          />}
-          <div className="brief-fact"><FileText size={18} aria-hidden="true" /><div><strong>Exames</strong><span>{failed.includes("documents") ? "Contagem indisponível" : `${context.documents.total} disponíveis${context.documents.latest_at ? ` · ${day(context.documents.latest_at)}` : ""}`}</span></div><Link href={`${base}/pacientes/${appointment.patient_id}?aba=Documentos`}>Revisar</Link></div>
-          <div className="brief-fact"><Target size={18} aria-hidden="true" /><div><strong>Metas</strong><span>{failed.includes("intake") || failed.includes("requests") ? "Estado indisponível" : context.intake?.hasGoal ? "Informadas pelo paciente" : context.requests.some((item) => item.kind === "goals") ? "Solicitadas · aguardando resposta" : "Não informadas"}</span></div></div>
+          {(failed.includes("intake") || failed.includes("requests") || context.requests.some((item) => item.kind === "goals") || (!context.intake?.hasGoal && !hasLiteralGoal)) && <div className="brief-fact"><Target size={18} aria-hidden="true" /><div><strong>Metas</strong><span>{failed.includes("intake") || failed.includes("requests") ? "Estado indisponível" : context.requests.some((item) => item.kind === "goals") ? "Solicitadas · aguardando resposta" : "Não informadas"}</span></div></div>}
           <div className="brief-fact"><CalendarDays size={18} aria-hidden="true" /><div><strong>Última consulta</strong><span>{failed.includes("encounter") ? "Registro indisponível" : context.encounter?.finalized_at ? `Finalizada em ${day(context.encounter.finalized_at)}` : "Sem registro finalizado"}</span></div>{context.encounter && <Link href={`${base}/atendimentos/${context.encounter.id}`}>Abrir</Link>}</div>
           <div className="brief-fact"><ClipboardList size={18} aria-hidden="true" /><div><strong>Plano de cuidado</strong><span>{failed.includes("publications") ? "Estado indisponível" : context.publications[0] ? `Publicado · revisão ${context.publications[0].revision}` : "Nenhum publicado"}</span></div>{context.publications[0] && <Link href={`${base}/planos/${context.publications[0].plan_id}`}>Abrir</Link>}</div>
           <ConsultationPrescriptions tenantId={tenantId} patientId={appointment.patient_id} total={context.prescriptions?.total ?? null} available={context.prescriptions?.available ?? false} />
           {context.encounter?.evolution?.trim() && <details className="brief-evolution"><summary>Evolução registrada pelo médico</summary><p>{context.encounter.evolution}</p><Link href={`${base}/atendimentos/${context.encounter.id}`}>Ler registro completo</Link></details>}
-          {pendingWork.length > 0 && <section className="brief-open-work"><h3>Seu trabalho com este paciente</h3><ul>{pendingWork.map((item) => <li key={`${item.kind}:${item.id}`}><span>{item.state}</span><Link href={item.href}>{item.action}</Link></li>)}</ul></section>}
+          {otherWork.length > 0 && <section className="brief-open-work"><h3>Seu trabalho com este paciente</h3><ul>{otherWork.map((item) => <li key={`${item.kind}:${item.id}`}><span>{item.state}</span><Link href={item.href}>{item.action}</Link></li>)}</ul></section>}
           {workItems === null && <div className="brief-load-error" role="status"><p>Não foi possível carregar o trabalho com este paciente.</p><RetryButton /></div>}
         </aside>
       </div>

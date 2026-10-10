@@ -2,6 +2,17 @@
 
 **Atualizado em 10/10/2026 — #110 integrado e publicado tecnicamente; QA sintético autenticado concluído no recorte descrito.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada: `91970c09f35469673674adc32a661d8d174d9820`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
 
+## UX do briefing — validação local de 10/10
+
+O usuário priorizou reduzir a
+dispersão da Home médica usando os caminhos existentes. Objetivo em destaque,
+exames/revisão reunidos, originais recolhidos e peso único compacto foram
+implementados e revisados com GPT-6 Sol Ultra/Impeccable. A conferência local
+em 1440/390/320 px passou sem overflow, com alvos de 44 px, expansão de fontes,
+comparação e teclado do gráfico. CI/integração/publicação desta UX estão
+pendentes neste registro; tarefa Asana `1219378497566919`. O contrato de IA2 e
+os gates abaixo não mudaram. [Detalhes](BRIEFING_CONSULTA_2026-10-07.md).
+
 ## IA2 — estado vigente
 
 O [PR #109](https://github.com/vitormilanez/instituto-vivance/pull/109) foi integrado. CI `38091031080` e release `38091148065` passaram com **499 testes**. A migration `20261010220240` foi aplicada ao `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), totalizando 68; `exam-text-worker` v10 executava extractor .3 nessa publicação anterior. O deployment `dpl_RA2tuX9j5juaihWkbskxgA4cWvQd` está production/READY no SHA acima. Publicação técnica não constitui aceite médico.
