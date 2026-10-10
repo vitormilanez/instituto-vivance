@@ -58,6 +58,7 @@
 }
 .dv .dv-invite-workspace .patient-invitation-form .field {
   min-width: 0;
+  margin: 0;
 }
 .dv .dv-invite-workspace .patient-invitation-form .field input {
   margin-bottom: 0;
