@@ -124,9 +124,10 @@ export function PatientInvitationForm({
       </p>
       <form onSubmit={submit}>
         <div className="field invitation-name">
-          <label htmlFor="patient-invitation-name">Pessoa convidada</label>
+          <label htmlFor="patient-invitation-name">Nome do paciente</label>
           <input
             id="patient-invitation-name"
+            placeholder="Nome e sobrenome"
             name="displayName"
             autoComplete="name"
             minLength={2}

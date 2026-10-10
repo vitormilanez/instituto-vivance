@@ -149,3 +149,12 @@ diagnóstico curto, proposta validada, implementação delimitada, testes propor
 fechamento integrado e evidência. Manter implementação, Preview, publicação técnica
 e aceite clínico como marcos distintos. Decisões novas devem atualizar esta direção,
 o status e a tarefa correspondente no Asana após reconciliação com Git/ambientes.
+
+### Refinamento aprovado — pacientes e convites, 10/10
+
+Adotar a estrutura do Claude com identidade Vivance: convite inline, acompanhamento
+com estados reais e cadastro sem app secundário na lateral. Atalho explícito
+“Adicionar novo paciente” no menu desktop/mobile. Entregar como pacote; layout
+local não equivale a publicação. QR da recepção deve incluir entrada coletiva e
+aprovação; Google exige configuração OAuth. Não confundir convite aceito com
+cadastro inicial enviado ou acolhimento concluído.

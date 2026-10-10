@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Figtree } from "next/font/google";
-import { Sun, Inbox, Users, CalendarDays, MessageCircle, Search, Bell, Settings, Video } from "lucide-react";
+import { Sun, Inbox, Users, CalendarDays, MessageCircle, Search, Bell, Settings, Video, UserPlus } from "lucide-react";
 import type { ReactNode } from "react";
 import { logout } from "@/app/actions";
 import type { ClinicAccess } from "@/modules/identity/service";
@@ -109,6 +109,7 @@ export function DoctorShell({
             <small>{clinic.name}</small>
           </span>
         </Link>
+        <Link className="dv-add-patient" href={`${base}/pacientes#convidar-paciente`}><UserPlus size={20} aria-hidden="true" />Adicionar novo paciente</Link>
         <nav className="dv-primary-nav" aria-label="Área do médico">
           {primary.map((link) => (
             <Link
@@ -183,6 +184,7 @@ export function DoctorShell({
           <details className="dv-mobile-tools">
             <summary>Menu</summary>
             <nav aria-label="Outras áreas">
+              <Link href={`${base}/pacientes#convidar-paciente`}>Adicionar novo paciente<DoctorNavPending /></Link>
               <Link
                 href={`${base}/teleconsulta`}
                 aria-current={active === "teleconsulta" ? "page" : undefined}

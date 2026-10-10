@@ -1,13 +1,18 @@
 # Checkpoints das próximas entregas
 
-**Convites, 10/10:** formulário médico compacto acima da lista, estado correto
-para conta existente e orientação de primeiro acesso em implementação local.
-Sessão médica local vista em desktop e 390 px; convite fictício visto em 390 px;
-7 testes focados passaram. [ ] Repetir lint/typecheck completos. [ ] Validar
-em Preview um convite novo por WhatsApp com conta existente e outro por
-e-mail com conta nova, incluindo aceite e chegada ao onboarding. [ ] Configurar
-e verificar Google OAuth no Supabase antes de mostrar Google Sign-In. Os links
-antigos de 10/10 foram apagados no reset; usar convite novo.
+**Convites, 10/10 — revisão do modelo Claude (local):**
+- [x] Menu desktop e Menu mobile: “Adicionar novo paciente”.
+- [x] Convite integrado ao topo da área de pacientes, sem cards empilhados.
+- [x] Convites recentes: filtros com contagens reais (todos, aguardando aceite,
+  aceitos, encerrados), canal, estado e data/hora do envio em São Paulo.
+- [x] Cadastro sem app na lateral; formulário principal aceita nome + contato.
+- [x] Sintaxe TSX e sete testes focados passaram.
+- [ ] Concluir verificação visual desktop/mobile, lint e typecheck.
+- [ ] Publicar o pacote; o domínio ainda mostra o layout anterior.
+- [ ] Validar convite novo + aceite + onboarding com conta existente e nova.
+- [ ] QR da recepção: implementar entrada coletiva e aprovação antes de expor.
+- [ ] Google OAuth: configurar e validar antes de mostrar botão.
+Os links antigos de 10/10 foram apagados no reset; usar convite novo.
 
 **Reset em 10/10:** os três pacientes e dados dependentes do dev sintético foram
 removidos a pedido do usuário; os 18 arquivos também saíram do Storage.

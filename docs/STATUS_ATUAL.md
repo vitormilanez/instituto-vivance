@@ -1,5 +1,21 @@
 # Estado atual do Vivance
 
+## Página de pacientes — revisão Claude, 10/10/2026 (local)
+
+O domínio fotografado pelo usuário ainda mostra a versão anterior; o trabalho
+na branch `codex/onboarding-novo-paciente-20261009` não foi publicado.
+A nova organização reúne convite inline e acompanhamento na mesma superfície,
+com menu “Adicionar novo paciente” no desktop e no Menu mobile. Os convites
+recentes têm filtros/contagens por aceite e encerramento, canal e data/hora
+em `America/Sao_Paulo`. O cadastro sem app fica na lateral e empilha no mobile.
+Mantida a identidade navy/creme/dourado. Referência: modelo Claude fornecido e
+https://www.nngroup.com/articles/data-tables/.
+Não há métricas inventadas de abertura nem QR inoperante: QR coletivo depende
+de entrada/aprovação, e Google permanece desabilitado no Auth. Sintaxe TSX e
+7 testes focados passaram; a verificação visual e lint/typecheck ficam pendentes
+se o ambiente local continuar travando. Prévia sintética: desenvolvimento apenas,
+`/refinamentos-preview?tela=convites`. Nenhum convite foi consumido neste ajuste.
+
 ## Convites e entrada no onboarding — 10/10/2026 (trabalho local)
 
 Após o reset sintético, o usuário relatou que dois links de WhatsApp criados

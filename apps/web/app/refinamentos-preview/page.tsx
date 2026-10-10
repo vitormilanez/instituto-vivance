@@ -7,6 +7,7 @@ import { emptyHealthContext } from "@/modules/onboarding/types";
 import { emptyNutrition, emptyPhotos, type PatientProfileContext } from "@/modules/onboarding/profile-types";
 const figtree = Figtree({subsets:["latin"],variable:"--font-figtree"});
 import { notFound } from "next/navigation";
+import { PatientInvitationList } from "@/components/patient-invitation-list";
 import { DoctorShell } from "@/components/doctor-shell";
 import { ConsultationBlock } from "@/components/consultation-block";
 import { StaffMessagesWorkspace } from "@/components/messages-workspace";
@@ -55,6 +56,17 @@ export default async function RefinementsPreview({ searchParams }: {
     const initialProfile:PatientProfileContext={tenantId:tenant,patientId:patient,version:1,nutrition:emptyNutrition(),photos:emptyPhotos(),examsStatus:"not_started",examsDocumentIds:[],nutritionSubmittedAt:null,photosSubmittedAt:null,examsSubmittedAt:null,updatedAt:null};
     return <div className={`pv pv-is-task ${figtree.variable}`}><main id="conteudo" className="pv-main"><p className="pv-muted">Prévia local · dados fictícios</p>{tela==="onboarding"||tela==="onboarding-complete"?<OnboardingWorkspace tenantId={tenant} doctorName="Dra. Marina" initial={{...draft,currentStep:"profile",version:1,status:tela==="onboarding-complete"?"submitted":"draft"}}/>:tela==="perfil-home"?<ProfileCompletionPrompt tenantId={tenant} profile={initialProfile}/>:<PatientProfileWorkspace tenantId={tenant} initial={initialProfile} section={tela==="fotos"?"photos":tela==="exames"?"exams":"nutrition"}/>}</main></div>;
   }
+  if (tela === "convites") return <DoctorShell clinic={{ id: tenant, name: "Clínica demonstrativa", role: "doctor", displayName: "Dra. Marina · FICTÍCIO" }} active="patients" notificationCount={0}>
+    <div className="dv-directory"><div className="dv-directory-layout">
+      <section className="panel dv-directory-panel"><div className="dv-invite-workspace" id="convidar-paciente">
+        <PatientInvitationForm tenantId={tenant} role="doctor" />
+        <PatientInvitationList tenantId={tenant} invitations={[
+          { id: "synthetic-pending", displayName: "Ana Souza · FICTÍCIO", channel: "email", status: "pending", delivery: { status: "requested" }, createdAt: instant(-120), expiresAt: instant(10080) },
+          { id: "synthetic-accepted", displayName: "Carlos Lima · FICTÍCIO", channel: "whatsapp", status: "accepted", delivery: { status: "not_applicable" }, createdAt: instant(-1440), expiresAt: instant(10080) },
+        ]} />
+      </div><div className="empty"><h3>Nenhum paciente cadastrado</h3><p>Prévia local com convites fictícios. Nenhum envio deve ser realizado aqui.</p></div></section>
+      <aside className="dv-registration-aside"><section className="dv-registration-guide"><h2>Um convite, um novo começo</h2><p>A pessoa confirma seu acesso e preenche o perfil inicial. A ficha aparece aqui assim que ela aceita o convite.</p><ol><li>Informe nome e contato.</li><li>Compartilhe o link ou envie por e-mail.</li><li>Acompanhe o aceite nesta lista.</li></ol></section><details className="dv-disclosure"><summary>Cadastrar sem acesso ao app</summary><p>Para quem prefere começar com ajuda da equipe.</p></details></aside>
+    </div></div></DoctorShell>;
   const context: PatientCareContext = {
     relationshipId: "synthetic-relationship", canReviewPreparation: true,
     encounter: { id: "synthetic-previous", finalized_at: instant(-1440), evolution: "Registro demonstrativo de acompanhamento." },

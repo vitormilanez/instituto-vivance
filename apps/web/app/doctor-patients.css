@@ -72,35 +72,6 @@
   color: var(--dv-muted);
   font-size: 14px;
 }
-.dv .dv-invite-followup {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: start;
-}
-.dv .dv-invite-followup > .panel,
-.dv .dv-invite-followup > .dv-disclosure {
-  margin: 0;
-  border: 1px solid var(--dv-line);
-  border-radius: 12px;
-  background: #fff;
-}
-.dv .dv-invite-followup > .panel { padding: 16px 20px; }
-.dv .dv-invite-followup > .panel h2 { margin: 0 0 6px; font-size: 16px; }
-.dv .dv-invite-followup > .panel > p { margin: 0 0 10px; font-size: 14px; }
-.dv .dv-invite-followup > .dv-disclosure { min-width: 230px; }
-@media (max-width: 900px) {
-  .dv .dv-invite-workspace .patient-invitation-form form {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .dv .dv-invite-workspace .invitation-submit { grid-column: 1 / -1; }
-}
-@media (max-width: 640px) {
-  .dv .dv-invite-workspace .patient-invitation-form { padding: 18px; }
-  .dv .dv-invite-workspace .patient-invitation-form form,
-  .dv .dv-invite-followup { grid-template-columns: minmax(0, 1fr); }
-  .dv .dv-invite-workspace .invitation-submit { width: 100%; }
-}
 
 .dv .dv-directory-heading h1,
 .dv .dv-section-heading h2 {
@@ -125,8 +96,8 @@
 
 .dv .dv-directory-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
   align-items: start;
 }
 .dv .dv-directory-panel,
@@ -135,7 +106,7 @@
   box-shadow: 0 4px 18px rgba(10, 26, 51, 0.045);
 }
 .dv .dv-directory-panel {
-  padding: 18px 0 0;
+  padding: 0;
   overflow: hidden;
 }
 .dv .dv-directory-panel > :not(.dv-directory-columns):not(.dv-patient-list):not(.dv-directory-table-wrap) {
@@ -508,3 +479,63 @@
   }
 }
 .dv .document-row:target { scroll-margin-top: 84px; background: #edf3fb; outline: 2px solid #124da0; outline-offset: -2px; }
+
+/* Invitation and follow-up belong to the same working surface. */
+.dv .dv-add-patient { display:flex; align-items:center; gap:10px; margin:8px 0 20px; padding:12px; min-height:48px; border:1px solid var(--dv-line); border-radius:10px; background:#f6eedc; color:var(--dv-ink); text-decoration:none; font-size:14px; font-weight:700; }
+.dv .dv-add-patient:hover { background:#efe1c6; }
+.dv .dv-invite-workspace { margin:0 0 24px !important; gap:0; scroll-margin-top:100px; }
+.dv .dv-invite-workspace .patient-invitation-form { border:0; border-bottom:1px solid var(--dv-line); border-radius:0; box-shadow:none; padding:24px; }
+.dv .dv-invitation-tracker { margin:0; padding:20px 0 0; border:0; border-bottom:1px solid var(--dv-line); border-radius:0; box-shadow:none; }
+.dv .dv-invitation-tracker > h2, .dv .dv-invitation-tracker > p { margin:0 24px 8px; }
+.dv .dv-invitation-tracker > h2 { font-size:17px; }
+.dv .dv-invitation-tracker > p { color:var(--dv-muted); font-size:13px; }
+.dv .dv-invitation-filters { display:flex; margin-top:16px; border-block:1px solid var(--dv-line); }
+.dv .dv-invitation-filters button { flex:1; min-width:0; padding:14px 12px; border:0; border-radius:0; background:#fcfbf8; color:var(--dv-muted); text-align:left; }
+.dv .dv-invitation-filters button + button { border-left:1px solid var(--dv-line); }
+.dv .dv-invitation-filters strong, .dv .dv-invitation-filters span { display:block; }
+.dv .dv-invitation-filters strong { font-size:21px; font-variant-numeric:tabular-nums; }
+.dv .dv-invitation-filters span { font-size:12px; }
+.dv .dv-invitation-filters button[aria-pressed="true"] { background:var(--dv-ink); color:#fff; }
+.dv .dv-invitation-filters button:hover { box-shadow:inset 0 -2px var(--dv-gold); }
+.dv .dv-invitation-columns, .dv .dv-invitation-tracker li { display:grid; grid-template-columns:minmax(120px,1fr) minmax(160px,1.3fr) 100px 116px; align-items:center; gap:16px; padding:14px 24px; }
+.dv .dv-invitation-columns { font-size:12px; color:var(--dv-muted); background:#fcfbf8; }
+.dv .dv-invitation-tracker .list { margin:0; }
+.dv .dv-invitation-tracker small { display:block; margin-top:4px; color:var(--dv-muted); font-size:12px; }
+.dv .dv-invitation-tracker time { color:var(--dv-muted); font-size:12px; font-variant-numeric:tabular-nums; }
+.dv .dv-invitation-tracker li button { min-height:44px; padding:8px 10px; font-size:12px; }
+.dv .dv-invitation-badge { display:inline-block; padding:4px 8px; border-radius:6px; background:#f6eedc; color:#71521b; font-size:12px; font-weight:650; }
+.dv .dv-invitation-accepted { background:#e8f3ee; color:#235c45; }
+.dv .dv-invitation-expired, .dv .dv-invitation-revoked { background:#f1f0ed; color:var(--dv-muted); }
+.dv .dv-registration-aside { border:1px solid var(--dv-line); border-radius:12px; overflow:hidden; background:#fff; }
+.dv .dv-registration-guide { padding:24px; }
+.dv .dv-registration-guide h2 { margin:0 0 12px; font-size:20px; }
+.dv .dv-registration-guide p, .dv .dv-registration-guide li { color:var(--dv-muted); font-size:14px; line-height:1.6; }
+.dv .dv-registration-guide ol { padding-left:18px; margin-bottom:0; }
+.dv .dv-registration-guide li + li { margin-top:8px; }
+.dv .dv-registration-aside .dv-disclosure { border:0; border-top:1px solid var(--dv-line); border-radius:0; padding:20px 24px; background:#fcfbf8; }
+.dv .dv-registration-aside form { max-width:100%; }
+.dv .dv-directory-panel .empty { min-height:0; padding-block:28px; }
+.dv .dv-directory-panel .pagination { padding-block:12px; }
+.dv .dv-directory :focus-visible, .dv .dv-add-patient:focus-visible { outline:2px solid var(--dv-ink); outline-offset:3px; }
+@media (max-width:1200px) {
+ .dv .dv-invite-workspace .patient-invitation-form form { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .dv .dv-invite-workspace .invitation-submit { grid-column:1/-1; }
+ .dv .dv-invitation-columns, .dv .dv-invitation-tracker li { grid-template-columns:minmax(100px,1fr) minmax(140px,1.2fr) 90px; }
+ .dv .dv-invitation-columns > span:last-child { display:none; }
+ .dv .dv-invitation-tracker li > div:last-child { grid-column:2/-1; }
+}
+@media (max-width:1100px) { .dv .dv-directory-layout { grid-template-columns:minmax(0,1fr); } }
+@media (max-width:700px) {
+ .dv .dv-directory-panel { padding:0; }
+ .dv .dv-invite-workspace .patient-invitation-form { padding:20px 16px; }
+ .dv .dv-invite-workspace .patient-invitation-form form { grid-template-columns:minmax(0,1fr); }
+ .dv .dv-invite-workspace .invitation-submit { width:100%; }
+ .dv .dv-invitation-tracker > h2, .dv .dv-invitation-tracker > p { margin-inline:16px; }
+ .dv .dv-invitation-filters { display:grid; grid-template-columns:repeat(2,1fr); }
+ .dv .dv-invitation-filters button { min-height:68px; padding-inline:16px; }
+ .dv .dv-invitation-filters button:nth-child(n+3) { border-top:1px solid var(--dv-line); }
+ .dv .dv-invitation-columns { display:none; }
+ .dv .dv-invitation-tracker li { grid-template-columns:minmax(0,1fr); gap:12px; padding:20px 16px; }
+ .dv .dv-invitation-tracker li > div:last-child { grid-column:auto; }
+ .dv .dv-directory-panel > .dv-search-form, .dv .dv-directory-panel > .dv-directory-filters, .dv .dv-directory-panel > .dv-results-count, .dv .dv-directory-panel > .empty, .dv .dv-directory-panel > .pagination { margin-inline:16px !important; }
+}
