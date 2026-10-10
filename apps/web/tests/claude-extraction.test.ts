@@ -96,6 +96,67 @@ test("retry merge keeps five synthetic measurements when number and unit are spl
   }
 });
 
+test("retry merge preserves nonconflicting grounded reference, method and specimen across excerpts", () => {
+  const short = "Massa A: 72,4 kg";
+  const full = `${short} | ref 70 a 80 kg | método ilustrativo | amostra fictícia`;
+  const text = `LAUDO FICTÍCIO — APENAS TESTE\nData: 06/03/2024\n${full}`;
+  const page = [{ id: "with-reference", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const attempt = (item: Record<string, unknown>) => ({ pages: [{ page_number: 1, source_text: null, items: [item] }], metadata: {} });
+  const whole = attempt({ item_kind: "laboratory", literal_name: "Massa A", literal_value: "72,4 kg",
+    reference_text: "70 a 80 kg", method_text: "método ilustrativo", specimen_text: "amostra fictícia", source_excerpt: full });
+  const split = attempt({ item_kind: "laboratory", literal_name: "Massa A", literal_value: "72,4",
+    unit_text: "kg", observed_on: "2024-03-06", source_excerpt: short });
+  for (const attempts of [[whole, split], [split, whole]]) {
+    const merged = mergeGroundedAttempts(page, attempts);
+    assert.equal(merged.discarded, 0);
+    assert.equal(merged.items.length, 1);
+    const [item] = merged.items;
+    assert.deepEqual([item.literal_value, item.unit_text, item.reference_text, item.method_text, item.specimen_text, item.observed_on],
+      ["72,4", "kg", "70 a 80 kg", "método ilustrativo", "amostra fictícia", "2024-03-06"]);
+    assert.equal(item.source_excerpt, full);
+    assert.equal(Array.from(text).slice(Number(item.source_start), Number(item.source_end)).join(""), full);
+  }
+});
+
+test("retry merge uses an exact contiguous source union for complementary excerpts", () => {
+  const text = "método ilustrativo | Massa A: 72,4 kg | ref 70 a 80 kg";
+  const page = [{ id: "complementary-excerpts", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const attempt = (item: Record<string, unknown>) => ({ pages: [{ page_number: 1, source_text: null, items: [item] }], metadata: {} });
+  const whole = attempt({ item_kind: "laboratory", literal_name: "Massa A", literal_value: "72,4 kg",
+    method_text: "método ilustrativo", source_excerpt: "método ilustrativo | Massa A: 72,4 kg" });
+  const split = attempt({ item_kind: "laboratory", literal_name: "Massa A", literal_value: "72,4",
+    unit_text: "kg", reference_text: "70 a 80 kg", source_excerpt: "Massa A: 72,4 kg | ref 70 a 80 kg" });
+  for (const attempts of [[whole, split], [split, whole]]) {
+    const merged = mergeGroundedAttempts(page, attempts);
+    assert.equal(merged.items.length, 1);
+    const [item] = merged.items;
+    assert.deepEqual([item.literal_value, item.unit_text, item.reference_text, item.method_text],
+      ["72,4", "kg", "70 a 80 kg", "método ilustrativo"]);
+    assert.equal(item.source_excerpt, text);
+    assert.equal(Array.from(text).slice(Number(item.source_start), Number(item.source_end)).join(""), text);
+  }
+});
+
+test("retry merge retains conflicting grounded references as separate review items", () => {
+  const text = "Massa A: 72,4 kg | ref 70 a 80 kg | ref 60 a 90 kg";
+  const page = [{ id: "conflicting-references", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const attempt = (literal_value: string, unit_text: string | null, reference_text: string) => ({
+    pages: [{ page_number: 1, source_text: null, items: [{ item_kind: "laboratory", literal_name: "Massa A",
+      literal_value, unit_text, reference_text, source_excerpt: text }] }], metadata: {},
+  });
+  const split = attempt("72,4", "kg", "70 a 80 kg");
+  const whole = attempt("72,4 kg", null, "60 a 90 kg");
+  for (const { attempts, expected } of [
+    { attempts: [whole, split], expected: ["60 a 90 kg", "70 a 80 kg"] },
+    { attempts: [split, whole], expected: ["70 a 80 kg", "60 a 90 kg"] },
+  ]) {
+    const merged = mergeGroundedAttempts(page, attempts);
+    assert.equal(merged.items.length, 2);
+    assert.deepEqual(merged.items.map((item) => item.reference_text), expected);
+    assert.ok(merged.items.every((item) => item.source_excerpt === text));
+  }
+});
+
 test("retry merge retains distinct percent and absolute columns at the same source anchor", () => {
   const text = "Composição A: 72,4 kg | 18 %";
   const page = [{ id: "columns", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
