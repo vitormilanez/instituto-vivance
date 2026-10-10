@@ -1,6 +1,6 @@
 # Checkpoints das próximas entregas
 
-Atualizado em **09/10/2026, 23h30 (São Paulo)**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
+Atualizado em **09/10/2026, 23h (São Paulo)**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
 o [status](STATUS_ATUAL.md) guarda evidências. Checkboxes indicam verificação
 técnica específica, não aceite clínico.
 

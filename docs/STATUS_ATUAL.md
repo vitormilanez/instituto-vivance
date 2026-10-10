@@ -1,6 +1,6 @@
 # Estado atual do Vivance
 
-## Onboarding com conta nova — 09/10/2026, 23h30 (São Paulo)
+## Onboarding com conta nova — 09/10/2026, 23h (São Paulo)
 
 Na branch `codex/onboarding-novo-paciente-20261009`, criada da `main` publicada
 `9d10ec4a`, uma conta **inteiramente sintética** foi convidada pelo percurso
