@@ -23,7 +23,14 @@
 - [x] Cron reprocessou somente a fixture de medidas na primeira tentativa: cinco resultados sem duplicatas, run `17d4fdf6-8be5-4159-9829-d7ee597a4b43`, histórico preservado. Médico autenticado recarregou no domínio final: 25 resultados, 24 pendentes, Glicose v5 e formulário de correção preservados. Mutações/briefing são evidência do #109; paciente 403 e original/hash são históricos #106/#107, sem novos testes desses caminhos no #110.
 - [ ] Preview autenticado: não executado nesta rodada; verificação pós-publicação não o substitui.
 
-## Próximos gates
+## UX — briefing médico (10/10)
+
+- [x] Direção autorizada: consolidar exames/revisão, reduzir repetições e usar as rotas atuais; tarefa Asana `1219378497566919`.
+- [x] Implementação revisada por GPT-6 Sol Ultra/Impeccable: objetivo em destaque, exames reunidos, originais recolhidos e peso único compacto. Local em 1440/390/320 px sem overflow, alvos 44 px, fontes por expansão, gráfico por teclado, comparação e erros explícitos; fixture temporária restaurada. Artefatos em `output/playwright/20261010-briefing-ux/`.
+- [ ] Integração e publicação técnica; conferir domínio e sessão médica sintética.
+- [ ] Aceite de usabilidade do médico.
+
+## Próximos gates clínicos
 
 - [ ] Publicar explicitamente ao paciente apenas fatos aprovados pelo médico, em entrega separada. Revisão de extração não publica conteúdo.
 - [ ] Ampliar corpus por tipo de laudo, medir estabilidade entre execuções e obter avaliação médica do contrato/qualidade.

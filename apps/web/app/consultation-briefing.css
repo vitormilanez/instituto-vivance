@@ -42,10 +42,20 @@
 .brief-section-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
 .brief-section-heading h3 { margin: 0; font-size: 18px; }
 .brief-section-heading > span { font-size: 12px; color: var(--brief-muted); }
+.brief-section-heading > a { display: inline-flex; align-items: center; min-height: 44px; color: #124da0; font-size: 13px; font-weight: 600; text-underline-offset: 3px; }
 .brief-mode { margin: 5px 0 18px; color: var(--brief-muted); font-size: 12px; }
+.brief-goal { padding-bottom: 12px; }
+.brief-goal h4 { margin: 0; font-size: 13px; color: var(--brief-muted); }
+.brief-goal blockquote { margin: 8px 0 0; max-width: 65ch; font-size: 18px; font-weight: 600; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
 .brief-topic-group { padding: 16px 0; border-top: 1px solid #dbe4f0; }
 .brief-topic-group:last-of-type { padding-bottom: 0; }
 .brief-topic-group h4 { margin: 0; font-size: 15px; line-height: 1.35; }
+.brief-documents { padding-bottom: 0; }
+.brief-documents .brief-section-heading { align-items: center; }
+.brief-documents h5 { margin: 14px 0 6px; font-size: 13px; }
+.brief-document-details { margin-top: 8px; border-top: 1px solid #dbe4f0; }
+.brief-document-details > summary, .brief-feed-history > summary { min-height: 44px; display: flex; align-items: center; padding: 10px 0; color: #124da0; font-size: 13px; font-weight: 600; cursor: pointer; }
+.brief-document-work { display: inline-flex; align-items: center; min-height: 44px; margin-top: 4px; color: #124da0; font-size: 13px; font-weight: 600; text-underline-offset: 3px; }
 .brief-group-note, .brief-group-empty { margin: 4px 0 10px; color: var(--brief-muted); font-size: 12px; line-height: 1.5; }
 .brief-topic-group .brief-group-empty { margin-bottom: 0; }
 .brief-topics { margin: 0; padding: 0; list-style: none; }
@@ -66,6 +76,8 @@
 .brief-feed { margin: 14px 0 0; padding: 0; list-style: none; }
 .brief-feed > li { border-bottom: 1px solid var(--border); }
 .brief-feed > li:last-child { border: 0; }
+.brief-feed-history { margin-top: 8px; border-top: 1px solid var(--border); }
+.brief-feed-history .brief-feed { margin-top: 0; }
 .brief-submission > summary { display: flex; align-items: start; gap: 10px; padding: 16px 0; cursor: pointer; min-height: 60px; list-style: none; }
 .brief-submission > summary::-webkit-details-marker { display: none; }
 .brief-feed-icon { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; flex: 0 0 30px; border-radius: 8px; background: #f0f4fa; color: #405675; }
@@ -89,9 +101,9 @@
 .brief-comparison h4 { font-size: 12px; }
 .brief-original-measures { color: var(--brief-muted); font-size: 12px; line-height: 1.5; }
 .brief-facts { padding: 24px; border-left: 1px solid var(--border); min-width: 0; }
-.doctor-current-goal { display: grid; gap: 10px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.doctor-current-goal { display: grid; gap: 10px; padding: 16px 0; border-top: 1px solid var(--border); }
 .doctor-current-goal h3 { margin: 0 0 7px; font-size: 13px; }
-.doctor-current-goal p { margin: 0 0 6px; color: var(--brief-ink); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.doctor-current-goal p { margin: 0 0 6px; color: var(--ink); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
 .doctor-current-goal small { color: var(--brief-muted); font-size: 11px; line-height: 1.4; }
 .doctor-current-goal a { min-height: 44px; display: inline-flex; align-items: center; color: #124da0; font-size: 12px; font-weight: 600; }
 .brief-facts > h3 { margin: 28px 0 8px; font-size: 15px; }

@@ -121,7 +121,7 @@ test("a Home médica troca abas pelo briefing e mantém relatos com data e fonte
   const source = read("../components/doctor-consultation-briefing.tsx");
   assert.match(block(), /if \(compact\) return <DoctorConsultationBriefing/);
   assert.doesNotMatch(source, /ConsultationContextTabs|ContextCardList/);
-  assert.match(source, /O que o paciente trouxe/);
+  assert.match(source, /Registros originais/);
   assert.match(source, /Abrir registro original/);
   assert.match(source, /Comparar com a anterior/);
   assert.match(source, /item.current \? " desta consulta"/);

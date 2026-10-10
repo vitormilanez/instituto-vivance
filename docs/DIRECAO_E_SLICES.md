@@ -23,6 +23,13 @@ Próxima entrega, ainda não iniciada: publicação explícita ao paciente de re
 
 ## Experiência médica
 
+**Prioridade solicitada em 10/10:** reorganizar o briefing da Home usando os
+caminhos atuais. Consolidar exames e revisão, destacar contexto/objetivo e
+relatos, recolher originais e compactar peso de registro único. Esse refinamento
+de UX precede a próxima entrega de publicação ao paciente; não altera os gates
+nem acrescenta interpretação clínica. A tarefa Asana é `1219378497566919`;
+evidências de entrega e publicação ficam nos [checkpoints](CHECKPOINTS_ENTREGAS.md).
+
 Manter menu superior, lista de pacientes, Agenda e oito ações rápidas. Em Hoje, mostrar agenda e pendências operacionais; na ficha, identificação, objetivos, medidas, histórico informado, evolução e documentos com original. Ausência de dado não é zero e ausência de registro não prova baixa adesão. Mostrar rapidamente apenas o necessário, com detalhe progressivo; cada campo exige coleta/persistência real. Preservar identidade Vivance e o briefing já entregue. Consulta, aprovação e publicação não se confundem.
 
 ## Como escolher IA

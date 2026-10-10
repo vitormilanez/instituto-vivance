@@ -145,20 +145,25 @@ Continuam conectados os fluxos existentes de autenticação, cadastro e consulta
 - **Don't** transferir dados demonstrativos ou alegações de capacidade do protótipo da raiz para esta aplicação.
 
 
-## Briefing médico — 07/10/2026
+## Briefing médico — 10/10/2026
 
-A consulta selecionada usa um único painel de leitura, com cabeçalho compacto,
-resumo factual com links de origem e feed de relatos. Azul claro delimita o
-resumo; navy continua reservado à identidade e às ações. Cor não classifica
-gravidade nem prioridade. A pré-consulta mais recente aparece aberta, com
-respostas maiores que os rótulos; históricos e cadastro ficam recolhidos.
+A consulta selecionada usa um painel de leitura com cabeçalho compacto,
+objetivo em destaque, relatos literais e uma seção única de exames/documentos.
+Azul claro delimita o resumo; navy identifica marca e ações. Cor não classifica
+gravidade nem prioridade. Objetivo estruturado conserva autoria; quando ausente,
+o objetivo do cadastro inicial conserva sua fonte e não se repete nos relatos.
+Pré-consulta completa, comparação, históricos, cadastro e lista de arquivos
+ficam sob expansões explícitas. Resultados conferidos mantêm fonte; extrações
+pendentes aparecem apenas como contagem. Contagem indisponível não é zero.
 
 No desktop, fatos e peso ocupam a coluna interna de 300–350 px; até 1050 px
 ficam abaixo dos relatos. As filas dos demais pacientes ficam depois do
 briefing, sem repetir o selecionado. Vazios clínicos são linhas compactas.
 Receitas abrem em dialog lateral com título, fechamento por Escape e foco
-restaurado, sem abas internas. O gráfico preserva datas proporcionais,
-seleção acessível, controles de 44 px e tabela textual. A prévia sintética
+restaurado, sem abas internas. Peso único aparece com valor, data e origem,
+sem gráfico ou controles sem utilidade; o cadastro idêntico não se repete.
+Séries preservam datas proporcionais, seleção acessível, controles de 44 px
+e tabela textual, inclusive estabilidade entre datas. A prévia sintética
 é exclusiva de desenvolvimento e não constitui integração validada.
 
 ### Leitura e espaço — 07/10/2026
