@@ -1,5 +1,22 @@
 # Checkpoints das próximas entregas
 
+## Teste real autorizado pelo usuário — 10/10/2026
+
+- [x] Confirmar dev sintético, domínio e médico ativo.
+- [x] Médico convidar Vitor pela interface; recebimento real no Gmail às 17h05.
+- [x] Identificar/corrigir redirect antigo no segredo, Site URL e allowlist.
+- [x] Bloquear primeiro acesso sem credenciais do link, com sessão médica aberta.
+- [x] Falhas de envio encerram convite pendente e permitem nova tentativa.
+- [ ] Publicar pacote e conferir domínio.
+- [ ] Novo e-mail → senha → aceite → onboarding → Hoje, com persistência.
+- [ ] Conferir link WhatsApp e perfil complementar no celular.
+- [ ] Impeccable: rodada visual agrupada desktop/mobile e achados concretos.
+- [ ] Apagar dados/conta/convites de Vitor; preservar médico e QA.
+- [ ] Atualizar status, direção e Asana com evidência final.
+
+E-mail padrão Supabase permanece: personalização recusada pelo plano atual;
+não configurar SMTP nem contratar plano sem solicitação.
+
 ## Recomeço de Vitor — 10/10/2026
 
 - [x] Excluir Auth de `vitor.milanezz@gmail.com` e `vitor@valuefirstconsulting.com`.
@@ -8,8 +25,8 @@
 - [ ] Usuário gerar convite novo e comprovar recebimento do e-mail de primeiro acesso.
 - [ ] Usuário criar senha, preencher onboarding e conferir chegada em Hoje.
 
-O usuário assumiu o teste. Não criar a conta antecipadamente nem preencher
-seu cadastro. Os testes e estados anteriores abaixo são evidências históricas.
+O usuário assumiu o teste inicialmente e depois autorizou nova rodada pelo Codex.
+A rodada abaixo prevalece; os estados anteriores são evidências históricas.
 
 ## Correções de entrada e medidas — 10/10/2026
 

@@ -98,20 +98,37 @@ Deno.serve(async (request: Request) => {
     }
     let delivery = inserted.data.delivery_status as "requested" | "not_applicable" | "failed";
     if (values.channel === "email") {
-      let existing = false;
-      for (let page = 1; page <= 5; page += 1) {
-        const listed = await admin.auth.admin.listUsers({ page, perPage: 1000 });
-        if (listed.error) { delivery = "failed"; break; }
-        if (listed.data.users.some((user) => user.email?.toLowerCase() === values.email)) { existing = true; break; }
-        if (listed.data.users.length < 1000) break;
+      try {
+        let existing = false;
+        let lookupComplete = false;
+        for (let page = 1; page <= 5; page += 1) {
+          const listed = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+          if (listed.error) throw listed.error;
+          if (listed.data.users.some((user) => user.email?.toLowerCase() === values.email)) {
+            existing = true;
+            lookupComplete = true;
+            break;
+          }
+          if (listed.data.users.length < 1000) { lookupComplete = true; break; }
+        }
+        if (!lookupComplete) throw new Error("Auth lookup incomplete");
+        if (existing) {
+          delivery = "not_applicable";
+          const updated = await admin.from("patient_invitations").update({ delivery_status: delivery, updated_at: new Date().toISOString() }).eq("id", inserted.data.id);
+          if (updated.error) throw updated.error;
+        } else {
+          const redirectTo = redirectUrl();
+          if (!redirectTo) throw new Error("Patient invite redirect unavailable");
+          const sent = await admin.auth.admin.inviteUserByEmail(values.email, { redirectTo });
+          if (sent.error) throw sent.error;
+        }
+      } catch {
+        const revoked = await admin.from("patient_invitations").update({
+          status: "revoked", delivery_status: "failed", updated_at: new Date().toISOString(),
+        }).eq("id", inserted.data.id).eq("status", "pending");
+        if (revoked.error) return response({ error: "O e-mail não foi enviado e o convite não pôde ser encerrado. Peça à clínica para cancelar o convite pendente.", requestId }, 503);
+        return response({ error: "O e-mail de convite não foi enviado. Tente novamente em instantes.", requestId }, 503);
       }
-      if (existing) delivery = "not_applicable";
-      else {
-        const redirectTo = redirectUrl();
-        if (!redirectTo) delivery = "failed";
-        else if ((await admin.auth.admin.inviteUserByEmail(values.email, { redirectTo })).error) delivery = "failed";
-      }
-      if (delivery !== inserted.data.delivery_status) await admin.from("patient_invitations").update({ delivery_status: delivery, updated_at: new Date().toISOString() }).eq("id", inserted.data.id);
     }
     return response({ invitation: {
       id: inserted.data.id, tenantId: inserted.data.tenant_id, displayName: inserted.data.display_name,

@@ -1,16 +1,15 @@
 # Direção do Vivance e próximos slices
 
-**Estado vigente em 10/10:** correções de entrada e medidas do PR #100
-publicadas (código `0ae37fe`); deployment e evidências no
-[status](STATUS_ATUAL.md). As duas contas Auth de Vitor, cadastro, sessões,
-vínculos e convites foram excluídos a pedido do usuário. Médico e cenário QA
-separado permanecem. O usuário fará o teste de primeiro acesso com convite
-novo para `vitor.milanezz@gmail.com`; não criar ou preencher essa conta por ele.
+**Estado vigente em 10/10:** PR #100 publicado; após o reset, o usuário
+agora autorizou o Codex a testar convite novo de Vitor, conferir Gmail,
+percorrer onboarding, corrigir/publicar achados e apagar novamente os dados.
+O e-mail real chegou às 17h05; o redirect antigo foi identificado e corrigido
+no dev sintético. Publicação do primeiro acesso e confirmação final em andamento,
+com evidência no [status](STATUS_ATUAL.md).
 
-**Próximo:** comprovar recebimento do e-mail para conta inexistente e percorrer
-onboarding → Hoje → alimentação → fotos → exames no celular. O percurso QA
-anterior continua válido como evidência técnica; o aceite do usuário está
-pendente. Não reutilizar links antigos nem recriar cenários C2/C3/IA2 apagados.
+**Próximo:** concluir a passagem autenticada pelo domínio principal e o reset;
+depois o usuário repetirá manualmente com convite novo. Não reutilizar links
+consumidos ou antigos. Aceite clínico/Gate P permanecem separados.
 
 **Direção de convites:** ação na própria área de Pacientes, estados recentes
 visíveis e ficha sem app discreta, conforme conceito do Claude adaptado à
