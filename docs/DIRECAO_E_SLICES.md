@@ -1,15 +1,16 @@
 # Direção do Vivance e próximos slices
 
-**Estado vigente em 10/10:** PR #100 publicado; após o reset, o usuário
-agora autorizou o Codex a testar convite novo de Vitor, conferir Gmail,
-percorrer onboarding, corrigir/publicar achados e apagar novamente os dados.
-O e-mail real chegou às 17h05; o redirect antigo foi identificado e corrigido
-no dev sintético. Publicação do primeiro acesso e confirmação final em andamento,
-com evidência no [status](STATUS_ATUAL.md).
+**Estado vigente em 10/10:** PR #103 publicado no domínio principal; e-mail
+novo recebido no Gmail e percurso real de Vitor concluído: senha → aceite →
+onboarding com retomada/edição → Hoje → alimentação → fotos → exames → ficha
+médica. Link de WhatsApp e troca para identidade correta conferidos; nenhuma
+mensagem de WhatsApp enviada. Impeccable revisou desktop/mobile. Ajuste final
+de nascimento na lista médica e reset autorizado em execução; evidência no
+[status](STATUS_ATUAL.md).
 
-**Próximo:** concluir a passagem autenticada pelo domínio principal e o reset;
-depois o usuário repetirá manualmente com convite novo. Não reutilizar links
-consumidos ou antigos. Aceite clínico/Gate P permanecem separados.
+**Próximo:** publicar o ajuste final, excluir dados de Vitor e deixar o usuário
+repetir manualmente com convite novo. Não reutilizar links consumidos ou antigos.
+QR coletivo/OAuth não estão entregues. Aceite clínico/Gate P separados.
 
 **Direção de convites:** ação na própria área de Pacientes, estados recentes
 visíveis e ficha sem app discreta, conforme conceito do Claude adaptado à

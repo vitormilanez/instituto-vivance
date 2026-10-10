@@ -64,12 +64,11 @@ export default async function Clinics({ searchParams }: { searchParams: Promise<
             ))}
           </ul>
         ) : null}
-        <p className="notice">
-          {context.clinics.length > 0 &&
-          context.clinics.every((c) => c.role === "patient")
+        {context.clinics.length > 0 && <p className="notice">
+          {context.clinics.every((c) => c.role === "patient")
             ? "Abra Meu cuidado para ver suas consultas, orientações e conversas com o médico."
             : "Já disponíveis: visão geral, cadastro de pacientes, agenda, atendimentos e equipe de cuidado."}
-        </p>
+        </p>}
       </main>
     </>
   );

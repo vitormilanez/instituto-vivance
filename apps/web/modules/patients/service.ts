@@ -24,7 +24,7 @@ export async function listPatients(id: string, page = 1, search = "") {
   // Doctors/nurses see who already sent their initial intake ("Primeiros passos").
   // RLS (patient_onboarding_submission_read_care) scopes this to active care relationships;
   // admins never see it, matching their non-clinical access.
-  let onboardingSubmittedAt: Record<string, string> = {};
+  let onboardingSubmissions: Record<string, { submittedAt: string; birthDate: string | null }> = {};
   let intakeStatus: Record<string, string> = {};
   if (
     ["doctor", "nurse"].includes(context.clinic.role) &&
@@ -34,7 +34,7 @@ export async function listPatients(id: string, page = 1, search = "") {
     const [submissions, intakes] = await Promise.all([
       context.client
         .from("patient_onboarding_submissions")
-        .select("patient_id, submitted_at")
+        .select("patient_id, submitted_at, birth_date")
         .eq("tenant_id", id)
         .in("patient_id", patientIds),
       context.client
@@ -44,10 +44,10 @@ export async function listPatients(id: string, page = 1, search = "") {
         .in("patient_id", patientIds),
     ]);
     if (!submissions.error)
-      onboardingSubmittedAt = Object.fromEntries(
+      onboardingSubmissions = Object.fromEntries(
         (submissions.data ?? []).map((row) => [
           row.patient_id,
-          row.submitted_at,
+          { submittedAt: row.submitted_at, birthDate: row.birth_date },
         ]),
       );
     if (!intakes.error)
@@ -59,7 +59,8 @@ export async function listPatients(id: string, page = 1, search = "") {
     clinic: context.clinic,
     patients: patients.map((patient) => ({
       ...patient,
-      onboardingSubmittedAt: onboardingSubmittedAt[patient.id] ?? null,
+      onboardingSubmittedAt: onboardingSubmissions[patient.id]?.submittedAt ?? null,
+      reportedBirthDate: onboardingSubmissions[patient.id]?.birthDate ?? null,
       intakeStatus: intakeStatus[patient.id] ?? null,
     })),
     count: count ?? 0,

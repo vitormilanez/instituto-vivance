@@ -8,7 +8,7 @@ import { PatientInvitationForm } from "@/components/patient-invitation-form";
 import { PatientInvitationList } from "@/components/patient-invitation-list";
 import { listClinicPatientInvitations } from "@/modules/onboarding/service";
 import { PatientForm } from "@/components/forms";
-import { ageInYears } from "@/lib/format";
+import { patientBirthLabel } from "@/modules/patients/birth-date";
 export const dynamic = "force-dynamic";
 
 export default async function Patients({
@@ -242,9 +242,7 @@ export default async function Patients({
                         <span>
                           <strong>{p.display_name}</strong>
                           <small>
-                            {p.birth_date
-                              ? `${ageInYears(p.birth_date)} ${ageInYears(p.birth_date) === 1 ? "ano" : "anos"} · nascimento em ${p.birth_date.split("-").reverse().join("/")}`
-                              : "Nascimento não informado"}
+                            {patientBirthLabel(p.birth_date, p.reportedBirthDate)}
                           </small>
                         </span>
                       </span>
