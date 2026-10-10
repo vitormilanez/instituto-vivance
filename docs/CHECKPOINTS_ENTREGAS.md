@@ -1,5 +1,12 @@
 # Checkpoints das próximas entregas
 
+**Reset em 10/10:** os três pacientes e dados dependentes do dev sintético foram
+removidos a pedido do usuário; os 18 arquivos também saíram do Storage.
+As marcações abaixo registram verificações históricas, não dados ainda
+presentes. Novo convite `pending` para `vitor.milanezz@gmail.com`; a conta
+Auth foi preservada. Próximo checkpoint: Vitor aceitar o convite em `/clinicas`
+e percorrer o onboarding novo no celular; registrar qualquer falha concreta.
+
 Atualizado em **09/10/2026, 23h (São Paulo)**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
 o [status](STATUS_ATUAL.md) guarda evidências. Checkboxes indicam verificação
 técnica específica, não aceite clínico.

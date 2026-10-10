@@ -1,5 +1,29 @@
 # Estado atual do Vivance
 
+## Reset sintético para novo onboarding — 10/10/2026 (São Paulo)
+
+Por pedido explícito do usuário, o projeto `instituto-vivance-dev`
+(`oxuwrdjojsmgxoljqkuk`) foi limpo para reiniciar a jornada do paciente.
+Os três pacientes existentes e seus registros dependentes foram removidos;
+18 arquivos do bucket `vivance-documents` foram excluídos pela Storage API.
+O endpoint temporário usado para isso foi substituído por uma resposta inerte
+`410` com JWT obrigatório; não executa novas exclusões.
+Também foram removidos os dois vínculos de paciente e 11 notificações desses
+vínculos. Conferência posterior: **0 pacientes, 0 vínculos de paciente,
+0 documentos, 0 objetos no bucket**; o vínculo médico permanece ativo.
+Os registros de demonstração descritos abaixo são evidência histórica e não
+existem mais nesse banco. Isso inclui o registro de origem antes incerta;
+a exclusão decorre da nova instrução explícita de apagar todos os pacientes.
+
+O usuário Auth existente de `vitor.milanezz@gmail.com` foi preservado. Um novo
+convite por e-mail para Vitor foi criado com estado `pending` (ID
+`8f336ac8-729b-46b5-9bb9-054f31c4eba2`); como a conta já existe, o
+serviço marcou a entrega de e-mail `not_applicable`. Vitor deve entrar com
+esse endereço em `/clinicas` e aceitar o convite para criar uma ficha e
+iniciar o onboarding do zero. O endereço `gamail.com` na solicitação foi
+tratado como erro de digitação; nenhum convite foi dirigido a ele. O novo
+percurso ainda não foi testado ou aceito.
+
 ## Onboarding com conta nova — 09/10/2026, 23h (São Paulo)
 
 Na branch `codex/onboarding-novo-paciente-20261009`, criada da `main` publicada

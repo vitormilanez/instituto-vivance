@@ -1,5 +1,13 @@
 # Direção do Vivance e próximos slices
 
+**Estado do cenário de teste em 10/10:** após pedido explícito de limpar todos
+os pacientes, o dev sintético está sem fichas, vínculos de paciente ou arquivos.
+O convite pendente para `vitor.milanezz@gmail.com` permite recomeçar o
+onboarding. As contagens e IDs de pacientes nos relatos abaixo são históricos;
+o [status](STATUS_ATUAL.md) registra o reset. A próxima observação útil é Vitor
+aceitar o convite e percorrer o onboarding no celular, antes de alegar aceite
+do fluxo. Não recriar automaticamente os cenários C2/C3/IA2 apagados.
+
 Consolidada em **08/10/2026**, preservando decisões anteriores e incorporando
 as orientações do usuário para a retomada. O [status](STATUS_ATUAL.md) separa
 código integrado, pilotos e evidências; o [histórico útil](historico/README.md)
