@@ -1,6 +1,6 @@
 # Conta permanente de QA — paciente sintético
 
-**Criada e usada em 10/10/2026 no dev sintético confirmado.** A identidade `paciente.teste@vivance.example` serve para testes repetíveis de autenticação, convite, onboarding, documentos e isolamento no projeto temporário `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`). Houve login real pela interface local. O domínio `.example` identifica uma conta de fixture; não presumir entrega de e-mail. Ela não representa pessoa real nem autorização para importar dados clínicos.
+**Criada e usada em 10/10/2026 no dev sintético confirmado.** A identidade `paciente.teste@vivance.example` serve para testes repetíveis de autenticação, convite, onboarding, documentos e isolamento no projeto temporário `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`). Houve login real pela interface local e no percurso pós-publicação sintético; médico e paciente foram conferidos no domínio publicado. O domínio `.example` identifica uma conta de fixture; não presumir entrega de e-mail. Ela não representa pessoa real nem autorização para importar dados clínicos.
 
 ## Preparação e registro
 
@@ -20,7 +20,7 @@
 | Vínculo de cuidado ID | `82dd0ae3-5c3f-4a55-ad20-d4c686f3cb74` |
 | Médico da fixture | `5fa1330b-a7d3-4843-8e4a-57ef3533062e` |
 | Onboarding sintético | Submissão `9eefdc89-03d9-4219-8888-cd88783be0a4`, versão 3, enviada por RPC para a fixture |
-| Data e login | 10/10/2026; login real pela interface local confirmado |
-| Consentimento de teste | Conferir separadamente antes de qualquer cenário que dependa desse aceite; a submissão RPC não o comprova |
+| Data e login | 10/10/2026; login real pela interface local e no domínio publicado confirmado |
+| Consentimento de compartilhamento sintético | `patient_onboarding.share_consent=true` e submissão confirmados por SQL; não equivale a consentimento de pessoa real |
 
 A conta de QA não substitui o teste manual de Vitor com convite novo. Sua existência não fecha C2/C3, aceite clínico ou [Gate P](GATE_P.md).
