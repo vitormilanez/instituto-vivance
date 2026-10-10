@@ -1,5 +1,30 @@
 # Estado atual do Vivance
 
+## Convite real e primeiro acesso — 10/10/2026, nova rodada autorizada
+
+O usuário autorizou teste completo com `vitor.milanezz@gmail.com`, leitura do
+Gmail, correções/publicação e reset posterior. Médico convidou pela interface
+publicada às 17h05 (São Paulo); o e-mail chegou à caixa de entrada do Gmail.
+O botão apontava para um Preview antigo: `PATIENT_INVITE_REDIRECT_URL`, Auth
+`site_url` e allowlist estavam divergentes do domínio principal.
+
+Corrigido o segredo de redirect para `https://institutovivance.app/primeiro-acesso`,
+Auth Site URL para o domínio principal e adicionada a URL à allowlist existente,
+preservando as outras configurações. Config diff confirmou zero alterações
+declaradas pendentes. CLI 2.117.0; destino vivo confirmado `oxuwrdjojsmgxoljqkuk`.
+A personalização do e-mail foi recusada pelo plano gratuito com provedor padrão;
+nenhuma mudança de plano/SMTP. Assunto e remetente padrão continuam em inglês.
+
+O primeiro acesso agora exige credenciais do convite/recuperação ou PKCE e
+confirma a identidade antes de trocar a senha; uma sessão médica pré-existente
+não abre o formulário sozinha. Falha de consulta/envio de convite retorna 503
+e encerra o convite que bloquearia a nova tentativa. A lista distingue envio
+solicitado de recebimento. Nenhuma migration necessária.
+
+**Em andamento:** publicação do pacote, nova passagem real pelo e-mail/onboarding,
+revisão Impeccable mobile/desktop, persistência e reset final. A tentativa inicial
+com redirect antigo foi removida; não usar aquele e-mail para entrar.
+
 ## Reset de Vitor para primeiro acesso — 10/10/2026
 
 A pedido explícito do usuário, excluídas pelo Auth Admin as duas contas
@@ -16,10 +41,9 @@ preservados, incluindo seus quatro documentos. A evidência anterior de Vitor
 em `draft/profile` abaixo é histórica. Nenhuma alteração de código, migration,
 Edge Function ou deployment foi necessária.
 
-**Próximo checkpoint:** o próprio usuário fará o teste com convite novo para
-`vitor.milanezz@gmail.com`, primeiro acesso pelo e-mail, criação de senha,
-onboarding e chegada em Hoje. Não recriar a conta ou preencher por ele;
-recebimento de e-mail novo e aceite de usabilidade seguem pendentes.
+**Checkpoint histórico:** o usuário havia assumido o teste. Na solicitação seguinte,
+autorizou o Codex a convidar Vitor, conferir Gmail, percorrer o fluxo, corrigir
+e publicar achados e excluir novamente os dados ao terminar.
 
 ## Entrada correta e medidas intuitivas — 10/10/2026
 

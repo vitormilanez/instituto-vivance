@@ -19,7 +19,11 @@ test("convite: cada canal diz a própria entrega, e a falha do e-mail não inval
     whatsapp("failed"),
     "Link de WhatsApp ativo · o e-mail de criação de conta não foi enviado",
   );
-  assert.match(whatsapp("requested") ?? "", /e-mail de criação de conta enviado/);
+  assert.match(whatsapp("requested") ?? "", /envio do e-mail de criação de conta solicitado/);
+  assert.equal(
+    invitationDeliveryLabel({ channel: "email", status: "pending", deliveryStatus: "requested" }),
+    "Envio do convite por e-mail solicitado",
+  );
   assert.equal(
     invitationDeliveryLabel({ channel: "email", status: "pending", deliveryStatus: "failed" }),
     "O e-mail de convite não foi enviado",

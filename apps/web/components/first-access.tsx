@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/browser";
 
 export function FirstAccess() {
   const started = useRef(false);
+  const verifiedUserId = useRef<string | null>(null);
   const [email, setEmail] = useState("");
   const [ready, setReady] = useState(false);
   const [pending, setPending] = useState(false);
@@ -24,10 +25,13 @@ export function FirstAccess() {
       if (fragment.has("error") || query.has("error")) throw new Error();
       const access_token = fragment.get("access_token");
       const refresh_token = fragment.get("refresh_token");
+      const code = query.get("code");
+      let incomingUserId: string | undefined;
       if (access_token || refresh_token) {
         if (
           !access_token ||
           !refresh_token ||
+          code ||
           !["invite", "recovery"].includes(fragment.get("type") ?? "")
         )
           throw new Error();
@@ -35,15 +39,16 @@ export function FirstAccess() {
           access_token,
           refresh_token,
         });
-        if (result.error) throw new Error();
-      } else if (query.get("code")) {
-        const result = await client.auth.exchangeCodeForSession(
-          query.get("code")!,
-        );
-        if (result.error) throw new Error();
-      }
+        if (result.error || !result.data.user) throw new Error();
+        incomingUserId = result.data.user.id;
+      } else if (code && !fragment.toString()) {
+        const result = await client.auth.exchangeCodeForSession(code);
+        if (result.error || !result.data.user) throw new Error();
+        incomingUserId = result.data.user.id;
+      } else throw new Error();
       const { data, error } = await client.auth.getUser();
-      if (error || !data.user) throw new Error();
+      if (error || !data.user || data.user.id !== incomingUserId) throw new Error();
+      verifiedUserId.current = data.user.id;
       setEmail(data.user.email ?? "");
       setReady(true);
     }
@@ -73,7 +78,8 @@ export function FirstAccess() {
     try {
       const client = createClient();
       const { data, error: sessionError } = await client.auth.getUser();
-      if (sessionError || !data.user) throw new Error();
+      if (sessionError || !data.user || data.user.id !== verifiedUserId.current)
+        throw new Error();
       const { error } = await client.auth.updateUser({ password });
       if (error) throw new Error();
       window.location.replace("/clinicas");

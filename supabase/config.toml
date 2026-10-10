@@ -1,3 +1,17 @@
+# Configuração parcial do dev sintético: campos não declarados ficam intactos.
+[auth]
+site_url = "https://institutovivance.app"
+additional_redirect_urls = [
+  "https://institutovivance.app/primeiro-acesso",
+  "https://instituto-vivance-l9034h1b3-vtr-consulting.vercel.app/primeiro-acesso",
+  "http://127.0.0.1:3010/primeiro-acesso",
+  "https://instituto-vivance-testes-vtr-consulting.vercel.app/primeiro-acesso",
+  "https://instituto-vivance-472otihoo-vtr-consulting.vercel.app/primeiro-acesso",
+  "https://instituto-vivance-dkh72oe2u-vtr-consulting.vercel.app/primeiro-acesso",
+  "https://instituto-vivance-q6gwg1v4s-vtr-consulting.vercel.app/primeiro-acesso",
+  "https://instituto-vivance-ro8qa19z7-vtr-consulting.vercel.app/primeiro-acesso",
+]
+
 [functions.claim-patient-invitation]
 verify_jwt = false
 
