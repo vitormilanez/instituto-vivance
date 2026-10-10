@@ -1,11 +1,10 @@
 # Checkpoints das próximas entregas
 
-Atualizado em **09/10/2026**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
+Atualizado em **09/10/2026, 23h (São Paulo)**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
 o [status](STATUS_ATUAL.md) guarda evidências. Checkboxes indicam verificação
 técnica específica, não aceite clínico.
 
-**Checkout oficial:** `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`,
-branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) draft. É o pacote único de C3/PR #93, contexto/PR #94 e IA2/PR #78, ainda fora da `main`.
+**Checkout para continuar:** `/Users/vitormilanez/Desktop/Codes/vivance-release-main-20261009`, partindo da `origin/main`. O [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) foi integrado como `1fda196` e publicado tecnicamente em [institutovivance.app](https://institutovivance.app); reúne C3/PR #93, contexto/PR #94, IA2/PR #78 e onboarding. O [status](STATUS_ATUAL.md) traz SHA, deployment, banco e limites de verificação.
 **Ambiente técnico:** `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), somente dados sintéticos. Migrations reconciliadas: 65 no dev, incluindo `20261010011422`. Não executar outra migration ou release sem reconferir destino e histórico. Gate P antes de dados reais.
 
 ## Prioridade atual — onboarding progressivo
@@ -32,13 +31,20 @@ Escopo e fluxo: [ONBOARDING_PACIENTE](ONBOARDING_PACIENTE.md).
   Hoje médico mostrou 7 documentos aguardando revisão em vez de 11, sem as
   três fotos sintéticas; o PDF fictício continuou visível. Hoje paciente voltou
   a mostrar somente os envios avulsos e seus estados de revisão adequados.
+- [x] Publicação técnica do pacote na `main` (`1fda196`): CI passou; Vercel
+  `dpl_9oRUsriSW34mP4LqFJWvhDhEo83U` `READY` nos dois domínios. Login
+  sintético de paciente e médico no domínio principal confirmou Hoje, perfil de
+  cuidado e fila médica com 7 documentos. Nenhuma migration nova foi necessária.
+- [ ] Percorrer o wizard inicial com uma conta nova sintética e registrar aceite
+  de usabilidade no celular; a conta existente só permitiu conferir a etapa
+  alimentar e os demais checkpoints pós-cadastro.
 - [ ] Aceite de usabilidade e retomada dos checkpoints C3/IA2 pendentes abaixo.
 
 ## Ordem de trabalho
 
 | Ordem | Slice | Resultado observável | Estado em 09/10 |
 | --- | --- | --- | --- |
-| Agora | **C3 — exame solicitado** | Paciente responde ao pedido; médico revisa; paciente vê recibo operacional. | Código no PR #95; percurso parcial em Preview com PDF fictício, isolamento por outros papéis e aceite abertos. |
+| Agora | **C3 — exame solicitado** | Paciente responde ao pedido; médico revisa; paciente vê recibo operacional. | Código publicado via PR #95; percurso parcial em Preview com PDF fictício, isolamento por outros papéis e aceite abertos. |
 | Depois | **C2/C3 — continuidade da pessoa** | Hoje e ficha mostram contexto com origem/data; consulta e retorno preservam o paciente. | Percurso sintético paciente → pré-consulta → registro → plano publicado → retorno conferido; correção do estado de publicação validada no novo Preview e CI do PR #95 aprovado. Aceite clínico e operacional pendentes. |
 | Avançado em paralelo no pacote | **IA2 — fila confiável** | Extração sintética prossegue sem aba aberta. | Worker Edge e Cron ativos no dev; job de fixture concluído sem aba, recuperado após lease expirada simulada e concluído na 2ª tentativa, sem duplicar a execução ou os 45 itens. |
 | Avançado em paralelo no pacote | **IA2 — itens conferíveis** | Médico compara cada item ao arquivo, página e trecho e registra revisão. | 45 itens fictícios em Preview; uma revisão por item persistiu; contrato de laudo e avaliação clínica pendentes. |
