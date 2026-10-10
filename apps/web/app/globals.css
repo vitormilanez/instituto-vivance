@@ -3218,6 +3218,19 @@ button.calendar-day[aria-pressed="true"] {
   margin-top: 6px;
   color: var(--muted);
 }
+.processing-failure-notice {
+  border: 1px solid #d9b889;
+  border-radius: 14px;
+  background: #fff9ef;
+  padding: 16px 20px;
+}
+.processing-failure-notice strong {
+  color: var(--navy);
+}
+.processing-failure-notice p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
 .processing-list {
   border-top: 1px solid var(--border);
 }

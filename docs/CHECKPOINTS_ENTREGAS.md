@@ -1,6 +1,6 @@
 # Checkpoints das próximas entregas
 
-Atualizado em **09/10/2026**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
+Atualizado em **09/10/2026, 21:55 (São Paulo)**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
 o [status](STATUS_ATUAL.md) guarda evidências. Checkboxes indicam verificação
 técnica específica, não aceite clínico.
 
@@ -13,7 +13,7 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
 | Ordem | Slice | Resultado observável | Estado em 09/10 |
 | --- | --- | --- | --- |
 | Agora | **C3 — exame solicitado** | Paciente responde ao pedido; médico revisa; paciente vê recibo operacional. | Código no PR #95; percurso parcial em Preview com PDF fictício, isolamento por outros papéis e aceite abertos. |
-| Depois | **C2/C3 — continuidade da pessoa** | Hoje e ficha mostram contexto com origem/data; consulta e retorno preservam o paciente. | Percurso sintético paciente → pré-consulta → registro → plano publicado → retorno conferido no Preview; correção do estado de publicação no PR #95 aguarda novo Preview/CI. Aceite clínico e operacional pendentes. |
+| Depois | **C2/C3 — continuidade da pessoa** | Hoje e ficha mostram contexto com origem/data; consulta e retorno preservam o paciente. | Percurso sintético paciente → pré-consulta → registro → plano publicado → retorno conferido; correção do estado de publicação validada no novo Preview e CI do PR #95 aprovado. Aceite clínico e operacional pendentes. |
 | Avançado em paralelo no pacote | **IA2 — fila confiável** | Extração sintética prossegue sem aba aberta. | Worker Edge e Cron ativos no dev; job de fixture concluído sem aba, recuperado após lease expirada simulada e concluído na 2ª tentativa, sem duplicar a execução ou os 45 itens. |
 | Avançado em paralelo no pacote | **IA2 — itens conferíveis** | Médico compara cada item ao arquivo, página e trecho e registra revisão. | 45 itens fictícios em Preview; uma revisão por item persistiu; contrato de laudo e avaliação clínica pendentes. |
 | Antes de IA clínica | **IA1 — governança** | Finalidade, fontes, fornecedor, dados e revisão decididos. | [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) draft; decisão pendente. |
@@ -55,9 +55,18 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
   de 08/10/2026”; o pedido deixou de aparecer como pendente. Na sessão médica,
   o mesmo arquivo apareceu em “Para revisar” e passou a “Já aberto · revisão
   não registrada”. Isso comprova pedido → resposta → fila, sem revisão clínica.
-- [ ] Completar isolamento na interface com outros papéis, clínicas e vínculos.
-  Os 114 testes automatizados de isolamento passaram; a observação autenticada
-  deste ciclo cobriu apenas paciente e médico vinculados.
+- [x] Na sessão autenticada do paciente, as rotas internas do atendimento e da
+  edição do plano médico retornaram página indisponível no novo Preview; o plano
+  publicado continuou visível pelo percurso próprio do paciente. A suíte de
+  isolamento do PR #95 e o CI passaram. Isso verifica esse par de perfis, não
+  outros vínculos.
+- [ ] Completar isolamento **na interface** com admin, enfermagem, outro
+  paciente, outra clínica e vínculo revogado. Inventário read-only de
+  `instituto-vivance-dev` em 09/10: só Guilherme/médico e Vitor/paciente têm
+  vínculos ativos na mesma clínica; há uma identidade Auth adicional sem
+  vínculo. Sem contas/vínculos apropriados, não há evidência de UI para os
+  demais cenários. Os testes automatizados cobrem negações e revogação, mas não
+  substituem a observação autenticada por papel.
 - [ ] Decidir se o produto precisa coletar a **data de realização do exame**.
   Hoje só há timestamp do envio; não preencher a data clínica por inferência.
 - [ ] Fechar aceite operacional com o responsável e registrar evidência no
@@ -113,7 +122,13 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
 - [x] No [Preview integrado](https://instituto-vivance-m4cifg9re-vtr-consulting.vercel.app), o médico enfileirou o PDF fictício `vivance-ia2-synthetic-cron-20261009.pdf` (documento `d1c16e38-6aaf-482b-83c5-0e335fc4d8a2`) e a aba foi fechada. O job `38c3bcfc-17de-4da1-b556-0d2c1f7919df` ficou pendente e o Cron o concluiu em uma tentativa às 21:02 de 09/10 (São Paulo): 3 páginas, 45 itens, `requires_review`.
 - [x] A sessão médica mostrou 44 marcadores fictícios e 1 narrativa, cada qual com página, trecho e link ao original. Uma confirmação de transcrição ficou como revisão 1 e persistiu após recarga. A conta autenticada de paciente recebeu acesso negado ao endpoint. RLS e revisão idempotente passaram nos 115 testes PGlite; CI completo do `f21cf09` passou.
 - [x] Lease vencida simulada no job fictício; Cron recuperou e concluiu a 2ª tentativa às 21:15 de 09/10 (São Paulo). Persistiram 1 execução e 45 itens, sem duplicação.
-- [ ] Exercitar outras falhas transitórias e definir alerta operacional. O teste de lease não cobre falha de download, serviço externo ou erro permanente.
+- [x] No PR #95, a tela interna de Processamentos identifica a tarefa de exame
+  como “Leitura de exame”, destaca tarefas encerradas com falha na página e
+  encaminha a equipe ao original. Alteração local; validação de código pendente.
+  O aviso depende de a equipe abrir a tela e não é notificação proativa.
+- [ ] Exercitar outras falhas transitórias e definir monitoramento/alerta
+  operacional proativo. O teste de lease não cobre falha de download, serviço
+  externo ou erro permanente; a indicação visual acima não fecha este item.
 - [ ] Definir com o médico **arquivo → laudo → resultado**: valor literal, unidade, referência do emissor, data de realização, página/trecho, ambiguidades e narrativas. Timestamp de envio permanece separado.
 - [ ] Avaliar cobertura/erros e limites antes de ampliar o parser para qualquer outro documento. A fixture atual não interpreta exames reais; Claude/OCR dependem de IA1.
 - [ ] Obter aceite técnico e avaliação clínica separadamente. Nenhum item é publicado ao paciente automaticamente.
