@@ -29,7 +29,10 @@ export default async function Clinics({ searchParams }: { searchParams: Promise<
         <h1>Minhas clínicas</h1>
         <p>Escolha a clínica para continuar.</p>
         <ClinicInvitations invitations={context.invitations} />
-        <PatientInvitations invitations={patientInvitations} />
+        <PatientInvitations
+          invitations={patientInvitations}
+          activePatientTenantIds={context.clinics.filter((clinic) => clinic.role === "patient").map((clinic) => clinic.id)}
+        />
         {context.clinics.length === 0 &&
         context.invitations.length === 0 &&
         patientInvitations.length === 0 ? (
@@ -64,12 +67,11 @@ export default async function Clinics({ searchParams }: { searchParams: Promise<
             ))}
           </ul>
         ) : null}
-        <p className="notice">
-          {context.clinics.length > 0 &&
-          context.clinics.every((c) => c.role === "patient")
+        {context.clinics.length > 0 && <p className="notice">
+          {context.clinics.every((c) => c.role === "patient")
             ? "Abra Meu cuidado para ver suas consultas, orientações e conversas com o médico."
             : "Já disponíveis: visão geral, cadastro de pacientes, agenda, atendimentos e equipe de cuidado."}
-        </p>
+        </p>}
       </main>
     </>
   );

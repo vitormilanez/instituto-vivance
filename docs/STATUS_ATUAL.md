@@ -21,9 +21,41 @@ não abre o formulário sozinha. Falha de consulta/envio de convite retorna 503
 e encerra o convite que bloquearia a nova tentativa. A lista distingue envio
 solicitado de recebimento. Nenhuma migration necessária.
 
-**Em andamento:** publicação do pacote, nova passagem real pelo e-mail/onboarding,
-revisão Impeccable mobile/desktop, persistência e reset final. A tentativa inicial
-com redirect antigo foi removida; não usar aquele e-mail para entrar.
+**Publicado:** [PR #103](https://github.com/vitormilanez/instituto-vivance/pull/103),
+main `4166f5e1c66e1690bf5fb05e4495185f88744f3c`; deployment
+`dpl_DMKWBopZTX4wnDjAoSfbMKT2pN2N` promovido e conferido nos dois domínios.
+Edge `invite-patient` v8 ACTIVE no dev; nenhuma migration. CI de PR e release
+aprovados; operações automáticas de banco/promoção skipped, aplicação manual
+conferida. 478 testes, typecheck, lint sem erros e build passaram.
+
+**Percurso real no domínio principal, 390 px:** e-mail novo recebido no Gmail
+às 17h13 com redirect correto → senha → aceite → cadastro inicial. Sair e entrar
+retomou o rascunho; revisão permitiu editar peso; envio mostrou conclusão positiva
+animada → Hoje com alimentação em destaque. Altura `1,75 m` persistiu como
+`175 cm`; peso editado `76,2 kg`, cintura `90 cm`, nascimento `12/03/1990` e data
+das medidas `10/10/2026` conferidos no banco. Cadastro enviado às 17h17,
+alimentação às 17h19, três fotos sintéticas às 17h21 e PDF fictício às 17h22.
+Os três snapshots complementares e quatro documentos foram persistidos. Médico
+Guilherme abriu a ficha, encontrou objetivo/medidas/alimentação, fotos/exame com
+data/hora e abriu o PDF original. Impeccable 4.5: revisão agrupada desktop/mobile,
+sem bloqueio visual restante nesse percurso. Isso não constitui aceite clínico.
+
+**WhatsApp:** médico gerou link pela interface com telefone sintético; link
+canônico abriu o claim, pediu o e-mail de Vitor e encerrou a sessão médica antes
+do login pré-preenchido. Login real entrou em Hoje como paciente. Não foi enviada
+mensagem de WhatsApp; conta existente não recebe novo e-mail.
+
+**Achados finais:** lista médica mostrava nascimento ausente apesar do cadastro
+compartilhado. Correção usa nascimento cadastrado prioritariamente e, quando
+vazio, o informado pelo paciente, com origem explícita, sem escrever na ficha
+clínica. `/clinicas` sem vínculo ativo deixa de mostrar texto destinado à equipe.
+Um segundo convite à mesma clínica após o cadastro mostrou erro de identidade
+já existente. A tela de convites agora apresenta “Você já faz parte desta clínica
+como paciente” e “Abrir meu cuidado” para vínculos patient ativos da mesma clínica,
+preservando aceite explícito para outras clínicas; nenhum vínculo é criado ou
+alterado por essa apresentação. Testes comportamentais cobrem ambos os estados.
+Publicação desses ajustes e reset final de Vitor em andamento. A tentativa
+inicial com redirect antigo foi removida; não usar aquele e-mail para entrar.
 
 ## Reset de Vitor para primeiro acesso — 10/10/2026
 

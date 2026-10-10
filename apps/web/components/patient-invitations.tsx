@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -15,8 +16,10 @@ export type PatientInvitation = {
 
 export function PatientInvitations({
   invitations,
+  activePatientTenantIds,
 }: {
   invitations: PatientInvitation[];
+  activePatientTenantIds: string[];
 }) {
   const router = useRouter();
   const [reviewing, setReviewing] = useState<string>();
@@ -61,7 +64,7 @@ export function PatientInvitations({
       aria-labelledby="patient-invitations-title"
     >
       <h2 id="patient-invitations-title">Convites para você</h2>
-      <p>Escolha a clínica que deseja adicionar ao seu cuidado.</p>
+      <p>Revise seus convites e continue o cuidado nas clínicas das quais já faz parte.</p>
       {error ? (
         <p className="feedback" role="alert">
           {error}
@@ -73,12 +76,20 @@ export function PatientInvitations({
             <div>
               <strong>{invitation.clinicName}</strong>
               <span>Convite para {invitation.displayName}</span>
-              <small>
-                Disponível até{" "}
-                {new Date(invitation.expiresAt).toLocaleDateString("pt-BR")}
-              </small>
+              {activePatientTenantIds.includes(invitation.tenantId) ? (
+                <small>Você já faz parte desta clínica como paciente.</small>
+              ) : (
+                <small>
+                  Disponível até{" "}
+                  {new Date(invitation.expiresAt).toLocaleDateString("pt-BR")}
+                </small>
+              )}
             </div>
-            {reviewing === invitation.id ? (
+            {activePatientTenantIds.includes(invitation.tenantId) ? (
+              <Link href={`/clinicas/${invitation.tenantId}/meu-cuidado/hoje`}>
+                Abrir meu cuidado
+              </Link>
+            ) : reviewing === invitation.id ? (
               <div className="inline-confirm">
                 <p>
                   Ao continuar, esta clínica poderá abrir seu cadastro de
