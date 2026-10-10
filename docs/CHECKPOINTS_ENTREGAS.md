@@ -65,6 +65,7 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
 
 ## C2/C3 — contexto longitudinal e retorno
 
+- [x] Pré-consulta no [Preview do pacote](https://instituto-vivance-kt43rdyvx-vtr-consulting.vercel.app): correção do resumo salva como observação no rascunho, sem alterar o registro original; edição na revisão retorna à revisão. Conta paciente autenticada confirmou persistência após recarga; 320 px, 390 px e desktop sem overflow. Nenhuma resposta clínica foi enviada.
 - [x] Revisada a proposta local em
   `/Users/vitormilanez/Desktop/Codes/vivance-c3-contexto`: objetivo e prioridade
   declarados, fonte/data, link que abre o registro original e contexto da
