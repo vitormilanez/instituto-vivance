@@ -1,5 +1,105 @@
 # Estado atual do Vivance
 
+## Página de pacientes — revisão Claude, 10/10/2026 (local)
+
+O domínio fotografado pelo usuário ainda mostra a versão anterior; o trabalho
+na branch `codex/onboarding-novo-paciente-20261009` não foi publicado.
+A nova organização reúne convite inline e acompanhamento na mesma superfície,
+com menu “Adicionar novo paciente” no desktop e no Menu mobile. Os convites
+recentes têm filtros/contagens por aceite e encerramento, canal e data/hora
+em `America/Sao_Paulo`. O cadastro sem app fica na lateral e empilha no mobile.
+Mantida a identidade navy/creme/dourado. Referência: modelo Claude fornecido e
+https://www.nngroup.com/articles/data-tables/.
+Não há métricas inventadas de abertura nem QR inoperante: QR coletivo depende
+de entrada/aprovação, e Google permanece desabilitado no Auth. Sintaxe TSX e
+7 testes focados passaram; a verificação visual e lint/typecheck ficam pendentes
+se o ambiente local continuar travando. Prévia sintética: desenvolvimento apenas,
+`/refinamentos-preview?tela=convites`. Nenhum convite foi consumido neste ajuste.
+
+## Convites e entrada no onboarding — 10/10/2026 (trabalho local)
+
+Após o reset sintético, o usuário relatou que dois links de WhatsApp criados
+em 10/10 não levaram ao onboarding. Esses convites antigos foram removidos
+com os pacientes e não podem ser reutilizados. Pela implementação, há uma
+falha de orientação: quando a pessoa informa no link um e-mail que já possui
+conta, o convite fica associado a ela sem novo envio de e-mail, mas a tela
+manda aguardar instruções por e-mail. Além disso, havia um link para login
+antes da confirmação do e-mail, que podia deixar o convite sem associação.
+O relato é compatível com essas falhas;
+não há confirmação do passo exato em que as duas tentativas pararam.
+
+Na branch local `codex/onboarding-novo-paciente-20261009`, o médico passa a
+ver convite e convites recentes acima da lista de pacientes. O formulário
+aceita nome e um contato, identifica e-mail ou telefone e apresenta uma ação
+coerente; a opção sem app fica secundária. O link de WhatsApp e a tela do
+paciente orientam quem já tem conta a confirmar o mesmo e-mail, entrar e
+aceitar o convite em `/clinicas`; quem ainda não tem conta confere o e-mail
+de criação de acesso. O atalho de login antes da confirmação foi removido.
+O status médico distingue conta existente de e-mail efetivamente enviado.
+Em sessão médica autenticada local, a tela foi vista em 1440 px e 390 px;
+a tela de convite foi vista em 390 px com token fictício, sem enviá-lo.
+O teste focado de rótulos (7 casos), análise sintática TSX e uma rodada
+inicial de lint passaram. A rodada final de lint e o typecheck completos
+foram interrompidos após espera sem progresso no checkout local.
+São mudanças locais, ainda sem Preview ou aceite do fluxo completo.
+
+O Google Sign-In foi consultado no projeto `instituto-vivance-dev` e está
+**desativado**. Precisa de OAuth Client ID/secret do Google, callback e
+redirecionamentos permitidos antes de expor um botão funcional. O QR genérico
+da recepção, sugerido no conceito visual do Claude, também exigiria definir
+uma aprovação de vínculo antes de criar ficha; não foi incluído neste ajuste.
+
+## Reset sintético para novo onboarding — 10/10/2026 (São Paulo)
+
+Por pedido explícito do usuário, o projeto `instituto-vivance-dev`
+(`oxuwrdjojsmgxoljqkuk`) foi limpo para reiniciar a jornada do paciente.
+Os três pacientes existentes e seus registros dependentes foram removidos;
+18 arquivos do bucket `vivance-documents` foram excluídos pela Storage API.
+O endpoint temporário usado para isso foi substituído por uma resposta inerte
+`410` com JWT obrigatório; não executa novas exclusões.
+Também foram removidos os dois vínculos de paciente e 11 notificações desses
+vínculos. Conferência posterior: **0 pacientes, 0 vínculos de paciente,
+0 documentos, 0 objetos no bucket**; o vínculo médico permanece ativo.
+Os registros de demonstração descritos abaixo são evidência histórica e não
+existem mais nesse banco. Isso inclui o registro de origem antes incerta;
+a exclusão decorre da nova instrução explícita de apagar todos os pacientes.
+
+O usuário Auth existente de `vitor.milanezz@gmail.com` foi preservado. Um novo
+convite por e-mail para Vitor foi criado com estado `pending` (ID
+`8f336ac8-729b-46b5-9bb9-054f31c4eba2`); como a conta já existe, o
+serviço marcou a entrega de e-mail `not_applicable`. Vitor deve entrar com
+esse endereço em `/clinicas` e aceitar o convite para criar uma ficha e
+iniciar o onboarding do zero. O endereço `gamail.com` na solicitação foi
+tratado como erro de digitação; nenhum convite foi dirigido a ele. O novo
+percurso ainda não foi testado ou aceito.
+
+## Onboarding com conta nova — 09/10/2026, 23h (São Paulo)
+
+Na branch `codex/onboarding-novo-paciente-20261009`, criada da `main` publicada
+`9d10ec4a`, uma conta **inteiramente sintética** foi convidada pelo percurso
+médico existente no projeto `instituto-vivance-dev` e aceitou o vínculo.
+Em sessão real no domínio principal, viewport de 390 px, o paciente iniciou
+o cadastro, saiu após informar nascimento/medidas, retomou o rascunho com os
+valores preservados, preencheu as demais seções fictícias, editou o objetivo
+pela revisão, enviou e chegou a Hoje pela conclusão animada. Hoje destacou
+alimentação e mostrou o recibo do cadastro. Isso confirma o fluxo publicado
+para essa identidade de teste, não o aceite de usabilidade nem uso clínico.
+
+Três achados estão corrigidos **somente na branch**: erro de objetivo vazio
+deixa de oferecer uma tentativa de salvar que não corresponde à falha;
+conclusão usa texto que funciona para nomes diferentes de clínica; Hoje não
+repete “Atualizar medidas” quando o cadastro enviado já contém medidas
+iniciais, preservando a tarefa de pedido médico explícito. TypeScript e 27
+testes focados passaram localmente. O [PR #97](https://github.com/vitormilanez/instituto-vivance/pull/97)
+segue draft; o run [38016706575](https://github.com/vitormilanez/instituto-vivance/actions/runs/38016706575)
+passou. O [Preview](https://instituto-vivance-i2p4jke7w-vtr-consulting.vercel.app)
+`dpl_4nbHQib1f2yMmzBm6MjVKNJQrxdf` foi implantado via Vercel CLI no alvo
+`preview`, build concluído com Node 24. Na sessão autenticada a 390 px,
+conclusão e CTA corrigidos levaram a Hoje; alimentação ficou em destaque e o
+lembrete genérico de medidas não apareceu. A validação de objetivo vazio ainda
+não foi repetida visualmente no Preview. Não há nova migration nem publicação
+de produção; aceite de usabilidade permanece pendente.
+
 ## Publicação técnica — 09/10/2026, 23h (São Paulo)
 
 O pacote do [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) foi integrado à `main` no commit `1fda196940dd6fd98b110a1108a95b5890dcd908`. O run [38015255596](https://github.com/vitormilanez/instituto-vivance/actions/runs/38015255596) passou por testes, lint, typecheck e build. As etapas de migração e promoção do workflow ficaram **ignoradas por configuração ausente**, apesar do resultado verde; não representam operações executadas.

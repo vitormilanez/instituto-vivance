@@ -3,7 +3,6 @@
   max-width: 68ch;
 }
 
-.invitation-refined .channel-choice label:has(input:checked),
 .onboarding-refined .onboarding-choice-group button.selected {
   border-color: #1c5d72;
   background: #e9f5f7;
@@ -11,7 +10,51 @@
 }
 
 .invitation-refined .invitation-result {
-  border-left: 4px solid #1c5d72;
+  border: 1px solid var(--border);
+  background: var(--ice);
+}
+
+.invitation-refined .invitation-contact input::placeholder {
+  color: var(--muted);
+}
+
+.invitation-refined .invitation-submit:focus-visible,
+.patient-invitation-claim a:focus-visible,
+.patient-invitation-claim button:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.patient-invitation-claim h1 {
+  margin-top: 0;
+  text-wrap: balance;
+}
+
+.invitation-claim-next {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--ice);
+}
+
+.invitation-claim-next h2,
+.invitation-claim-next p {
+  margin: 0;
+}
+
+.invitation-claim-next h2 {
+  font-size: 20px;
+}
+
+.invitation-claim-next .button {
+  justify-self: start;
+}
+
+.invitation-claim-next button {
+  justify-self: start;
 }
 
 .onboarding-refined .onboarding-progress-meter {

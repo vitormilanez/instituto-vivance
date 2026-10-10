@@ -1,5 +1,20 @@
 # Direção do Vivance e próximos slices
 
+**Ajuste prioritário de 10/10:** facilitar convite e primeiro acesso antes de
+avaliar novamente o onboarding. Adotar do conceito do Claude a ação de convite
+na própria área de Pacientes, estados recentes visíveis e alternativa discreta
+para ficha sem app, adaptados ao azul-marinho e componentes do Vivance. Não
+copiar o QR de recepção sem contrato de aprovação do médico e prevenção de
+cadastros não autorizados. Google Sign-In depende de configuração OAuth real.
+
+**Estado do cenário de teste em 10/10:** após pedido explícito de limpar todos
+os pacientes, o dev sintético está sem fichas, vínculos de paciente ou arquivos.
+O convite pendente para `vitor.milanezz@gmail.com` permite recomeçar o
+onboarding. As contagens e IDs de pacientes nos relatos abaixo são históricos;
+o [status](STATUS_ATUAL.md) registra o reset. A próxima observação útil é Vitor
+aceitar o convite e percorrer o onboarding no celular, antes de alegar aceite
+do fluxo. Não recriar automaticamente os cenários C2/C3/IA2 apagados.
+
 Consolidada em **08/10/2026**, preservando decisões anteriores e incorporando
 as orientações do usuário para a retomada. O [status](STATUS_ATUAL.md) separa
 código integrado, pilotos e evidências; o [histórico útil](historico/README.md)
@@ -29,8 +44,10 @@ padrão. O pacote único foi integrado à `main` pelo PR #95 e publicado
 tecnicamente em 09/10, sem publicação individual dos slices. Implementação,
 Preview, domínio principal e aceite permanecem checkpoints separados; o smoke
 test autenticado com as duas contas sintéticas está no [status](STATUS_ATUAL.md).
-O próximo gate é validar o wizard inicial com conta nova no celular e obter
-aceite de usabilidade; também permanecem os limites C3/IA2 e Gate P.
+O wizard inicial foi percorrido em 09/10 com uma conta nova sintética no celular:
+convite, retomada, envio, conclusão e Hoje. Os ajustes descobertos estão na
+branch `codex/onboarding-novo-paciente-20261009`; ainda faltam revisão dessa
+branch e aceite de usabilidade. Permanecem os limites C3/IA2 e Gate P.
 
 ## Experiência médica — orientação para a próxima proposta
 
@@ -132,3 +149,12 @@ diagnóstico curto, proposta validada, implementação delimitada, testes propor
 fechamento integrado e evidência. Manter implementação, Preview, publicação técnica
 e aceite clínico como marcos distintos. Decisões novas devem atualizar esta direção,
 o status e a tarefa correspondente no Asana após reconciliação com Git/ambientes.
+
+### Refinamento aprovado — pacientes e convites, 10/10
+
+Adotar a estrutura do Claude com identidade Vivance: convite inline, acompanhamento
+com estados reais e cadastro sem app secundário na lateral. Atalho explícito
+“Adicionar novo paciente” no menu desktop/mobile. Entregar como pacote; layout
+local não equivale a publicação. QR da recepção deve incluir entrada coletiva e
+aprovação; Google exige configuração OAuth. Não confundir convite aceito com
+cadastro inicial enviado ou acolhimento concluído.

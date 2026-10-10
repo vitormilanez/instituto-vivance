@@ -1,5 +1,26 @@
 # Checkpoints das próximas entregas
 
+**Convites, 10/10 — revisão do modelo Claude (local):**
+- [x] Menu desktop e Menu mobile: “Adicionar novo paciente”.
+- [x] Convite integrado ao topo da área de pacientes, sem cards empilhados.
+- [x] Convites recentes: filtros com contagens reais (todos, aguardando aceite,
+  aceitos, encerrados), canal, estado e data/hora do envio em São Paulo.
+- [x] Cadastro sem app na lateral; formulário principal aceita nome + contato.
+- [x] Sintaxe TSX e sete testes focados passaram.
+- [ ] Concluir verificação visual desktop/mobile, lint e typecheck.
+- [ ] Publicar o pacote; o domínio ainda mostra o layout anterior.
+- [ ] Validar convite novo + aceite + onboarding com conta existente e nova.
+- [ ] QR da recepção: implementar entrada coletiva e aprovação antes de expor.
+- [ ] Google OAuth: configurar e validar antes de mostrar botão.
+Os links antigos de 10/10 foram apagados no reset; usar convite novo.
+
+**Reset em 10/10:** os três pacientes e dados dependentes do dev sintético foram
+removidos a pedido do usuário; os 18 arquivos também saíram do Storage.
+As marcações abaixo registram verificações históricas, não dados ainda
+presentes. Novo convite `pending` para `vitor.milanezz@gmail.com`; a conta
+Auth foi preservada. Próximo checkpoint: Vitor aceitar o convite em `/clinicas`
+e percorrer o onboarding novo no celular; registrar qualquer falha concreta.
+
 Atualizado em **09/10/2026, 23h (São Paulo)**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
 o [status](STATUS_ATUAL.md) guarda evidências. Checkboxes indicam verificação
 técnica específica, não aceite clínico.
@@ -35,10 +56,20 @@ Escopo e fluxo: [ONBOARDING_PACIENTE](ONBOARDING_PACIENTE.md).
   `dpl_9oRUsriSW34mP4LqFJWvhDhEo83U` `READY` nos dois domínios. Login
   sintético de paciente e médico no domínio principal confirmou Hoje, perfil de
   cuidado e fila médica com 7 documentos. Nenhuma migration nova foi necessária.
-- [ ] Percorrer o wizard inicial com uma conta nova sintética e registrar aceite
-  de usabilidade no celular; a conta existente só permitiu conferir a etapa
-  alimentar e os demais checkpoints pós-cadastro.
-- [ ] Aceite de usabilidade e retomada dos checkpoints C3/IA2 pendentes abaixo.
+- [x] Conta nova sintética autenticada em 390 px: convite vinculado à clínica,
+  rascunho de medidas retomado após sair, saúde/objetivo, revisão/editável,
+  envio, animação e entrada em Hoje com alimentação em destaque. Evidência e
+  limites em [ONBOARDING_PACIENTE](ONBOARDING_PACIENTE.md).
+- [x] Corrigir na branch `codex/onboarding-novo-paciente-20261009` os achados
+  desse percurso: mensagem de validação sem ação falsa de salvar, texto final
+  sem preposição dependente da clínica e lembrete genérico de medidas sem
+  duplicar o retrato inicial. [PR #97](https://github.com/vitormilanez/instituto-vivance/pull/97)
+  draft: testes focados, typecheck, CI e build do Preview passaram.
+- [x] No [Preview do PR #97](https://instituto-vivance-i2p4jke7w-vtr-consulting.vercel.app),
+  sessão autenticada a 390 px mostrou a conclusão corrigida, CTA para Hoje,
+  alimentação em destaque e ausência do lembrete genérico de medidas.
+- [ ] Repetir visualmente a validação de objetivo vazio no Preview; obter
+  aceite de usabilidade no celular e retomar C3/IA2 pendentes abaixo.
 
 ## Ordem de trabalho
 

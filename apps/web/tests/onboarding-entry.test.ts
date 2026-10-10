@@ -68,7 +68,8 @@ test("a recoverable claim failure restores the opaque token", () => {
   );
   assert.match(claimFunction, /"email_exists", "user_already_exists"/);
   assert.match(invitationClaim, /onClick=\{\(\) => setSent\(false\)\}/);
-  assert.match(invitationClaim, /Não recebeu\? Tentar novamente/);
+  assert.match(invitationClaim, /Corrigir e-mail/);
+  assert.match(invitationClaim, /Confirmar e continuar/);
 });
 
 test("multiple exam uploads persist each successful file before continuing", () => {

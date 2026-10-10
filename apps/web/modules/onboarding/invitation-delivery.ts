@@ -14,6 +14,8 @@ export function invitationDeliveryLabel(input: InvitationDelivery): string | nul
   if (input.channel === "email") {
     if (input.deliveryStatus === "failed")
       return "O e-mail de convite não foi enviado";
+    if (input.deliveryStatus === "not_applicable")
+      return "Conta existente · entrar para aceitar, sem novo e-mail";
     return "Convite enviado por e-mail";
   }
   if (input.channel === "whatsapp") {
@@ -21,6 +23,8 @@ export function invitationDeliveryLabel(input: InvitationDelivery): string | nul
       return "Link de WhatsApp aberto · e-mail de criação de conta enviado";
     if (input.deliveryStatus === "failed")
       return "Link de WhatsApp ativo · o e-mail de criação de conta não foi enviado";
+    if (input.deliveryStatus === "not_applicable")
+      return "Link ativo · quem já tem conta entra para aceitar";
     return "Link de WhatsApp ativo, ainda não aberto";
   }
   return null;

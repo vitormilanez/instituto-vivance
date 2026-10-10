@@ -20,7 +20,6 @@ export default async function Patients({
     page?: string;
     q?: string;
     filtro?: string;
-    abrirConvite?: string;
   }>;
 }) {
   const { tenantId } = await params;
@@ -39,7 +38,6 @@ export default async function Patients({
       page,
       term,
       filtro,
-      abrirConvite: query.abrirConvite === "1",
     };
   };
   const context = await load().catch((error) => {
@@ -76,12 +74,6 @@ export default async function Patients({
     return `${base}?${params}`;
   };
   const displayedCount = doctorView ? filteredPatients.length : context.count;
-  const inviteHref = `${base}?${new URLSearchParams({
-    q: context.term,
-    page: String(context.page),
-    ...(context.filtro !== "todos" ? { filtro: context.filtro } : {}),
-    abrirConvite: "1",
-  })}#convidar-paciente`;
   return (
     <ClinicShell clinic={context.clinic} active="patients">
       <div className={doctorView ? "dv-directory" : undefined}>
@@ -94,26 +86,14 @@ export default async function Patients({
                 : "Encontre um cadastro ou adicione uma pessoa à clínica."}
             </p>
           </div>
-          <Link
-            className={
-              doctorView
-                ? "button dv-primary-action"
-                : "button page-heading-jump"
-            }
-            href={
-              doctorView && canInvite
-                ? inviteHref
-                : canInvite
-                  ? "#convidar-paciente"
-                  : "#novo-paciente"
-            }
-          >
-            {doctorView
-              ? "Convidar paciente"
-              : canInvite
-                ? "Adicionar paciente"
-                : "Cadastrar paciente"}
-          </Link>
+          {!doctorView && (
+            <Link
+              className="button page-heading-jump"
+              href={canInvite ? "#convidar-paciente" : "#novo-paciente"}
+            >
+              {canInvite ? "Adicionar paciente" : "Cadastrar paciente"}
+            </Link>
+          )}
         </div>
         <div
           className={
@@ -128,6 +108,12 @@ export default async function Patients({
             }
             aria-labelledby="patients-title"
           >
+            {doctorView && canInvite && (
+              <div className="dv-invite-workspace" id="convidar-paciente">
+                <PatientInvitationForm tenantId={tenantId} role="doctor" />
+                <PatientInvitationList tenantId={tenantId} invitations={invitationContext.invitations} />
+              </div>
+            )}
             <div className={doctorView ? "dv-section-heading" : undefined}>
               <div>
                 <h2 id="patients-title">Cadastros da clínica</h2>
@@ -218,7 +204,7 @@ export default async function Patients({
                     ? "Confira o nome ou tente buscar apenas parte dele."
                     : context.page > 1
                       ? "Volte para a página anterior."
-                      : "Ajuste os filtros ou registre o primeiro paciente."}
+                      : doctorView && canInvite ? "Os novos pacientes aparecem aqui depois de aceitar o convite. Adicione uma pessoa pelo formulário acima." : "Ajuste os filtros ou registre o primeiro paciente."}
                 </p>
               </div>
             ) : (
@@ -311,70 +297,50 @@ export default async function Patients({
               )}
             </nav>
           </section>
-          <aside
+          {doctorView && (
+            <aside className="dv-registration-aside" aria-label="Outras formas de cadastrar">
+              <section className="dv-registration-guide">
+                <h2>Um convite, um novo começo</h2>
+                <p>A pessoa confirma seu acesso e preenche o perfil inicial. A ficha aparece aqui assim que ela aceita o convite.</p>
+                <ol><li>Informe nome e contato.</li><li>Compartilhe o link ou envie por e-mail.</li><li>Acompanhe o aceite nesta lista.</li></ol>
+              </section>
+              <details className="dv-disclosure" id="novo-paciente">
+                <summary>Cadastrar sem acesso ao app</summary>
+                <p>Para quem prefere começar com ajuda da equipe. Você pode convidar depois, pela mesma ficha.</p>
+                <PatientForm tenantId={tenantId} role={context.clinic.role} />
+              </details>
+            </aside>
+          )}
+          {!doctorView && <aside
             className={
               doctorView ? "dv-directory-aside" : "patient-directory-aside"
             }
             aria-label="Acesso e cadastro de pacientes"
           >
-            {canInvite &&
-              (doctorView ? (
-                <details
-                  id="convidar-paciente"
-                  className="dv-disclosure dv-directory-action-disclosure"
-                  open={context.abrirConvite}
-                >
-                  <summary>Convidar paciente</summary>
-                  <PatientInvitationForm
-                    tenantId={tenantId}
-                    role={context.clinic.role as "admin" | "doctor"}
-                    doctors={doctors}
-                  />
-                </details>
-              ) : (
-                <div id="convidar-paciente">
-                  <PatientInvitationForm
-                    tenantId={tenantId}
-                    role={context.clinic.role as "admin" | "doctor"}
-                    doctors={doctors}
-                  />
-                </div>
-              ))}
-            {canInvite &&
-              (doctorView ? (
-                <details className="dv-disclosure">
-                  <summary>Ver convites recentes</summary>
-                  <PatientInvitationList
-                    tenantId={tenantId}
-                    invitations={invitationContext.invitations}
-                  />
-                </details>
-              ) : (
-                <PatientInvitationList
+            {canInvite && (
+              <div id="convidar-paciente">
+                <PatientInvitationForm
                   tenantId={tenantId}
-                  invitations={invitationContext.invitations}
+                  role={context.clinic.role as "admin" | "doctor"}
+                  doctors={doctors}
                 />
-              ))}
-            {doctorView ? (
-              <details className="panel dv-disclosure" id="novo-paciente">
-                <summary>Cadastrar sem acesso ao app</summary>
-                <p>
-                  Registre apenas os dados básicos para abrir uma ficha sem
-                  convite agora.
-                </p>
-                <PatientForm tenantId={tenantId} role={context.clinic.role} />
-              </details>
-            ) : (
-              <section className="panel" id="novo-paciente">
+              </div>
+            )}
+            {canInvite && (
+              <PatientInvitationList
+                tenantId={tenantId}
+                invitations={invitationContext.invitations}
+              />
+            )}
+            <section className="panel" id="novo-paciente">
                 <h2>Ficha sem acesso ao app</h2>
                 <p>
                   Para quem não vai usar o app agora. Você registra os dados
                   básicos por ela; depois, pela ficha, dá para enviar o convite.
                 </p>
                 <PatientForm tenantId={tenantId} role={context.clinic.role} />
-              </section>
-            )}
-          </aside>
+            </section>
+          </aside>}
         </div>
       </div>
     </ClinicShell>

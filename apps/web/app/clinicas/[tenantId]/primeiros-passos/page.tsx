@@ -33,7 +33,7 @@ export default async function FirstSteps({
   return (
     <PatientShell clinic={context.clinic} active="primeiros-passos" title="Primeiros passos" heading="page">
       {data ? (
-        <OnboardingWorkspace tenantId={tenantId} clinicName={data.clinicName} doctorName={data.doctorName}
+        <OnboardingWorkspace tenantId={tenantId} doctorName={data.doctorName}
           initial={{...data.onboarding, answers:{...data.onboarding.answers,
             goal:data.onboarding.answers.goal || [intake?.reason, intake?.expectedOutcome].filter(Boolean).join(". ")}}}/>
       ) : intake ? (

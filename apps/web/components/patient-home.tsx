@@ -1,6 +1,7 @@
 import { TeleconsultationLink } from "./teleconsultation-link";
 import Link from "next/link";
 import type { PatientProfileContext } from "@/modules/onboarding/profile-types";
+import type { OnboardingRecord } from "@/modules/onboarding/types";
 import { ProfileCompletionPrompt } from "./patient/profile-completion";
 import type { Appointment } from "@/modules/agenda/service";
 import { patientTodayTasks } from "@/modules/workspace/patient-today-tasks";
@@ -48,6 +49,7 @@ export function PatientHome({
   preparationPending,
   requiredPreparation,
   latestMeasurement,
+  onboarding,
   careRequests,
   sent,
 }: {
@@ -77,6 +79,7 @@ export function PatientHome({
     measure_unit: string;
     reported_on: string;
   } | null;
+  onboarding: OnboardingRecord | null;
   careRequests: { id?: string; kind: string; requested_at: string; preparation_id?: string | null; preparation_starts_at?: string | null }[];
   sent: SentItem[] | null;
 }) {
@@ -94,6 +97,9 @@ export function PatientHome({
     preparationPending,
     unreadPlan: unreadPublication,
     hasMeasurement: Boolean(latestMeasurement),
+    hasBaselineMeasurement: onboarding?.status === "submitted" && Boolean(
+      onboarding.measurements.weightKg || onboarding.measurements.heightCm || onboarding.measurements.waistCm,
+    ),
     careRequests,
     dailyCheckInDue: checkIn?.due,
   });

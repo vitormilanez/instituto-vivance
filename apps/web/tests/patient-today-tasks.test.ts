@@ -66,6 +66,17 @@ test("patient today has no generic task after every tracked action is complete",
   );
 });
 
+test("as medidas informadas no cadastro não geram um pedido genérico duplicado", () => {
+  const base = "/clinicas/tenant/meu-cuidado";
+  assert.deepEqual(patientTodayTasks({ base, hasMeasurement: false, hasBaselineMeasurement: true }), []);
+  assert.deepEqual(patientTodayTasks({
+    base,
+    hasMeasurement: false,
+    hasBaselineMeasurement: true,
+    careRequests: [{ kind: "measurements", requested_at: "2026-10-09T12:00:00Z" }],
+  }).map((task) => task.id), ["care-request-measurements"]);
+});
+
 test("o pedido do médico vira tarefa que abre direto o formulário", () => {
   const base = "/clinicas/tenant/meu-cuidado";
   const tasks = patientTodayTasks({

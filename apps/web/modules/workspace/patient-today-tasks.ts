@@ -19,6 +19,7 @@ export type PatientTodayTasksInput = {
   };
   unreadPlan?: { title: string; revision: number } | null;
   hasMeasurement: boolean;
+  hasBaselineMeasurement?: boolean;
   // Pedidos abertos do médico. São pendências operacionais do paciente, nunca
   // risco ou urgência.
   careRequests?: { id?: string; kind: string; requested_at: string; preparation_id?: string | null; preparation_starts_at?: string | null }[];
@@ -141,7 +142,7 @@ export function patientTodayTasks(input: PatientTodayTasksInput): PatientTodayTa
   // Sem pedido do médico, vale o lembrete genérico. Com pedido, a tarefa do
   // pedido já nomeia o mesmo formulário — repetir seria a mesma pendência em
   // dois vocabulários.
-  if (!input.hasMeasurement && !asked.has("measurements"))
+  if (!input.hasMeasurement && !input.hasBaselineMeasurement && !asked.has("measurements"))
     tasks.push({
       id: "measurements",
       title: "Atualizar medidas",
