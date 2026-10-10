@@ -116,7 +116,10 @@ export function EncounterEditor({
       plan.publishedSourceVersion !== plan.version
     )
       return "Aprovado, ainda não publicado";
-    if (plan.publishedSourceVersion === plan.version)
+    if (
+      plan.status === "approved" &&
+      plan.publishedSourceVersion === plan.version
+    )
       return "Publicado para a pessoa";
     if (plan.status === "in_review") return "Em revisão médica";
     if (plan.status === "draft") return "Rascunho";
