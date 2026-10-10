@@ -28,8 +28,10 @@ Escopo e fluxo: [ONBOARDING_PACIENTE](ONBOARDING_PACIENTE.md).
   três imagens sintéticas e PDF fictício enviados, aviso de Hoje avançou e sumiu;
   ficha médica exibiu as seções compartilhadas. O wizard inicial segue
   comprovado apenas em fixture local porque esta conta já tinha cadastro enviado.
-- [ ] Conferir em novo Preview o ajuste que retira fotos internas da fila/contagem
-  de exames e arquivos internos do perfil dos últimos envios do paciente.
+- [x] No Preview `dpl_9Aa3FtPpHAFhnmiPQbhsjViND15H` (`7569dd5`), CI verde,
+  Hoje médico mostrou 7 documentos aguardando revisão em vez de 11, sem as
+  três fotos sintéticas; o PDF fictício continuou visível. Hoje paciente voltou
+  a mostrar somente os envios avulsos e seus estados de revisão adequados.
 - [ ] Aceite de usabilidade e retomada dos checkpoints C3/IA2 pendentes abaixo.
 
 ## Ordem de trabalho
@@ -181,5 +183,7 @@ Escopo e fluxo: [ONBOARDING_PACIENTE](ONBOARDING_PACIENTE.md).
 Marque somente com evidência do Git, ambiente e teste adequado. Registre data,
 Preview e limites no [status](STATUS_ATUAL.md); mantenha aqui a próxima ação.
 Antes de retomar, confira `AGENTS.md`, direção, status, HEAD do PR #95 e o destino
-do ambiente. O próximo bloqueio técnico IA2 é contrato de laudo, cobertura e outras falhas; o próximo
-bloqueio de produto é o isolamento visual/aceite operacional C3 e a avaliação clínica separada.
+do ambiente. A próxima verificação de produto é o wizard inicial em uma conta de teste
+adequada e o aceite de usabilidade. C3 ainda depende de isolamento visual por
+outros papéis e aceite operacional; IA2 depende de contrato de laudo, cobertura
+e outras falhas. Avaliação clínica e Gate P continuam separados.

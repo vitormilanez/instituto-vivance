@@ -75,9 +75,10 @@ saúde. Ao editar pela revisão, Continuar retorna à conferência.
   aviso avançou e desapareceu; ficha médica mostrou a versão compartilhada.
   O cadastro inicial da conta já havia sido enviado, portanto o wizard inicial
   completo ainda não foi percorrido com autenticação real nesta rodada.
-- [ ] Revalidar no Preview posterior o ajuste de contagem/fila: fotos internas
-  ficam no perfil, não como exames pendentes; Home não atribui revisão de exame
-  a arquivo interno do perfil.
+- [x] No Preview posterior `7569dd5`, CI verde e sessões reais de teste:
+  fotos internas ficaram fora da fila/contagem de exames e os últimos envios
+  da Home paciente não as apresentaram como exames com revisão indisponível.
+  A ficha médica continua mostrando as seções compartilhadas.
 - [ ] Aceite de usabilidade com paciente/médico; não equivale a aceite clínico.
 
 ## Referências utilizadas

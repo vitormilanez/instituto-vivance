@@ -29,10 +29,10 @@ na Home paciente com estado de revisão indisponível e as fotos entravam na
 contagem de exames/documentos para revisar do médico. O pacote filtra a Home
 para envios avulsos compartilhados e a fila/contagem médica para exames ou
 documentos compartilhados, mantendo fotos no perfil e na lista de documentos.
-Esse ajuste posterior ao `ddedfc7` ainda precisa de CI e novo Preview antes de
-ser considerado observado no navegador.
+O CI e o novo Preview do `7569dd5` passaram; a diferença foi observada nas
+sessões autenticadas, sem apagar os arquivos originais do histórico.
 
-**Preview mais recente verificado do pacote:** [Vercel](https://instituto-vivance-qwhf4iopw-vtr-consulting.vercel.app), deployment `dpl_C5X5CJEZWJQXVGnEqRYfCNZzTo38`, alvo `preview`, código `ddedfc7`; build e TypeScript passaram. O CI desse SHA passou. O ajuste posterior da fila/contagem ainda não está nesse Preview. No [Preview IA2 anterior](https://instituto-vivance-m4cifg9re-vtr-consulting.vercel.app), deployment `dpl_4xTHa8p8DKKRrQWQ9gCYZ5RSC8Q7`, código `ea199ee`, o médico autenticado viu o paciente fictício, os documentos e os itens IA2, inclusive “revisão 1: transcrição confirmada” e o contador persistido “1 de 45 com decisão”. A alteração posterior da tela de Processamentos ainda não foi publicada em Preview.
+**Preview mais recente verificado do pacote:** [Vercel](https://instituto-vivance-jsxvpzwi9-vtr-consulting.vercel.app), deployment `dpl_9Aa3FtPpHAFhnmiPQbhsjViND15H`, alvo `preview`, código `7569dd5`; build/TypeScript e CI do mesmo SHA passaram. Em sessões autenticadas, Hoje médico passou de 11 para 7 documentos aguardando revisão, sem as três fotos sintéticas no briefing; o exame fictício continuou na fila. Hoje paciente voltou a mostrar os envios avulsos anteriores com seus estados corretos, sem os arquivos internos do perfil. A ficha médica continua mostrando as seções enviadas no Preview anterior. No [Preview IA2 anterior](https://instituto-vivance-m4cifg9re-vtr-consulting.vercel.app), deployment `dpl_4xTHa8p8DKKRrQWQ9gCYZ5RSC8Q7`, código `ea199ee`, o médico autenticado viu o paciente fictício, os documentos e os itens IA2, inclusive “revisão 1: transcrição confirmada” e o contador persistido “1 de 45 com decisão”. A tela de Processamentos atual já está no Preview do pacote; uma falha permanente ainda não foi observada ali.
 
 **Banco e worker sintéticos:** destino confirmado `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), com 65 migrations após aplicar também `20261010011422_patient_profile_context.sql`. A Edge Function `exam-text-worker` v2 foi implantada com autenticação própria por segredo; `pg_cron`/`pg_net` foram instalados e o job `vivance-ia2-exam-text-worker-synthetic` está ativo a cada minuto, com URL e segredo guardados no Vault. Uma chamada sem segredo recebeu 401; com segredo e fila vazia, 204. Nenhuma credencial foi gravada no Git.
 
@@ -165,7 +165,7 @@ não representam uma execução nova.
 
 | Frente | Estado conferido | Próxima evidência |
 | --- | --- | --- |
-| **C1 / Gate P** | Dev único temporário para testes sintéticos; 64 migrations no destino confirmado. | Produção separada, restauração, segurança e papéis antes de dados reais. |
+| **C1 / Gate P** | Dev único temporário para testes sintéticos; 65 migrations no destino confirmado. | Produção separada, restauração, segurança e papéis antes de dados reais. |
 | **C2/C3 — continuidade** | PR #95 inclui contexto longitudinal do PR #94; percurso sintético da pré-consulta ao retorno observado nos dois perfis; CI e novo Preview das correções passaram. | Aceite operacional e clínico separados; isolamento de outros papéis/vínculos. |
 | **C3 — exame solicitado** | PR #95 inclui pedido/resposta, fila, revisão e recibos do PR #93; Preview anterior com PDF fictício. | Isolamento visual por outros papéis/vínculos e aceite operacional; preservar `IMG_4022.PNG` sem abrir/revisar. |
 | **IA2 — extração e itens** | PR #95 inclui PR #78, Edge/Cron no dev; PDF fictício concluído sem aba, 3 páginas/45 itens, uma revisão persistida e paciente negado. | Falha/retry sintéticos, contrato de laudo e avaliação clínica. |
