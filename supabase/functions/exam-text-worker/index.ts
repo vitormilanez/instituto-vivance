@@ -228,7 +228,7 @@ Deno.serve(async (request) => {
           result.metadata.summary = (Array.isArray(result.metadata.summary) ? result.metadata.summary : [])
             .filter((entry: unknown) => typeof entry === "string" && allText.includes(entry)).slice(0, 3);
           result.metadata.prompt_version = promptVersion;
-          result.metadata = groundedMetadata(sourcePages, result.metadata, source.data.display_title);
+          result.metadata = groundedMetadata(sourcePages, result.metadata, source.data.display_title || source.data.original_filename);
           const persisted = await client.rpc("persist_exam_ai_extraction", {
             target_run: saved.data, structured_extractor_name: "claude-factual-extraction",
             structured_extractor_version: promptVersion, items: grounded.items, metadata: result.metadata,
