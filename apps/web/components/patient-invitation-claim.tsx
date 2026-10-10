@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
+import { useActionState, useState } from "react";
+import { enterPatientInvitation } from "@/app/actions";
 
 export function PatientInvitationClaim({ token }: { token: string }) {
+  const [entryState, entryAction, entering] = useActionState(enterPatientInvitation, { error: "" });
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
@@ -57,16 +58,13 @@ export function PatientInvitationClaim({ token }: { token: string }) {
             Se ainda não tem conta, confira o e-mail informado para criar seu
             acesso. Verifique também a pasta de spam.
           </p>
-          <Link className="button" href="/clinicas">
-            Entrar e ver meu convite
-          </Link>
-          <button
-            className="secondary"
-            type="button"
-            onClick={() => setSent(false)}
-          >
-            Corrigir e-mail
-          </button>
+          <p>Se outra pessoa estiver conectada neste navegador, vamos sair dessa conta para você entrar com seu e-mail.</p>
+          <form action={entryAction}>
+            <input type="hidden" name="email" value={enteredEmail} />
+            <button type="submit" disabled={entering}>{entering ? "Preparando seu acesso…" : "Entrar com meu e-mail"}</button>
+            {entryState.error && <p className="feedback" role="alert">{entryState.error}</p>}
+          </form>
+          <p>Confirmou o e-mail errado? Peça um novo convite à clínica para usar outro acesso.</p>
         </div>
       ) : (
         <form onSubmit={submit}>

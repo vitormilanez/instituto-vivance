@@ -1,5 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createPatient } from "@/modules/patients/service";
@@ -36,7 +37,40 @@ export async function login(
   } catch {
     return { error: "O acesso está indisponível no momento. Tente novamente." };
   }
+  const cookieStore = await cookies();
+  cookieStore.delete("vivance-invitation-login");
   redirect("/clinicas");
+}
+
+// The confirmed invitation email is a login hint, never an authorization grant.
+export async function enterPatientInvitation(
+  _previous: FormState,
+  form: FormData,
+): Promise<FormState> {
+  const value = form.get("email");
+  const email = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    return { error: "Confira seu e-mail antes de continuar." };
+  let sameAccount = false;
+  try {
+    const client = await createClient();
+    const { data } = await client.auth.getUser();
+    sameAccount = data.user?.email?.toLowerCase() === email;
+    if (!sameAccount) {
+      if (data.user) {
+        const { error } = await client.auth.signOut({ scope: "local" });
+        if (error) return { error: "Não foi possível trocar de conta. Tente novamente." };
+      }
+      const cookieStore = await cookies();
+      cookieStore.set("vivance-invitation-login", encodeURIComponent(email), {
+        httpOnly: true, secure: process.env.NODE_ENV === "production",
+        sameSite: "lax", path: "/", maxAge: 600,
+      });
+    }
+  } catch {
+    return { error: "Não foi possível preparar seu acesso. Tente novamente." };
+  }
+  redirect(sameAccount ? "/clinicas" : "/login");
 }
 
 export async function logout() {

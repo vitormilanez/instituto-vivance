@@ -7,6 +7,7 @@ import { examByteLimit, examFileLabel, examSelectionConsented, examSelectionPhra
   examSelectionReady, examSelectionReducer, examSentPhrase, examStateLabel,
   initialExamSelection, maxExamFiles, type ExamSelectionItem } from "@/modules/onboarding/exam-selection";
 import type { OnboardingRecord } from "@/modules/onboarding/types";
+import { formatMeasure, parseMeasure, type MeasureKey } from "@/modules/onboarding/measure-input";
 import { onboardingMeasurements } from "@/modules/onboarding/display";
 import { Icon, Mark } from "./patient/icons";
 
@@ -104,6 +105,7 @@ export function OnboardingWorkspace({ tenantId, doctorName, initial }: {
   useEffect(() => { heading.current?.focus({ preventScroll: true }); }, [step, justCompleted]);
 
   async function move(next: Step) {
+    if (step === "profile" && !checkMeasures()) return false;
     if (busy.current) return false;
     busy.current = true; setNavigating(true);
     update({ currentStep: next === "welcome" ? "profile" : next });
@@ -117,7 +119,13 @@ export function OnboardingWorkspace({ tenantId, doctorName, initial }: {
     if (step === "goal" && !draftRef.current.answers.goal.trim()) { setMessage("Conte seu objetivo em uma frase para a equipe conhecer o que importa para você."); setState("validation"); heading.current?.focus(); return; }
     if (await move(returnToReview ? "review" : steps[index + 1])) setReturnToReview(false);
   }
+  function checkMeasures() {
+    const fields = document.querySelectorAll<HTMLInputElement>(".vi-measure-grid input");
+    for (const field of fields) if (!field.reportValidity()) return false;
+    return true;
+  }
   async function leave() {
+    if (step === "profile" && !checkMeasures()) return;
     if (busy.current) return;
     busy.current = true; setNavigating(true);
     if (draft.status === "submitted" || await persist()) { router.push(home); router.refresh(); }
@@ -176,7 +184,7 @@ export function OnboardingWorkspace({ tenantId, doctorName, initial }: {
       </> : step === "profile" ? <>
         <h1 ref={heading} tabIndex={-1}>Vamos começar por você.</h1><p className="vi-lead">Sua idade e suas medidas ajudam a contextualizar o acompanhamento. Tudo bem deixar em branco o que não souber agora.</p>
         <div className="vi-basics"><label className="vi-field vi-birth">Data de nascimento<input type="date" max={today} min="1900-01-01" value={draft.profile.birthDate ?? ""} onChange={event => update({profile:{...draft.profile,birthDate:event.target.value || null}})}/><small>A idade será calculada pela sua data de nascimento.</small></label>
-          <div className="vi-measure-grid">{([['weightKg','Peso','kg',500],['heightCm','Altura','cm',300],['waistCm','Cintura','cm',400]] as const).map(([key,label,unit,max]) => <label className="vi-field" key={key}>{label}<div className="vi-unit-input"><input type="number" inputMode="decimal" min={key === 'heightCm' ? 50 : 1} max={max} step="0.1" value={draft.measurements[key] ?? ""} aria-label={`${label} em ${unit}`} onFocus={() => setEditingMeasure(true)} onBlur={() => setEditingMeasure(false)} onChange={event => update({measurements:{...draft.measurements,[key]:event.target.value === "" ? null : Number(event.target.value)}})}/><span>{unit}</span></div>{key === 'heightCm' && <small>Ex.: 173 cm</small>}</label>)}</div>
+          <div className="vi-measure-grid">{([['weightKg','Peso','kg','75,2'],['heightCm','Altura','m','1,75'],['waistCm','Cintura','cm','90']] as const).map(([key,label,unit,example]) => <MeasureInput key={key} measureKey={key} label={label} unit={unit} example={example} value={draft.measurements[key]} onFocus={() => setEditingMeasure(true)} onBlur={() => setEditingMeasure(false)} onChange={value => update({measurements:{...draftRef.current.measurements,[key]:value}})}/>)}</div>
           <details className="vi-help"><summary>Como medir a cintura?</summary><p>Use uma fita entre a última costela e o topo do quadril. Mantenha-a reta, sem apertar, e meça ao soltar o ar naturalmente. Se não tiver fita, deixe para depois.</p></details>
           <label className="vi-field">Quando você mediu?<input type="date" max={today} value={draft.measurements.measuredOn ?? ""} onChange={event => update({measurements:{...draft.measurements,measuredOn:event.target.value || null}})}/><small>Essa é a data das medidas, não do preenchimento.</small></label>
         </div>
@@ -430,4 +438,15 @@ export function OnboardingExamUpload({
       ) : null}
     </form>
   );
+}
+
+function MeasureInput({ measureKey, label, unit, example, value, onFocus, onBlur, onChange }: { measureKey: MeasureKey; label: string; unit: string; example: string; value: number | null; onFocus: () => void; onBlur: () => void; onChange: (value: number | null) => void }) {
+  const [text, setText] = useState(() => formatMeasure(value, measureKey));
+  return <label className="vi-field">{label}<div className="vi-unit-input"><input type="text" inputMode="decimal" value={text} placeholder={example} aria-label={`${label} em ${unit === "m" ? "metros" : unit}`} onFocus={onFocus} onBlur={onBlur} onChange={event => {
+    const next = event.target.value;
+    setText(next);
+    const parsed = parseMeasure(next, measureKey);
+    event.target.setCustomValidity(parsed === undefined ? `Confira ${label.toLowerCase()}. Use um número como ${example}${measureKey === "heightCm" ? " em metros" : ""}.` : "");
+    if (parsed !== undefined) onChange(parsed);
+  }}/><span>{unit}</span></div><small>{measureKey === "waistCm" ? "Sem fita? Pode informar depois." : `Ex.: ${example} ${unit}`}</small></label>;
 }

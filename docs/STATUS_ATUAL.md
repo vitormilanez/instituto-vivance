@@ -1,5 +1,27 @@
 # Estado atual do Vivance
 
+## Entrada correta e medidas intuitivas — 10/10/2026
+
+Branch `codex/invitation-account-handoff-20261010`, baseada em `33f6f42`.
+Corrige sessão de outra pessoa no convite, retomada de onboarding draft no
+login, medidas em metros/vírgula e saídas que salvam o rascunho. Convites antigos
+não sugerem mais e-mail enviado: 410 com recuperação explícita; falhas de envio
+retornam 503 e liberam nova tentativa. Edge Function `claim-patient-invitation`
+v6 aplicada no dev confirmado `oxuwrdjojsmgxoljqkuk`; nenhuma migration.
+
+Percurso autenticado local com dados persistidos no dev: convite criado pelo
+médico, claim com conta QA existente, encerramento da sessão médica, login
+pré-preenchido, aceite, onboarding completo com edição de medidas, conclusão
+animada, Hoje, alimentação salva/retomada, três PNGs sintéticos e PDF fictício.
+175 cm/76,10 kg/data 10/10 e submissões das três seções confirmados em SQL.
+Vitor possui vínculo e onboarding `draft/profile`; suas medidas seguem vazias.
+Os convites de 00h56/01h03 continuam ausentes. Conta existente não recebe novo
+e-mail; recebimento de e-mail para conta inexistente não foi validado.
+Impeccable 4.5 revisou mobile/desktop e estados; 466 testes, typecheck, lint
+sem erros (um aviso preexistente) e build passaram. Publicação web pendente
+neste registro, antes da integração.
+
+
 ## Publicação de convites e onboarding — 10/10/2026
 
 PRs #97 e #98 integrados. Código publicado: `95bc995965d51a10df381c5cdc717f7239feb912`.

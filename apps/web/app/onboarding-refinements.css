@@ -34,10 +34,18 @@
   display: grid;
   gap: 12px;
   margin: 20px 0;
-  padding: 20px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--ice);
+  padding: 20px 0 0;
+  border-top: 1px solid var(--border);
+  min-width: 0;
+}
+
+.invitation-claim-next strong {
+  overflow-wrap: anywhere;
+}
+
+.invitation-claim-next form,
+.invitation-claim-next button {
+  max-width: 100%;
 }
 
 .invitation-claim-next h2,
