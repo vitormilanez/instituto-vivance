@@ -210,6 +210,27 @@ export function mergeGroundedAttempts(pages: GroundingPage[], attempts: ClaudeRe
   const items: Record<string, unknown>[] = [];
   const rejectedPages = new Set<number>();
   let discarded = 0;
+  const literal = (value: unknown) => typeof value === "string" ? value : null;
+  const numericLiteral = (value: string) => /^-?\d+(?:[.,]\d+)*$/u.test(value);
+  const sameMeasurement = (a: Record<string, unknown>, b: Record<string, unknown>) => {
+    const aValue = literal(a.literal_value), bValue = literal(b.literal_value);
+    const aUnit = literal(a.unit_text), bUnit = literal(b.unit_text);
+    if (aValue === bValue) return aUnit === bUnit;
+    // Only collapse a copied number+unit when the other attempt split that
+    // very same literal number and unit. Never normalize digits or units.
+    const joined = (whole: string | null, wholeUnit: string | null, number: string | null, unit: string | null) =>
+      whole !== null && wholeUnit === null && number !== null && unit !== null
+      && numericLiteral(number) && whole.startsWith(number) && whole.endsWith(unit)
+      && /^[ \t]*$/u.test(whole.slice(number.length, -unit.length));
+    return joined(aValue, aUnit, bValue, bUnit) || joined(bValue, bUnit, aValue, aUnit);
+  };
+  const separatedFields = (item: Record<string, unknown>) => {
+    const value = literal(item.literal_value);
+    return value !== null && numericLiteral(value) && literal(item.unit_text) !== null;
+  };
+  const compatibleContext = (a: Record<string, unknown>, b: Record<string, unknown>) =>
+    ["reference_text", "method_text", "specimen_text"].every((field) =>
+      a[field] == null || b[field] == null || a[field] === b[field]);
   const anchor = (item: Record<string, unknown>) => {
     const excerpt = String(item.source_excerpt);
     const target = String(item.item_kind === "laboratory" ? item.literal_name : item.narrative_text);
@@ -221,14 +242,60 @@ export function mergeGroundedAttempts(pages: GroundingPage[], attempts: ClaudeRe
     discarded += grounded.discarded;
     grounded.rejectedPages.forEach((number) => rejectedPages.add(number));
     for (const item of grounded.items) {
-      const duplicate = items.some((existing) => existing.source_page_id === item.source_page_id
+      const duplicateIndex = items.findIndex((existing) => existing.source_page_id === item.source_page_id
         && existing.item_kind === item.item_kind
         && existing.literal_name === item.literal_name
-        && existing.literal_value === item.literal_value
         && existing.narrative_text === item.narrative_text
-        && existing.observed_on === item.observed_on
+        && (!existing.observed_on || !item.observed_on || existing.observed_on === item.observed_on)
+        && compatibleContext(existing, item)
+        && (item.item_kind === "narrative" || sameMeasurement(existing, item))
         && anchor(existing) === anchor(item));
-      if (!duplicate) items.push(item);
+      if (duplicateIndex < 0) items.push(item);
+      else {
+        const existing = items[duplicateIndex];
+        // Keep the numeric value and unit in separate, grounded fields when
+        // retries describe the same occurrence in different literal forms.
+        const preferIncoming = separatedFields(item) && !separatedFields(existing);
+        const selected = { ...(preferIncoming ? item : existing) };
+        const alternate = preferIncoming ? existing : item;
+        const fields = ["reference_text", "method_text", "specimen_text"] as const;
+        const missing = fields.filter((field) => selected[field] == null && typeof alternate[field] === "string");
+        const evidence = [...fields, "literal_name", "literal_value", "unit_text", "narrative_text"]
+          .map((field) => selected[field]).filter((value): value is string => typeof value === "string");
+        evidence.push(...missing.map((field) => String(alternate[field])));
+        // Borrow a grounded field only when one exact source excerpt can carry
+        // every retained field. If neither does, allow their contiguous literal
+        // union on this same source page, within the excerpt size limit.
+        const carrier = [selected, alternate].find((candidate) => evidence.every((value) =>
+          String(candidate.source_excerpt).includes(value)));
+        if (carrier) {
+          for (const field of missing) selected[field] = alternate[field];
+          selected.source_excerpt = carrier.source_excerpt;
+          selected.source_start = carrier.source_start;
+          selected.source_end = carrier.source_end;
+        } else {
+          const pageText = pages.find((page) => page.id === selected.source_page_id)?.extracted_text;
+          const start = Math.min(Number(selected.source_start), Number(alternate.source_start));
+          const end = Math.max(Number(selected.source_end), Number(alternate.source_end));
+          const union = pageText && end - start <= 12000 ? Array.from(pageText).slice(start, end).join("") : "";
+          if (union && evidence.every((value) => union.includes(value))
+            && union.includes(String(selected.source_excerpt)) && union.includes(String(alternate.source_excerpt))) {
+            for (const field of missing) selected[field] = alternate[field];
+            selected.source_excerpt = union;
+            selected.source_start = start;
+            selected.source_end = end;
+          } else if (missing.every((field) => String(selected.source_excerpt).includes(String(alternate[field])))) {
+            for (const field of missing) selected[field] = alternate[field];
+          } else {
+            // Preserve both grounded proposals if their evidence cannot fit in
+            // one bounded excerpt; deduplication must never discard a field.
+            items.push(item);
+            continue;
+          }
+        }
+        selected.observed_on ??= existing.observed_on ?? item.observed_on;
+        items[duplicateIndex] = selected;
+      }
     }
   }
   const order = new Map(pages.map((page, index) => [page.id, index]));

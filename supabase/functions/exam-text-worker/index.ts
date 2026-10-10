@@ -7,7 +7,7 @@ import { extractTextWithClaude, requestClaude, groundedItems, mergeGroundedAttem
 
 const bucket = "vivance-documents";
 const extractorName = "unpdf-embedded-text";
-const extractorVersion = "1.8.1+vivance-claude.3";
+const extractorVersion = "1.8.1+vivance-claude.4";
 const maxPages = 50;
 const maxPageCharacters = 80_000;
 const maxDocumentCharacters = 500_000;
