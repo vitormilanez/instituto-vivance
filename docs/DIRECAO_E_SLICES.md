@@ -59,14 +59,17 @@ os aceites estão na avaliação. O usuário pediu iniciar na nova branch
 
 **Decisão de execução em 09/10:** avançar pela sequência dos
 [checkpoints](CHECKPOINTS_ENTREGAS.md) e reunir o código em um pacote de
-integração, sem publicar cada slice separadamente. O trabalho local está em
-`codex/vivance-package-20261009`; Preview, implantação sintética, aceite
-operacional, avaliação clínica e liberação para dados reais continuam gates
-distintos. A reunião de código não marca os aceites pendentes como concluídos.
+integração, sem publicar cada slice separadamente. O pacote está na branch `codex/vivance-package-20261009`,
+[PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) draft.
+Preview e implantação técnica **somente no dev sintético** foram conferidos;
+aceite operacional, avaliação clínica, integração à main e liberação para dados
+reais continuam marcos distintos. A reunião de código não fecha esses aceites.
 
-Para IA2, preservar o [handoff](IA2_EXAMES.md): fechar negação ao paciente e
-falha/retentativa da fila, definir resultados/narrativas com origem por página
-e revisão por item. Claude, OCR e uso clínico continuam pendentes.
+Para IA2, o [handoff](IA2_EXAMES.md) registra o worker agendado, negação ao
+paciente e um percurso fictício de 45 itens com revisão versionada por item.
+Faltam testar falha/retentativa no ambiente e definir com o médico o contrato de
+laudos/resultados antes de ampliar a fixture. Claude, OCR e uso clínico
+continuam pendentes.
 
 C1/C2/C3 são trilha de prontidão operacional, não motivo para refazer o piloto
 sintético já validado. Evoluções adicionais de Hoje/Pacientes devem demonstrar

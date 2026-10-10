@@ -1,24 +1,8 @@
 # IA2 — continuidade dos exames sintéticos
 
-> **Atualização de 09/10/2026:** o pacote local de integração está em
-> `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`, branch
-> `codex/vivance-package-20261009`. Ele agrega o PR #78 ao C3/PR #94 e inclui
-> worker Edge e a migration local de itens revisáveis, renumerada para
-> `20261009231639_ia2_structured_exam_items.sql` após as migrations C3.
-> O worker reconhece apenas a fixture PDF explicitamente fictícia: 44
-> marcadores e um trecho narrativo ficam ligados a página/trecho, e a tela
-> médica oferece revisão versionada por item sem publicação ao paciente.
-> Parser e PDF de fixture passaram localmente; essa experiência ainda não foi
-> implantada nem validada no Preview.
-> Nada foi publicado ou aplicado. Os passos de ativação controlada estão em
-> `scripts/ops/activate-ia2-synthetic-worker.sql` e
-> `scripts/ops/deactivate-ia2-synthetic-worker.sql`; exigem projeto dev
-> confirmado, função publicada, `pg_cron`/`pg_net` instalados e Vault com
-> `vivance_ia2_worker_url` e `vivance_ia2_worker_cron_secret` correspondente
-> ao segredo Edge `EXAM_WORKER_CRON_SECRET`. Antes de uso, revisar os
-> privilégios do executor do job e conferir job, tentativa, falha/retry e
-> negação em sessão autenticada. O texto abaixo registra o estado histórico
-> do PR #78 e não substitui os [checkpoints atuais](CHECKPOINTS_ENTREGAS.md).
+> **Estado em 09/10/2026:** o [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) reúne o PR #78 com C3/PRs #93 e #94. Checkout `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`. A migration `20261009231639_ia2_structured_exam_items.sql` está aplicada **somente** em `instituto-vivance-dev`; a Edge Function `exam-text-worker` v2 e o Cron sintético estão ativos nesse mesmo projeto. O job disparado pelo médico para o PDF fictício `vivance-ia2-synthetic-cron-20261009.pdf` terminou sem aba aberta, com 3 páginas e 45 itens ligados ao trecho e original. Uma revisão médica de transcrição fictícia persistiu; a conta de paciente não pôde ler a extração. O [Preview do pacote](https://instituto-vivance-4b1d8d9yo-vtr-consulting.vercel.app) e os IDs estão registrados no [status atual](STATUS_ATUAL.md).
+>
+> O parser atual só reconhece a fixture explicitamente fictícia; resultados de exames reais, contrato de laudo, falha/retry em ambiente, Claude, OCR, aceite clínico e dados reais continuam pendentes. A rota web agora apenas enfileira; o Cron é o executor. Os scripts `scripts/ops/enable-ia2-synthetic-cron-extensions.sql`, `activate-ia2-synthetic-worker.sql` e `deactivate-ia2-synthetic-worker.sql` operam somente após confirmar o projeto dev e dependem de segredo Edge/Vault fora do Git. O texto histórico abaixo descreve o PR #78 antes desta integração; use os [checkpoints](CHECKPOINTS_ENTREGAS.md) para a próxima ação.
 
 Consolidado em **08/10/2026**. Este handoff resume o trabalho que existe fora da
 main e aponta ao contrato/evidências originais; não duplica o plano de IA.

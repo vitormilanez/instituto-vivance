@@ -516,6 +516,11 @@ function ExamResultItemReview({ item, originalUrl, endpoint, canReview, onReview
   const [error, setError] = useState("");
   const requestRef = useRef<{ key: string; id: string } | null>(null);
   const latest = item.reviews.at(-1);
+  const decisionLabel = (value: string) => ({
+    confirmed: "transcrição confirmada",
+    corrected: "transcrição corrigida",
+    rejected: "item descartado",
+  })[value as "confirmed" | "corrected" | "rejected"] ?? value;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -549,14 +554,14 @@ function ExamResultItemReview({ item, originalUrl, endpoint, canReview, onReview
   }
 
   return <details>
-    <summary>{item.literal_name} · página {item.page_number} · {latest ? `revisão ${latest.version}: ${latest.decision}` : "sem revisão"}</summary>
+    <summary>{item.literal_name} · página {item.page_number} · {latest ? `revisão ${latest.version}: ${decisionLabel(latest.decision)}` : "sem revisão"}</summary>
     <p><strong>Transcrição inicial:</strong> {item.item_kind === "narrative" ? item.narrative_text : <>{item.literal_value} {item.unit_text} · referência literal: {item.reference_text ?? "não informada"}</>}</p>
     {item.requires_review_reason === "possible_duplicate" && <p role="status">Página semelhante a outra; confira ambas no original.</p>}
     <p><strong>Trecho de origem:</strong> <q>{item.source_excerpt}</q></p>
     <a href={`${originalUrl}#page=${item.page_number}`} target="_blank" rel="noreferrer">Abrir página {item.page_number} no PDF original</a>
     {item.reviews.length > 0 && <ol>
       {item.reviews.map((review) => <li key={review.id}>
-        Revisão {review.version} · {review.decision} · {clinicalTime(review.reviewed_at)}
+        Revisão {review.version} · {decisionLabel(review.decision)} · {clinicalTime(review.reviewed_at)}
         {review.corrected_data && <> · correção: {JSON.stringify(review.corrected_data)}</>}
         {review.note && <> · nota: {review.note}</>}
       </li>)}

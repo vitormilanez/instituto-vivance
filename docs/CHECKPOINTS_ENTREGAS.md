@@ -1,26 +1,23 @@
 # Checkpoints das próximas entregas
 
-Atualizado em **09/10/2026**. Use este arquivo como lista curta de execução. A
-[direção](DIRECAO_E_SLICES.md) define o produto e a ordem; o
-[status](STATUS_ATUAL.md) guarda evidências e limites. Um item marcado aqui
-significa apenas que sua evidência indicada foi conferida, não aceite clínico.
+Atualizado em **09/10/2026**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
+o [status](STATUS_ATUAL.md) guarda evidências. Checkboxes indicam verificação
+técnica específica, não aceite clínico.
 
-**Checkout do pacote em preparação:** `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`, branch `codex/vivance-package-20261009`. A `main` e os PRs #93/#94/#78 não contêm este pacote local.
-**Ambiente de teste:** `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`),
-somente dados sintéticos. **Não usar `db push`, integrar ou acionar a pipeline de
-release** enquanto as migrations do [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78)
-fora da `main` não forem reconciliadas com C3 e o pacote não for validado.
+**Checkout oficial:** `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`,
+branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) draft. É o pacote único de C3/PR #93, contexto/PR #94 e IA2/PR #78, ainda fora da `main`.
+**Ambiente técnico:** `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), somente dados sintéticos. Migrations reconciliadas: 64 no dev, incluindo `20261009231639`. Não executar outra migration ou release sem reconferir destino e histórico. Gate P antes de dados reais.
 
 ## Ordem de trabalho
 
 | Ordem | Slice | Resultado observável | Estado em 09/10 |
 | --- | --- | --- | --- |
-| Agora | **C3 — exame solicitado** | Paciente responde ao pedido; médico revisa; paciente vê o recibo operacional. | [PR #93](https://github.com/vitormilanez/instituto-vivance/pull/93) draft, Preview parcial; aceite aberto. |
-| Depois | **C2/C3 — continuidade da pessoa** | Hoje e ficha mostram contexto com origem/data; consulta e retorno preservam o paciente em foco. | [PR #94](https://github.com/vitormilanez/instituto-vivance/pull/94) draft, baseado no C3; Preview sintético parcial, sem aceite. |
-| Depois | **IA2 — fila confiável** | Extração sintética prossegue sem aba aberta, com permissão e retry verificados. | Worker e ativação Cron preparados no pacote local; sem agendamento ou teste no dev. |
-| Depois | **IA2 — resultados conferíveis** | Médico compara cada item ao arquivo, página e trecho e registra revisão. | Parser restrito à fixture, persistência e tela de revisão implementados localmente; contrato de laudo, Preview e aceite pendentes. |
-| Paralelo, antes de IA clínica | **IA1 — governança** | Responsáveis decidem finalidade, fontes, fornecedor, dados e revisão. | [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) draft; decisão pendente. |
-| Antes de dados reais | **C1 / Gate P** | Destinos separados, restauração e segurança comprovadas. | Aberto; não confundir Preview com liberação clínica. |
+| Agora | **C3 — exame solicitado** | Paciente responde ao pedido; médico revisa; paciente vê recibo operacional. | Código no PR #95; percurso parcial em Preview com PDF fictício, isolamento por outros papéis e aceite abertos. |
+| Depois | **C2/C3 — continuidade da pessoa** | Hoje e ficha mostram contexto com origem/data; consulta e retorno preservam o paciente. | Código no PR #95; navegação parcial validada, consulta → retorno e aceite pendentes. |
+| Avançado em paralelo no pacote | **IA2 — fila confiável** | Extração sintética prossegue sem aba aberta. | Worker Edge e Cron ativos no dev; job de fixture concluído em 1 tentativa com aba fechada. Falha/retry controlados pendentes. |
+| Avançado em paralelo no pacote | **IA2 — itens conferíveis** | Médico compara cada item ao arquivo, página e trecho e registra revisão. | 45 itens fictícios em Preview; uma revisão por item persistiu; contrato de laudo e avaliação clínica pendentes. |
+| Antes de IA clínica | **IA1 — governança** | Finalidade, fontes, fornecedor, dados e revisão decididos. | [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) draft; decisão pendente. |
+| Antes de dados reais | **C1 / Gate P** | Destinos separados, restauração e segurança comprovadas. | Aberto; Preview não libera uso clínico. |
 
 ## C3 — fechar o exame solicitado (próxima ação)
 
@@ -93,42 +90,17 @@ fora da `main` não forem reconciliadas com C3 e o pacote não for validado.
   originais em Hoje/ficha, inclusive estados vazios e falhas. Registrar aceite
   operacional sem alegar aceite clínico por uma avaliação heurística.
 
-## IA2 — retomar o piloto sem perder trabalho
+## IA2 — fila e itens verificáveis, somente sintéticos
 
-- [x] Preservado o [PR #78](https://github.com/vitormilanez/instituto-vivance/pull/78)
-  draft, HEAD `1e4493a`, com texto de PDF sintético por página já validado no
-  piloto anterior. As três migrations IA2 estão no dev, fora da `main`.
-- [x] Reunidos localmente PR #93, PR #94 e código do PR #78 em
-  `codex/vivance-package-20261009`; preservadas as versões das três migrations
-  IA2 já aplicadas no dev. O PR #78 remoto continua em conflito até publicação
-  do pacote. A nova migration de itens recebeu versão posterior à C3:
-  `20261009231639_ia2_structured_exam_items.sql`, ainda **não aplicada**.
-- [x] Incorporado o complemento local do checkout IA2: worker independente da
-  aba e contrato SQL de itens/revisões. Uma execução de 115 testes PGlite passou
-  com a ordem final de migrations, inclusive isolamento de paciente e revisão
-  idempotente; `deno check`, dois testes do parser fictício e lint focado
-  passaram. Typecheck/lint completos foram interrompidos por I/O local;
-  conferir o CI do SHA final antes de tirar o pacote de rascunho.
-- [x] Preparados scripts guardados para ativar/desativar Cron somente no dev
-  confirmado, com URL e segredo lidos do Vault, sem credencial no repositório.
-  Em 09/10, `pg_cron` e `pg_net` estavam **disponíveis, mas não instalados**;
-  portanto o processamento sem aba **não foi comprovado no ambiente**.
-- [ ] Aplicar e validar em dev a fila autônoma, lease, falha/retry,
-  idempotência e negação ao paciente autenticado. Não chamar a fila de autônoma
-  apenas porque a aba do médico retoma trabalho vencido.
-- [ ] Fechar contrato de **arquivo → laudo → resultado** com valor literal,
-  unidade, referência do emissor, data de realização e página/trecho; decidir
-  casos iniciais com o médico. O timestamp de upload permanece separado.
-- [ ] Construir parser/fixture sintético delimitado e tela de comparação com o
-  original; revisar e corrigir por item, preservando histórico e fonte. Medir
-  cobertura, ambiguidades e erros antes de ampliar documentos.
-- [x] Código local do recorte fictício: 44 marcadores numéricos e um trecho
-  narrativo, com página/trecho exato, página semelhante marcada para conferência
-  e formulário médico de confirmar/corrigir/descartar cada item. O parser recusa
-  arquivo não marcado ou incompleto. Ainda falta validar o PDF real no dev,
-  cobertura observada, persistência da interface e aceite.
-- [ ] Obter aceite técnico e, separadamente, avaliação clínica. Claude, OCR e
-  interpretação automática não entram por inferência deste piloto.
+- [x] PR #78 preservado; código reconciliado com C3/contexto no PR #95 sem renumerar as três migrations IA2 já aplicadas.
+- [x] Migration de itens `20261009231639` aplicada somente ao dev confirmado; 64 migrations locais/remotas pareadas. Worker Edge v2 publicado com segredo próprio; `pg_cron`/`pg_net` instalados, URL e segredo no Vault, job `vivance-ia2-exam-text-worker-synthetic` ativo a cada minuto. Scripts de ativação/desativação em `scripts/ops/`.
+- [x] O primeiro teste revelou corrida: a rota web processou o arquivo antes do Cron e deixou 3 páginas sem itens. O commit `f21cf09` removeu o executor da rota; agora ela somente enfileira.
+- [x] No [Preview integrado](https://instituto-vivance-4b1d8d9yo-vtr-consulting.vercel.app), o médico enfileirou o PDF fictício `vivance-ia2-synthetic-cron-20261009.pdf` (documento `d1c16e38-6aaf-482b-83c5-0e335fc4d8a2`) e a aba foi fechada. O job `38c3bcfc-17de-4da1-b556-0d2c1f7919df` ficou pendente e o Cron o concluiu em uma tentativa às 21:02 de 09/10 (São Paulo): 3 páginas, 45 itens, `requires_review`.
+- [x] A sessão médica mostrou 44 marcadores fictícios e 1 narrativa, cada qual com página, trecho e link ao original. Uma confirmação de transcrição ficou como revisão 1 e persistiu após recarga. A conta autenticada de paciente recebeu acesso negado ao endpoint. RLS e revisão idempotente passaram nos 115 testes PGlite; CI completo do `f21cf09` passou.
+- [ ] Exercitar falha transitória, lease vencido, retry, idempotência e alerta operacional em ambiente sintético; verificar o resultado do Cron após cada tentativa.
+- [ ] Definir com o médico **arquivo → laudo → resultado**: valor literal, unidade, referência do emissor, data de realização, página/trecho, ambiguidades e narrativas. Timestamp de envio permanece separado.
+- [ ] Avaliar cobertura/erros e limites antes de ampliar o parser para qualquer outro documento. A fixture atual não interpreta exames reais; Claude/OCR dependem de IA1.
+- [ ] Obter aceite técnico e avaliação clínica separadamente. Nenhum item é publicado ao paciente automaticamente.
 
 ## Gates permanentes
 
@@ -140,31 +112,18 @@ fora da `main` não forem reconciliadas com C3 e o pacote não for validado.
 - [ ] IA3–IA6: iniciar somente com biblioteca aprovada/versionada, fontes
   rastreáveis, revisão humana e gates do [plano de IA](PLANO_IA_CLINICA.md).
 
-## Publicação do pacote, uma vez ao fim
+## Fechamento do pacote, uma vez ao fim
 
-1. Concluir a revisão e os testes locais do checkout de integração; comparar o
-   diff final com os PRs #93/#94/#78 e conferir que não há segredo nem artefato
-   de teste indevido no commit.
-2. Publicar uma branch/PR de integração e gerar **um** Preview. Confirmar
-   projeto, equipe, variáveis e banco antes de associar o deployment ao dev.
-3. Conferir a lista de migrations remota por versão/conteúdo. Aplicar somente
-   a nova migration `20261009231639` ao projeto sintético, sem reaplicar as
-   três IA2 e as três C3 existentes e sem `db push` cego.
-4. Implantar o worker somente no dev, configurar segredo Edge e Vault por
-   canais próprios, instalar `pg_cron`/`pg_net` e ativar o job guardado. Observar
-   execução sem aba, retry, idempotência, acesso negado e original navegável;
-   desativar com o script correspondente se falhar.
-5. Revalidar C3 e consulta → retorno com perfis sintéticos autorizados, pedir
-   aceite operacional/avaliação clínica separadamente e só então decidir merge
-   e release. Gate P continua obrigatório antes de dados reais.
+1. [x] Integrar os três PRs em uma branch e abrir apenas o [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) draft. CI completo passou no `f21cf09`; verificar o novo SHA após o ajuste final de rótulos.
+2. [x] Gerar Preview do pacote no projeto Vercel confirmado (`vtr-consulting/instituto-vivance`), com flags IA2 restritas ao Preview e ao documento fictício. Deployment `dpl_CJagbg5KLzPjVsQB2YL9XBBFmTPe` é Preview `Ready`; a sessão médica autenticada confirmou o fluxo. Atualizar o link se o SHA final exigir outro build.
+3. [x] Comparar migrations e aplicar somente `20261009231639` ao dev sintético confirmado. Worker v2 e Cron instalados; job real da fixture concluiu sem aba e a revisão persistiu.
+4. [ ] Finalizar a verificação controlada de retry e a revisão do diff/segredos; manter PR em rascunho até esse resultado e o aceite operacional C3.
+5. [ ] Completar C3 e consulta → retorno com perfis sintéticos autorizados; registrar aceite operacional e avaliação clínica separadamente. Só depois decidir merge/release. Gate P continua obrigatório antes de dados reais.
 
 ## Como atualizar este checklist
 
-Marque um item somente com evidência no Git, ambiente e/ou teste adequado.
-Acrescente link e data no [status](STATUS_ATUAL.md); atualize aqui apenas o
-checkbox e o próximo obstáculo, sem copiar relatórios inteiros. Em cada retomada,
-confira `AGENTS.md`, direção, status, HEAD dos PRs e destino do ambiente. A
-próxima ação no C3 é conferir isolamento na interface por outros papéis e
-vínculos e registrar aceite operacional. O [PR #94](https://github.com/vitormilanez/instituto-vivance/pull/94)
-  prepara o contexto longitudinal, com Preview sintético parcial e sem percurso
-  de retorno validado.
+Marque somente com evidência do Git, ambiente e teste adequado. Registre data,
+Preview e limites no [status](STATUS_ATUAL.md); mantenha aqui a próxima ação.
+Antes de retomar, confira `AGENTS.md`, direção, status, HEAD do PR #95 e o destino
+do ambiente. O próximo bloqueio técnico IA2 é falha/retry sintéticos; o próximo
+bloqueio de produto é o aceite operacional C3 e o percurso consulta → retorno.
