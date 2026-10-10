@@ -1,6 +1,6 @@
 # Checkpoints das próximas entregas
 
-Atualizado em **09/10/2026, 23h20 (São Paulo)**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
+Atualizado em **09/10/2026, 23h30 (São Paulo)**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
 o [status](STATUS_ATUAL.md) guarda evidências. Checkboxes indicam verificação
 técnica específica, não aceite clínico.
 
@@ -42,9 +42,13 @@ Escopo e fluxo: [ONBOARDING_PACIENTE](ONBOARDING_PACIENTE.md).
 - [x] Corrigir na branch `codex/onboarding-novo-paciente-20261009` os achados
   desse percurso: mensagem de validação sem ação falsa de salvar, texto final
   sem preposição dependente da clínica e lembrete genérico de medidas sem
-  duplicar o retrato inicial. Testes focados e typecheck locais passaram.
-- [ ] Revisar a branch em Preview e obter aceite de usabilidade no celular;
-  retomar os checkpoints C3/IA2 pendentes abaixo.
+  duplicar o retrato inicial. [PR #97](https://github.com/vitormilanez/instituto-vivance/pull/97)
+  draft: testes focados, typecheck, CI e build do Preview passaram.
+- [x] No [Preview do PR #97](https://instituto-vivance-i2p4jke7w-vtr-consulting.vercel.app),
+  sessão autenticada a 390 px mostrou a conclusão corrigida, CTA para Hoje,
+  alimentação em destaque e ausência do lembrete genérico de medidas.
+- [ ] Repetir visualmente a validação de objetivo vazio no Preview; obter
+  aceite de usabilidade no celular e retomar C3/IA2 pendentes abaixo.
 
 ## Ordem de trabalho
 

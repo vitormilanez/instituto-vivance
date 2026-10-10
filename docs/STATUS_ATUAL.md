@@ -1,6 +1,6 @@
 # Estado atual do Vivance
 
-## Onboarding com conta nova — 09/10/2026, 23h20 (São Paulo)
+## Onboarding com conta nova — 09/10/2026, 23h30 (São Paulo)
 
 Na branch `codex/onboarding-novo-paciente-20261009`, criada da `main` publicada
 `9d10ec4a`, uma conta **inteiramente sintética** foi convidada pelo percurso
@@ -17,8 +17,15 @@ deixa de oferecer uma tentativa de salvar que não corresponde à falha;
 conclusão usa texto que funciona para nomes diferentes de clínica; Hoje não
 repete “Atualizar medidas” quando o cadastro enviado já contém medidas
 iniciais, preservando a tarefa de pedido médico explícito. TypeScript e 27
-testes focados passaram localmente. Revisão/Preview dessas correções e aceite
-de usabilidade permanecem pendentes; não há nova migration ou publicação.
+testes focados passaram localmente. O [PR #97](https://github.com/vitormilanez/instituto-vivance/pull/97)
+segue draft; o run [38016706575](https://github.com/vitormilanez/instituto-vivance/actions/runs/38016706575)
+passou. O [Preview](https://instituto-vivance-i2p4jke7w-vtr-consulting.vercel.app)
+`dpl_4nbHQib1f2yMmzBm6MjVKNJQrxdf` foi implantado via Vercel CLI no alvo
+`preview`, build concluído com Node 24. Na sessão autenticada a 390 px,
+conclusão e CTA corrigidos levaram a Hoje; alimentação ficou em destaque e o
+lembrete genérico de medidas não apareceu. A validação de objetivo vazio ainda
+não foi repetida visualmente no Preview. Não há nova migration nem publicação
+de produção; aceite de usabilidade permanece pendente.
 
 ## Publicação técnica — 09/10/2026, 23h (São Paulo)
 

@@ -91,7 +91,13 @@ saúde. Ao editar pela revisão, Continuar retorna à conferência.
   iniciais. A branch `codex/onboarding-novo-paciente-20261009` corrige essas
   mensagens e oculta só o lembrete **genérico** quando há medidas no cadastro
   enviado; um pedido explícito do médico permanece visível. Testes focados e
-  TypeScript passaram localmente; Preview da branch ainda pendente.
+  TypeScript passaram localmente.
+- [x] No [Preview do PR #97](https://instituto-vivance-i2p4jke7w-vtr-consulting.vercel.app)
+  (`dpl_4nbHQib1f2yMmzBm6MjVKNJQrxdf`, `preview`, build aprovado), a conta
+  sintética autenticada a 390 px viu a mensagem final corrigida, seguiu por
+  “Ir para Hoje” e não recebeu o lembrete genérico duplicado. Alimentação
+  continuou em destaque. O CI do commit `8df3786` passou. A validação de
+  objetivo vazio ainda não foi repetida visualmente nesse Preview.
 - [ ] Aceite de usabilidade com paciente/médico; não equivale a aceite clínico.
 
 ## Referências utilizadas
