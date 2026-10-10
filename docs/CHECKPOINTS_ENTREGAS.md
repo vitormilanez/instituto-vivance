@@ -1,14 +1,17 @@
 # Checkpoints das próximas entregas
 
-**Convites, 10/10 — revisão do modelo Claude (local):**
+**Convites, 10/10 — revisão do modelo Claude publicada:**
 - [x] Menu desktop e Menu mobile: “Adicionar novo paciente”.
 - [x] Convite integrado ao topo da área de pacientes, sem cards empilhados.
 - [x] Convites recentes: filtros com contagens reais (todos, aguardando aceite,
   aceitos, encerrados), canal, estado e data/hora do envio em São Paulo.
 - [x] Cadastro sem app na lateral; formulário principal aceita nome + contato.
 - [x] Sintaxe TSX e sete testes focados passaram.
-- [ ] Concluir verificação visual desktop/mobile, lint e typecheck.
-- [ ] Publicar o pacote; o domínio ainda mostra o layout anterior.
+- [x] Verificação visual local autenticada desktop/mobile, lint, typecheck e build.
+- [x] 460 testes passaram; CI dos PRs #97/#98 aprovado.
+- [x] Publicar o pacote: `95bc995`, deployment `dpl_CJTnT79AX7pq7EALs7oPqiTNmTMh`.
+  Ambos os domínios conferidos; principal HTTP 200, secundário 307.
+- [x] Domínio: login médico, novo menu, formulário e filtros de convite conferidos.
 - [ ] Validar convite novo + aceite + onboarding com conta existente e nova.
 - [ ] QR da recepção: implementar entrada coletiva e aprovação antes de expor.
 - [ ] Google OAuth: configurar e validar antes de mostrar botão.
@@ -17,8 +20,8 @@ Os links antigos de 10/10 foram apagados no reset; usar convite novo.
 **Reset em 10/10:** os três pacientes e dados dependentes do dev sintético foram
 removidos a pedido do usuário; os 18 arquivos também saíram do Storage.
 As marcações abaixo registram verificações históricas, não dados ainda
-presentes. Novo convite `pending` para `vitor.milanezz@gmail.com`; a conta
-Auth foi preservada. Próximo checkpoint: Vitor aceitar o convite em `/clinicas`
+presentes. O convite para `vitor.milanezz@gmail.com` aparece cancelado em 10/10, 09h24; a conta
+Auth foi preservada. Próximo checkpoint: gerar novo convite e Vitor aceitá-lo em `/clinicas`
 e percorrer o onboarding novo no celular; registrar qualquer falha concreta.
 
 Atualizado em **09/10/2026, 23h (São Paulo)**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
