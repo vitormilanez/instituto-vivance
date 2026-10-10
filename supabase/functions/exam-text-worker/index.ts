@@ -3,11 +3,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "@supabase/supabase-js";
 import { extractText, getDocumentProxy } from "unpdf";
 import { parseSyntheticFixture, type SourcePage } from "./synthetic-structure.ts";
-import { extractTextWithClaude, requestClaude, groundedItems, mergeGroundedAttempts, coverageGaps, unresolvedPageNotes, extractCoverageWithClaude, groundedMetadata, primaryModel, fallbackModel, promptVersion, type ClaudeResult } from "./claude-extraction.ts";
+import { extractTextWithClaude, requestClaude, groundedItems, mergeGroundedAttempts, coverageGaps, unresolvedPageNotes, extractCoverageWithClaude, groundedMetadata, primaryModel, fallbackModel, promptVersion, type ClaudeResult, type ExtractionCheckpoints, type TextPage } from "./claude-extraction.ts";
 
 const bucket = "vivance-documents";
 const extractorName = "unpdf-embedded-text";
-const extractorVersion = "1.8.1+vivance-claude.4";
+const extractorVersion = "1.8.1+vivance-claude.5";
 const maxPages = 50;
 const maxPageCharacters = 80_000;
 const maxDocumentCharacters = 500_000;
@@ -166,7 +166,9 @@ Deno.serve(async (request) => {
         if (!apiKey) throw new Error("claude_configuration");
         const prior = await client.from("document_extraction_runs").select("id")
           .eq("document_id", job.document_id).eq("tenant_id", job.tenant_id)
-          .eq("source_content_sha256", sourceHash).eq("extractor_version", extractorVersion).maybeSingle();
+          .eq("processing_job_id", job.job_id)
+          .eq("source_content_sha256", sourceHash).in("status", ["extracted", "requires_review"])
+          .order("created_at", { ascending: false }).limit(1).maybeSingle();
         if (prior.error) throw new Error("prior_run_unavailable");
         let pages;
         let visualResult: ClaudeResult | null = null;
@@ -197,6 +199,27 @@ Deno.serve(async (request) => {
         const existing = await client.from("exam_document_metadata").select("extraction_run_id").eq("extraction_run_id", saved.data).maybeSingle();
         if (existing.error) throw new Error("metadata_unavailable");
         const sourcePages = (storedPages.data ?? []) as SourcePage[];
+        const savedBatches = await client.from("exam_extraction_batch_checkpoints")
+          .select("batch_key,result").eq("extraction_run_id", saved.data).eq("prompt_version", promptVersion);
+        if (savedBatches.error) throw new Error("checkpoint_unavailable");
+        const batchesByKey = new Map((savedBatches.data ?? []).map((entry) => [entry.batch_key, entry.result as ClaudeResult]));
+        const batchKey = (batch: TextPage[], purpose: "initial" | "coverage") => sha256(JSON.stringify({
+          promptVersion, models: [primaryModel, fallbackModel], purpose,
+          pages: batch.map((page) => ({ page_number: page.page_number, extracted_text: page.extracted_text })),
+        }));
+        const checkpoints: ExtractionCheckpoints = {
+          read: async (batch, purpose) => batchesByKey.get(await batchKey(batch, purpose)) ?? null,
+          write: async (batch, purpose, result) => {
+            const key = await batchKey(batch, purpose);
+            const checkpoint = await client.rpc("save_exam_extraction_batch_checkpoint", {
+              target_run: saved.data, target_job: job.job_id, target_lease: job.lease_token,
+              p_prompt_version: promptVersion, p_batch_key: key,
+              p_page_numbers: batch.map((page) => page.page_number), p_result: result,
+            });
+            if (checkpoint.error) throw new Error("checkpoint_persist_failed");
+            batchesByKey.set(key, result);
+          },
+        };
         const structured = parseSyntheticFixture(sourcePages);
         if (!existing.data && structured.length) {
           const persisted = await client.rpc("persist_synthetic_exam_result_items", {
@@ -207,7 +230,7 @@ Deno.serve(async (request) => {
           });
           if (persisted.error) throw new Error("structured_persist_failed");
         } else if (!existing.data) {
-          const result = visualResult ?? await extractTextWithClaude(apiKey, sourcePages);
+          const result = visualResult ?? await extractTextWithClaude(apiKey, sourcePages, primaryModel, { checkpoints });
           const first = groundedItems(sourcePages, result);
           let grounded = mergeGroundedAttempts(sourcePages, [result]);
           let coverageFailed = 0;
@@ -221,7 +244,7 @@ Deno.serve(async (request) => {
             // overlapping line groups. Failed optional reads preserve the
             // original, verified facts instead of failing the whole job.
             const affected = sourcePages.filter((page) => auditPages.has(page.page_number)).slice(0, 4);
-            const coverage = await extractCoverageWithClaude(apiKey, affected);
+            const coverage = await extractCoverageWithClaude(apiKey, affected, fetch, checkpoints);
             grounded = mergeGroundedAttempts(sourcePages, [result, ...coverage.attempts]);
             coverageFailed = coverage.failed;
             if (coverage.attempts.length) result.metadata = { ...result.metadata,
@@ -245,7 +268,12 @@ Deno.serve(async (request) => {
             target_run: saved.data, structured_extractor_name: "claude-factual-extraction",
             structured_extractor_version: promptVersion, items: grounded.items, metadata: result.metadata,
           });
-          if (persisted.error) throw new Error("structured_persist_failed");
+          if (persisted.error) {
+            // A deterministic payload/schema error is not a provider outage.
+            // Keep checkpoints and stop repeating paid calls with this payload.
+            if (persisted.error.code === "23514") { outcome = "permanent"; throw new Error("structured_validation_failed"); }
+            throw new Error("structured_persist_failed");
+          }
         }
         const completed = await client.rpc("complete_processing_job", {
           target_job: job.job_id, target_lease: job.lease_token,

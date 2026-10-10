@@ -2,6 +2,16 @@
 
 **Decisão vigente em 10/10/2026:** cuidado longitudinal supervisionado: convite → contexto inicial → preparação → consulta → registro médico → acompanhamento → retorno. O médico interpreta e decide. Relato literal, dado extraído, cálculo, revisão, aprovação e publicação têm origem e estados separados. O [status](STATUS_ATUAL.md) distingue implementação, teste e publicação.
 
+## Prioridade atual — robustez da ingestão (10/10)
+
+Pedido vigente: exames extensos no formato PDF/foto devem preservar o texto por
+página antes da extração. Slice `codex/exames-checkpoints-lotes-20261010` em
+validação: aceitar formatação literal de PDF, validar payload antes de gravar e
+salvar checkpoints por lote para evitar pagar novamente pelos concluídos. Haiku
+5.5 inicial + Sonnet 5.5 seletivo; sem interpretação clínica. Esta correção precede
+a publicação ao paciente. Estado de publicação e evidência em [STATUS_ATUAL](STATUS_ATUAL.md);
+contrato, limites e política econômica em [IA2_EXAMES](IA2_EXAMES.md).
+
 ## IA2 sintética publicada — próxima entrega separada
 
 Os [PRs #106/#107](https://github.com/vitormilanez/instituto-vivance/pull/107) estabeleceram extração sintética com fonte e revisão por item; o [#109](https://github.com/vitormilanez/instituto-vivance/pull/109) integrou correções de unidade, referência e data. O [#110](https://github.com/vitormilanez/instituto-vivance/pull/110) integrou a deduplicação e foi publicado tecnicamente na aplicação `91970c0`, Edge v11 e deployment `dpl_DH5etxpExwKTLPDU5d6qj6LttkwU`, anteriores ao refinamento de UX #112. Consulte o [status](STATUS_ATUAL.md) para o frontend vigente. A migration `20261010220240` permanece a última (68 no dev). A interface médica autenticada confirmou cinco medidas na run atual, histórico preservado e Glicose v5 após recarga. O isolamento do paciente foi testado em rodada anterior, sem novo teste no #110; não há aceite clínico.

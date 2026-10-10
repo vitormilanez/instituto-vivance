@@ -49,10 +49,10 @@ export async function patientExamResults(tenantInput: string, patientInput: stri
     if ((page.data?.length ?? 0) < batchSize) break;
   }
 
-  const runs: { id: string; document_id: string; created_at: string }[] = [];
+  const runs: { id: string; document_id: string; created_at: string; page_count: number; extracted_page_count: number }[] = [];
   for (let offset = 0; ; offset += batchSize) {
     const page = await client.from("document_extraction_runs")
-      .select("id,document_id,created_at")
+      .select("id,document_id,created_at,page_count,extracted_page_count")
       .eq("tenant_id", tenant).eq("patient_id", patient)
       .order("created_at", { ascending: false }).order("id", { ascending: false })
       .range(offset, offset + batchSize - 1);
@@ -62,6 +62,7 @@ export async function patientExamResults(tenantInput: string, patientInput: stri
   }
   const latest = new Map<string, string>();
   for (const run of runs) if (!latest.has(run.document_id)) latest.set(run.document_id, run.id);
+  const runsById = new Map(runs.map((run) => [run.id, run]));
   const runIds = [...latest.values()];
   if (!runIds.length) return { documents: documents.map((document) => ({
     id: document.id, title: document.display_title || document.original_filename,
@@ -113,11 +114,14 @@ export async function patientExamResults(tenantInput: string, patientInput: stri
   const strings = (value: unknown) => Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === "string" && Boolean(entry.trim())) : [];
   const result: ExamDocumentResult[] = documents.map((document) => {
     const info = metadataByRun.get(latest.get(document.id) ?? "");
+    const run = runsById.get(latest.get(document.id) ?? "");
     return {
       id: document.id,
       title: info?.title && info.title !== "Exame ou documento" ? info.title : document.display_title || document.original_filename,
       receivedAt: document.available_at ?? document.created_at,
       processingStatus: jobByDocument.get(document.id) ?? null,
+      pageCount: run?.page_count,
+      extractedPageCount: run?.extracted_page_count,
       observedOn: info?.observed_on ?? null,
       issuer: info?.issuer ?? null,
       summary: strings(info?.summary).slice(0, 3),

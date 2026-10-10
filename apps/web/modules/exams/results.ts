@@ -29,6 +29,8 @@ export type ExamDocumentResult = {
   title: string;
   receivedAt: string;
   processingStatus?: "pending" | "processing" | "failed" | "completed" | null;
+  pageCount?: number;
+  extractedPageCount?: number;
   observedOn: string | null;
   issuer: string | null;
   summary: string[];
@@ -37,6 +39,14 @@ export type ExamDocumentResult = {
 };
 
 export type ExamResultsView = { documents: ExamDocumentResult[]; unavailable?: boolean };
+
+export function examProcessingMessage(document: ExamDocumentResult) {
+  if (document.processingStatus !== "failed") return null;
+  const allPagesRead = Boolean(document.pageCount && document.extractedPageCount === document.pageCount);
+  return allPagesRead
+    ? `O texto das ${document.pageCount} páginas está disponível. Não foi possível concluir a organização dos resultados. Confira o laudo original.`
+    : "Não foi possível concluir o processamento automático. Confira o laudo original.";
+}
 
 export function latestExamReview(item: ExamResult) {
   return [...item.reviews].sort((a, b) => b.version - a.version || b.reviewed_at.localeCompare(a.reviewed_at))[0] ?? null;

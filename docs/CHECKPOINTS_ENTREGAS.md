@@ -31,6 +31,17 @@
 - [x] Sessão médica no domínio publicado: objetivo sem repetição, três arquivos com fontes/datas por expansão, cadastro completo preservado, 24 pendentes e Glicose revisada; link abriu resultado/revisão v5/página de origem do mesmo paciente. Peso único compacto, oito ações rápidas e Agenda preservados. Mobile/séries/comparação foram conferidos localmente; sem nova mutation, reprocessamento, IA ou Preview separado.
 - [ ] Aceite de usabilidade do médico.
 
+## IA2 — texto primeiro e checkpoints por lote (10/10)
+
+- [x] Diagnóstico: PDF de 25 páginas lido 25/25; falha na gravação por nome literal com controle de formatação. Upload/texto não perdidos.
+- [x] Nome/valor preservam TAB/LF/CR; controles restantes proibidos. Validação de Unicode, campos opcionais e notas antes da RPC.
+- [x] Checkpoints internos imutáveis de lotes/auditorias, versão/hash/páginas/lease, RLS e retomada sem repetir lotes concluídos.
+- [x] Modelos disponíveis confirmados: Haiku 5.5 inicial, Sonnet 5.5 seletivo. Política/preços/exemplo e limites em [IA2_EXAMES](IA2_EXAMES.md).
+- [x] Local: 512 testes, lint/typecheck/build, Deno check; teste de falha/retomada de 25 páginas, multiline, Unicode, isolamento de checkpoint e idempotência. Aviso lint anterior.
+- [ ] Integração, migration `20261010234104`, Edge adapter `.5` e frontend publicado.
+- [ ] Verificação remota sintética focada. PDF reportado permanece sem recuperação confirmada neste registro.
+- [ ] Próximo reforço operacional: continuação entre leases e retomada médica de job que esgotou tentativas; medir cobertura/estabilidade com gabarito médico.
+
 ## Próximos gates clínicos
 
 - [ ] Publicar explicitamente ao paciente apenas fatos aprovados pelo médico, em entrega separada. Revisão de extração não publica conteúdo.
