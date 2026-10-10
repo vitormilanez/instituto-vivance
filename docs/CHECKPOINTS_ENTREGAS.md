@@ -27,7 +27,8 @@
 
 - [x] Direção autorizada: consolidar exames/revisão, reduzir repetições e usar as rotas atuais; tarefa Asana `1219378497566919`.
 - [x] Implementação revisada por GPT-6 Sol Ultra/Impeccable: objetivo em destaque, exames reunidos, originais recolhidos e peso único compacto. Local em 1440/390/320 px sem overflow, alvos 44 px, fontes por expansão, gráfico por teclado, comparação e erros explícitos; fixture temporária restaurada. Artefatos em `output/playwright/20261010-briefing-ux/`.
-- [ ] Integração e publicação técnica; conferir domínio e sessão médica sintética.
+- [x] [PR #112](https://github.com/vitormilanez/instituto-vivance/pull/112) integrado em `7e3b849`; CI `38093585290` e release verify `38093827404` passaram 504 testes, lint, typecheck e build. Banco/Edge não necessários; etapas automáticas de publicação skipped. Redeploy do mesmo SHA após `git_info_fail`: `dpl_14N5Hy9FG2sZs8EjrMKBJgzhPArY` READY/production, ambos os aliases inspecionados, três HTTP 200 no principal e três 307 no secundário.
+- [x] Sessão médica no domínio publicado: objetivo sem repetição, três arquivos com fontes/datas por expansão, cadastro completo preservado, 24 pendentes e Glicose revisada; link abriu resultado/revisão v5/página de origem do mesmo paciente. Peso único compacto, oito ações rápidas e Agenda preservados. Mobile/séries/comparação foram conferidos localmente; sem nova mutation, reprocessamento, IA ou Preview separado.
 - [ ] Aceite de usabilidade do médico.
 
 ## Próximos gates clínicos

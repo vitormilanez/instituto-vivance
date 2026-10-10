@@ -4,7 +4,7 @@
 
 ## IA2 sintética publicada — próxima entrega separada
 
-Os [PRs #106/#107](https://github.com/vitormilanez/instituto-vivance/pull/107) estabeleceram extração sintética com fonte e revisão por item; o [#109](https://github.com/vitormilanez/instituto-vivance/pull/109) integrou correções de unidade, referência e data. O [#110](https://github.com/vitormilanez/instituto-vivance/pull/110) integrou a deduplicação e foi publicado tecnicamente na aplicação `91970c0`, Edge v11 e deployment `dpl_DH5etxpExwKTLPDU5d6qj6LttkwU`. A migration `20261010220240` permanece a última (68 no dev). A interface médica autenticada confirmou cinco medidas na run atual, histórico preservado e Glicose v5 após recarga. O isolamento do paciente foi testado em rodada anterior, sem novo teste no #110; não há aceite clínico.
+Os [PRs #106/#107](https://github.com/vitormilanez/instituto-vivance/pull/107) estabeleceram extração sintética com fonte e revisão por item; o [#109](https://github.com/vitormilanez/instituto-vivance/pull/109) integrou correções de unidade, referência e data. O [#110](https://github.com/vitormilanez/instituto-vivance/pull/110) integrou a deduplicação e foi publicado tecnicamente na aplicação `91970c0`, Edge v11 e deployment `dpl_DH5etxpExwKTLPDU5d6qj6LttkwU`, anteriores ao refinamento de UX #112. Consulte o [status](STATUS_ATUAL.md) para o frontend vigente. A migration `20261010220240` permanece a última (68 no dev). A interface médica autenticada confirmou cinco medidas na run atual, histórico preservado e Glicose v5 após recarga. O isolamento do paciente foi testado em rodada anterior, sem novo teste no #110; não há aceite clínico.
 
 A deduplicação .4 resolveu no piloto a representação de número/unidade juntos ou separados: a run .3 tinha dez itens de cinco resultados, enquanto a run .4 trouxe cinco itens em primeira tentativa do Cron. CI e release #110 passaram 504 testes; a verificação autenticada no domínio principal confirmou 25 resultados, 24 pendentes. A avaliação privada offline final fundamentou 81 itens com zero offsets inválidos, sem comprovar completude clínica. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação.
 
@@ -23,12 +23,13 @@ Próxima entrega, ainda não iniciada: publicação explícita ao paciente de re
 
 ## Experiência médica
 
-**Prioridade solicitada em 10/10:** reorganizar o briefing da Home usando os
-caminhos atuais. Consolidar exames e revisão, destacar contexto/objetivo e
-relatos, recolher originais e compactar peso de registro único. Esse refinamento
-de UX precede a próxima entrega de publicação ao paciente; não altera os gates
-nem acrescenta interpretação clínica. A tarefa Asana é `1219378497566919`;
-evidências de entrega e publicação ficam nos [checkpoints](CHECKPOINTS_ENTREGAS.md).
+**Prioridade solicitada em 10/10, entregue pelo #112:** briefing da Home com
+objetivo destacado, exames/revisão consolidados, originais recolhidos e peso
+único compacto. Publicado tecnicamente em `7e3b849`, com revisão GPT-6 Sol Ultra
+e sessão médica sintética conferida. Esse refinamento precedeu a próxima entrega
+de publicação ao paciente; os gates e a ausência de interpretação clínica
+permanecem. Aceite de usabilidade do médico pendente, tarefa Asana
+`1219378497566919`; evidências nos [checkpoints](CHECKPOINTS_ENTREGAS.md).
 
 Manter menu superior, lista de pacientes, Agenda e oito ações rápidas. Em Hoje, mostrar agenda e pendências operacionais; na ficha, identificação, objetivos, medidas, histórico informado, evolução e documentos com original. Ausência de dado não é zero e ausência de registro não prova baixa adesão. Mostrar rapidamente apenas o necessário, com detalhe progressivo; cada campo exige coleta/persistência real. Preservar identidade Vivance e o briefing já entregue. Consulta, aprovação e publicação não se confundem.
 

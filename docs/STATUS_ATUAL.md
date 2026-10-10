@@ -1,21 +1,48 @@
 # Estado atual do Vivance
 
-**Atualizado em 10/10/2026 — #110 integrado e publicado tecnicamente; QA sintético autenticado concluído no recorte descrito.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada: `91970c09f35469673674adc32a661d8d174d9820`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
+**Atualizado em 10/10/2026 — #112 integrado e publicado tecnicamente; UX conferida com médico autenticado e paciente sintético.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada: `7e3b849e3e068509ac35f619999ee54fa1efc45e`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
 
-## UX do briefing — validação local de 10/10
+## UX do briefing — publicação e conferência de 10/10
 
-O usuário priorizou reduzir a
-dispersão da Home médica usando os caminhos existentes. Objetivo em destaque,
-exames/revisão reunidos, originais recolhidos e peso único compacto foram
-implementados e revisados com GPT-6 Sol Ultra/Impeccable. A conferência local
-em 1440/390/320 px passou sem overflow, com alvos de 44 px, expansão de fontes,
-comparação e teclado do gráfico. CI/integração/publicação desta UX estão
-pendentes neste registro; tarefa Asana `1219378497566919`. O contrato de IA2 e
-os gates abaixo não mudaram. [Detalhes](BRIEFING_CONSULTA_2026-10-07.md).
+O [PR #112](https://github.com/vitormilanez/instituto-vivance/pull/112) integrou
+objetivo em destaque, exames/revisão reunidos, originais recolhidos e peso único
+compacto, usando os caminhos existentes. Implementação por GPT-6 Sol e revisão
+independente Ultra/Impeccable 4.5.0. Conferência local em 1440/390/320 px sem
+overflow, alvos de 44 px, expansão de fontes, comparação, erros explícitos e
+teclado do gráfico. Os 504 testes, lint, typecheck e build passaram localmente,
+no CI `38093585290` e na verificação da main `38093827404`. O lint conserva um
+aviso anterior no onboarding. [Detalhes](BRIEFING_CONSULTA_2026-10-07.md).
+
+O release da main passou, mas aplicar migrations, publicar Edge Functions e
+promover/confirmar domínio ficaram **skipped** por configuração. Banco e Edge
+não eram necessários neste lote. O primeiro deployment Git
+`dpl_9hwYamJoQiohL39mbyPXVK5Y4yrR` falhou antes do build com `git_info_fail`.
+Redeploy pela CLI do mesmo SHA gerou `dpl_14N5Hy9FG2sZs8EjrMKBJgzhPArY`
+([URL técnica](https://instituto-vivance-reh0q9f7j-vtr-consulting.vercel.app)),
+READY/production. Conta `vtrconsulting`, equipe `vtr-consulting`, projeto
+`instituto-vivance`/`prj_ligeZuFRycRXA21u5rRzaLAORTrI`, root `apps/web` e Node 24
+foram conferidos. Ambos os aliases foram apontados manualmente e inspecionados
+no novo ID: principal três HTTP 200 (TTFB 0,128–0,972 s), secundário três 307
+para o principal (0,097–0,249 s), `x-vercel-id` em `gru1`. Rollback conhecido:
+`dpl_DH5etxpExwKTLPDU5d6qj6LttkwU`, publicação anterior #110.
+
+Na sessão real do médico Guilherme em `institutovivance.app`, a consulta
+sintética selecionada mostrou objetivo sem repetição nos dois relatos, três
+arquivos disponíveis, Glicose revisada 92 mg/dL e 24 resultados pendentes.
+Arquivos e cadastro começaram recolhidos e abriram com fontes, datas e respostas
+originais. O link do resultado abriu Documentos do mesmo paciente, com Glicose,
+referência 70–99 mg/dL, revisão v5 e página 1 de origem. Peso 72,4 kg apareceu
+com data/origem, sem gráfico de um ponto ou cadastro idêntico; oito atalhos e
+Agenda foram preservados. Sem gravações clínicas, reprocessamento ou novas
+chamadas de IA. Estilos computados do bloco publicado mantiveram contraste AA
+textual; a verificação mobile, série e comparação foi local. Preview separado
+não foi executado. Tarefa Asana `1219378497566919` registra a entrega técnica;
+aceite de usabilidade do médico permanece pendente. O contrato IA2 e os gates
+abaixo não mudaram.
 
 ## IA2 — estado vigente
 
-O [PR #109](https://github.com/vitormilanez/instituto-vivance/pull/109) foi integrado. CI `38091031080` e release `38091148065` passaram com **499 testes**. A migration `20261010220240` foi aplicada ao `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), totalizando 68; `exam-text-worker` v10 executava extractor .3 nessa publicação anterior. O deployment `dpl_RA2tuX9j5juaihWkbskxgA4cWvQd` está production/READY no SHA acima. Publicação técnica não constitui aceite médico.
+O [PR #109](https://github.com/vitormilanez/instituto-vivance/pull/109) foi integrado. CI `38091031080` e release `38091148065` passaram com **499 testes**. A migration `20261010220240` foi aplicada ao `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), totalizando 68; `exam-text-worker` v10 executava extractor .3 nessa publicação anterior. O deployment `dpl_RA2tuX9j5juaihWkbskxgA4cWvQd` foi conferido production/READY no SHA `8be017c` do #109; é histórico e não o frontend vigente. Publicação técnica não constitui aceite médico.
 
 Na interface médica autenticada, foram corrigidos unidade `mg/dl` e referência `70 a 99 mg/dl` na revisão v2, data de 9 de outubro na v3 e confirmação sem recarga na v4. Após recarga, a revisão e o briefing conservaram data e unidade; em 390 px não houve overflow. A fixture original foi restaurada pela interface na v5. O item sintético de Glicose é `c56ba11a-9fa3-4a5e-aab0-67c8c5da228a`; a conta QA permanente permaneceu intacta. Essas revisões verificam correção e persistência do item, sem publicar resultados ao paciente.
 
