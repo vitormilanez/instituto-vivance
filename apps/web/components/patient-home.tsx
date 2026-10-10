@@ -177,7 +177,7 @@ export function PatientHome({
             {focus.kind === "consultation"
               ? "Agora"
               : isRequired && requiredPreparation
-                ? `Pedido de ${requiredPreparation.doctorDisplayName}`
+                ? "Para sua próxima consulta"
                 : "Seu próximo passo"}
           </p>
           <h2 id="pv-focus-title" className="pv-big">{focus.title}</h2>

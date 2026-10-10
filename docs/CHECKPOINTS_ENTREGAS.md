@@ -13,7 +13,7 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
 | Ordem | Slice | Resultado observável | Estado em 09/10 |
 | --- | --- | --- | --- |
 | Agora | **C3 — exame solicitado** | Paciente responde ao pedido; médico revisa; paciente vê recibo operacional. | Código no PR #95; percurso parcial em Preview com PDF fictício, isolamento por outros papéis e aceite abertos. |
-| Depois | **C2/C3 — continuidade da pessoa** | Hoje e ficha mostram contexto com origem/data; consulta e retorno preservam o paciente. | Código no PR #95; navegação parcial validada, consulta → retorno e aceite pendentes. |
+| Depois | **C2/C3 — continuidade da pessoa** | Hoje e ficha mostram contexto com origem/data; consulta e retorno preservam o paciente. | Percurso sintético paciente → pré-consulta → registro → plano publicado → retorno conferido no Preview; correção do estado de publicação no PR #95 aguarda novo Preview/CI. Aceite clínico e operacional pendentes. |
 | Avançado em paralelo no pacote | **IA2 — fila confiável** | Extração sintética prossegue sem aba aberta. | Worker Edge e Cron ativos no dev; job de fixture concluído sem aba, recuperado após lease expirada simulada e concluído na 2ª tentativa, sem duplicar a execução ou os 45 itens. |
 | Avançado em paralelo no pacote | **IA2 — itens conferíveis** | Médico compara cada item ao arquivo, página e trecho e registra revisão. | 45 itens fictícios em Preview; uma revisão por item persistiu; contrato de laudo e avaliação clínica pendentes. |
 | Antes de IA clínica | **IA1 — governança** | Finalidade, fontes, fornecedor, dados e revisão decididos. | [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) draft; decisão pendente. |
@@ -65,7 +65,7 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
 
 ## C2/C3 — contexto longitudinal e retorno
 
-- [x] Pré-consulta no [Preview do pacote](https://instituto-vivance-kt43rdyvx-vtr-consulting.vercel.app): correção do resumo salva como observação no rascunho, sem alterar o registro original; edição na revisão retorna à revisão. Conta paciente autenticada confirmou persistência após recarga; 320 px, 390 px e desktop sem overflow. Nenhuma resposta clínica foi enviada.
+- [x] Pré-consulta no [Preview do pacote](https://instituto-vivance-kt43rdyvx-vtr-consulting.vercel.app): correção do resumo salva como observação no rascunho, sem alterar o registro original; edição na revisão retorna à revisão. Conta paciente autenticada confirmou persistência após recarga; 320 px, 390 px e desktop sem overflow. Em 09/10, o formulário foi preenchido e enviado com texto explicitamente sintético para a consulta de 08/10.
 - [x] Revisada a proposta local em
   `/Users/vitormilanez/Desktop/Codes/vivance-c3-contexto`: objetivo e prioridade
   declarados, fonte/data, link que abre o registro original e contexto da
@@ -84,9 +84,20 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
   conferida em sessão médica autenticada no Preview atualizado.
 - [ ] Confirmar coleta e precedência de objetivo, dificuldades, medidas e
   lacunas; ausência de dado não vira zero, interpretação ou risco automático.
-- [ ] Completar cenário **paciente → consulta → registro médico → orientação
-  publicada → retorno** nos perfis sintéticos. Recarregar, conferir persistência
-  e manter aprovação separada de publicação.
+- [x] Percurso **paciente → pré-consulta → consulta → registro médico → orientação
+  publicada → retorno** conferido com as contas sintéticas no Preview do pacote.
+  A pré-consulta enviada apareceu no preparo do médico; atendimento
+  `3bc111f5-149e-4cf0-9850-409fd702cfca` foi finalizado com registro
+  exclusivamente demonstrativo. O plano `b0e8de2b-8772-4ea3-93be-a89f625229f2`
+  passou por revisão, aprovação e publicação separadas; o paciente viu a
+  revisão 1 e confirmou apenas leitura. O retorno de 16/10 às 20:55 apareceu
+  na Agenda médica e na Home do paciente após recarga. Isso valida o percurso
+  técnico, não avaliação nem aceite clínico.
+- [ ] Publicar novo Preview do pacote e conferir que o fechamento do atendimento
+  mostra “Publicado para a pessoa” quando `source_version` coincide com
+  `care_plans.version`; no Preview anterior, comparava com `revision` e exibia
+  “Aprovado, ainda não publicado” apesar da publicação real. Conferir também
+  o rótulo “Para sua próxima consulta” no convite automático de pré-consulta.
 - [ ] Validar a tarefa de localizar contexto, pendências, mudanças factuais e
   originais em Hoje/ficha, inclusive estados vazios e falhas. Registrar aceite
   operacional sem alegar aceite clínico por uma avaliação heurística.
@@ -120,7 +131,7 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
 2. [x] Gerar Preview do pacote no projeto Vercel confirmado (`vtr-consulting/instituto-vivance`), com flags IA2 restritas ao Preview e ao documento fictício. Deployment `dpl_4xTHa8p8DKKRrQWQ9gCYZ5RSC8Q7` é Preview `Ready`; a sessão médica autenticada confirmou no Preview final `ea199ee` os 45 itens, a revisão persistida e o rótulo em português.
 3. [x] Comparar migrations e aplicar somente `20261009231639` ao dev sintético confirmado. Worker v2 e Cron instalados; job real da fixture concluiu sem aba e a revisão persistiu.
 4. [x] Verificação controlada de lease expirada/retry no dev sintético. Revisar diff/segredos no fechamento do pacote; manter PR em rascunho até o aceite operacional C3.
-5. [ ] Completar C3 e consulta → retorno com perfis sintéticos autorizados; registrar aceite operacional e avaliação clínica separadamente. Só depois decidir merge/release. Gate P continua obrigatório antes de dados reais.
+5. [ ] Fechar isolamento visual C3, novo Preview das correções e aceite operacional; consulta → retorno já passou no percurso sintético. Registrar avaliação clínica separadamente. Só depois decidir merge/release. Gate P continua obrigatório antes de dados reais.
 
 ## Como atualizar este checklist
 
@@ -128,4 +139,4 @@ Marque somente com evidência do Git, ambiente e teste adequado. Registre data,
 Preview e limites no [status](STATUS_ATUAL.md); mantenha aqui a próxima ação.
 Antes de retomar, confira `AGENTS.md`, direção, status, HEAD do PR #95 e o destino
 do ambiente. O próximo bloqueio técnico IA2 é contrato de laudo, cobertura e outras falhas; o próximo
-bloqueio de produto é o aceite operacional C3 e o percurso consulta → retorno.
+bloqueio de produto é o isolamento visual/aceite operacional C3 e a avaliação clínica separada.
