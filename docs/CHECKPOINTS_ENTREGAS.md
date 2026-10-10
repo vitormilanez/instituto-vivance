@@ -9,6 +9,15 @@
 - [x] Reset de Vitor às 17h38 de 10/10 confirmado em Auth, banco e Storage; médico e QA preservados. Links anteriores inválidos para o próximo teste.
 - [ ] Vitor percorrer manualmente um **convite novo** para `vitor.milanezz@gmail.com` e dar aceite de usabilidade. Não recriar ou preencher a conta antes dele.
 
+## IA2 — cobertura e correções por campo (em andamento)
+
+- [x] Implementar correções parciais de unidade, referência e data; campos omitidos preservam correções anteriores e campos nulos removem informação. Extração original e revisões permanecem imutáveis.
+- [x] Proteção contra revisão concorrente com versão esperada, reenvio idempotente, validação de calendário e limites dos campos. API/RPC testadas localmente.
+- [x] Formulário preenchido com dados efetivos, nota opcional recolhida e histórico de revisões; tabela e briefing usam correções persistidas.
+- [x] Corpus fictício por campo/página: execução real 19/19 após um fallback Sonnet; variabilidade registrada. Revalidação privada offline: 82 itens fundamentados ante 76, sem offsets inválidos. Omissões silenciosas previstas, associações entre linhas e fallback aditivo têm casos dirigidos. Isso não é completude clínica.
+- [ ] Checks do pacote, migração compatível com a versão no ar, worker atualizado, integração e publicação no domínio.
+- [ ] Conferir edição pela interface médica, recarga, histórico, briefing e isolamento no ambiente sintético publicado.
+
 ## IA2 — rodada #106/#107
 
 - [x] Implementar extração estruturada com Haiku 5.5 e fallback seletivo Sonnet 5.5, página/trecho, fila e Cron de um minuto restritos ao dev sintético; revisão por item e acesso ao original separados. Migrations `20261010210749`/`20261010212152` aplicadas (67 no total), Edge v9 ACTIVE e Cron job 1 mantido. A chave Claude permanece segredo da Edge.
@@ -23,7 +32,8 @@
 ## Avaliação e próximos gates
 
 - [x] PDF privado de 25 páginas e duas JPEG processados via API apenas, sem expor os arquivos no app. Avaliação v1: 76 offsets Unicode exatos, 15 propostas descartadas, cobertura parcial. Revalidação **offline** após ajuste .2 confirmou os mesmos 76 offsets, identidade/emissor nulos em 3/3 casos aplicáveis com título do banco como fallback, e 53/53 datas com fonte/calendário válidos. Não houve nova chamada API, medição de completude clínica nem custo em USD.
-- [ ] Construir corpus de referência com campos esperados por arquivo/página e medir omissões por tipo. Priorizar lacunas nas páginas 1, 11 e 21 do PDF e imagem B1; corrigir campos específicos, sem ampliar para interpretação clínica.
+- [x] Criar corpus fictício com campos esperados por página e resolver o recorte de omissões desta entrega. Página 21 privada foi identificada como continuação de referência/metodologia; nenhum dado real foi importado.
+- [ ] Ampliar corpus por tipo de laudo e medir estabilidade entre execuções; obter gabarito e aceite médico, sem inferir completude dos 19 campos fictícios.
 - [ ] Validar separadamente o caminho de publicação de resultados ao paciente com aprovação médica explícita. Revisão de extração não publica conteúdo.
 - [ ] Aceite operacional do médico, contrato de laudo e qualidade; aceite clínico e dados reais dependem de IA1, produção separada e [Gate P](GATE_P.md).
 

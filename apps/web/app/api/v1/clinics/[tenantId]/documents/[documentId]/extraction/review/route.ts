@@ -1,4 +1,4 @@
-import { apiError, json } from "@/lib/api";
+import { apiError, boundedJson, json } from "@/lib/api";
 import { sameOrigin } from "@/lib/validation";
 import { reviewExamItem } from "@/modules/exams/service";
 
@@ -8,7 +8,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   if (!sameOrigin(request)) return json({ error: "Origem da solicitação não permitida." }, 403);
   try {
     const { tenantId, documentId } = await params;
-    return json(await reviewExamItem(tenantId, documentId, await request.json()), 201);
+    return json(await reviewExamItem(tenantId, documentId, await boundedJson(request, 16_384)), 201);
   } catch (error) {
     return apiError(error);
   }

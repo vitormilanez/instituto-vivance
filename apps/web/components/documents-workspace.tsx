@@ -531,13 +531,14 @@ function ExamResultItemReview({ item, originalUrl, endpoint, canReview, onReview
       const correctedData = decision === "corrected"
         ? { [item.item_kind === "narrative" ? "narrative_text" : "literal_value"]: replacement.trim() }
         : null;
-      const payloadKey = JSON.stringify({ decision, correctedData, note: note.trim() || null });
+      const expectedVersion = Math.max(0, ...item.reviews.map((review) => review.version));
+      const payloadKey = JSON.stringify({ decision, correctedData, expectedVersion, note: note.trim() || null });
       if (requestRef.current?.key !== payloadKey)
         requestRef.current = { key: payloadKey, id: crypto.randomUUID() };
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId: item.id, requestId: requestRef.current.id, decision, correctedData, note: note.trim() || null }),
+        body: JSON.stringify({ itemId: item.id, requestId: requestRef.current.id, expectedVersion, decision, correctedData, note: note.trim() || null }),
         signal: AbortSignal.timeout(20_000),
       });
       const body = await response.json();

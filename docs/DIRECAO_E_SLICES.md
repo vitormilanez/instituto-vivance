@@ -6,7 +6,9 @@
 
 IA2 do [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) avançou pelos [PRs #106](https://github.com/vitormilanez/instituto-vivance/pull/106) e [#107](https://github.com/vitormilanez/instituto-vivance/pull/107), integrados e publicados tecnicamente no dev sintético. Claude Haiku 5.5, com fallback seletivo Sonnet 5.5, produz itens com página/trecho; Edge v9 e Cron processam sem aba aberta. Médico revisa por item, abre o original e vê apenas fatos revisados no briefing; paciente não lê extração interna. O #107 usa o nome do arquivo como fallback e a revisão do item da extração v2 persistiu após recarga no domínio publicado. A avaliação privada teve cobertura parcial, apesar dos offsets confirmados; não há aceite clínico.
 
-Próximo slice: corpus com campos esperados por arquivo/página, medida de omissões e correções por campo, priorizando páginas 1, 11 e 21 do PDF e imagem B1. Validar em separado o caminho de publicação ao paciente após aprovação médica explícita; IA3/interpretação vêm depois. O PDF privado de 25 páginas e duas JPEG foram testados só via API e revalidados offline, sem repetição do benchmark; preço em USD e completude clínica não foram medidos. [IA2_EXAMES](IA2_EXAMES.md) e [checkpoints](CHECKPOINTS_ENTREGAS.md) trazem execução e limites.
+Slice autorizado em execução: corrigir omissões da extração e permitir edição de unidade, referência e data, com histórico e versão esperada. O corpus fictício possui campos esperados por página; o fallback é aditivo e dirigido às lacunas, preservando itens já vinculados à fonte. Publicação e conferência autenticada serão registradas no [status](STATUS_ATUAL.md) e nos [checkpoints](CHECKPOINTS_ENTREGAS.md).
+
+Próxima entrega após este slice: publicação explícita ao paciente de resultados aprovados pelo médico, com resumo enxuto e acesso ao original. Revisão de transcrição não equivale a aprovação/publicação. Ampliar o corpus de qualidade por tipo e medir estabilidade antes de IA3/interpretação; a avaliação privada não é gabarito clínico.
 
 ## Sequência e dependências
 
@@ -15,7 +17,7 @@ Próximo slice: corpus com campos esperados por arquivo/página, medida de omiss
 | Onboarding/convites | [PRs #103/#104](STATUS_ATUAL.md) publicados tecnicamente e jornada real testada; Vitor repetirá manualmente com convite novo. Usabilidade dele permanece pendente. QR coletivo exige contrato de aprovação médica; Google Sign-In exige OAuth real. |
 | C2/C3 operacional | Validar continuidade paciente → pedido/resposta → revisão → recibo → consulta/retorno, inclusive outros papéis/vínculos e persistência. Código do PR #95 não fecha aceite operacional. Não forjar assinatura/conduta médica. |
 | IA1 — governança | Decidir finalidade, fornecedor, dados permitidos, privacidade, rastreabilidade e revisão antes de ampliar além do piloto sintético. [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) é rascunho, sem aprovação inferida. |
-| IA2 — extração | Rodada #106/#107 entregue no dev sintético. Próximo: corpus com campos esperados, omissões mensuradas e edição de unidade/referência/data; publicação ao paciente requer aprovação explícita em entrega separada. |
+| IA2 — extração | Rodada #106/#107 entregue; cobertura e correções por campo em execução autorizada. Depois: publicação ao paciente com aprovação explícita, em entrega separada; estabilidade de extração e aceite médico seguem próprios. |
 | IA3–IA6 | Biblioteca aprovada/versionada, interpretação com evidência, verificação, validação médica e operação somente após gates do [plano de IA](PLANO_IA_CLINICA.md). |
 | C1/Gate P | `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`) é destino temporário único para testes sintéticos. Separar produção e cumprir [Gate P](GATE_P.md) antes de dados reais; preservar registros de origem incerta. |
 

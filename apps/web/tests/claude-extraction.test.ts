@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { groundedItems, groundedMetadata, numericValue, requestClaude } from "../../../supabase/functions/exam-text-worker/claude-extraction.ts";
+import { coverageGaps, coverageSegments, extractCoverageWithClaude, groundedItems, groundedMetadata, mergeGroundedAttempts, numericValue, requestClaude, unresolvedPageNotes } from "../../../supabase/functions/exam-text-worker/claude-extraction.ts";
 
 test("Claude facts keep exact Unicode provenance and reject invented values/names", () => {
   const text = "🧪 Laboratório\nGlicose 92 mg/dL referência 70 a 99 mg/dL";
@@ -13,8 +14,105 @@ test("Claude facts keep exact Unicode provenance and reject invented values/name
   assert.equal(Array.from(text).slice(Number(accepted.source_start), Number(accepted.source_end)).join(""), item.source_excerpt);
   assert.equal(accepted.requires_review_reason, "ai_extraction");
   assert.equal(numericValue("1.234,56"), null);
+  assert.equal(numericValue("1.234"), null);
+  assert.equal(numericValue("0,123"), 0.123);
   assert.equal(numericValue("< 20"), null);
   assert.equal(numericValue("1,2"), 1.2);
+});
+
+test("bounded literal repair accepts two-column value and source heading but rejects unrelated fields", () => {
+  const text = "Neutrófilos 55 % 3.850 /μL\nÁtrio Esq.: 21 mm\nOutro exame: 44 mg/dL";
+  const pages = [{ id: "p", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const model = { pages: [{ page_number: 1, source_text: null, items: [
+    { item_kind: "laboratory", literal_name: "Neutrófilos", literal_value: "55 % (3.850 /μL)",
+      unit_text: "%", source_excerpt: "Neutrófilos 55 % 3.850 /μL" },
+    { item_kind: "laboratory", literal_name: "Átrio Esquerdo", literal_value: "21", unit_text: "mm",
+      source_excerpt: "Átrio Esq.: 21 mm" },
+    { item_kind: "laboratory", literal_name: "Nome inventado", literal_value: "44", unit_text: "mg/dL",
+      source_excerpt: "Outro exame: 44 mg/dL" },
+    { item_kind: "laboratory", literal_name: "Átrio Direito", literal_value: "21", unit_text: "mm",
+      source_excerpt: "Átrio Esq.: 21 mm" },
+  ] }], metadata: {} };
+  const output = groundedItems(pages, model);
+  assert.equal(output.items.length, 2);
+  assert.equal(output.discarded, 2);
+  assert.deepEqual(output.items.map((item) => [item.literal_name, item.literal_value, item.unit_text]),
+    [["Neutrófilos", "55", "%"], ["Átrio Esq.", "21", "mm"]]);
+  for (const item of output.items)
+    assert.equal(Array.from(text).slice(Number(item.source_start), Number(item.source_end)).join(""), item.source_excerpt);
+});
+
+test("value and unit cannot be borrowed from reference or another exam", () => {
+  const text = "Glicose 90 mg/dL | ref 70 a 99 mg/dL\nTSH 2 | ref 0,4 a 4,0 mUI/L";
+  const page = [{ id: "p", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const input = { pages: [{ page_number: 1, source_text: null, items: [
+    { item_kind: "laboratory", literal_name: "Glicose", literal_value: "70",
+      unit_text: "mg/dL", source_excerpt: "Glicose 90 mg/dL | ref 70 a 99 mg/dL" },
+    { item_kind: "laboratory", literal_name: "Glicose", literal_value: "90",
+      unit_text: "mUI/L", reference_text: "0,4 a 4,0 mUI/L", source_excerpt: text },
+    { item_kind: "laboratory", literal_name: "TSH", literal_value: "2",
+      unit_text: "mUI/L", reference_text: "0,4 a 4,0 mUI/L", source_excerpt: "TSH 2 | ref 0,4 a 4,0 mUI/L" },
+  ] }], metadata: {} };
+  const output = groundedItems(page, input);
+  assert.equal(output.discarded, 1);
+  assert.equal(output.items.length, 2);
+  assert.deepEqual(output.items.map((item) => [item.literal_name, item.literal_value, item.unit_text, item.reference_text]),
+    [["Glicose", "90", null, null], ["TSH", "2", null, "0,4 a 4,0 mUI/L"]]);
+});
+
+test("retry merge retains repeated identical results at different source positions", () => {
+  const text = "Glicose 90 mg/dL\nNota de repetição\nGlicose 90 mg/dL";
+  const page = [{ id: "p", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const item = { item_kind: "laboratory", literal_name: "Glicose", literal_value: "90",
+    unit_text: "mg/dL", source_excerpt: "Glicose 90 mg/dL" };
+  const first = { pages: [{ page_number: 1, source_text: null, items: [
+    { ...item, source_excerpt: text }] }], metadata: {} };
+  const retry = { pages: [{ page_number: 1, source_text: null, items: [
+    { ...item, source_excerpt: "Nota de repetição\nGlicose 90 mg/dL" } ] }], metadata: {} };
+  // Overlapping excerpts cite two separate occurrences of the same result.
+  const merged = mergeGroundedAttempts(page, [first, retry]);
+  assert.equal(merged.items.length, 2);
+});
+
+test("coverage audit detects a missing source row without any grounding rejection", () => {
+  const entry = corpus.cases[0];
+  const page = [{ id: entry.id, page_number: entry.page_number, extracted_text: entry.text, possible_duplicate_of_page: null }];
+  const result = { pages: [{ page_number: entry.page_number, source_text: null,
+    items: [proposed(entry.expected[0], entry.observed_on)] }], metadata: {} };
+  const grounded = groundedItems(page, result);
+  assert.equal(grounded.discarded, 0);
+  assert.deepEqual(coverageGaps(page, grounded.items), [{ page_number: 1, candidates: 6, missing: 5 }]);
+});
+
+test("reference continuation is not counted as results; unsupported proposal leaves a visible page note", () => {
+  const entry = corpus.audit_cases[0];
+  const page = [{ id: entry.id, page_number: entry.page_number, extracted_text: entry.text, possible_duplicate_of_page: null }];
+  const model = { pages: [{ page_number: entry.page_number, source_text: null, items: [
+    { item_kind: "narrative", literal_name: "Conclusão inventada", narrative_text: "Resultado atual inventado",
+      source_excerpt: "Observação: A/B a 50(X) = C/D." },
+  ] }], metadata: {} };
+  const grounded = groundedItems(page, model);
+  assert.equal(grounded.items.length, 0);
+  assert.deepEqual(grounded.rejectedPages, [21]);
+  assert.deepEqual(coverageGaps(page, grounded.items), [{ page_number: 21, candidates: 0, missing: 0 }]);
+  assert.deepEqual(unresolvedPageNotes(page, grounded.rejectedPages, grounded.items),
+    ["Página 21: nenhum item com resultado ou narrativa literal verificável foi organizado. Confira o original."]);
+  assert.deepEqual(unresolvedPageNotes(page, [], grounded.items), []);
+});
+
+test("line-separated literal lab result triggers audit even if a model returns nothing", () => {
+  const entry = corpus.audit_cases[1];
+  const page = [{ id: entry.id, page_number: entry.page_number, extracted_text: entry.text, possible_duplicate_of_page: null }];
+  assert.deepEqual(coverageGaps(page, []), [{ page_number: 7, candidates: 1, missing: 1 }]);
+  const other = { id: "other", page_number: 8, extracted_text: "Glicose: 90 mg/dL", possible_duplicate_of_page: null };
+  const groundedElsewhere = groundedItems([other], { pages: [{ page_number: 8, source_text: null,
+    items: [{ item_kind: "laboratory", literal_name: "Glicose", literal_value: "90",
+      source_excerpt: "Glicose: 90 mg/dL" }] }], metadata: {} });
+  assert.deepEqual(coverageGaps([...page, other], groundedElsewhere.items), [
+    { page_number: 7, candidates: 1, missing: 1 },
+    { page_number: 8, candidates: 1, missing: 0 },
+  ]);
+  assert.equal(unresolvedPageNotes(page, [7], []).length, 1);
 });
 
 test("Truncated provider output cannot produce a completed result", async () => {
@@ -48,4 +146,82 @@ test("narrative labels and exam dates require literal source; metadata falls bac
   assert.equal(literal.issuer, "Lab de Teste");
   assert.equal(literal.identity_text, "Paciente Teste Vivance");
   assert.equal(literal.observed_on, "2024-02-29");
+});
+
+type Expected = { item_kind: "laboratory" | "narrative"; literal_name: string; literal_value?: string;
+  unit_text?: string; reference_text?: string; narrative_text?: string; source_excerpt: string };
+type Case = { id: string; page_number: number; kind: string; observed_on: string; text: string; expected: Expected[] };
+const corpus = JSON.parse(readFileSync(new URL("./fixtures/exams/coverage-corpus.json", import.meta.url), "utf8")) as {
+  cases: Case[]; audit_cases: { id: string; page_number: number; text: string; expected_candidates: number }[] };
+
+function proposed(item: Expected, observed_on: string) {
+  return { item_kind: item.item_kind, literal_name: item.literal_name,
+    literal_value: item.literal_value ?? null, unit_text: item.unit_text ?? null,
+    reference_text: item.reference_text ?? null, method_text: null, specimen_text: null,
+    observed_on, narrative_text: item.narrative_text ?? null, source_excerpt: item.source_excerpt };
+}
+
+test("synthetic corpus counts expected fields by page while retaining literal Unicode offsets", () => {
+  let expectedCount = 0;
+  let actualCount = 0;
+  for (const entry of corpus.cases) {
+    const page = { id: entry.id, page_number: entry.page_number, extracted_text: entry.text, possible_duplicate_of_page: null };
+    assert.deepEqual(coverageGaps([page], []), [{ page_number: entry.page_number,
+      candidates: entry.expected.length, missing: entry.expected.length }], entry.id);
+    const initial = { pages: [{ page_number: entry.page_number, source_text: null,
+      items: [proposed(entry.expected[0], entry.observed_on),
+        { ...proposed(entry.expected[1], entry.observed_on), literal_name: "Nome que não consta na fonte",
+          literal_value: "999", narrative_text: "Texto que não consta na fonte" }] }], metadata: {} };
+    const audit = { pages: [{ page_number: entry.page_number, source_text: null,
+      items: entry.expected.map((item) => proposed(item, entry.observed_on)) }], metadata: {} };
+    const grounded = mergeGroundedAttempts([page], [initial, audit]);
+    assert.equal(grounded.discarded, 1, entry.id);
+    assert.equal(grounded.items.length, entry.expected.length, entry.id);
+    assert.deepEqual(grounded.items.map((item) => item.item_index), entry.expected.map((_, index) => index + 1), entry.id);
+    for (const expected of entry.expected) {
+      const item = grounded.items.find((candidate) => candidate.source_excerpt === expected.source_excerpt);
+      assert.ok(item, `${entry.id}: ${expected.literal_name}`);
+      assert.equal(item.item_kind, expected.item_kind);
+      assert.equal(item.literal_name, expected.literal_name);
+      assert.equal(item.literal_value, expected.literal_value ?? null);
+      assert.equal(item.unit_text, expected.unit_text ?? null);
+      assert.equal(item.reference_text, expected.reference_text ?? null);
+      assert.equal(item.narrative_text, expected.narrative_text ?? null);
+      assert.equal(item.observed_on, entry.observed_on);
+      assert.equal(Array.from(entry.text).slice(Number(item.source_start), Number(item.source_end)).join(""), expected.source_excerpt);
+      assert.equal(item.page_number, entry.page_number);
+    }
+    expectedCount += entry.expected.length;
+    actualCount += grounded.items.length;
+  }
+  assert.equal(actualCount, expectedCount);
+  assert.equal(expectedCount, 19);
+});
+
+test("coverage audit splits long pages at line boundaries and keeps valid first attempt after a failed segment", async () => {
+  const source = Array.from({ length: 20 }, (_, index) => `Linha ${index + 1}: Exame ${index + 1} | ${index + 1} mg/dL | referência fictícia`).join("\n");
+  const page = { page_number: 21, extracted_text: source };
+  const segments = coverageSegments(page);
+  assert.equal(segments.length, 2);
+  assert.ok(segments[0].extracted_text?.includes("Linha 1:"));
+  assert.ok(segments[1].extracted_text?.includes("Linha 20:"));
+  assert.ok(segments[0].extracted_text?.includes("Linha 10:"));
+  assert.ok(segments[1].extracted_text?.includes("Linha 10:"));
+  let calls = 0;
+  const fetcher = (async (_url: unknown, init: RequestInit) => {
+    calls++;
+    const request = JSON.parse(String(init.body));
+    assert.equal(request.model, "claude-sonnet-5-5");
+    assert.equal(request.max_tokens, 6000);
+    if (calls === 2) return Response.json({}, { status: 503 });
+    return Response.json({ stop_reason: "tool_use", usage: { input_tokens: 11, output_tokens: 7 },
+      content: [{ type: "tool_use", name: "extract_exam", input: { pages: [{ page_number: 21,
+        source_text: null, items: [] }] } }] });
+  }) as typeof fetch;
+  const audit = await extractCoverageWithClaude("test-only", [page], fetcher);
+  assert.equal(calls, 2);
+  assert.equal(audit.attempts.length, 1);
+  assert.equal(audit.failed, 1);
+  assert.equal(audit.inputTokens, 11);
+  assert.equal(audit.outputTokens, 7);
 });
