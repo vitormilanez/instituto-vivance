@@ -1,5 +1,9 @@
 # Direção do Vivance e próximos slices
 
+**Pacote publicado em 10/10:** PRs #97/#98, SHA `95bc995`, domínio principal
+conferido após promoção pela CLI. Próximo: gerar convite novo (o de 08:27
+está cancelado) e percorrer aceite/onboarding no celular.
+
 **Ajuste prioritário de 10/10:** facilitar convite e primeiro acesso antes de
 avaliar novamente o onboarding. Adotar do conceito do Claude a ação de convite
 na própria área de Pacientes, estados recentes visíveis e alternativa discreta

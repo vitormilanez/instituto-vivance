@@ -1,6 +1,37 @@
 # Estado atual do Vivance
 
-## Página de pacientes — revisão Claude, 10/10/2026 (local)
+## Publicação de convites e onboarding — 10/10/2026
+
+PRs #97 e #98 integrados. Código publicado: `95bc995965d51a10df381c5cdc717f7239feb912`.
+Vercel CLI 63.1.2 confirmou `vtr-consulting/instituto-vivance`, Root Directory
+`apps/web`, Node 24.x. Build remoto READY/production:
+`dpl_CJTnT79AX7pq7EALs7oPqiTNmTMh`,
+https://instituto-vivance-cq6zs5293-vtr-consulting.vercel.app.
+Promovido manualmente; os dois domínios resolvem para esse ID. Principal:
+https://institutovivance.app/login (HTTP 200, TTFB 1,251 s, `gru1`).
+Secundário: HTTP 307 para o principal, TTFB 0,050 s. Deployment anterior:
+`dpl_9oRUsriSW34mP4LqFJWvhDhEo83U` (recuperação de código).
+
+Node 24 em cópia limpa: typecheck, lint (zero erros, um aviso preexistente),
+460 testes e build passaram. CI do PR #97: run `38051482376` aprovado;
+CI do ajuste CSS #98: run `38051684660` aprovado. Verificação visual local
+autenticada em 1440 e 390 px, incluindo menu mobile e layout final.
+Workflow release do SHA publicado: run `38051715988`, verificação aprovada;
+migration/Edge Functions e promoção automáticas skipped por configuração.
+Promoção executada manualmente pela CLI e domínios conferidos.
+No domínio publicado: login médico real, menu desktop/mobile para o formulário,
+filtro aguardando aceite/estado vazio/retorno a Todos e viewport sem overflow
+confirmados em 390 px. Não houve criação nem envio de convite nesta conferência.
+O menu mobile precisa ser fechado pelo próprio botão Menu após selecionar o
+atalho na mesma página; isso não bloqueia o acesso ao formulário.
+O ambiente público continua no Supabase sintético `oxuwrdjojsmgxoljqkuk`;
+nenhuma migration ou Edge Function necessária para este lote.
+O convite de Vitor de 08:27 aparece CANCELADO na leitura atual, não pendente.
+Para recomeçar, gerar novo convite pela página publicada. Não criei nem consumi
+convites durante esta publicação. Google OAuth e QR coletivo ainda pendentes.
+
+
+## Página de pacientes — histórico da implementação local de 10/10/2026
 
 O domínio fotografado pelo usuário ainda mostra a versão anterior; o trabalho
 na branch `codex/onboarding-novo-paciente-20261009` não foi publicado.
