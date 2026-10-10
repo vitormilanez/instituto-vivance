@@ -124,8 +124,9 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
 - [x] Lease vencida simulada no job fictício; Cron recuperou e concluiu a 2ª tentativa às 21:15 de 09/10 (São Paulo). Persistiram 1 execução e 45 itens, sem duplicação.
 - [x] No PR #95, a tela interna de Processamentos identifica a tarefa de exame
   como “Leitura de exame”, destaca tarefas encerradas com falha na página e
-  encaminha a equipe ao original. Alteração local; validação de código pendente.
-  O aviso depende de a equipe abrir a tela e não é notificação proativa.
+  encaminha a equipe ao original. CI do commit `0bcd6c9` passou (testes, lint,
+  typecheck e build). Ainda não houve tarefa falha observada no Preview. O aviso
+  depende de a equipe abrir a tela e não é notificação proativa.
 - [ ] Exercitar outras falhas transitórias e definir monitoramento/alerta
   operacional proativo. O teste de lease não cobre falha de download, serviço
   externo ou erro permanente; a indicação visual acima não fecha este item.
