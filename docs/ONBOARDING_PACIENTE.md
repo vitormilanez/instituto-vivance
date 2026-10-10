@@ -53,8 +53,8 @@ saúde. Ao editar pela revisão, Continuar retorna à conferência.
   gravação com versão e submissão com seção/consentimento. Não há escrita clínica
   automática, interpretação por IA ou orientação gerada pelo cadastro.
 - A ficha médica mostra respostas originais e as seções efetivamente enviadas.
-  A migration `20261010011422_patient_profile_context.sql` é necessária para
-  servir o novo código; ainda não foi aplicada ao dev nesta entrega local.
+  A migration `20261010011422_patient_profile_context.sql` foi aplicada somente
+  ao dev sintético em 09/10, após comparar o histórico local/remoto.
 
 ## Evidência e próxima execução
 
@@ -70,9 +70,14 @@ saúde. Ao editar pela revisão, Continuar retorna à conferência.
 - [x] PGlite verificou saúde no snapshot, rascunho privado, compartilhamento
   explícito, fotos privadas antes do envio, versões obsoletas, documento de outro
   paciente, outra clínica e vínculo revogado.
-- [ ] Aplicar a migration no dev sintético quando preparar o Preview final do
-  pacote e percorrer com login real: salvar/retomar → enviar → recarregar Hoje
-  → alimentação → fotos → exames → ficha médica. Confirmar aviso e originais.
+- [x] Preview do `ddedfc7` com login real paciente/médico: alimentação salva e
+  retomada após recarga; três imagens sintéticas e um PDF fictício enviados;
+  aviso avançou e desapareceu; ficha médica mostrou a versão compartilhada.
+  O cadastro inicial da conta já havia sido enviado, portanto o wizard inicial
+  completo ainda não foi percorrido com autenticação real nesta rodada.
+- [ ] Revalidar no Preview posterior o ajuste de contagem/fila: fotos internas
+  ficam no perfil, não como exames pendentes; Home não atribui revisão de exame
+  a arquivo interno do perfil.
 - [ ] Aceite de usabilidade com paciente/médico; não equivale a aceite clínico.
 
 ## Referências utilizadas

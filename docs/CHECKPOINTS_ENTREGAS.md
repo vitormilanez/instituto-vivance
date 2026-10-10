@@ -6,7 +6,7 @@ técnica específica, não aceite clínico.
 
 **Checkout oficial:** `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`,
 branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) draft. É o pacote único de C3/PR #93, contexto/PR #94 e IA2/PR #78, ainda fora da `main`.
-**Ambiente técnico:** `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), somente dados sintéticos. Migrations reconciliadas: 64 no dev, incluindo `20261009231639`. Não executar outra migration ou release sem reconferir destino e histórico. Gate P antes de dados reais.
+**Ambiente técnico:** `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), somente dados sintéticos. Migrations reconciliadas: 65 no dev, incluindo `20261010011422`. Não executar outra migration ou release sem reconferir destino e histórico. Gate P antes de dados reais.
 
 ## Prioridade atual — onboarding progressivo
 
@@ -21,8 +21,15 @@ Escopo e fluxo: [ONBOARDING_PACIENTE](ONBOARDING_PACIENTE.md).
 - [x] Snapshots compartilhados para a equipe; teste PGlite de versão, isolamento,
   rascunhos e fotos privadas antes do compartilhamento.
 - [x] Percurso inicial visual local com fixture; edição volta à revisão.
-- [ ] Preparar dev/Preview final com a nova migration e conferir o percurso
-  autenticado paciente → equipe → recarga. Não foi publicado nesta rodada.
+- [x] Aplicar somente a migration do perfil no dev sintético, após comparar
+  histórico. CI do `ddedfc7` passou e o Preview `dpl_C5X5CJEZWJQXVGnEqRYfCNZzTo38`
+  ficou `Ready` com alvo `preview`.
+- [x] Em contas autenticadas de teste, alimentação salva/retomada após recarga,
+  três imagens sintéticas e PDF fictício enviados, aviso de Hoje avançou e sumiu;
+  ficha médica exibiu as seções compartilhadas. O wizard inicial segue
+  comprovado apenas em fixture local porque esta conta já tinha cadastro enviado.
+- [ ] Conferir em novo Preview o ajuste que retira fotos internas da fila/contagem
+  de exames e arquivos internos do perfil dos últimos envios do paciente.
 - [ ] Aceite de usabilidade e retomada dos checkpoints C3/IA2 pendentes abaixo.
 
 ## Ordem de trabalho

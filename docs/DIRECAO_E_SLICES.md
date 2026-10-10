@@ -26,7 +26,11 @@ da equipe, Agenda e a distinção entre aprovar, publicar e exportar.
 conclusão animada → Hoje → alimentação → fotos → exames anteriores. Reutilizar
 coleta existente e remover a repetição das cinco perguntas genéricas no caminho
 padrão. O pacote continua único no PR #95, sem publicação individual dos slices.
-Implementação local e implantação no dev são checkpoints separados.
+Implementação local e implantação no dev são checkpoints separados; o Preview
+do pacote e o percurso complementar com as duas contas sintéticas estão
+registrados no [status](STATUS_ATUAL.md). O próximo gate é revalidar o ajuste
+da fila de documentos e obter aceite de usabilidade; o wizard inicial ainda
+carece de percurso autenticado em conta nova apropriada.
 
 ## Experiência médica — orientação para a próxima proposta
 

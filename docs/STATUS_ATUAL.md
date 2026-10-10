@@ -4,20 +4,37 @@
 
 **Checkout oficial para continuar:** `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`, branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) em rascunho. Reúne C3/PR #93, contexto longitudinal/PR #94 e IA2/PR #78 sem alterar os três PRs de origem nem o clone IA2. `origin/main` estava em `ebadaab8` na última conferência; o pacote ainda não foi integrado à `main`.
 
-**Prioridade nova — onboarding paciente, 09/10:** implementação no pacote local:
+**Prioridade nova — onboarding paciente, 09/10:** implementação no pacote:
 contexto inicial de saúde e medidas, objetivo final, conclusão animada e entrada
 direta em Hoje; aviso no app leva a alimentação, fotos e exames. Rascunhos e
 submissões por seção são separados, e a equipe lê somente versões enviadas.
-TypeScript, lint, build local e 459 testes passaram.
+TypeScript, lint, build local, 459 testes e CI do `ddedfc7` passaram.
 O [contrato e a evidência](ONBOARDING_PACIENTE.md) descrevem o fluxo. A migration
-`20261010011422_patient_profile_context.sql` foi testada em PGlite e **ainda não
-aplicada ao dev**; o Preview abaixo não inclui este onboarding. A rodada visual
-local usou fixture e interceptação de API, sem autenticação remota. Próximo passo:
-preparar o Preview final do pacote no dev e verificar os dois perfis reais de teste.
+`20261010011422_patient_profile_context.sql` foi aplicada somente ao dev sintético
+confirmado, com migrations locais/remotas pareadas, RLS e grant da RPC de gravação
+conferidos. O [Preview do onboarding](https://instituto-vivance-qwhf4iopw-vtr-consulting.vercel.app)
+(`dpl_C5X5CJEZWJQXVGnEqRYfCNZzTo38`, código `ddedfc7`) ficou `Ready` como
+`preview`, com build/TypeScript aprovados. Em login real da conta paciente de
+teste, a alimentação foi salva, retomada após recarga e enviada; o aviso de Hoje
+avançou para fotos, depois exames, e desapareceu ao completar as três seções.
+Três PNGs identificados como sintéticos e um PDF fictício foram enviados; a
+ficha médica autenticada mostrou a alimentação literal e as seções de fotos e
+exames compartilhadas. O cadastro inicial do paciente já estava enviado antes
+da rodada: seu novo wizard completo foi validado apenas com fixture local,
+sem prova autenticada de novo cadastro. Nenhum dado clínico real ou aceite
+clínico decorre desse teste.
 
-**Preview mais recente verificado do pacote:** [Vercel](https://instituto-vivance-iyod72j1u-vtr-consulting.vercel.app), deployment `dpl_CKSnZPPubfSTCXcoD1o8WKSLbe4f`, alvo `preview`, código `d91127d`; build e TypeScript passaram. O CI do HEAD documental `1b37f84` passou. No [Preview IA2 anterior](https://instituto-vivance-m4cifg9re-vtr-consulting.vercel.app), deployment `dpl_4xTHa8p8DKKRrQWQ9gCYZ5RSC8Q7`, código `ea199ee`, o médico autenticado viu o paciente fictício, os documentos e os itens IA2, inclusive “revisão 1: transcrição confirmada” e o contador persistido “1 de 45 com decisão”. A alteração posterior da tela de Processamentos ainda não foi publicada em Preview.
+**Ajuste encontrado na validação:** os arquivos internos do perfil apareciam
+na Home paciente com estado de revisão indisponível e as fotos entravam na
+contagem de exames/documentos para revisar do médico. O pacote filtra a Home
+para envios avulsos compartilhados e a fila/contagem médica para exames ou
+documentos compartilhados, mantendo fotos no perfil e na lista de documentos.
+Esse ajuste posterior ao `ddedfc7` ainda precisa de CI e novo Preview antes de
+ser considerado observado no navegador.
 
-**Banco e worker sintéticos:** destino confirmado `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), com 64 migrations após aplicar somente `20261009231639_ia2_structured_exam_items.sql`. A Edge Function `exam-text-worker` v2 foi implantada com autenticação própria por segredo; `pg_cron`/`pg_net` foram instalados e o job `vivance-ia2-exam-text-worker-synthetic` está ativo a cada minuto, com URL e segredo guardados no Vault. Uma chamada sem segredo recebeu 401; com segredo e fila vazia, 204. Nenhuma credencial foi gravada no Git.
+**Preview mais recente verificado do pacote:** [Vercel](https://instituto-vivance-qwhf4iopw-vtr-consulting.vercel.app), deployment `dpl_C5X5CJEZWJQXVGnEqRYfCNZzTo38`, alvo `preview`, código `ddedfc7`; build e TypeScript passaram. O CI desse SHA passou. O ajuste posterior da fila/contagem ainda não está nesse Preview. No [Preview IA2 anterior](https://instituto-vivance-m4cifg9re-vtr-consulting.vercel.app), deployment `dpl_4xTHa8p8DKKRrQWQ9gCYZ5RSC8Q7`, código `ea199ee`, o médico autenticado viu o paciente fictício, os documentos e os itens IA2, inclusive “revisão 1: transcrição confirmada” e o contador persistido “1 de 45 com decisão”. A alteração posterior da tela de Processamentos ainda não foi publicada em Preview.
+
+**Banco e worker sintéticos:** destino confirmado `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), com 65 migrations após aplicar também `20261010011422_patient_profile_context.sql`. A Edge Function `exam-text-worker` v2 foi implantada com autenticação própria por segredo; `pg_cron`/`pg_net` foram instalados e o job `vivance-ia2-exam-text-worker-synthetic` está ativo a cada minuto, com URL e segredo guardados no Vault. Uma chamada sem segredo recebeu 401; com segredo e fila vazia, 204. Nenhuma credencial foi gravada no Git.
 
 **Teste integrado IA2, exclusivamente fictício:** o médico enviou `vivance-ia2-synthetic-cron-20261009.pdf` para `Paciente Sintético IA2` como arquivo interno (documento `d1c16e38-6aaf-482b-83c5-0e335fc4d8a2`). Após enfileirar, a aba foi fechada. O job `38c3bcfc-17de-4da1-b556-0d2c1f7919df` permaneceu pendente até o Cron e terminou em uma tentativa às **21:02 de 09/10, horário de São Paulo**: 3 páginas, 45 itens (44 marcadores fictícios e 1 trecho narrativo), execução `requires_review`. No Preview, a sessão médica exibiu página, trecho e link ao original; uma confirmação de transcrição fictícia ficou como revisão 1 e persistiu após recarga. A sessão autenticada de paciente foi negada no endpoint de extração. O primeiro envio fictício da rodada (`cc18f7f1-a6e6-43b9-8846-34830775f748`) registrou 3 páginas sem itens porque a rota web antiga consumiu o job antes do Cron; o commit `f21cf09` retirou esse executor concorrente, e o segundo teste comprovou o caminho agendado. Ambos permanecem no dev como registros de teste, sem revisão clínica.
 

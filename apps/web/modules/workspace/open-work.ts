@@ -67,6 +67,8 @@ export async function openWork(
           .eq("status", "available")
           // Foto de refeição é parte do relato, não exame: fica fora.
           .eq("attached_to", "documents")
+          // Fotos do perfil são documentos internos, mas não são exames para revisão.
+          .or("category.eq.exam,visibility.eq.shared")
           .in("patient_id", input.activePatientIds)
           .order("created_at", { ascending: false })
           .order("id")

@@ -47,6 +47,9 @@ export async function patientRecentSent(id: string): Promise<SentItem[] | null> 
         .eq("patient_id", patient)
         .eq("uploaded_by", user.id)
         .eq("status", "available")
+        // Arquivos do perfil ficam no histórico da seção; não têm revisão
+        // individual e não devem ocupar os últimos envios como exames avulsos.
+        .eq("visibility", "shared")
         // Foto de refeição é parte do relato, não exame: fica fora.
         .eq("attached_to", "documents")
         .order("created_at", { ascending: false })

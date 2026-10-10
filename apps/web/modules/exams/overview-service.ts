@@ -32,6 +32,7 @@ export async function patientExamOverview(tenantInput: string, patientInput: str
       .eq("patient_id", patient)
       .eq("status", "available")
       .eq("attached_to", "documents")
+      .or("category.eq.exam,visibility.eq.shared")
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .range(offset, offset + batchSize - 1);
