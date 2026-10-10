@@ -1,8 +1,20 @@
 # Estado atual do Vivance
 
+## Publicação técnica — 09/10/2026, 23h (São Paulo)
+
+O pacote do [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) foi integrado à `main` no commit `1fda196940dd6fd98b110a1108a95b5890dcd908`. O run [38015255596](https://github.com/vitormilanez/instituto-vivance/actions/runs/38015255596) passou por testes, lint, typecheck e build. As etapas de migração e promoção do workflow ficaram **ignoradas por configuração ausente**, apesar do resultado verde; não representam operações executadas.
+
+O projeto Vercel confirmado é `vtr-consulting/instituto-vivance` (`prj_ligeZuFRycRXA21u5rRzaLAORTrI`, raiz `apps/web`). O deployment automático `dpl_9oRUsriSW34mP4LqFJWvhDhEo83U` ficou `READY`, alvo `production`, com metadado Git para o mesmo SHA da `main`. Os aliases [institutovivance.app](https://institutovivance.app) e [instituto-vivance.vercel.app](https://instituto-vivance.vercel.app) foram apontados manualmente e ambos resolveram para esse ID; antes da troca, o domínio principal apontava para `dpl_CX5tbs3FCgC9Jm94goAnHoikGTmj`. Três requisições a `/login` no domínio principal deram HTTP 200; o secundário respondeu 307 para o principal.
+
+A variável pública de Supabase na Vercel Production aponta para o projeto **sintético** `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`). A CLI confirmou 65 migrations locais/remotas pareadas antes da publicação; nenhuma nova migration ou Edge Function foi aplicada neste release, pois já estavam no dev. `SUPABASE_URL` legado na Vercel aponta a outra referência, mas a aplicação em `apps/web` usa `NEXT_PUBLIC_SUPABASE_URL`; revisar/remover a configuração legada em tarefa própria, sem alterar o destino em silêncio.
+
+No domínio principal, houve login real da conta sintética de paciente: Hoje exibiu a próxima consulta, o plano demonstrativo publicado e os envios com estados; “Seu perfil de cuidado” abriu a etapa de alimentação com opção previamente preenchida. Após sair, o médico sintético entrou na clínica e Hoje exibiu **7 documentos aguardando revisão**, com os documentos de exame na fila. Isso é smoke test técnico e não repetição completa da jornada de Preview. O wizard inicial de conta nova, isolamento visual de outros papéis, aceite operacional/UX, contrato de exames IA2, avaliação clínica, separação de produção e Gate P continuam pendentes. **Não usar dados reais.**
+
+**Checkout para a próxima entrega:** `/Users/vitormilanez/Desktop/Codes/vivance-release-main-20261009`, a partir da `origin/main` atual. Crie uma nova branch para o próximo slice; a branch do pacote permanece como histórico.
+
 ## Pacote integrado — 09/10/2026
 
-**Checkout oficial para continuar:** `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`, branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) em rascunho. Reúne C3/PR #93, contexto longitudinal/PR #94 e IA2/PR #78 sem alterar os três PRs de origem nem o clone IA2. `origin/main` estava em `ebadaab8` na última conferência; o pacote ainda não foi integrado à `main`.
+**Fotografia anterior à publicação:** `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`, branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95). Reuniu C3/PR #93, contexto longitudinal/PR #94 e IA2/PR #78 sem alterar os três PRs de origem nem o clone IA2. Antes do merge, `origin/main` estava em `ebadaab8`; prevalece o registro de publicação acima.
 
 **Prioridade nova — onboarding paciente, 09/10:** implementação no pacote:
 contexto inicial de saúde e medidas, objetivo final, conclusão animada e entrada

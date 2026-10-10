@@ -25,12 +25,12 @@ da equipe, Agenda e a distinção entre aprovar, publicar e exportar.
 [onboarding progressivo](ONBOARDING_PACIENTE.md): contexto e objetivo inicial →
 conclusão animada → Hoje → alimentação → fotos → exames anteriores. Reutilizar
 coleta existente e remover a repetição das cinco perguntas genéricas no caminho
-padrão. O pacote continua único no PR #95, sem publicação individual dos slices.
-Implementação local e implantação no dev são checkpoints separados; o Preview
-do pacote e o percurso complementar com as duas contas sintéticas estão
-registrados no [status](STATUS_ATUAL.md). O próximo gate é revalidar o ajuste
-da fila de documentos e obter aceite de usabilidade; o wizard inicial ainda
-carece de percurso autenticado em conta nova apropriada.
+padrão. O pacote único foi integrado à `main` pelo PR #95 e publicado
+tecnicamente em 09/10, sem publicação individual dos slices. Implementação,
+Preview, domínio principal e aceite permanecem checkpoints separados; o smoke
+test autenticado com as duas contas sintéticas está no [status](STATUS_ATUAL.md).
+O próximo gate é validar o wizard inicial com conta nova no celular e obter
+aceite de usabilidade; também permanecem os limites C3/IA2 e Gate P.
 
 ## Experiência médica — orientação para a próxima proposta
 
