@@ -18,8 +18,27 @@ Vitor possui vínculo e onboarding `draft/profile`; suas medidas seguem vazias.
 Os convites de 00h56/01h03 continuam ausentes. Conta existente não recebe novo
 e-mail; recebimento de e-mail para conta inexistente não foi validado.
 Impeccable 4.5 revisou mobile/desktop e estados; 468 testes, typecheck, lint
-sem erros (um aviso preexistente) e build passaram. Publicação web pendente
-neste registro, antes da integração.
+sem erros (um aviso preexistente) e build passaram. Publicado no [PR #100](https://github.com/vitormilanez/instituto-vivance/pull/100),
+main `0ae37fee882e02b379813c6bde1edaf8560a4eb6`. Vercel CLI confirmou
+`vtr-consulting/instituto-vivance` e promoveu
+`dpl_1R4WspV51ZdTJ8cyyyamZqquQyeF`
+(https://instituto-vivance-58f1g9339-vtr-consulting.vercel.app).
+Ambos os domínios resolveram para esse ID: principal `/login` HTTP 200,
+secundário HTTP 307. No domínio publicado, login real de Vitor a 390 px
+retomou `primeiros-passos/profile`, mostrou altura em metros e medidas vazias,
+sem overflow. Nenhum preenchimento ou submissão da conta de Vitor neste teste.
+CI do head `c52f041`: run `38053508584` aprovado; release da main:
+`38053586085`, verificação aprovada e operações automáticas de migration,
+Edge Functions e promoção skipped. Edge Function e promoção manuais conferidas.
+Recuperação de código: deployment anterior `dpl_CJTnT79AX7pq7EALs7oPqiTNmTMh`.
+
+A ficha médica autenticada mostrou medidas/objetivo do cadastro inicial com
+origem explícita, nascimento informado pelo paciente, alimentação e seções
+de fotos/exames compartilhadas. A confirmação visual final de e-mail longo
+usou uma resposta de claim interceptada apenas para layout; o percurso real
+do convite anterior foi executado sem interceptação. Convite removido retornou
+410 pela API real. Gmail conectado exige reautenticação; não foi possível
+comprovar recebimento de e-mail novo por esse conector.
 
 
 ## Publicação de convites e onboarding — 10/10/2026
