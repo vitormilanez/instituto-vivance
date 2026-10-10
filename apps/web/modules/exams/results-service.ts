@@ -115,7 +115,7 @@ export async function patientExamResults(tenantInput: string, patientInput: stri
     const info = metadataByRun.get(latest.get(document.id) ?? "");
     return {
       id: document.id,
-      title: info?.title || document.display_title || document.original_filename,
+      title: info?.title && info.title !== "Exame ou documento" ? info.title : document.display_title || document.original_filename,
       receivedAt: document.available_at ?? document.created_at,
       processingStatus: jobByDocument.get(document.id) ?? null,
       observedOn: info?.observed_on ?? null,

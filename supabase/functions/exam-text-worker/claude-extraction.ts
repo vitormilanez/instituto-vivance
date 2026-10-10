@@ -82,7 +82,7 @@ export function groundedMetadata(pages: TextPage[], metadata: Record<string, unk
     ?? (typeof documentTitle === "string" && documentTitle.trim() ? documentTitle.trim() : "Exame ou documento");
   return {
     ...metadata,
-    title,
+    title: title.slice(0, 240),
     issuer: literal(metadata.issuer),
     identity_text: literal(metadata.identity_text),
     observed_on: groundedDate(metadata.observed_on, allText),
