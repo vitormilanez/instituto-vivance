@@ -260,7 +260,7 @@ test("a tela lista os arquivos, reenvia um por vez e pede consentimento da lista
   // O consentimento nomeia a lista selecionada.
   assert.match(component, /Confirmo que selecionei \{ready\.length\} arquivo/);
   // Exames seguem opcionais.
-  assert.match(component, /Pular por enquanto/);
+  assert.match(readFileSync(new URL("../components/patient-profile-workspace.tsx", import.meta.url), "utf8"), /Fazer depois/);
   // Sem rolagem horizontal: nome longo quebra, item pode encolher, campo de
   // arquivo não passa da largura do container.
   assert.match(css, /\.onboarding-upload input\[type="file"\] \{[^}]*max-width: 100%;/);

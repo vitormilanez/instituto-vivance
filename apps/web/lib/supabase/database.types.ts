@@ -1337,6 +1337,23 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      patient_profile_context: {
+        Row: {
+          tenant_id: string; patient_id: string; user_id: string;
+          nutrition: Json; photos: Json; exams_status: string;
+          exams_document_ids: string[]; version: number; updated_at: string;
+          nutrition_submitted_at: string | null; photos_submitted_at: string | null;
+          exams_submitted_at: string | null;
+        };
+        Insert: never; Update: never; Relationships: [];
+      };
+      patient_profile_context_submissions: {
+        Row: {
+          id: string; tenant_id: string; patient_id: string; user_id: string;
+          section: string; source_version: number; payload: Json; submitted_at: string;
+        };
+        Insert: never; Update: never; Relationships: [];
+      };
       patient_onboarding: {
         Row: {
           tenant_id: string; patient_id: string; user_id: string;
@@ -1349,6 +1366,7 @@ export type Database = {
           answer_history: string; answer_routine: string;
           answer_treatments: string; answer_questions: string;
           share_consent: boolean; version: number;
+          health_context: Json;
           expected_version: number | null; submitted_at: string | null;
           created_at: string; updated_at: string;
         };
@@ -1362,6 +1380,7 @@ export type Database = {
           answer_history?: string; answer_routine?: string;
           answer_treatments?: string; answer_questions?: string;
           share_consent?: boolean; expected_version: number;
+          health_context?: Json;
         };
         Relationships: [];
       };
@@ -1377,6 +1396,7 @@ export type Database = {
           answer_history: string; answer_routine: string;
           answer_treatments: string; answer_questions: string;
           share_consent: boolean; submitted_at: string;
+          health_context: Json;
         };
         Insert: never;
         Update: never;
@@ -1898,6 +1918,14 @@ export type Database = {
       };
       submit_patient_onboarding: {
         Args: { target_tenant: string; read_version: number; explicit_share_consent: boolean };
+        Returns: number;
+      };
+      save_patient_profile_context: {
+        Args: { target_tenant: string; read_version: number; patch: Json };
+        Returns: number;
+      };
+      submit_patient_profile_context: {
+        Args: { target_tenant: string; read_version: number; target_section: string; explicit_share_consent: boolean };
         Returns: number;
       };
       get_my_patient_onboarding_context: {

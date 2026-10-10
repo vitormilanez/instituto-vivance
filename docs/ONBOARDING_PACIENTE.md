@@ -1,0 +1,86 @@
+# Onboarding do paciente
+
+Decisão do usuário em **09/10/2026**: priorizar o começo do paciente antes de ampliar
+C3/IA2. Implementação no pacote `codex/vivance-package-20261009`, PR #95.
+Superfície em modo **Operate**, com identidade paciente existente: Figtree,
+fundo quente, azul-marinho e dourado. Um grupo de perguntas por tela, escolhas
+com área de toque confortável e animação breve na conclusão.
+
+## Sequência e checkpoints
+
+1. **Primeiros passos** (`/clinicas/[tenantId]/primeiros-passos`): nascimento
+   para obter idade, peso em kg, altura e cintura em cm, data das medidas;
+   medicamentos/suplementos e alergias; condições diagnosticadas e cirurgias;
+   histórico familiar; objetivo em uma ou duas frases; conferência e envio.
+   Não perguntar idade e nascimento separadamente. Medidas são um retrato inicial,
+   não uma nova série de evolução. Não preencher ausência com zero.
+2. **Conclusão**: mensagem positiva, objetivo literal e animação de traço/check
+   em até 700 ms. Botão leva diretamente a Hoje; a redução de movimento é respeitada.
+3. **Hoje**: aviso persistente para completar alimentação. Após envio, o aviso
+   avança para fotos e depois exames; desaparece quando as três seções foram enviadas.
+   Trata-se de aviso dentro do app, sem push externo novo.
+4. **Alimentação** (`completar-perfil?etapa=alimentacao`): padrão alimentar;
+   preferências e alimentos evitados; horários aproximados e exemplos do café,
+   almoço, jantar e lanches; conferência. É perfil de rotina, distinto do diário.
+5. **Fotos** (`etapa=fotos`): frente, lado e costas; braços suavemente afastados,
+   postura natural, fundo simples e câmera na altura do tronco. Roupa ajustada e
+   confortável, como camiseta/top e shorts/legging; sem necessidade de nudez ou
+   rosto. Opcional para o paciente: “Fazer depois” preserva o rascunho. A seção
+   só se completa com três imagens distintas e consentimento.
+6. **Exames anteriores** (`etapa=exames`): PDF/JPG/PNG legíveis, arquivos
+   enviados e associados individualmente, reenvio apenas do que falhou. “Não
+   tenho exames agora” fecha a etapa sem inventar documento nem pedir novo exame.
+
+As seções complementares podem ser reabertas por **Meu cuidado → Seu perfil de
+cuidado**. Campos opcionais podem ficar em branco; o objetivo inicial pede ao
+menos uma frase. “Prefiro conversar” e “Não sei” são respostas explícitas de
+saúde. Ao editar pela revisão, Continuar retorna à conferência.
+
+## Dados e equipe
+
+- `patient_onboarding.health_context`: medicamentos, condições, alergias,
+  cirurgias e família, cada um com estado e texto literal. O objetivo reutiliza
+  `answer_goal`; os campos legados são preservados e só aparecem se preenchidos.
+- Rascunho inicial guarda a etapa exata. `patient_onboarding_submissions` mantém
+  o snapshot imutável, inclusive contexto de saúde, data e autoria.
+- `patient_profile_context`: rascunho próprio de alimentação/fotos/exames,
+  com versão otimista. `patient_profile_context_submissions`: snapshot imutável
+  por seção após envio explícito. A equipe lê a última submissão de cada seção.
+- Fotos/exames dessa sequência usam Storage privado e visibilidade `internal`.
+  O médico vinculado recebe acesso após a submissão da seção. Arquivos enviados
+  por outras superfícies com `shared` mantêm seu comportamento existente.
+- `GET/PATCH/POST /api/v1/clinics/[tenantId]/profile-context`: leitura própria,
+  gravação com versão e submissão com seção/consentimento. Não há escrita clínica
+  automática, interpretação por IA ou orientação gerada pelo cadastro.
+- A ficha médica mostra respostas originais e as seções efetivamente enviadas.
+  A migration `20261010011422_patient_profile_context.sql` é necessária para
+  servir o novo código; ainda não foi aplicada ao dev nesta entrega local.
+
+## Evidência e próxima execução
+
+- [x] Wizard inicial percorrido no navegador local com fixture explícita e
+  respostas de API interceptadas: início → dados → saúde → família → objetivo
+  → revisão → edição → revisão → conclusão. Isto verifica interação e layout,
+  não autenticação ou banco remoto.
+- [x] Capturas agrupadas desktop/celular, incluindo alimentação, fotos, exames
+  e aviso. Seções complementares a 390 px sem overflow horizontal observado.
+- [x] TypeScript, lint e build local passaram; suíte completa com 459 testes
+  passou. O helper/testes da contagem antiga de etapas foram retirados porque
+  não têm mais consumidores.
+- [x] PGlite verificou saúde no snapshot, rascunho privado, compartilhamento
+  explícito, fotos privadas antes do envio, versões obsoletas, documento de outro
+  paciente, outra clínica e vínculo revogado.
+- [ ] Aplicar a migration no dev sintético quando preparar o Preview final do
+  pacote e percorrer com login real: salvar/retomar → enviar → recarregar Hoje
+  → alimentação → fotos → exames → ficha médica. Confirmar aviso e originais.
+- [ ] Aceite de usabilidade com paciente/médico; não equivale a aceite clínico.
+
+## Referências utilizadas
+
+A separação entre contexto inicial e tarefas posteriores foi informada pela
+[entrada do Form Health](https://help.formhealth.co/article/429-onboarding) e
+pela [organização do aplicativo](https://help.formhealth.co/article/216-navigating-the-form-health-app),
+adaptada ao produto existente. Para a explicação de medida de cintura, consultar
+[o material do NHS/Salisbury](https://www.salisbury.nhs.uk/media/jmzjknev/mac12167managing-weighte04nlowres20190402.pdf).
+Essas referências orientam ritmo e instrução; não representam protocolo clínico
+aprovado pela Vivance.

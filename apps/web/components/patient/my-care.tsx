@@ -169,6 +169,7 @@ export function PatientMyCare({
             <span><strong>Receitas anteriores</strong><small>PDF, foto ou link da Memed</small></span>
             <Icon name="chevR" size={22} />
           </Link>
+          <Link className="pv-row-link" href={`/clinicas/${clinicId}/completar-perfil`}><span><strong>Seu perfil de cuidado</strong><small>Alimentação, fotos e exames anteriores</small></span><Icon name="chevR" size={22}/></Link>
           <Link className="pv-row-link" href={`${base}/metas`}>Metas e expectativas <Icon name="chevR" size={22} /></Link>
           <Link className="pv-row-link" href={`${base}/diario`}>
             <span>

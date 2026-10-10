@@ -80,7 +80,7 @@ test("multiple exam uploads persist each successful file before continuing", () 
     /for \(const item of items\) \{\s+dispatch\(\{ type: "sending", key: item\.key \}\);[\s\S]*await onComplete\(\[documentId\]\);\s+dispatch\(\{ type: "sent", key: item\.key \}\);/,
   );
   assert.match(
-    onboardingWorkspace,
-    /if \(!\(await persist\(\)\)\)[\s\S]*falta salvar sua associação/,
+    readFileSync(new URL("../components/patient-profile-workspace.tsx", import.meta.url), "utf8"),
+    /await save\(\);[\s\S]*falta salvar a associação/,
   );
 });

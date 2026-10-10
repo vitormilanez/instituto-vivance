@@ -1,4 +1,5 @@
 import { getSubmittedPatientOnboarding } from "@/modules/onboarding/service";
+import { getSubmittedPatientProfileContext } from "@/modules/onboarding/profile-service";
 import { OnboardingSummary } from "@/components/onboarding-summary";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -59,9 +60,12 @@ export default async function Patient({
   const active = selectedTab(tabs, query.aba);
   const recordBase = `/clinicas/${tenantId}/pacientes/${patientId}`;
   const clinicalArea = context.clinic.role !== "admin";
-  const [onboarding, intake, care] = await Promise.all([
+  const [onboarding, profileContext, intake, care] = await Promise.all([
     clinicalArea && active === "Visão geral"
       ? getSubmittedPatientOnboarding(tenantId, patientId)
+      : Promise.resolve(null),
+    clinicalArea && active === "Visão geral"
+      ? getSubmittedPatientProfileContext(tenantId, patientId)
       : Promise.resolve(null),
     clinicalArea && active === "Visão geral"
       ? getPatientIntake(tenantId, patientId)
@@ -264,12 +268,14 @@ export default async function Patient({
                   <summary>Cadastro enviado pelo paciente</summary>
                   <OnboardingSummary
                     record={onboarding}
+                    profileContext={profileContext}
                     documentsHref={`${recordBase}?aba=Documentos`}
                   />
                 </details>
               ) : (
                 <OnboardingSummary
                   record={onboarding}
+                  profileContext={profileContext}
                   documentsHref={`${recordBase}?aba=Documentos`}
                 />
               ))}

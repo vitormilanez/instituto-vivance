@@ -1,12 +1,29 @@
 # Checkpoints das próximas entregas
 
-Atualizado em **09/10/2026, 21:55 (São Paulo)**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
+Atualizado em **09/10/2026**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
 o [status](STATUS_ATUAL.md) guarda evidências. Checkboxes indicam verificação
 técnica específica, não aceite clínico.
 
 **Checkout oficial:** `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`,
 branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) draft. É o pacote único de C3/PR #93, contexto/PR #94 e IA2/PR #78, ainda fora da `main`.
 **Ambiente técnico:** `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), somente dados sintéticos. Migrations reconciliadas: 64 no dev, incluindo `20261009231639`. Não executar outra migration ou release sem reconferir destino e histórico. Gate P antes de dados reais.
+
+## Prioridade atual — onboarding progressivo
+
+Escopo e fluxo: [ONBOARDING_PACIENTE](ONBOARDING_PACIENTE.md).
+
+- [x] Contexto inicial: nascimento/medidas, medicamentos/alergias, condições,
+  cirurgias, família, objetivo e conferência; rascunho retoma a etapa exata.
+- [x] Conclusão positiva com animação breve e CTA direto para Hoje.
+- [x] Aviso dentro do app: alimentação → fotos → exames, com estado persistido.
+- [x] Perfil alimentar, guia de três fotos e exames anteriores, com seção
+  explícita “não tenho exames agora”; acesso posterior em Meu cuidado.
+- [x] Snapshots compartilhados para a equipe; teste PGlite de versão, isolamento,
+  rascunhos e fotos privadas antes do compartilhamento.
+- [x] Percurso inicial visual local com fixture; edição volta à revisão.
+- [ ] Preparar dev/Preview final com a nova migration e conferir o percurso
+  autenticado paciente → equipe → recarga. Não foi publicado nesta rodada.
+- [ ] Aceite de usabilidade e retomada dos checkpoints C3/IA2 pendentes abaixo.
 
 ## Ordem de trabalho
 

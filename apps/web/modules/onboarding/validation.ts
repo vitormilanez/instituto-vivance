@@ -1,7 +1,23 @@
 import { InputError } from "../../lib/validation.ts";
-import type { InvitationChannel, OnboardingStep } from "./types";
+import type { HealthContext, HealthStatus, InvitationChannel, OnboardingStep } from "./types";
 
-const steps = ["profile", "measurements", "questions", "exams", "review"] as const;
+const steps = ["profile", "measurements", "questions", "exams", "medications", "history", "family", "goal", "review"] as const;
+const healthKeys = ["medications", "conditions", "allergies", "surgeries", "familyHistory"] as const;
+const healthStatuses: HealthStatus[] = ["", "yes", "no", "unknown", "discuss"];
+
+export function healthContextInput(value: unknown): HealthContext {
+  const body = object(value, "Contexto de saúde inválido.");
+  exact(body, [...healthKeys], "O contexto de saúde contém campos não permitidos.");
+  if (Object.keys(body).length !== healthKeys.length) throw new InputError("Informe as cinco partes do contexto de saúde.");
+  return Object.fromEntries(healthKeys.map((key) => {
+    const answer = object(body[key], "Resposta de saúde inválida.");
+    exact(answer, ["status", "details"], "Resposta de saúde contém campos não permitidos.");
+    if (!healthStatuses.includes(answer.status as HealthStatus) ||
+      typeof answer.details !== "string" || answer.details.length > 4000 || /\x00/u.test(answer.details))
+      throw new InputError("Resposta de saúde inválida.");
+    return [key, { status: answer.status, details: answer.details }];
+  })) as HealthContext;
+}
 
 function object(value: unknown, message: string) {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -85,7 +101,7 @@ export function acceptInvitationInput(value: unknown) {
 
 export function onboardingPatchInput(value: unknown) {
   const body = object(value, "Dados do onboarding inválidos.");
-  exact(body, ["version", "currentStep", "skippedSteps", "examDocumentIds", "profile", "measurements", "answers", "shareConsent"], "O onboarding contém campos não permitidos.");
+  exact(body, ["version", "currentStep", "skippedSteps", "examDocumentIds", "profile", "measurements", "answers", "healthContext", "shareConsent"], "O onboarding contém campos não permitidos.");
   if (!Number.isInteger(body.version) || (body.version as number) < 1)
     throw new InputError("Versão do onboarding inválida.");
   const result: Record<string, unknown> = { expected_version: body.version };
@@ -133,6 +149,7 @@ export function onboardingPatchInput(value: unknown) {
       }
     }
   }
+  if (body.healthContext !== undefined) result.health_context = healthContextInput(body.healthContext);
   if (body.shareConsent !== undefined) {
     if (typeof body.shareConsent !== "boolean") throw new InputError("Consentimento inválido.");
     result.share_consent = body.shareConsent;

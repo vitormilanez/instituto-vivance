@@ -4,6 +4,7 @@ import "./globals.css";
 import "./teleconsultation.css";
 import "./doctor-refinements.css";
 import "./onboarding-refinements.css";
+import "./patient-onboarding.css";
 import "./agenda-refinements.css";
 import "./message-context.css";
 import "./prescriptions.css";

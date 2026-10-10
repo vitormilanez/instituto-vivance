@@ -1,5 +1,7 @@
 import { TeleconsultationLink } from "./teleconsultation-link";
 import Link from "next/link";
+import type { PatientProfileContext } from "@/modules/onboarding/profile-types";
+import { ProfileCompletionPrompt } from "./patient/profile-completion";
 import type { Appointment } from "@/modules/agenda/service";
 import { patientTodayTasks } from "@/modules/workspace/patient-today-tasks";
 import { patientNextAppointment } from "@/modules/workspace/patient-appointment";
@@ -30,6 +32,7 @@ const logIcons: Record<string, IconName> = {
 // fez e o que o médico publicou.
 export function PatientHome({
   base,
+  profileContext = null,
   tenantId,
   today,
   now,
@@ -49,6 +52,7 @@ export function PatientHome({
   sent,
 }: {
   base: string;
+  profileContext?: PatientProfileContext | null;
   tenantId: string;
   today: string;
   now: Date;
@@ -104,6 +108,7 @@ export function PatientHome({
   const isCheckIn = !dailyDue && focus.kind === "task" && firstTask?.id.startsWith("check-in-");
   const isRequired = focus.kind === "task" && firstTask?.id === "required-preparation";
   const logs = quickLogs({ base, doctorName, latestMeasurement });
+  const profilePending = profileContext && (!profileContext.nutritionSubmittedAt || !profileContext.photosSubmittedAt || !profileContext.examsSubmittedAt);
   const greeting = homeGreeting(now, firstName);
   const when = next ? appointmentWhen(next.starts_at, next.ends_at, today) : null;
 
@@ -119,6 +124,8 @@ export function PatientHome({
         <p>{greeting.date}</p>
         <h1>{greeting.hello}</h1>
       </div>
+
+      {profileContext && <ProfileCompletionPrompt tenantId={tenantId} profile={profileContext}/>}
 
       {dailyDue ? (
         <section className="pv-hero" aria-labelledby="pv-focus-title">
@@ -140,7 +147,7 @@ export function PatientHome({
             <Icon name="arrow" size={22} />
           </Link>
         </section>
-      ) : focus.kind === "clear" ? (
+      ) : focus.kind === "clear" && profilePending ? null : focus.kind === "clear" ? (
         <section className="pv-card pv-clear-card" aria-labelledby="pv-focus-title">
           <div className="pv-clear-layout">
             <div className="pv-clear-copy">

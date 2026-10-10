@@ -48,8 +48,9 @@ test("meu perfil não promete o que já existe", () => {
 
 test("a etapa do acolhimento não é dita só por cor", () => {
   const workspace = read("../components/onboarding-workspace.tsx");
-  assert.match(workspace, /aria-current=\{index === progress - 1 \? "step" : undefined\}/);
-  assert.match(workspace, /\(concluída\)/);
+  assert.match(workspace, /role="progressbar"/);
+  assert.match(workspace, /aria-valuenow=\{index \+ 1\}/);
+  assert.match(workspace, /\{index \+ 1\} de 6/);
 });
 
 test("agenda no celular: alvos de 44px", () => {

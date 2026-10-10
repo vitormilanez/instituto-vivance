@@ -4,6 +4,17 @@
 
 **Checkout oficial para continuar:** `/Users/vitormilanez/Desktop/Codes/vivance-package-20261009`, branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) em rascunho. Reúne C3/PR #93, contexto longitudinal/PR #94 e IA2/PR #78 sem alterar os três PRs de origem nem o clone IA2. `origin/main` estava em `ebadaab8` na última conferência; o pacote ainda não foi integrado à `main`.
 
+**Prioridade nova — onboarding paciente, 09/10:** implementação no pacote local:
+contexto inicial de saúde e medidas, objetivo final, conclusão animada e entrada
+direta em Hoje; aviso no app leva a alimentação, fotos e exames. Rascunhos e
+submissões por seção são separados, e a equipe lê somente versões enviadas.
+TypeScript, lint, build local e 459 testes passaram.
+O [contrato e a evidência](ONBOARDING_PACIENTE.md) descrevem o fluxo. A migration
+`20261010011422_patient_profile_context.sql` foi testada em PGlite e **ainda não
+aplicada ao dev**; o Preview abaixo não inclui este onboarding. A rodada visual
+local usou fixture e interceptação de API, sem autenticação remota. Próximo passo:
+preparar o Preview final do pacote no dev e verificar os dois perfis reais de teste.
+
 **Preview mais recente verificado do pacote:** [Vercel](https://instituto-vivance-iyod72j1u-vtr-consulting.vercel.app), deployment `dpl_CKSnZPPubfSTCXcoD1o8WKSLbe4f`, alvo `preview`, código `d91127d`; build e TypeScript passaram. O CI do HEAD documental `1b37f84` passou. No [Preview IA2 anterior](https://instituto-vivance-m4cifg9re-vtr-consulting.vercel.app), deployment `dpl_4xTHa8p8DKKRrQWQ9gCYZ5RSC8Q7`, código `ea199ee`, o médico autenticado viu o paciente fictício, os documentos e os itens IA2, inclusive “revisão 1: transcrição confirmada” e o contador persistido “1 de 45 com decisão”. A alteração posterior da tela de Processamentos ainda não foi publicada em Preview.
 
 **Banco e worker sintéticos:** destino confirmado `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), com 64 migrations após aplicar somente `20261009231639_ia2_structured_exam_items.sql`. A Edge Function `exam-text-worker` v2 foi implantada com autenticação própria por segredo; `pg_cron`/`pg_net` foram instalados e o job `vivance-ia2-exam-text-worker-synthetic` está ativo a cada minuto, com URL e segredo guardados no Vault. Uma chamada sem segredo recebeu 401; com segredo e fila vazia, 204. Nenhuma credencial foi gravada no Git.

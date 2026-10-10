@@ -6665,3 +6665,72 @@ test("telefone e sinais de alerta: equipe cadastra, só médico aprova a lista, 
     assert.ok(audit.rows.length >= 3);
   });
 });
+
+test("profile context keeps health snapshot and nutrition draft private until explicit share", async () => {
+  await asUser("outsider", async () => {
+    await db.exec("reset role");
+    await db.query("update auth.users set email='profile-context@example.com',email_confirmed_at=clock_timestamp() where id=$1", [users.outsider.id]);
+    const invitation = await db.query<{ id: string }>(
+      "insert into public.patient_invitations(tenant_id,display_name,channel,recipient_email,doctor_id,invited_by) values($1,'Profile Patient','email','profile-context@example.com',$2,$2) returning id",
+      [a, users.doctor.id],
+    );
+    await switchActor("outsider");
+    const patient = (await db.query<{ patient_id: string }>("select patient_id from public.accept_patient_invitation($1,true)", [invitation.rows[0].id])).rows[0].patient_id;
+    const health = Object.fromEntries(["medications", "conditions", "allergies", "surgeries", "familyHistory"].map((key) => [key, { status: key === "allergies" ? "yes" : "unknown", details: key === "allergies" ? "Synthetic pollen" : "" }]));
+    await db.query("update public.patient_onboarding set health_context=$3,expected_version=1 where tenant_id=$1 and patient_id=$2", [a, patient, JSON.stringify(health)]);
+    await db.query("update public.patient_onboarding set current_step='goal',skipped_steps=array['family']::text[],expected_version=2 where tenant_id=$1 and patient_id=$2", [a, patient]);
+    assert.deepEqual((await db.query<{ current_step: string; answer_goal: string }>("select current_step,answer_goal from public.patient_onboarding where patient_id=$1", [patient])).rows,
+      [{ current_step: "goal", answer_goal: "" }]);
+    await db.query("select public.submit_patient_onboarding($1,3,true)", [a]);
+    await switchActor("doctor");
+    const snapshot = await db.query<{ health_context: Record<string, { details: string }> }>("select health_context from public.patient_onboarding_submissions where patient_id=$1", [patient]);
+    assert.equal(snapshot.rows[0].health_context.allergies.details, "Synthetic pollen");
+    assert.deepEqual((await db.query<{ current_step: string; skipped_steps: string[] }>("select current_step,skipped_steps from public.patient_onboarding_submissions where patient_id=$1", [patient])).rows,
+      [{ current_step: "goal", skipped_steps: ["family"] }]);
+    assert.equal((await db.query("select * from public.patient_profile_context where patient_id=$1", [patient])).rows.length, 0);
+    await switchActor("outsider");
+    const nutrition = { pattern: "vegetarian", preferences: "Synthetic preference", avoidedFoods: "", mealRoutine: [{ id: "breakfast", time: "08:00", description: "Synthetic breakfast" }] };
+    await db.query("select public.save_patient_profile_context($1,1,$2::jsonb)", [a, JSON.stringify({ nutrition })]);
+    await denied("select public.save_patient_profile_context($1,1,$2::jsonb)", [a, JSON.stringify({ nutrition })]);
+    await denied("select public.save_patient_profile_context($1,2,$2::jsonb)", [a, JSON.stringify({ photos: { frontDocumentId: randomUUID(), sideDocumentId: null, backDocumentId: null } })]);
+    await switchActor("doctor");
+    assert.equal((await db.query("select * from public.patient_profile_context where patient_id=$1", [patient])).rows.length, 0);
+    assert.equal((await db.query("select * from public.patient_profile_context_submissions where patient_id=$1", [patient])).rows.length, 0);
+    await switchActor("outsider");
+    await db.query("select public.submit_patient_profile_context($1,2,'nutrition',true)", [a]);
+    await switchActor("doctor");
+    const shared = await db.query<{ payload: { preferences: string } }>("select payload from public.patient_profile_context_submissions where patient_id=$1", [patient]);
+    assert.equal(shared.rows[0].payload.preferences, "Synthetic preference");
+    await db.exec("reset role");
+    const photoIds: string[] = [];
+    for (const side of ["front", "side", "back"]) {
+      await db.exec("set local role service_role");
+      const reserved = await db.query<{ document_id: string; storage_path: string }>(
+        "select * from public.reserve_patient_document($1,$2,$3,$4,'image/png',6,'clinical_document','internal')",
+        [a, patient, users.outsider.id, `${side}.png`],
+      );
+      await db.exec("reset role");
+      await db.query("insert into storage.objects(bucket_id,name) values('vivance-documents',$1)", [reserved.rows[0].storage_path]);
+      await db.exec("set local role service_role");
+      await db.query("select public.complete_patient_document($1,$2,$3)", [a, reserved.rows[0].document_id, users.outsider.id]);
+      await db.exec("reset role");
+      photoIds.push(reserved.rows[0].document_id);
+    }
+    await switchActor("outsider");
+    await db.query("select public.save_patient_profile_context($1,3,$2::jsonb)", [a, JSON.stringify({ photos: {
+      frontDocumentId: photoIds[0], sideDocumentId: photoIds[1], backDocumentId: photoIds[2],
+    } })]);
+    await switchActor("doctor");
+    assert.equal((await db.query("select id from public.patient_documents where id = any($1::uuid[])", [photoIds])).rows.length, 0);
+    await switchActor("outsider");
+    await db.query("select public.submit_patient_profile_context($1,4,'photos',true)", [a]);
+    await switchActor("doctor");
+    assert.equal((await db.query("select id from public.patient_documents where id = any($1::uuid[])", [photoIds])).rows.length, 3);
+    await switchActor("other");
+    assert.equal((await db.query("select * from public.patient_profile_context_submissions where patient_id=$1", [patient])).rows.length, 0);
+    await db.exec("reset role");
+    await db.query("update public.care_relationships set status='revoked' where tenant_id=$1 and patient_id=$2", [a, patient]);
+    await switchActor("doctor");
+    assert.equal((await db.query("select * from public.patient_profile_context_submissions where patient_id=$1", [patient])).rows.length, 0);
+  });
+});

@@ -19,6 +19,15 @@ de revisão; lacunas continuam visíveis. O fluxo manual permanece disponível.
 Preservar papéis, clínica/vínculo, RLS, auditoria, versionamento, oito ações rápidas
 da equipe, Agenda e a distinção entre aprovar, publicar e exportar.
 
+## Prioridade atual — onboarding paciente
+
+**Decisão em 09/10:** antes de retomar ampliações C3/IA2, entregar o
+[onboarding progressivo](ONBOARDING_PACIENTE.md): contexto e objetivo inicial →
+conclusão animada → Hoje → alimentação → fotos → exames anteriores. Reutilizar
+coleta existente e remover a repetição das cinco perguntas genéricas no caminho
+padrão. O pacote continua único no PR #95, sem publicação individual dos slices.
+Implementação local e implantação no dev são checkpoints separados.
+
 ## Experiência médica — orientação para a próxima proposta
 
 - **Hoje:** leitura operacional de agenda, próxima consulta, solicitações e itens

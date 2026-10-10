@@ -10,13 +10,13 @@ import {
   onboardingSubmissionInput,
   patientInvitationInput,
 } from "./validation";
-import type { OnboardingRecord, PatientInvitation } from "./types";
+import { emptyHealthContext, type OnboardingRecord, type PatientInvitation } from "./types";
 import type { Database } from "@/lib/supabase/database.types";
 
 export class OnboardingError extends DomainError {}
 
-const onboardingFields = "tenant_id,patient_id,status,current_step,skipped_steps,questionnaire_version,exam_document_ids,photo_document_id,birth_date,weight_kg,height_cm,waist_cm,measured_on,answer_goal,answer_history,answer_routine,answer_treatments,answer_questions,share_consent,version,submitted_at,updated_at" as const;
-const submissionFields = "tenant_id,patient_id,current_step,skipped_steps,questionnaire_version,exam_document_ids,photo_document_id,birth_date,weight_kg,height_cm,waist_cm,measured_on,answer_goal,answer_history,answer_routine,answer_treatments,answer_questions,share_consent,source_version,submitted_at" as const;
+const onboardingFields = "tenant_id,patient_id,status,current_step,skipped_steps,questionnaire_version,exam_document_ids,photo_document_id,birth_date,weight_kg,height_cm,waist_cm,measured_on,answer_goal,answer_history,answer_routine,answer_treatments,answer_questions,health_context,share_consent,version,submitted_at,updated_at" as const;
+const submissionFields = "tenant_id,patient_id,current_step,skipped_steps,questionnaire_version,exam_document_ids,photo_document_id,birth_date,weight_kg,height_cm,waist_cm,measured_on,answer_goal,answer_history,answer_routine,answer_treatments,answer_questions,health_context,share_consent,source_version,submitted_at" as const;
 
 function databaseError(error: { code?: string }): never {
   if (error.code === "40001") throw new OnboardingError("Este rascunho mudou em outra tela. Atualize antes de continuar.", 409);
@@ -40,6 +40,7 @@ function mapOnboarding(row: Record<string, unknown>): OnboardingRecord {
     profile: { photoDocumentId: row.photo_document_id as string | null, birthDate: row.birth_date as string | null },
     measurements: { weightKg: number(row.weight_kg), heightCm: number(row.height_cm), waistCm: number(row.waist_cm), measuredOn: row.measured_on as string | null },
     answers: { goal: row.answer_goal as string, history: row.answer_history as string, routine: row.answer_routine as string, treatments: row.answer_treatments as string, questions: row.answer_questions as string },
+    healthContext: (row.health_context ?? emptyHealthContext()) as OnboardingRecord["healthContext"],
     shareConsent: row.share_consent as boolean,
     submittedAt: row.submitted_at as string | null,
     updatedAt: row.updated_at as string,
