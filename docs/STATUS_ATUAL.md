@@ -1,5 +1,25 @@
 # Estado atual do Vivance
 
+## Onboarding com conta nova — 09/10/2026, 23h20 (São Paulo)
+
+Na branch `codex/onboarding-novo-paciente-20261009`, criada da `main` publicada
+`9d10ec4a`, uma conta **inteiramente sintética** foi convidada pelo percurso
+médico existente no projeto `instituto-vivance-dev` e aceitou o vínculo.
+Em sessão real no domínio principal, viewport de 390 px, o paciente iniciou
+o cadastro, saiu após informar nascimento/medidas, retomou o rascunho com os
+valores preservados, preencheu as demais seções fictícias, editou o objetivo
+pela revisão, enviou e chegou a Hoje pela conclusão animada. Hoje destacou
+alimentação e mostrou o recibo do cadastro. Isso confirma o fluxo publicado
+para essa identidade de teste, não o aceite de usabilidade nem uso clínico.
+
+Três achados estão corrigidos **somente na branch**: erro de objetivo vazio
+deixa de oferecer uma tentativa de salvar que não corresponde à falha;
+conclusão usa texto que funciona para nomes diferentes de clínica; Hoje não
+repete “Atualizar medidas” quando o cadastro enviado já contém medidas
+iniciais, preservando a tarefa de pedido médico explícito. TypeScript e 27
+testes focados passaram localmente. Revisão/Preview dessas correções e aceite
+de usabilidade permanecem pendentes; não há nova migration ou publicação.
+
 ## Publicação técnica — 09/10/2026, 23h (São Paulo)
 
 O pacote do [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) foi integrado à `main` no commit `1fda196940dd6fd98b110a1108a95b5890dcd908`. O run [38015255596](https://github.com/vitormilanez/instituto-vivance/actions/runs/38015255596) passou por testes, lint, typecheck e build. As etapas de migração e promoção do workflow ficaram **ignoradas por configuração ausente**, apesar do resultado verde; não representam operações executadas.

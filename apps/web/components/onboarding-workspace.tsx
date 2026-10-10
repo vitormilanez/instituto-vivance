@@ -44,13 +44,13 @@ function initialStep(initial: OnboardingDraft): Step {
   return initial.version > 1 ? "profile" : "welcome";
 }
 
-export function OnboardingWorkspace({ tenantId, clinicName, doctorName, initial }: {
-  tenantId: string; clinicName: string; doctorName: string; initial: OnboardingDraft;
+export function OnboardingWorkspace({ tenantId, doctorName, initial }: {
+  tenantId: string; doctorName: string; initial: OnboardingDraft;
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState<OnboardingDraft>({ ...initial, healthContext: initial.healthContext ?? emptyHealth(), measurements:{...initial.measurements, heightCm:initial.measurements.heightCm && initial.measurements.heightCm<3 ? Math.round(initial.measurements.heightCm*100) : initial.measurements.heightCm} });
   const [step, setStep] = useState<Step>(initialStep(initial));
-  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "error" | "validation" | "submit-error">("idle");
   const [message, setMessage] = useState("");
   const [navigating, setNavigating] = useState(false);
   const [justCompleted, setJustCompleted] = useState(false);
@@ -97,7 +97,7 @@ export function OnboardingWorkspace({ tenantId, clinicName, doctorName, initial 
     return queue.current;
   }, [tenantId]);
   useEffect(() => {
-    if (!changed.current || state === "saving" || state === "error" || editingMeasure || draft.status === "submitted") return;
+    if (!changed.current || ["saving", "error", "validation", "submit-error"].includes(state) || editingMeasure || draft.status === "submitted") return;
     const timer = window.setTimeout(() => void persist(), 900);
     return () => window.clearTimeout(timer);
   }, [draft, persist, state, editingMeasure]);
@@ -114,7 +114,7 @@ export function OnboardingWorkspace({ tenantId, clinicName, doctorName, initial 
   }
   async function edit(next: Step) { setReturnToReview(true); await move(next); }
   async function advance() {
-    if (step === "goal" && !draftRef.current.answers.goal.trim()) { setMessage("Conte seu objetivo em uma frase para a equipe conhecer o que importa para você."); setState("error"); heading.current?.focus(); return; }
+    if (step === "goal" && !draftRef.current.answers.goal.trim()) { setMessage("Conte seu objetivo em uma frase para a equipe conhecer o que importa para você."); setState("validation"); heading.current?.focus(); return; }
     if (await move(returnToReview ? "review" : steps[index + 1])) setReturnToReview(false);
   }
   async function leave() {
@@ -138,7 +138,7 @@ export function OnboardingWorkspace({ tenantId, clinicName, doctorName, initial 
       if (!response.ok || !body.onboarding) throw new Error(body.error ?? "Seu cadastro não foi enviado. Tente novamente.");
       draftRef.current = body.onboarding; setDraft(body.onboarding); changed.current = false;
       setState("saved"); setJustCompleted(true);
-    } catch (reason) { setState("error"); setMessage(reason instanceof Error ? reason.message : "Não conseguimos concluir. Tente novamente."); }
+    } catch (reason) { setState("submit-error"); setMessage(reason instanceof Error ? reason.message : "Não conseguimos concluir. Tente novamente."); }
     finally { busy.current = false; setNavigating(false); }
   }
   function updateHealth(key: HealthKey, value: Partial<Health[HealthKey]>) {
@@ -156,8 +156,8 @@ export function OnboardingWorkspace({ tenantId, clinicName, doctorName, initial 
     <h1 ref={heading} tabIndex={-1}>Seu primeiro passo está dado.</h1>
     <p className="vi-lead">Agora vamos avançar juntos, no seu ritmo, em direção ao que importa para você.</p>
     {draft.answers.goal && <blockquote className="vi-goal-quote"><span>Seu objetivo</span><p>{draft.answers.goal}</p></blockquote>}
-    <p className="vi-support">{doctorName} e a equipe da {clinicName} receberam seu contexto inicial. Você pode completar alimentação, fotos e exames pelo seu início.</p>
-    <button type="button" className="vi-primary" onClick={() => { router.replace(`${home}?enviado=cadastro`); router.refresh(); }}>Vamos para meu início <Icon name="arrow" size={20}/></button>
+    <p className="vi-support">Seu contexto inicial foi compartilhado com {doctorName} e a equipe que cuida de você. Agora, você pode completar alimentação, fotos e exames pela tela Hoje.</p>
+    <button type="button" className="vi-primary" onClick={() => { router.replace(`${home}?enviado=cadastro`); router.refresh(); }}>Ir para Hoje <Icon name="arrow" size={20}/></button>
   </section>;
 
   return <section className="vi-intake">
@@ -202,7 +202,7 @@ export function OnboardingWorkspace({ tenantId, clinicName, doctorName, initial 
       </>}
     </div>
     {step !== 'welcome' && <footer className="vi-intake-actions"><button type="button" className="vi-primary" disabled={disabled || (step === 'review' && !draft.shareConsent)} onClick={() => step === 'review' ? void submit() : void advance()}>{disabled ? 'Salvando…' : step === 'review' ? 'Começar meu cuidado' : 'Continuar'}<Icon name="arrow" size={20}/></button><button type="button" className="vi-text-button" disabled={disabled} onClick={() => void move(index === 0 ? 'welcome' : steps[index - 1])}>Voltar</button></footer>}
-    <p className={`vi-save-state${state === 'error' ? ' is-error' : ''}`} role={state === 'error' ? 'alert' : 'status'}>{message || (state === 'saving' ? 'Salvando…' : state === 'saved' ? 'Salvo' : '')}{state === 'error' && <button type="button" onClick={() => void persist()}>Tentar salvar novamente</button>}</p>
+    <p className={`vi-save-state${['error', 'validation', 'submit-error'].includes(state) ? ' is-error' : ''}`} role={['error', 'validation', 'submit-error'].includes(state) ? 'alert' : 'status'}>{message || (state === 'saving' ? 'Salvando…' : state === 'saved' ? 'Salvo' : '')}{state === 'error' && <button type="button" onClick={() => void persist()}>Tentar salvar novamente</button>}</p>
   </section>;
 }
 function HealthQuestion({ id,title,hint,value,onChange }: {id:string;title:string;hint:string;value:Health[HealthKey];onChange:(value:Partial<Health[HealthKey]>)=>void}) {

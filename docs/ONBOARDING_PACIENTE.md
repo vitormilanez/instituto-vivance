@@ -79,6 +79,19 @@ saúde. Ao editar pela revisão, Continuar retorna à conferência.
   fotos internas ficaram fora da fila/contagem de exames e os últimos envios
   da Home paciente não as apresentaram como exames com revisão indisponível.
   A ficha médica continua mostrando as seções compartilhadas.
+- [x] Em 09/10, uma conta sintética nova entrou pelo convite da clínica no
+  domínio principal a 390 px. O rascunho de nascimento/medidas persistiu após
+  “Salvar e sair”; medicamentos, alergias, condições, cirurgia, família e
+  objetivo fictícios foram conferidos, editados e enviados. A conclusão animada
+  levou a Hoje, que destacou alimentação e exibiu o comprovante do cadastro.
+  O teste ocorreu antes das correções abaixo e não constitui aceite externo.
+- [x] O percurso revelou que objetivo vazio mostrava “Tentar salvar novamente”
+  embora fosse apenas validação, a conclusão dizia “da Instituto Vivance” e
+  Hoje oferecia “Atualizar medidas” imediatamente após receber as medidas
+  iniciais. A branch `codex/onboarding-novo-paciente-20261009` corrige essas
+  mensagens e oculta só o lembrete **genérico** quando há medidas no cadastro
+  enviado; um pedido explícito do médico permanece visível. Testes focados e
+  TypeScript passaram localmente; Preview da branch ainda pendente.
 - [ ] Aceite de usabilidade com paciente/médico; não equivale a aceite clínico.
 
 ## Referências utilizadas

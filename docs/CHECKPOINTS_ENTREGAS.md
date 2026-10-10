@@ -1,6 +1,6 @@
 # Checkpoints das próximas entregas
 
-Atualizado em **09/10/2026, 23h (São Paulo)**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
+Atualizado em **09/10/2026, 23h20 (São Paulo)**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
 o [status](STATUS_ATUAL.md) guarda evidências. Checkboxes indicam verificação
 técnica específica, não aceite clínico.
 
@@ -35,10 +35,16 @@ Escopo e fluxo: [ONBOARDING_PACIENTE](ONBOARDING_PACIENTE.md).
   `dpl_9oRUsriSW34mP4LqFJWvhDhEo83U` `READY` nos dois domínios. Login
   sintético de paciente e médico no domínio principal confirmou Hoje, perfil de
   cuidado e fila médica com 7 documentos. Nenhuma migration nova foi necessária.
-- [ ] Percorrer o wizard inicial com uma conta nova sintética e registrar aceite
-  de usabilidade no celular; a conta existente só permitiu conferir a etapa
-  alimentar e os demais checkpoints pós-cadastro.
-- [ ] Aceite de usabilidade e retomada dos checkpoints C3/IA2 pendentes abaixo.
+- [x] Conta nova sintética autenticada em 390 px: convite vinculado à clínica,
+  rascunho de medidas retomado após sair, saúde/objetivo, revisão/editável,
+  envio, animação e entrada em Hoje com alimentação em destaque. Evidência e
+  limites em [ONBOARDING_PACIENTE](ONBOARDING_PACIENTE.md).
+- [x] Corrigir na branch `codex/onboarding-novo-paciente-20261009` os achados
+  desse percurso: mensagem de validação sem ação falsa de salvar, texto final
+  sem preposição dependente da clínica e lembrete genérico de medidas sem
+  duplicar o retrato inicial. Testes focados e typecheck locais passaram.
+- [ ] Revisar a branch em Preview e obter aceite de usabilidade no celular;
+  retomar os checkpoints C3/IA2 pendentes abaixo.
 
 ## Ordem de trabalho
 

@@ -386,6 +386,7 @@ export default async function PatientAreaPage({
               preparationPending={preparationPending}
               requiredPreparation={requiredPreparation}
               latestMeasurement={latestMeasurement}
+              onboarding={onboarding}
               careRequests={careRequests}
               sent={sent}
             />

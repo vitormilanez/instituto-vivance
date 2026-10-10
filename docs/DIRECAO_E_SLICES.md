@@ -29,8 +29,10 @@ padrão. O pacote único foi integrado à `main` pelo PR #95 e publicado
 tecnicamente em 09/10, sem publicação individual dos slices. Implementação,
 Preview, domínio principal e aceite permanecem checkpoints separados; o smoke
 test autenticado com as duas contas sintéticas está no [status](STATUS_ATUAL.md).
-O próximo gate é validar o wizard inicial com conta nova no celular e obter
-aceite de usabilidade; também permanecem os limites C3/IA2 e Gate P.
+O wizard inicial foi percorrido em 09/10 com uma conta nova sintética no celular:
+convite, retomada, envio, conclusão e Hoje. Os ajustes descobertos estão na
+branch `codex/onboarding-novo-paciente-20261009`; ainda faltam revisão dessa
+branch e aceite de usabilidade. Permanecem os limites C3/IA2 e Gate P.
 
 ## Experiência médica — orientação para a próxima proposta
 
