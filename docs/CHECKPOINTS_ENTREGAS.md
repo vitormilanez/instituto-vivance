@@ -9,7 +9,7 @@
 - [x] Cadastro → conclusão → alimentação → fotos → exames → dados na equipe.
 - [x] Impeccable: desktop/mobile, estados de recuperação e e-mails longos.
 - [x] 468 testes, typecheck, lint sem erros e build; Edge Function v6 no dev.
-- [ ] Publicar web integrado e conferir acesso de Vitor no domínio.
+- [x] PR #100 integrado (`0ae37fe`), deployment `dpl_1R4WspV51ZdTJ8cyyyamZqquQyeF` promovido; login real de Vitor retomou o cadastro a 390 px.
 - [ ] Entrega de e-mail de acesso novo: validar recebimento real.
 
 Vitor continua com cadastro em rascunho. A conta QA sintética separada foi usada
@@ -28,7 +28,8 @@ para percorrer o fluxo, sem enviar mensagens de WhatsApp nem e-mail externo.
 - [x] Publicar o pacote: `95bc995`, deployment `dpl_CJTnT79AX7pq7EALs7oPqiTNmTMh`.
   Ambos os domínios conferidos; principal HTTP 200, secundário 307.
 - [x] Domínio: login médico, novo menu, formulário e filtros de convite conferidos.
-- [ ] Validar convite novo + aceite + onboarding com conta existente e nova.
+- [x] Convite novo + aceite + onboarding/perfil completos com conta QA existente no Auth.
+- [ ] Conta sem Auth: comprovar recebimento real do e-mail e criação de senha.
 - [ ] QR da recepção: implementar entrada coletiva e aprovação antes de expor.
 - [ ] Google OAuth: configurar e validar antes de mostrar botão.
 Os links antigos de 10/10 foram apagados no reset; usar convite novo.
@@ -37,8 +38,9 @@ Os links antigos de 10/10 foram apagados no reset; usar convite novo.
 removidos a pedido do usuário; os 18 arquivos também saíram do Storage.
 As marcações abaixo registram verificações históricas, não dados ainda
 presentes. O convite para `vitor.milanezz@gmail.com` aparece cancelado em 10/10, 09h24; a conta
-Auth foi preservada. Próximo checkpoint: gerar novo convite e Vitor aceitá-lo em `/clinicas`
-e percorrer o onboarding novo no celular; registrar qualquer falha concreta.
+Auth foi preservada. Atualização de 10/10, 09h: Vitor aceitou outro convite e possui
+onboarding `draft/profile`; o login agora retoma esse rascunho. Sua conclusão
+pelo próprio usuário é o próximo aceite de usabilidade.
 
 Atualizado em **09/10/2026, 23h (São Paulo)**. A [direção](DIRECAO_E_SLICES.md) define a ordem;
 o [status](STATUS_ATUAL.md) guarda evidências. Checkboxes indicam verificação
