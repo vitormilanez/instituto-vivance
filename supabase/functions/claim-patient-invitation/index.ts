@@ -2,6 +2,9 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "@supabase/supabase-js";
 
 const response = () => Response.json({ verificationRequested: true }, { status: 202, headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
+const failure = (status: number, error: string) => Response.json({ error }, { status, headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
+const unavailable = () => failure(410, "Este convite não está mais disponível. Peça um novo link à clínica.");
+const retry = () => failure(503, "Não foi possível preparar o convite agora. Tente novamente em instantes.");
 async function sha256(value: string) { const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)); return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join(""); }
 function key(dictionaryName: string, legacyName: string) { const dictionary = Deno.env.get(dictionaryName); if (dictionary) try { const keys = JSON.parse(dictionary) as Record<string, unknown>; if (typeof keys.default === "string" && keys.default) return keys.default; } catch {} return Deno.env.get(legacyName) ?? ""; }
 function redirectUrl() { const raw = Deno.env.get("PATIENT_INVITE_REDIRECT_URL")?.trim(); if (!raw) return null; try { const url = new URL(raw); return url.protocol === "https:" && url.pathname === "/primeiro-acesso" && !url.search && !url.hash ? url.toString() : null; } catch { return null; } }
@@ -16,11 +19,12 @@ Deno.serve(async (request: Request) => {
     if (!token || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || Object.keys(body).some((name) => !["token", "email"].includes(name))) return response();
     const url = Deno.env.get("SUPABASE_URL") ?? "";
     const secret = key("SUPABASE_SECRET_KEYS", "SUPABASE_SERVICE_ROLE_KEY");
-    if (!url || !secret) return response();
+    if (!url || !secret) return retry();
     const admin = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
     const tokenHash = await sha256(token);
     const claimed = await admin.from("patient_invitations").update({ recipient_email: email, token_hash: null, claimed_at: new Date().toISOString(), delivery_status: "requested", updated_at: new Date().toISOString() }).eq("token_hash", tokenHash).eq("channel", "whatsapp").eq("status", "pending").gt("expires_at", new Date().toISOString()).select("id").maybeSingle();
-    if (claimed.error || !claimed.data) return response();
+    if (claimed.error) return retry();
+    if (!claimed.data) return unavailable();
     const claimedId = claimed.data.id;
     async function releaseClaim() {
       // Delivery/configuration failures must not consume the one-time WhatsApp
@@ -42,7 +46,7 @@ Deno.serve(async (request: Request) => {
       const listed = await admin.auth.admin.listUsers({ page, perPage: 1000 });
       if (listed.error) {
         await releaseClaim();
-        return response();
+        return retry();
       }
       if (listed.data.users.some((user) => user.email?.toLowerCase() === email)) { existing = true; break; }
       if (listed.data.users.length < 1000) break;
@@ -52,7 +56,7 @@ Deno.serve(async (request: Request) => {
       const redirectTo = redirectUrl();
       if (!redirectTo) {
         await releaseClaim();
-        return response();
+        return retry();
       }
       const invitation = await admin.auth.admin.inviteUserByEmail(email, { redirectTo });
       if (invitation.error) {
@@ -61,9 +65,9 @@ Deno.serve(async (request: Request) => {
           return response();
         }
         await releaseClaim();
-        return response();
+        return retry();
       }
     }
-  } catch {}
+  } catch { return retry(); }
   return response();
 });

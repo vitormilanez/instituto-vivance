@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { clinics, AccessError, roleLabels } from "@/modules/identity/service";
 import { Header } from "@/components/header";
 import { PatientInvitations } from "@/components/patient-invitations";
-import { listMyPatientInvitations } from "@/modules/onboarding/service";
+import { getPatientOnboarding, OnboardingError, listMyPatientInvitations } from "@/modules/onboarding/service";
 import { ClinicInvitations } from "@/components/clinic-invitations";
 import { singlePatientDestination } from "@/modules/identity/entry";
 export const dynamic = "force-dynamic";
@@ -14,7 +14,13 @@ export default async function Clinics({ searchParams }: { searchParams: Promise<
   });
   const { gerenciar } = await searchParams;
   const destination = singlePatientDestination(context.clinics);
-  if (destination && gerenciar !== "1") redirect(destination);
+  if (destination && gerenciar !== "1") {
+    const onboarding = await getPatientOnboarding(context.clinics[0].id).catch(error => {
+      if (error instanceof OnboardingError && error.status === 404) return null;
+      throw error;
+    });
+    redirect(onboarding?.status === "draft" ? `/clinicas/${context.clinics[0].id}/primeiros-passos` : destination);
+  }
   const patientInvitations = await listMyPatientInvitations();
   return (
     <>

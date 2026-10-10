@@ -162,3 +162,13 @@ com estados reais e cadastro sem app secundário na lateral. Atalho explícito
 local não equivale a publicação. QR da recepção deve incluir entrada coletiva e
 aprovação; Google exige configuração OAuth. Não confundir convite aceito com
 cadastro inicial enviado ou acolhimento concluído.
+
+### Ajuste de entrada aprovado — 10/10
+
+Priorizar conta correta e continuidade do cadastro: convite nunca aproveita
+silenciosamente a sessão de outra pessoa; login retoma o onboarding em rascunho.
+Altura apresentada em metros e armazenada em centímetros, com decimal local.
+“Salvar e sair” é a saída persistente; dashboard após envio destaca alimentação,
+fotos e exames. Revisão completa com Impeccable e fluxo sintético antes do
+pacote autorizado. Recebimento real de e-mail novo permanece um checkpoint
+separado de conta existente, que não recebe nova mensagem.

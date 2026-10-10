@@ -2,13 +2,14 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { login, savePatient } from "@/app/actions";
-export function LoginForm() {
+export function LoginForm({ initialEmail = "" }: { initialEmail?: string }) {
   const [state, action, pending] = useActionState(login, { error: "" });
   return (
     <form action={action}>
       <div className="field">
         <label htmlFor="email">E-mail</label>
         <input
+          defaultValue={initialEmail}
           id="email"
           name="email"
           type="email"

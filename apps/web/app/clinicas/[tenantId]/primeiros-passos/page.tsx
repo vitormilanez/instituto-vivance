@@ -31,7 +31,7 @@ export default async function FirstSteps({
     getOwnPatientIntake(tenantId),
   ]);
   return (
-    <PatientShell clinic={context.clinic} active="primeiros-passos" title="Primeiros passos" heading="page">
+    <PatientShell clinic={context.clinic} active="primeiros-passos" title="Primeiros passos" heading="page" backHref="">
       {data ? (
         <OnboardingWorkspace tenantId={tenantId} doctorName={data.doctorName}
           initial={{...data.onboarding, answers:{...data.onboarding.answers,

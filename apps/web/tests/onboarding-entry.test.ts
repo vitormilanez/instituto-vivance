@@ -67,8 +67,8 @@ test("a recoverable claim failure restores the opaque token", () => {
     /if \(invitation\.error\) \{[\s\S]*await releaseClaim\(\)/,
   );
   assert.match(claimFunction, /"email_exists", "user_already_exists"/);
-  assert.match(invitationClaim, /onClick=\{\(\) => setSent\(false\)\}/);
-  assert.match(invitationClaim, /Corrigir e-mail/);
+  assert.match(invitationClaim, /Peça um novo convite/);
+
   assert.match(invitationClaim, /Confirmar e continuar/);
 });
 

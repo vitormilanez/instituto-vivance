@@ -108,7 +108,15 @@ export async function claimPatientInvitation(input: unknown) {
   const values = claimInvitationInput(input);
   const client = await createClient();
   const invoked = await client.functions.invoke("claim-patient-invitation", { body: values });
-  if (invoked.error) throw new Error("Patient invitation claim failed");
+  if (invoked.error) {
+    const context = (invoked.error as { context?: unknown }).context;
+    if (context instanceof Response) {
+      let message = "Não foi possível preparar seu convite. Tente novamente.";
+      try { const body = await context.clone().json() as { error?: unknown }; if (typeof body.error === "string") message = body.error; } catch {}
+      throw new OnboardingError(message, context.status >= 400 && context.status < 600 ? context.status : 503);
+    }
+    throw new Error("Patient invitation claim failed");
+  }
   return { verificationRequested: true as const };
 }
 

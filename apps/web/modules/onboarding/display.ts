@@ -18,7 +18,7 @@ export function onboardingMeasurements(measures: {
     measures.heightCm !== null
       ? measures.heightCm > 0 && measures.heightCm < 3
         ? `Altura: ${number(measures.heightCm)} m`
-        : `Altura: ${number(measures.heightCm)} cm`
+        : `Altura: ${number(measures.heightCm / 100)} m`
       : null,
     measures.waistCm !== null ? `Cintura: ${number(measures.waistCm)} cm` : null,
   ].filter(Boolean);

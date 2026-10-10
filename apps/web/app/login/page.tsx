@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Brand } from "@/components/brand";
@@ -7,6 +8,10 @@ export default async function LoginPage() {
   const client = await createClient();
   const { data } = await client.auth.getUser();
   if (data.user) redirect("/clinicas");
+  const cookieStore = await cookies();
+  let invitationEmail = "";
+  try { invitationEmail = decodeURIComponent(cookieStore.get("vivance-invitation-login")?.value ?? ""); } catch {}
+  if (invitationEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(invitationEmail)) invitationEmail = "";
   return (
     <main id="conteudo" className="login">
       <section className="login-intro">
@@ -27,8 +32,8 @@ export default async function LoginPage() {
         <div>
           <p className="eyebrow">Área de cuidado</p>
           <h2>Entre na sua conta</h2>
-          <p>Use o acesso individual liberado pela sua clínica.</p>
-          <LoginForm />
+          <p>{invitationEmail ? "Entre com o e-mail que você confirmou no convite. Se já tem conta, use sua senha; não precisa aguardar outro e-mail." : "Use o acesso individual liberado pela sua clínica."}</p>
+          <LoginForm initialEmail={invitationEmail} />
           <p style={{ marginTop: 24 }}>
             <small>
               Ainda não tem acesso? Solicite a liberação ao administrador da

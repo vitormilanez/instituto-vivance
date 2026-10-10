@@ -22,5 +22,5 @@ export default async function CompleteProfile({params,searchParams}:{params:Prom
   const stages:Record<string,ProfileSection>={alimentacao:'nutrition',fotos:'photos',exames:'exams'};
   const section=stages[query.etapa??'alimentacao'];
   if(!section) notFound();
-  return <PatientShell clinic={context.clinic} active="completar-perfil" title="Seu perfil de cuidado" heading="page"><PatientProfileWorkspace key={section} tenantId={tenantId} initial={profileContext} section={section}/></PatientShell>;
+  return <PatientShell clinic={context.clinic} active="completar-perfil" title="Seu perfil de cuidado" heading="page" backHref=""><PatientProfileWorkspace key={section} tenantId={tenantId} initial={profileContext} section={section}/></PatientShell>;
 }

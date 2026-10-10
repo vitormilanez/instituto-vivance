@@ -61,7 +61,7 @@ export default async function Patient({
   const recordBase = `/clinicas/${tenantId}/pacientes/${patientId}`;
   const clinicalArea = context.clinic.role !== "admin";
   const [onboarding, profileContext, intake, care] = await Promise.all([
-    clinicalArea && active === "Visão geral"
+    clinicalArea
       ? getSubmittedPatientOnboarding(tenantId, patientId)
       : Promise.resolve(null),
     clinicalArea && active === "Visão geral"
@@ -90,6 +90,7 @@ export default async function Patient({
       </div>
       <PatientCareLinks
         compactRequests={doctorView}
+        onboarding={onboarding}
         base={`/clinicas/${tenantId}`}
         patientId={patientId}
         context={care}
@@ -188,6 +189,7 @@ export default async function Patient({
         </Link>
         <PatientRecordHeader
           patient={p}
+          reportedBirthDate={onboarding?.profile.birthDate}
           clinicName={context.clinic.name}
           tenantId={tenantId}
           headerFacts={headerFacts}
@@ -264,7 +266,7 @@ export default async function Patient({
               ))}
             {onboarding &&
               (doctorView ? (
-                <details className="panel dv-record-disclosure">
+                <details className="panel dv-record-disclosure" id="cadastro-paciente" open={Boolean(onboarding && !intake)}>
                   <summary>Cadastro enviado pelo paciente</summary>
                   <OnboardingSummary
                     record={onboarding}
@@ -288,7 +290,7 @@ export default async function Patient({
                   <dd>{p.display_name}</dd>
                 </div>
                 <div>
-                  <dt>Data de nascimento</dt>
+                  <dt>Data de nascimento no cadastro da clínica</dt>
                   <dd>
                     {p.birth_date
                       ? p.birth_date.split("-").reverse().join("/")

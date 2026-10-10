@@ -1,5 +1,21 @@
 # Checkpoints das próximas entregas
 
+## Correções de entrada e medidas — 10/10/2026
+
+- [x] Sessão médica → login com e-mail do paciente → aceite → onboarding real.
+- [x] Login de paciente retoma cadastro em rascunho; enviado segue para Hoje.
+- [x] Altura em metros, vírgula decimal, conversão correta e data das medidas.
+- [x] Edição pela revisão e bloqueio de medida inválida ao avançar/voltar/sair.
+- [x] Cadastro → conclusão → alimentação → fotos → exames → dados na equipe.
+- [x] Impeccable: desktop/mobile, estados de recuperação e e-mails longos.
+- [x] 468 testes, typecheck, lint sem erros e build; Edge Function v6 no dev.
+- [ ] Publicar web integrado e conferir acesso de Vitor no domínio.
+- [ ] Entrega de e-mail de acesso novo: validar recebimento real.
+
+Vitor continua com cadastro em rascunho. A conta QA sintética separada foi usada
+para percorrer o fluxo, sem enviar mensagens de WhatsApp nem e-mail externo.
+
+
 **Convites, 10/10 — revisão do modelo Claude publicada:**
 - [x] Menu desktop e Menu mobile: “Adicionar novo paciente”.
 - [x] Convite integrado ao topo da área de pacientes, sem cards empilhados.

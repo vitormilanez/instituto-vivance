@@ -9,7 +9,7 @@ com área de toque confortável e animação breve na conclusão.
 ## Sequência e checkpoints
 
 1. **Primeiros passos** (`/clinicas/[tenantId]/primeiros-passos`): nascimento
-   para obter idade, peso em kg, altura e cintura em cm, data das medidas;
+   para obter idade, peso em kg, altura em metros (ex.: 1,75 m) e cintura em cm, data das medidas;
    medicamentos/suplementos e alergias; condições diagnosticadas e cirurgias;
    histórico familiar; objetivo em uma ou duas frases; conferência e envio.
    Não perguntar idade e nascimento separadamente. Medidas são um retrato inicial,
@@ -109,3 +109,35 @@ adaptada ao produto existente. Para a explicação de medida de cintura, consult
 [o material do NHS/Salisbury](https://www.salisbury.nhs.uk/media/jmzjknev/mac12167managing-weighte04nlowres20190402.pdf).
 Essas referências orientam ritmo e instrução; não representam protocolo clínico
 aprovado pela Vivance.
+
+## Correção de entrada e medidas — 10/10/2026
+
+Login de paciente com uma clínica e onboarding em rascunho retoma
+`primeiros-passos`; cadastro enviado segue para Hoje. “Salvar e sair” continua
+permitindo explorar o dashboard sem marcar o cadastro como concluído. As telas
+de cadastro/perfil usam essa saída que salva, evitando o atalho que descartava
+alterações. Medidas aceitam vírgula ou ponto; altura em metros converte para
+`height_cm`. Valores inválidos são explicados antes de avançar, voltar ou sair.
+
+Convite confirmado oferece entrada com o próprio e-mail: uma sessão de outra
+pessoa é encerrada localmente antes do login. O e-mail pré-preenchido é apenas
+uma sugestão, nunca concede acesso. Conta existente não recebe novo e-mail.
+Convite removido, consumido ou expirado retorna 410 com pedido de novo link;
+falha recuperável de envio retorna 503 e restaura o token para tentar novamente.
+
+Teste autenticado local com banco sintético: médico gera convite WhatsApp; conta
+QA existente confirma e-mail; troca de sessão; login; aceite; todas as etapas
+do cadastro, edição de medidas pela revisão, envio e conclusão animada; Hoje
+apresenta alimentação; alimentação salva e retomada, três PNGs sintéticos e PDF
+fictício compartilhados. Banco confirmou 175 cm, 76,10 kg, data 10/10 e as
+três submissões complementares. Vitor permanece em `draft/profile`, medidas
+vazias: seu cadastro não foi preenchido pelo teste. 468 testes, typecheck, lint
+(zero erros, aviso preexistente) e build passaram. Impeccable 4.5: revisão
+funcional e visual em 390/1440 px; corrigidos e-mail longo e validação ao voltar.
+Entrega real de e-mail para uma conta inexistente não foi comprovada; Google
+OAuth e QR coletivo continuam pendentes. Publicação web registrada no STATUS.
+
+Na ficha médica, dados iniciais não simulam série longitudinal: medidas e
+objetivo enviados aparecem com origem “cadastro inicial” e link para o snapshot.
+Nascimento informado pelo paciente aparece com essa atribuição se o cadastro
+formal não tem data. Sem acolhimento clínico, o contexto enviado abre visível.

@@ -11,13 +11,13 @@ test("cadastro exibe altura em metros quando o valor legado foi salvo em metros"
   }), "Peso: 78 kg · Altura: 1,73 m · Cintura: 60 cm (22/09/2026)");
 });
 
-test("cadastro mantém centímetros e não inventa medidas ausentes", () => {
+test("cadastro converte centímetros para metros e não inventa medidas ausentes", () => {
   assert.equal(onboardingMeasurements({
     weightKg: null,
     heightCm: 173,
     waistCm: null,
     measuredOn: null,
-  }), "Altura: 173 cm");
+  }), "Altura: 1,73 m");
   assert.equal(onboardingMeasurements({
     weightKg: null,
     heightCm: null,
