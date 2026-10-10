@@ -67,8 +67,9 @@ reais continuam marcos distintos. A reunião de código não fecha esses aceites
 
 Para IA2, o [handoff](IA2_EXAMES.md) registra o worker agendado, negação ao
 paciente e um percurso fictício de 45 itens com revisão versionada por item.
-Faltam testar falha/retentativa no ambiente e definir com o médico o contrato de
-laudos/resultados antes de ampliar a fixture. Claude, OCR e uso clínico
+Uma lease expirada simulada no dev foi recuperada pelo Cron, com segunda tentativa
+concluída e sem duplicar os 45 itens. Faltam avaliar outras classes de falha e
+definir com o médico o contrato de laudos/resultados antes de ampliar a fixture. Claude, OCR e uso clínico
 continuam pendentes.
 
 C1/C2/C3 são trilha de prontidão operacional, não motivo para refazer o piloto

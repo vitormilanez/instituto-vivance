@@ -14,7 +14,7 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
 | --- | --- | --- | --- |
 | Agora | **C3 — exame solicitado** | Paciente responde ao pedido; médico revisa; paciente vê recibo operacional. | Código no PR #95; percurso parcial em Preview com PDF fictício, isolamento por outros papéis e aceite abertos. |
 | Depois | **C2/C3 — continuidade da pessoa** | Hoje e ficha mostram contexto com origem/data; consulta e retorno preservam o paciente. | Código no PR #95; navegação parcial validada, consulta → retorno e aceite pendentes. |
-| Avançado em paralelo no pacote | **IA2 — fila confiável** | Extração sintética prossegue sem aba aberta. | Worker Edge e Cron ativos no dev; job de fixture concluído em 1 tentativa com aba fechada. Falha/retry controlados pendentes. |
+| Avançado em paralelo no pacote | **IA2 — fila confiável** | Extração sintética prossegue sem aba aberta. | Worker Edge e Cron ativos no dev; job de fixture concluído sem aba, recuperado após lease expirada simulada e concluído na 2ª tentativa, sem duplicar a execução ou os 45 itens. |
 | Avançado em paralelo no pacote | **IA2 — itens conferíveis** | Médico compara cada item ao arquivo, página e trecho e registra revisão. | 45 itens fictícios em Preview; uma revisão por item persistiu; contrato de laudo e avaliação clínica pendentes. |
 | Antes de IA clínica | **IA1 — governança** | Finalidade, fontes, fornecedor, dados e revisão decididos. | [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) draft; decisão pendente. |
 | Antes de dados reais | **C1 / Gate P** | Destinos separados, restauração e segurança comprovadas. | Aberto; Preview não libera uso clínico. |
@@ -97,7 +97,8 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
 - [x] O primeiro teste revelou corrida: a rota web processou o arquivo antes do Cron e deixou 3 páginas sem itens. O commit `f21cf09` removeu o executor da rota; agora ela somente enfileira.
 - [x] No [Preview integrado](https://instituto-vivance-m4cifg9re-vtr-consulting.vercel.app), o médico enfileirou o PDF fictício `vivance-ia2-synthetic-cron-20261009.pdf` (documento `d1c16e38-6aaf-482b-83c5-0e335fc4d8a2`) e a aba foi fechada. O job `38c3bcfc-17de-4da1-b556-0d2c1f7919df` ficou pendente e o Cron o concluiu em uma tentativa às 21:02 de 09/10 (São Paulo): 3 páginas, 45 itens, `requires_review`.
 - [x] A sessão médica mostrou 44 marcadores fictícios e 1 narrativa, cada qual com página, trecho e link ao original. Uma confirmação de transcrição ficou como revisão 1 e persistiu após recarga. A conta autenticada de paciente recebeu acesso negado ao endpoint. RLS e revisão idempotente passaram nos 115 testes PGlite; CI completo do `f21cf09` passou.
-- [ ] Exercitar falha transitória, lease vencido, retry, idempotência e alerta operacional em ambiente sintético; verificar o resultado do Cron após cada tentativa.
+- [x] Lease vencida simulada no job fictício; Cron recuperou e concluiu a 2ª tentativa às 21:15 de 09/10 (São Paulo). Persistiram 1 execução e 45 itens, sem duplicação.
+- [ ] Exercitar outras falhas transitórias e definir alerta operacional. O teste de lease não cobre falha de download, serviço externo ou erro permanente.
 - [ ] Definir com o médico **arquivo → laudo → resultado**: valor literal, unidade, referência do emissor, data de realização, página/trecho, ambiguidades e narrativas. Timestamp de envio permanece separado.
 - [ ] Avaliar cobertura/erros e limites antes de ampliar o parser para qualquer outro documento. A fixture atual não interpreta exames reais; Claude/OCR dependem de IA1.
 - [ ] Obter aceite técnico e avaliação clínica separadamente. Nenhum item é publicado ao paciente automaticamente.
@@ -117,7 +118,7 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
 1. [x] Integrar os três PRs em uma branch e abrir apenas o [PR #95](https://github.com/vitormilanez/instituto-vivance/pull/95) draft. CI completo do `ea199ee` passou após o ajuste de rótulos.
 2. [x] Gerar Preview do pacote no projeto Vercel confirmado (`vtr-consulting/instituto-vivance`), com flags IA2 restritas ao Preview e ao documento fictício. Deployment `dpl_4xTHa8p8DKKRrQWQ9gCYZ5RSC8Q7` é Preview `Ready`; a sessão médica autenticada confirmou no Preview final `ea199ee` os 45 itens, a revisão persistida e o rótulo em português.
 3. [x] Comparar migrations e aplicar somente `20261009231639` ao dev sintético confirmado. Worker v2 e Cron instalados; job real da fixture concluiu sem aba e a revisão persistiu.
-4. [ ] Finalizar a verificação controlada de retry e a revisão do diff/segredos; manter PR em rascunho até esse resultado e o aceite operacional C3.
+4. [x] Verificação controlada de lease expirada/retry no dev sintético. Revisar diff/segredos no fechamento do pacote; manter PR em rascunho até o aceite operacional C3.
 5. [ ] Completar C3 e consulta → retorno com perfis sintéticos autorizados; registrar aceite operacional e avaliação clínica separadamente. Só depois decidir merge/release. Gate P continua obrigatório antes de dados reais.
 
 ## Como atualizar este checklist
@@ -125,5 +126,5 @@ branch `codex/vivance-package-20261009`, [PR #95](https://github.com/vitormilane
 Marque somente com evidência do Git, ambiente e teste adequado. Registre data,
 Preview e limites no [status](STATUS_ATUAL.md); mantenha aqui a próxima ação.
 Antes de retomar, confira `AGENTS.md`, direção, status, HEAD do PR #95 e o destino
-do ambiente. O próximo bloqueio técnico IA2 é falha/retry sintéticos; o próximo
+do ambiente. O próximo bloqueio técnico IA2 é contrato de laudo, cobertura e outras falhas; o próximo
 bloqueio de produto é o aceite operacional C3 e o percurso consulta → retorno.
