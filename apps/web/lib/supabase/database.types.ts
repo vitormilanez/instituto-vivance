@@ -1772,6 +1772,18 @@ export type Database = {
         };
         Returns: string;
       };
+      review_exam_result_item_versioned: {
+        Args: {
+          target_tenant: string;
+          target_item: string;
+          target_review_request: string;
+          decision: string;
+          corrected_data: Json | null;
+          note: string | null;
+          expected_version: number;
+        };
+        Returns: string;
+      };
       create_patient_for_care: {
         Args: {
           target_tenant: string;

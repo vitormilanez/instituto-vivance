@@ -5123,6 +5123,12 @@ test("exam text persistence requires an explicitly registered synthetic document
       [reviewed.rows[0].id, JSON.stringify(aiItems)])).rows[0].count, 1);
     assert.equal((await db.query<{ count: number }>(persistAiItems,
       [reviewed.rows[0].id, JSON.stringify(aiItems)])).rows[0].count, 0);
+    const labItems = [{ ...structuredItems[0], item_index: 3, item_kind: "laboratory",
+      literal_name: "Marcador sintético", literal_value: "A", narrative_text: null,
+      unit_text: "u", reference_text: "A-Z u", observed_on: "2026-10-09",
+      requires_review_reason: "ai_extraction" }];
+    assert.equal((await db.query<{ count: number }>(persistAiItems,
+      [reviewed.rows[0].id, JSON.stringify(labItems)])).rows[0].count, 1);
     await denied(persistAiItems, [reviewed.rows[0].id,
       JSON.stringify([{ ...aiItems[0], source_start: 1 }])]);
     const metadata = {
@@ -5147,21 +5153,81 @@ test("exam text persistence requires an explicitly registered synthetic document
     );
     const reviewRequest = randomUUID();
     const review = await db.query<{ id: string }>(
-      "select public.review_exam_result_item($1,$2,$3,'confirmed',null,null) id",
+      "select public.review_exam_result_item_versioned($1,$2,$3,'confirmed',null,null,0) id",
       [a, item.rows[0].id, reviewRequest],
     );
     assert.equal((await db.query<{ id: string }>(
-      "select public.review_exam_result_item($1,$2,$3,'confirmed',null,null) id",
+      "select public.review_exam_result_item_versioned($1,$2,$3,'confirmed',null,null,0) id",
       [a, item.rows[0].id, reviewRequest],
     )).rows[0].id, review.rows[0].id);
     await denied(
-      "select public.review_exam_result_item($1,$2,$3,'rejected',null,'Different decision')",
+      "select public.review_exam_result_item_versioned($1,$2,$3,'rejected',null,'Different decision',0)",
       [a, item.rows[0].id, reviewRequest],
     );
     await denied(
-      "select public.review_exam_result_item($1,$2,$3,'corrected',$4::jsonb,null)",
+      "select public.review_exam_result_item_versioned($1,$2,$3,'corrected',$4::jsonb,null,1)",
       [a, item.rows[0].id, randomUUID(), JSON.stringify({ diagnosis: "not allowed" })],
     );
+    const lab = await db.query<{ id: string }>(
+      "select id from public.exam_result_items where extraction_run_id=$1 and item_index=3",
+      [reviewed.rows[0].id],
+    );
+    const legacyItem = await db.query<{ id: string }>(
+      "select id from public.exam_result_items where extraction_run_id=$1 and item_index=2",
+      [reviewed.rows[0].id],
+    );
+    await db.query("select public.review_exam_result_item($1,$2,$3,'confirmed',null,null)",
+      [a, legacyItem.rows[0].id, randomUUID()]);
+    const reviewLab = "select public.review_exam_result_item_versioned($1,$2,$3,'corrected',$4::jsonb,null,$5) id";
+    const unitRequest = randomUUID();
+    const firstCorrection = { unit_text: "mg/L", reference_text: null, observed_on: "2026-02-28" };
+    const firstLabReview = await db.query<{ id: string }>(reviewLab,
+      [a, lab.rows[0].id, unitRequest, JSON.stringify(firstCorrection), 0]);
+    assert.equal((await db.query<{ id: string }>(reviewLab,
+      [a, lab.rows[0].id, unitRequest, JSON.stringify(firstCorrection), 0])).rows[0].id,
+      firstLabReview.rows[0].id);
+    await denied(reviewLab, [a, lab.rows[0].id, unitRequest, JSON.stringify({ unit_text: "other" }), 0]);
+    await denied(reviewLab, [a, lab.rows[0].id, randomUUID(), JSON.stringify({ unit_text: "other" }), 0]);
+    await denied(reviewLab, [a, lab.rows[0].id, randomUUID(), JSON.stringify({ observed_on: "2026-02-30" }), 1]);
+    await denied(reviewLab, [a, lab.rows[0].id, randomUUID(), JSON.stringify({ unit_text: 42 }), 1]);
+    await denied(reviewLab, [a, lab.rows[0].id, randomUUID(), JSON.stringify({ reference_text: { text: "x" } }), 1]);
+    await switchActor("nurse");
+    await denied(reviewLab, [a, lab.rows[0].id, randomUUID(), JSON.stringify({ unit_text: "other" }), 1]);
+    await switchActor("colleague");
+    await denied(reviewLab, [a, lab.rows[0].id, randomUUID(), JSON.stringify({ unit_text: "other" }), 1]);
+    await switchActor("doctor");
+    await db.query(reviewLab, [a, lab.rows[0].id, randomUUID(), JSON.stringify({ observed_on: null }), 1]);
+    const labHistory = await db.query<{ version: number; corrected_data: Record<string, unknown>; request_corrections: Record<string, unknown>; reviewed_by: string }>(
+      "select version,corrected_data,request_corrections,reviewed_by from public.exam_result_item_reviews where item_id=$1 order by version",
+      [lab.rows[0].id],
+    );
+    assert.deepEqual(labHistory.rows.map((row) => row.version), [1, 2]);
+    assert.deepEqual(labHistory.rows[1].corrected_data,
+      { unit_text: "mg/L", reference_text: null, observed_on: null });
+    assert.deepEqual(labHistory.rows[1].request_corrections, { observed_on: null });
+    assert.equal(labHistory.rows[1].reviewed_by, users.doctor.id);
+    assert.deepEqual((await db.query<{ unit_text: string; reference_text: string; observed_on: string }>(
+      "select unit_text,reference_text,observed_on from public.exam_result_items where id=$1", [lab.rows[0].id],
+    )).rows[0].unit_text, "u");
+    await db.query("select public.review_exam_result_item_versioned($1,$2,$3,'confirmed',null,null,2)",
+      [a, lab.rows[0].id, randomUUID()]);
+    assert.equal((await db.query<{ corrected_data: unknown }>(
+      "select corrected_data from public.exam_result_item_reviews where item_id=$1 and version=3",
+      [lab.rows[0].id],
+    )).rows[0].corrected_data, null);
+    await db.query("select public.review_exam_result_item_versioned($1,$2,$3,'corrected',$4::jsonb,$5,3)",
+      [a, lab.rows[0].id, randomUUID(), JSON.stringify({ reference_text: "Linha 1\nLinha 2" }), "Conferido\ncom o original"]);
+    assert.deepEqual((await db.query<{ corrected_data: Record<string, unknown> }>(
+      "select corrected_data from public.exam_result_item_reviews where item_id=$1 and version=4",
+      [lab.rows[0].id],
+    )).rows[0].corrected_data,
+    { unit_text: "mg/L", reference_text: "Linha 1\nLinha 2", observed_on: null });
+    await switchActor("patient");
+    assert.equal((await db.query("select id from public.exam_result_item_reviews where item_id=$1",
+      [lab.rows[0].id])).rows.length, 0);
+    await switchActor("doctor");
+    await denied("update public.exam_result_item_reviews set corrected_data='{}'::jsonb where item_id=$1",
+      [lab.rows[0].id]);
     await db.exec("reset role");
     await db.exec("set local role service_role");
     const retryReservation = await db.query<{ document_id: string; storage_path: string }>(
@@ -5329,7 +5395,7 @@ test("exam text persistence requires an explicitly registered synthetic document
       "select id from public.exam_result_item_reviews where item_id=$1", [item.rows[0].id],
     )).rows.length, 0);
     await denied(
-      "select public.review_exam_result_item($1,$2,$3,'confirmed',null,null)",
+      "select public.review_exam_result_item_versioned($1,$2,$3,'confirmed',null,null,1)",
       [a, item.rows[0].id, randomUUID()],
     );
     await denied(extraction, values);

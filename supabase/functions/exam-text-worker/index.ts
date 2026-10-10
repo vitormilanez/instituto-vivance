@@ -3,11 +3,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "@supabase/supabase-js";
 import { extractText, getDocumentProxy } from "unpdf";
 import { parseSyntheticFixture, type SourcePage } from "./synthetic-structure.ts";
-import { extractTextWithClaude, requestClaude, groundedItems, groundedMetadata, primaryModel, fallbackModel, promptVersion, type ClaudeResult } from "./claude-extraction.ts";
+import { extractTextWithClaude, requestClaude, groundedItems, mergeGroundedAttempts, coverageGaps, unresolvedPageNotes, extractCoverageWithClaude, groundedMetadata, primaryModel, fallbackModel, promptVersion, type ClaudeResult } from "./claude-extraction.ts";
 
 const bucket = "vivance-documents";
 const extractorName = "unpdf-embedded-text";
-const extractorVersion = "1.8.1+vivance-claude.2";
+const extractorVersion = "1.8.1+vivance-claude.3";
 const maxPages = 50;
 const maxPageCharacters = 80_000;
 const maxDocumentCharacters = 500_000;
@@ -208,20 +208,32 @@ Deno.serve(async (request) => {
           if (persisted.error) throw new Error("structured_persist_failed");
         } else if (!existing.data) {
           const result = visualResult ?? await extractTextWithClaude(apiKey, sourcePages);
-          let grounded = groundedItems(sourcePages, result);
-          if (grounded.discarded) {
-            // A stronger model is used only for source-grounding failures, once per document.
-            const affected = sourcePages.filter((page) => grounded.rejectedPages.includes(page.page_number));
-            const retry = await extractTextWithClaude(apiKey, affected, fallbackModel);
-            retry.metadata.input_tokens = Number(retry.metadata.input_tokens) + Number(result.metadata.input_tokens);
-            retry.metadata.output_tokens = Number(retry.metadata.output_tokens) + Number(result.metadata.output_tokens);
-            result.pages = result.pages.map((page) => retry.pages.find((entry) => entry.page_number === page.page_number) ?? page);
-            result.metadata = { ...result.metadata, model: `${primaryModel}+${fallbackModel}`,
-              input_tokens: retry.metadata.input_tokens, output_tokens: retry.metadata.output_tokens };
-            grounded = groundedItems(sourcePages, result);
+          const first = groundedItems(sourcePages, result);
+          let grounded = mergeGroundedAttempts(sourcePages, [result]);
+          let coverageFailed = 0;
+          const gaps = coverageGaps(sourcePages, first.items);
+          const auditPages = new Set([
+            ...first.rejectedPages,
+            ...gaps.filter((gap) => gap.missing > 0).map((gap) => gap.page_number),
+          ]);
+          if (auditPages.size) {
+            // Bound the extra provider work: at most four pages, read as two
+            // overlapping line groups. Failed optional reads preserve the
+            // original, verified facts instead of failing the whole job.
+            const affected = sourcePages.filter((page) => auditPages.has(page.page_number)).slice(0, 4);
+            const coverage = await extractCoverageWithClaude(apiKey, affected);
+            grounded = mergeGroundedAttempts(sourcePages, [result, ...coverage.attempts]);
+            coverageFailed = coverage.failed;
+            if (coverage.attempts.length) result.metadata = { ...result.metadata,
+              model: `${result.metadata.model ?? primaryModel}+${fallbackModel}`,
+              input_tokens: Number(result.metadata.input_tokens) + coverage.inputTokens,
+              output_tokens: Number(result.metadata.output_tokens) + coverage.outputTokens };
           }
           const quality = Array.isArray(result.metadata.quality_notes) ? result.metadata.quality_notes as string[] : [];
+          quality.unshift(...unresolvedPageNotes(sourcePages, [...auditPages], grounded.items));
           if (grounded.discarded) quality.push(`${grounded.discarded} item(ns) não puderam ser vinculados literalmente à página; conferir original.`);
+          if (coverageFailed) quality.push(`${coverageFailed} trecho(s) da auditoria de cobertura não puderam ser processados; conferir original.`);
+          if (auditPages.size > 4) quality.push("Auditoria de cobertura limitada a quatro páginas; conferir demais páginas no original.");
           if (!grounded.items.length) quality.push("Não foi possível organizar resultados com fonte verificável. Confira o documento original.");
           result.metadata.quality_notes = quality.slice(0, 10);
           const allText = sourcePages.map((page) => page.extracted_text ?? "").join("\n");

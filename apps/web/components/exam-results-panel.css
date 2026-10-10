@@ -54,10 +54,28 @@
 .exam-results-review-form{border-top:1px solid #dbe4f0;margin-top:18px;padding-top:16px}
 .exam-results-review-form h5{font-size:14px;margin:0 0 5px}
 .exam-results-review-form p{font-size:12px;line-height:1.5;margin:0 0 12px}
+.exam-results-review-form fieldset{border:0;padding:0;margin:0;min-width:0}
+.exam-results-review-form .exam-results-saved{color:#124da0;font-weight:650}
 .exam-results-review-form label{display:grid;gap:6px;margin:12px 0;font-size:13px;font-weight:650}
-.exam-results-review-form select,.exam-results-review-form textarea{width:100%;font:inherit;font-weight:400;color:#071a3a;background:#fff;border:1px solid #98a9bf;border-radius:10px;padding:10px;min-height:44px}
+.exam-results-review-form :is(select,textarea,input){width:100%;max-width:100%;min-width:0;box-sizing:border-box;font:inherit;font-weight:400;color:#071a3a;background:#fff;border:1px solid #98a9bf;border-radius:10px;padding:10px;min-height:44px}
+.exam-results-review-form :is(select,textarea,input):focus-visible{outline:3px solid #124da0;outline-offset:2px}
+.exam-results-review-form ::placeholder{color:#405675}
+.exam-results-value-unit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.exam-results-review-form .exam-results-field-help{color:#405675;margin-top:8px}
+.exam-results-note{margin:14px 0}
+.exam-results-note summary,.exam-results-history summary{color:#124da0;cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:13px;font-weight:650}
+.exam-results-history{margin:6px 0 14px}
+.exam-results-history ol{padding-left:18px;max-height:260px;overflow:auto;font-size:12px}
+.exam-results-history li{margin-bottom:12px}
+.exam-results-history li>span{display:block;color:#405675;margin-top:3px}
+.exam-results-history dl{margin:8px 0;line-height:1.5}
+.exam-results-history dl>div{margin-top:5px}
+.exam-results-history dt{font-weight:650}
+.exam-results-history dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.exam-results-review-form .exam-results-conflict-refresh{background:#fff;color:#124da0;border:1px solid #98a9bf;margin-bottom:10px}
 .exam-results-review-form textarea{min-height:72px;resize:vertical}
 .exam-results-review-form button{min-height:44px;border:0;border-radius:10px;background:#03132d;color:#fff;font:inherit;font-size:14px;font-weight:650;padding:10px 16px;cursor:pointer}
+.exam-results-review-form button:hover{background:#082553}
 .exam-results-review-form button:disabled{background:#e8eef6;color:#405675;cursor:wait}
 .exam-results-review-form [role=alert]{color:#8a5b09;margin:10px 0}
 .exam-results-original{display:inline-block;color:#124da0;font-size:14px;font-weight:650;margin-top:16px;min-height:30px;text-underline-offset:3px}

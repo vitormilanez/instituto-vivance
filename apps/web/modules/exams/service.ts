@@ -79,6 +79,25 @@ export async function documentExtraction(tenantInput: string, documentInput: str
 
 export type DocumentExtraction = NonNullable<Awaited<ReturnType<typeof documentExtraction>>["extraction"]>;
 
+const has = (value: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(value, key);
+
+function correctedText(value: unknown, limit: number, nullable: boolean, multiline = false): string | null {
+  if (value === null && nullable) return null;
+  if (typeof value !== "string" || !value.trim() || value.length > limit
+    || /[\x00-\x1f\x7f]/.test(multiline ? value.replace(/[\n\r\t]/g, "") : value))
+    throw new ExamExtractionError("Informe uma correção literal válida.", 400);
+  return value.trim();
+}
+
+function correctedDate(value: unknown): string | null {
+  if (value === null) return null;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)
+    || !Number.isFinite(Date.parse(`${value}T12:00:00Z`))
+    || new Date(`${value}T12:00:00Z`).toISOString().slice(0, 10) !== value)
+    throw new ExamExtractionError("Informe uma data válida no formato AAAA-MM-DD.", 400);
+  return value;
+}
+
 export async function reviewExamItem(tenantInput: string, documentInput: string, input: unknown) {
   const { tenant, document } = validatedDocument(tenantInput, documentInput);
   const { client } = await requireClinic(tenant, ["doctor"]);
@@ -87,36 +106,62 @@ export async function reviewExamItem(tenantInput: string, documentInput: string,
   const item = documentId(String(value.itemId ?? ""));
   const request = documentId(String(value.requestId ?? ""));
   const decision = value.decision;
+  const expectedVersion = value.expectedVersion;
   const note = value.note == null ? null : typeof value.note === "string" ? value.note.trim() : "";
   if (!["confirmed", "corrected", "rejected"].includes(String(decision))
+    || !Number.isSafeInteger(expectedVersion) || (expectedVersion as number) < 0
     || (note !== null && (!note || note.length > 2000))
     || (decision === "rejected" && !note)
-    || (decision === "corrected" && (
-      !value.correctedData || typeof value.correctedData !== "object"
-      || Array.isArray(value.correctedData)
-    ))) throw new ExamExtractionError("Revisão inválida.", 400);
+    || (decision !== "corrected" && (value.correctedData != null
+      || ["correctedUnit", "correctedReferenceText", "correctedObservedDate"].some((key) => has(value, key)))))
+    throw new ExamExtractionError("Revisão inválida.", 400);
   const belongs = await client.from("exam_result_items")
     .select("id,item_kind").eq("tenant_id", tenant).eq("document_id", document).eq("id", item)
     .maybeSingle();
   if (belongs.error) throw new ExamExtractionError("Não foi possível conferir o item.", 503);
   if (!belongs.data) throw new ExamExtractionError("Item não encontrado para este exame.", 404);
+  let correction: Record<string, string | null> | null = null;
   if (decision === "corrected") {
-    const correction = value.correctedData as Record<string, unknown>;
+    if (value.correctedData != null && (typeof value.correctedData !== "object" || Array.isArray(value.correctedData)))
+      throw new ExamExtractionError("Revisão inválida.", 400);
+    const literal = (value.correctedData ?? {}) as Record<string, unknown>;
     const field = belongs.data.item_kind === "narrative" ? "narrative_text" : "literal_value";
-    if (Object.keys(correction).length !== 1 || typeof correction[field] !== "string"
-      || !correction[field].trim()
-      || correction[field].length > (field === "narrative_text" ? 12000 : 500))
-      throw new ExamExtractionError("Informe uma correção literal válida.", 400);
+    if (Object.keys(literal).some((key) => key !== field)) throw new ExamExtractionError("Revisão inválida.", 400);
+    correction = {};
+    if (has(literal, field)) correction[field] = correctedText(literal[field], field === "narrative_text" ? 12000 : 500, false, field === "narrative_text");
+    if (has(value, "correctedUnit")) {
+      if (belongs.data.item_kind !== "laboratory") throw new ExamExtractionError("Revisão inválida.", 400);
+      correction.unit_text = correctedText(value.correctedUnit, 120, true);
+    }
+    if (has(value, "correctedReferenceText")) {
+      if (belongs.data.item_kind !== "laboratory") throw new ExamExtractionError("Revisão inválida.", 400);
+      correction.reference_text = correctedText(value.correctedReferenceText, 1000, true, true);
+    }
+    if (has(value, "correctedObservedDate")) correction.observed_on = correctedDate(value.correctedObservedDate);
+    if (!Object.keys(correction).length) throw new ExamExtractionError("Informe ao menos um campo corrigido.", 400);
   }
-  const result = await client.rpc("review_exam_result_item", {
+  const result = await client.rpc("review_exam_result_item_versioned", {
     target_tenant: tenant,
     target_item: item,
     target_review_request: request,
     decision: String(decision),
-    corrected_data: decision === "corrected" ? value.correctedData as Record<string, string> : null,
+    corrected_data: correction,
     note,
+    expected_version: expectedVersion as number,
   });
+  if (result.error?.code === "40001") throw new ExamExtractionError("Este item recebeu outra revisão. Atualize os resultados antes de salvar.", 409);
+  if (result.error?.code === "42501") throw new ExamExtractionError("Seu acesso a este exame não está ativo.", 403);
+  if (result.error?.code === "23514") throw new ExamExtractionError("A revisão mudou. Atualize os resultados antes de salvar.", 409);
   if (result.error || !result.data)
     throw new ExamExtractionError("Não foi possível registrar a revisão do item.", 503);
-  return { reviewId: result.data };
+  const saved = await client.from("exam_result_item_reviews")
+    .select("id,version").eq("tenant_id", tenant).eq("id", result.data).single();
+  const latestCorrection = await client.from("exam_result_item_reviews")
+    .select("corrected_data").eq("tenant_id", tenant).eq("item_id", item)
+    .eq("decision", "corrected").lte("version", saved.data?.version ?? 0)
+    .order("version", { ascending: false }).limit(1).maybeSingle();
+  if (saved.error || !saved.data || latestCorrection.error)
+    throw new ExamExtractionError("A revisão foi registrada, mas não foi possível atualizar a tela. Recarregue os resultados.", 503);
+  return { reviewId: saved.data.id, version: saved.data.version,
+    correctedData: (latestCorrection.data?.corrected_data ?? null) as Record<string, string | null> | null };
 }

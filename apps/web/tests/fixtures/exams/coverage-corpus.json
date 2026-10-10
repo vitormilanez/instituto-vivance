@@ -1,0 +1,76 @@
+{
+  "version": "2026-10-10-synthetic-1",
+  "cases": [
+    {
+      "id": "pdf-page-1-dense-table",
+      "page_number": 1,
+      "kind": "embedded_pdf_text",
+      "observed_on": "2024-02-29",
+      "text": "LAUDO FICTÍCIO — NÃO É UM EXAME REAL\nColeta: 29/02/2024\nHemograma | Resultado | Unidade | Referência\nHemoglobina | 13,2 | g/dL | 12,0 a 16,0 g/dL\nHematócrito | 39,4 | % | 36,0 a 46,0 %\nLeucócitos | 6.800 | /mm³ | 4.000 a 10.000 /mm³\nNeutrófilos | 55 | % | 40 a 70 %\nLinfócitos | 34 | % | 20 a 45 %\nPlaquetas | 245.000 | /mm³ | 150.000 a 450.000 /mm³\nNota: valores acima foram gerados apenas para teste.",
+      "expected": [
+        { "item_kind": "laboratory", "literal_name": "Hemoglobina", "literal_value": "13,2", "unit_text": "g/dL", "reference_text": "12,0 a 16,0 g/dL", "source_excerpt": "Hemoglobina | 13,2 | g/dL | 12,0 a 16,0 g/dL" },
+        { "item_kind": "laboratory", "literal_name": "Hematócrito", "literal_value": "39,4", "unit_text": "%", "reference_text": "36,0 a 46,0 %", "source_excerpt": "Hematócrito | 39,4 | % | 36,0 a 46,0 %" },
+        { "item_kind": "laboratory", "literal_name": "Leucócitos", "literal_value": "6.800", "unit_text": "/mm³", "reference_text": "4.000 a 10.000 /mm³", "source_excerpt": "Leucócitos | 6.800 | /mm³ | 4.000 a 10.000 /mm³" },
+        { "item_kind": "laboratory", "literal_name": "Neutrófilos", "literal_value": "55", "unit_text": "%", "reference_text": "40 a 70 %", "source_excerpt": "Neutrófilos | 55 | % | 40 a 70 %" },
+        { "item_kind": "laboratory", "literal_name": "Linfócitos", "literal_value": "34", "unit_text": "%", "reference_text": "20 a 45 %", "source_excerpt": "Linfócitos | 34 | % | 20 a 45 %" },
+        { "item_kind": "laboratory", "literal_name": "Plaquetas", "literal_value": "245.000", "unit_text": "/mm³", "reference_text": "150.000 a 450.000 /mm³", "source_excerpt": "Plaquetas | 245.000 | /mm³ | 150.000 a 450.000 /mm³" }
+      ]
+    },
+    {
+      "id": "pdf-page-11-narratives",
+      "page_number": 11,
+      "kind": "embedded_pdf_text",
+      "observed_on": "2024-02-29",
+      "text": "LAUDO FICTÍCIO — NÃO É UM EXAME REAL\nColeta: 29/02/2024\nTécnica: imagem simulada para teste.\nAchados: Estrutura A de contornos regulares.\nAchados: Estrutura B sem alteração de sinal.\nConclusão: Sem achados adicionais no segmento descrito.\nNota: nenhuma observação representa avaliação clínica.",
+      "expected": [
+        { "item_kind": "narrative", "literal_name": "Achados", "narrative_text": "Estrutura A de contornos regulares.", "source_excerpt": "Achados: Estrutura A de contornos regulares." },
+        { "item_kind": "narrative", "literal_name": "Achados", "narrative_text": "Estrutura B sem alteração de sinal.", "source_excerpt": "Achados: Estrutura B sem alteração de sinal." },
+        { "item_kind": "narrative", "literal_name": "Conclusão", "narrative_text": "Sem achados adicionais no segmento descrito.", "source_excerpt": "Conclusão: Sem achados adicionais no segmento descrito." }
+      ]
+    },
+    {
+      "id": "pdf-page-21-mixed",
+      "page_number": 21,
+      "kind": "embedded_pdf_text",
+      "observed_on": "2024-03-05",
+      "text": "LAUDO FICTÍCIO — NÃO É UM EXAME REAL\nRealização: 05/03/2024\nMedidas simuladas\nVolume A: 12,4 cm³\nVolume B: 8,1 cm³\nDescrição: Bordas preservadas na imagem simulada.\nConclusão: Correlacionar com o documento original fictício.",
+      "expected": [
+        { "item_kind": "laboratory", "literal_name": "Volume A", "literal_value": "12,4", "unit_text": "cm³", "source_excerpt": "Volume A: 12,4 cm³" },
+        { "item_kind": "laboratory", "literal_name": "Volume B", "literal_value": "8,1", "unit_text": "cm³", "source_excerpt": "Volume B: 8,1 cm³" },
+        { "item_kind": "narrative", "literal_name": "Descrição", "narrative_text": "Bordas preservadas na imagem simulada.", "source_excerpt": "Descrição: Bordas preservadas na imagem simulada." },
+        { "item_kind": "narrative", "literal_name": "Conclusão", "narrative_text": "Correlacionar com o documento original fictício.", "source_excerpt": "Conclusão: Correlacionar com o documento original fictício." }
+      ]
+    },
+    {
+      "id": "jpeg-b-transcription",
+      "page_number": 1,
+      "kind": "synthetic_visual_transcription",
+      "observed_on": "2024-03-06",
+      "text": "IMAGEM FICTÍCIA — TRANSCRIÇÃO SIMULADA\nData: 06/03/2024\nEstrutura X: 18 mm\nEstrutura Y: 21 mm\nDAP: 7 mm\nAchado: Contorno regular na imagem de teste.\nAchado: Sem líquido na região descrita.\nConclusão: Sem outras observações neste laudo fictício.",
+      "expected": [
+        { "item_kind": "laboratory", "literal_name": "Estrutura X", "literal_value": "18", "unit_text": "mm", "source_excerpt": "Estrutura X: 18 mm" },
+        { "item_kind": "laboratory", "literal_name": "Estrutura Y", "literal_value": "21", "unit_text": "mm", "source_excerpt": "Estrutura Y: 21 mm" },
+        { "item_kind": "laboratory", "literal_name": "DAP", "literal_value": "7", "unit_text": "mm", "source_excerpt": "DAP: 7 mm" },
+        { "item_kind": "narrative", "literal_name": "Achado", "narrative_text": "Contorno regular na imagem de teste.", "source_excerpt": "Achado: Contorno regular na imagem de teste." },
+        { "item_kind": "narrative", "literal_name": "Achado", "narrative_text": "Sem líquido na região descrita.", "source_excerpt": "Achado: Sem líquido na região descrita." },
+        { "item_kind": "narrative", "literal_name": "Conclusão", "narrative_text": "Sem outras observações neste laudo fictício.", "source_excerpt": "Conclusão: Sem outras observações neste laudo fictício." }
+      ]
+    }
+  ],
+  "audit_cases": [
+    {
+      "id": "pdf-reference-continuation-only",
+      "page_number": 21,
+      "kind": "embedded_pdf_text",
+      "text": "LAUDO FICTÍCIO — APÊNDICE DE REFERÊNCIA, SEM RESULTADO ATUAL\nValores de referência por idade:\n20 a 29 anos: 10 a 100 unidades\n30 a 39 anos: 12 a 105 unidades\nAcima de 40 anos: 14 a 110 unidades\nMetodologia: fórmula ilustrativa A + B = C.\nObservação: A/B a 50(X) = C/D.\nID: 12345678\nCNS: 123456789012",
+      "expected_candidates": 0
+    },
+    {
+      "id": "pdf-multiline-lab-omission",
+      "page_number": 7,
+      "kind": "embedded_pdf_text",
+      "text": "LAUDO FICTÍCIO — RESULTADO EM LINHAS SEPARADAS\nHemoglobina\n13,2 g/dL\nValor de referência: 12,0 a 16,0 g/dL",
+      "expected_candidates": 1
+    }
+  ]
+}

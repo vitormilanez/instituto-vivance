@@ -1,6 +1,12 @@
 # Estado atual do Vivance
 
-**Atualizado em 10/10/2026 — PRs #106/#107 integrados, publicação técnica e verificação autenticada no dev sintético concluídas.** Checkout único `/Users/vitormilanez/Desktop/Codes/vivance`; versão da aplicação publicada `718e599d5d94ba1773baac741450b0e9f4481f78`. Consulte Git para o HEAD documental e confirme Supabase/Vercel antes de usar esta fotografia como estado vivo. Não houve Preview nesta rodada; aceite clínico e Gate P permanecem separados.
+**Atualizado em 10/10/2026 — cobertura e correções por campo em integração.** A base #106/#107 está publicada; o novo slice ainda exige migração, worker e verificação autenticada pós-publicação. Checkout único `/Users/vitormilanez/Desktop/Codes/vivance`; versão da aplicação publicada `718e599d5d94ba1773baac741450b0e9f4481f78`. Consulte Git para o HEAD documental e confirme Supabase/Vercel antes de usar esta fotografia como estado vivo. Não houve Preview nesta rodada; aceite clínico e Gate P permanecem separados.
+
+## Slice atual — cobertura e correções por campo
+
+Implementado localmente: auditoria dirigida de omissões, merge aditivo de itens fundamentados, correção de unidade/referência/data, histórico acumulado e conflito de versão. Corpus fictício com API real: 19/19 campos exatos após um fallback Sonnet; variabilidade registrada. Revalidação privada offline: 82 itens fundamentados ante 76, zero offsets inválidos. Página 21 é continuação de referências/metodologia, sem resultado atual identificado; não foi importada no app/Git.
+
+497 testes passaram no pacote antes de dois novos casos dirigidos de auditoria; os 11 testes finais do adapter, typecheck, lint e build passaram. Lint tem um aviso preexistente em onboarding. Migration `20261010220240`, Edge .3 e publicação ainda pendentes neste registro; atualizar com evidência efetiva após integração. Próxima entrega proposta: publicação explícita ao paciente de fatos aprovados, separada da revisão de transcrição.
 
 ## Publicado e verificado antes da rodada IA2
 

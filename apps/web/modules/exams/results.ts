@@ -42,33 +42,67 @@ export function latestExamReview(item: ExamResult) {
   return [...item.reviews].sort((a, b) => b.version - a.version || b.reviewed_at.localeCompare(a.reviewed_at))[0] ?? null;
 }
 
-export function displayedExamValue(item: ExamResult) {
-  const review = latestExamReview(item);
-  if (review?.decision === "rejected") return null;
-  const field = item.item_kind === "narrative" ? "narrative_text" : "literal_value";
-  const corrected = review?.decision === "corrected" ? review.corrected_data?.[field] : null;
-  return typeof corrected === "string" && corrected.trim()
-    ? corrected.trim()
-    : item.item_kind === "narrative" ? item.narrative_text : item.literal_value;
+// Each corrected review contains a cumulative snapshot. Confirming a previously
+// corrected item keeps that doctor's corrections; rejection hides the item.
+export function effectiveExamCorrections(item: ExamResult): Record<string, unknown> | null {
+  return [...item.reviews].filter((review) => review.decision === "corrected")
+    .sort((a, b) => b.version - a.version)[0]?.corrected_data ?? null;
 }
 
-// Deliberately accepts only a plain closed interval with the same unit as the
-// result. Inequalities, age/sex-specific ranges and corrected values need a
-// clinician to interpret the original report.
+function effectiveText(item: ExamResult, field: "literal_value" | "narrative_text" | "unit_text" | "reference_text" | "observed_on", raw: string | null) {
+  const correction = effectiveExamCorrections(item);
+  if (correction && Object.prototype.hasOwnProperty.call(correction, field)) {
+    const value = correction[field];
+    return typeof value === "string" ? value : null;
+  }
+  return raw;
+}
+
+export function displayedExamValue(item: ExamResult) {
+  if (latestExamReview(item)?.decision === "rejected") return null;
+  const field = item.item_kind === "narrative" ? "narrative_text" : "literal_value";
+  return effectiveText(item, field, item.item_kind === "narrative" ? item.narrative_text : item.literal_value);
+}
+
+export function displayedExamUnit(item: ExamResult) {
+  return latestExamReview(item)?.decision === "rejected" ? null : effectiveText(item, "unit_text", item.unit_text);
+}
+
+export function displayedExamReference(item: ExamResult) {
+  return latestExamReview(item)?.decision === "rejected" ? null : effectiveText(item, "reference_text", item.reference_text);
+}
+
+export function displayedExamObservedDate(item: ExamResult) {
+  return latestExamReview(item)?.decision === "rejected" ? null : effectiveText(item, "observed_on", item.observed_on);
+}
+
+// Compare only unambiguous literal numbers against a plain closed interval
+// explicitly written in the same unit. This does not convert units or infer
+// meaning from inequalities, population-specific ranges or grouped numbers.
+function plainExamNumber(literal: string): number | null {
+  if (!/^-?\d+(?:[.,]\d+)?$/.test(literal) || /^-?[1-9]\d{0,2}[.,]\d{3}$/.test(literal)) return null;
+  const value = Number(literal.replace(",", "."));
+  return Number.isFinite(value) ? value : null;
+}
+
 export function examReferencePosition(item: ExamResult): "below" | "within" | "above" | null {
-  if (item.item_kind !== "laboratory" || item.numeric_value === null || !Number.isFinite(item.numeric_value)
-    || !item.unit_text || !item.reference_text || latestExamReview(item)?.decision === "corrected") return null;
-  const literal = item.literal_value?.trim() ?? "";
-  if (!/^-?\d+(?:[.,]\d+)?$/.test(literal)
-    || Number(literal.replace(",", ".")) !== item.numeric_value) return null;
-  const unit = item.unit_text.trim();
-  const ref = item.reference_text.trim();
+  if (item.item_kind !== "laboratory" || latestExamReview(item)?.decision === "rejected") return null;
+  const literal = displayedExamValue(item)?.trim() ?? "";
+  const unit = displayedExamUnit(item)?.trim() ?? "";
+  const ref = displayedExamReference(item)?.trim() ?? "";
+  if (!unit || !ref) return null;
+  const numeric = plainExamNumber(literal);
+  if (numeric === null) return null;
+  const corrections = effectiveExamCorrections(item);
+  if (!corrections || !Object.prototype.hasOwnProperty.call(corrections, "literal_value")) {
+    if (item.numeric_value === null || !Number.isFinite(item.numeric_value) || numeric !== item.numeric_value) return null;
+  }
   const match = /^(-?\d+(?:[.,]\d+)?)\s*(?:-|–|a)\s*(-?\d+(?:[.,]\d+)?)\s*(.*)$/.exec(ref);
-  if (!match || (match[3] && match[3].trim() !== unit)) return null;
-  const lower = Number(match[1].replace(",", "."));
-  const upper = Number(match[2].replace(",", "."));
-  if (!Number.isFinite(lower) || !Number.isFinite(upper) || lower > upper) return null;
-  return item.numeric_value < lower ? "below" : item.numeric_value > upper ? "above" : "within";
+  if (!match || match[3].trim() !== unit) return null;
+  const lower = plainExamNumber(match[1]);
+  const upper = plainExamNumber(match[2]);
+  if (lower === null || upper === null || lower > upper) return null;
+  return numeric < lower ? "below" : numeric > upper ? "above" : "within";
 }
 
 export function examBriefTopics(view: ExamResultsView, tenantId: string, patientId: string) {
@@ -80,12 +114,21 @@ export function examBriefTopics(view: ExamResultsView, tenantId: string, patient
         && (decision === "confirmed" || decision === "corrected") && Boolean(displayedExamValue(item));
     })
     .map((item) => ({ document, item })));
-  const topics = reviewed.slice(0, 3).map(({ document, item }) => ({
-    text: `${item.literal_name}: ${displayedExamValue(item)}${item.unit_text ? ` ${item.unit_text}` : ""}${item.observed_on || document.observedOn ? ` · ${new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${item.observed_on ?? document.observedOn}T12:00:00Z`))}` : ""}.`,
-    itemId: item.id,
-    documentId: document.id,
-    href: `${documentsHref}#resultado-${encodeURIComponent(item.id)}`,
-  }));
+  const topics = reviewed.slice(0, 3).map(({ document, item }) => {
+    const unit = displayedExamUnit(item);
+    const corrections = effectiveExamCorrections(item);
+    const correctedDate = corrections && Object.prototype.hasOwnProperty.call(corrections, "observed_on");
+    const observedDate = correctedDate ? displayedExamObservedDate(item) : displayedExamObservedDate(item) ?? document.observedOn;
+    const dateLabel = observedDate
+      ? ` · ${new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${observedDate}T12:00:00Z`))}`
+      : "";
+    return {
+      text: `${item.literal_name}: ${displayedExamValue(item)}${unit ? ` ${unit}` : ""}${dateLabel}.`,
+      itemId: item.id,
+      documentId: document.id,
+      href: `${documentsHref}#resultado-${encodeURIComponent(item.id)}`,
+    };
+  });
   const pending = view.documents.reduce((count, document) => count + document.items.filter((item) => !latestExamReview(item)).length, 0);
   return { topics, pending, href: documentsHref };
 }
