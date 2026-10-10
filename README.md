@@ -4,9 +4,9 @@ Plataforma de cuidado longitudinal com decisão e publicação sob responsabilid
 
 ## Ponto de partida
 
-O checkout Git consolidado é `/Users/vitormilanez/Desktop/Codes/vivance`. Confirme `git status`, branch, remoto e SHA antes de trabalhar. A pasta antiga `Instituto Vivance` é um protótipo estático; outros checkouts datados não são fonte de verdade. Leia [AGENTS](AGENTS.md), [direção](docs/DIRECAO_E_SLICES.md), [estado atual](docs/STATUS_ATUAL.md) e [checkpoints](docs/CHECKPOINTS_ENTREGAS.md). O [índice](docs/README.md) aponta aos contratos e evidências.
+O checkout Git consolidado é `/Users/vitormilanez/Desktop/Codes/vivance`. Confirme `git status`, branch, remoto e SHA antes de trabalhar. Os sete checkouts antigos foram removidos após [consolidação](docs/CONSOLIDACAO_REPOSITORIO.md). Leia [AGENTS](AGENTS.md), [direção](docs/DIRECAO_E_SLICES.md), [estado atual](docs/STATUS_ATUAL.md) e [checkpoints](docs/CHECKPOINTS_ENTREGAS.md). O [índice](docs/README.md) aponta aos contratos e evidências.
 
-A frente atual organiza resultados de exames sintéticos em campos estruturados com arquivo, página e trecho verificáveis, revisão médica por item e leitura progressiva na ficha. Claude Haiku 5.5, com Sonnet 5.5 como fallback, foi testado localmente e no dev sintético na branch de trabalho; consulte o [handoff IA2](docs/IA2_EXAMES.md) para cobertura e limites. Preview, PR, publicação técnica e aceite clínico desta rodada seguem marcos separados.
+A frente atual organiza resultados de exames sintéticos em campos estruturados com arquivo, página e trecho verificáveis, revisão médica por item e leitura progressiva na ficha. Claude Haiku 5.5, com Sonnet 5.5 como fallback, foi integrado pelo PR #106 e publicado tecnicamente no dev sintético. O PR #107 está integrado e publicado tecnicamente no domínio sintético; médico autenticado conferiu o novo rótulo e a persistência após recarga. Consulte o [handoff IA2](docs/IA2_EXAMES.md) para cobertura parcial e próximo slice. Publicação técnica e aceite clínico seguem marcos separados.
 
 ## Rodar e verificar
 

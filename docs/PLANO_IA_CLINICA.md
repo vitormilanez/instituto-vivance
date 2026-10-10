@@ -7,12 +7,12 @@ Direção clínica de 28/09/2026 apresentada por Dr. Guilherme Martins; estado t
 O [piloto IA2](IA2_EXAMES.md) de texto por página, fila/Cron e itens revisáveis
 foi integrado à main pelo PR #95 e validado com PDF inteiramente fictício no
 dev sintético. Extração estruturada com Claude Haiku 5.5 e fallback Sonnet 5.5
-foi testada localmente e no dev sintético, com cobertura parcial; não há Preview,
-publicação nem aceite clínico desta rodada declarados. OCR genérico, biblioteca clínica, interpretação
+foi integrada pelo PR #106 e publicada tecnicamente no dev sintético, com
+cobertura parcial; PR #107 também foi integrado e publicado tecnicamente no dev sintético. Não houve Preview nem aceite clínico desta rodada. OCR genérico, biblioteca clínica, interpretação
 e uso de dados reais continuam fora do piloto. O
-[briefing integrado](BRIEFING_CONSULTA_2026-10-07.md) tinha fallback
-determinístico na última conferência publicada; a nova proposta limita-se a até
-três fatos **revisados** da próxima consulta. Consulte o [status](STATUS_ATUAL.md)
+[briefing integrado](BRIEFING_CONSULTA_2026-10-07.md) tem fallback
+determinístico e a nova leitura de exames limita-se a até três fatos
+**revisados** da próxima consulta, conferida no #106 publicado. Consulte o [status](STATUS_ATUAL.md)
 para evidência atual e não leia este plano como inventário de deploy.
 
 ## Objetivo e limite

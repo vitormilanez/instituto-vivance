@@ -14,7 +14,7 @@ com data e material de protótipos ficam identificados como histórico.
 | [Avaliação Paciente × Médico × IA](AVALIACAO_JORNADA.md) | Quais lacunas de UX/dados foram encontradas e qual sequência está proposta? |
 | [Handoff dos exames IA2](IA2_EXAMES.md) | Qual é a base integrada, o contrato Claude sintético e seus limites? |
 | [Conta permanente de QA](CONTA_TESTE.md) | Como preparar a identidade sintética sem registrar credenciais no Git? |
-| [Consolidação dos checkouts](CONSOLIDACAO_REPOSITORIO.md) | Qual é o único checkout canônico e o que falta remover? |
+| [Consolidação dos checkouts](CONSOLIDACAO_REPOSITORIO.md) | Qual é o único checkout canônico e o que foi consolidado? |
 | [Retomada do desenvolvimento](RETOMADA_DESENVOLVIMENTO.md) | Como preparar a próxima proposta e desenvolver/testar por slice? |
 | [Funcionalidades](FUNCIONALIDADES.md) | Quais contratos funcionais a aplicação preserva? |
 | [Plano de IA clínica](PLANO_IA_CLINICA.md) | Quais capacidades são futuras e quais gates exigem? |

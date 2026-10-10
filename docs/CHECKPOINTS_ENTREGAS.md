@@ -9,27 +9,23 @@
 - [x] Reset de Vitor às 17h38 de 10/10 confirmado em Auth, banco e Storage; médico e QA preservados. Links anteriores inválidos para o próximo teste.
 - [ ] Vitor percorrer manualmente um **convite novo** para `vitor.milanezz@gmail.com` e dar aceite de usabilidade. Não recriar ou preencher a conta antes dele.
 
-## IA2 — implementação e teste local
+## IA2 — rodada #106/#107
 
-- [x] Implementar campos estruturados, metadados, página/trecho e modelo usado: Haiku 5.5 primário, Sonnet 5.5 fallback seletivo. Teste privado validou offsets de trecho de 76 itens; **cobertura parcial**, sem alegar correção de todos os metadados ou completude clínica. Adapter .2/prompt .2/extractor .2 corrigem título/data narrativos sem apoio; Edge v8 ACTIVE, com reprocessamento das três fixtures QA ainda em andamento.
-- [x] Confirmar fila/Cron de um minuto no dev sintético: três jobs de fixture concluídos sem aba aberta e dois retries automáticos após correção de metadados. Permanecem testes de outras falhas terminais e limites de execução.
-- [x] Confirmar revisão humana pelo médico na interface local: item fictício “Glicose” confirmado, revisão v1 persistida; leitura da extração pelo paciente negada com 403. Corrigir/rejeitar e outros papéis seguem como testes separados.
-- [x] Conferir localmente a ficha médica agrupada em tabela progressiva e o briefing da próxima consulta limitado a fatos **revisados**. Na consulta sintética das 19h30, navegador médico mostrou só “Glicose” confirmada e 23 pendentes; o link selecionou o item e a fonte. Revisão visual em 1440/390 px ajustou notas recolhidas, seis linhas iniciais e rolagem à fonte no celular. **Preview ainda não validado.**
-- [x] Passar 487 testes, typecheck e build antes do ajuste .2; lint sem erros (um aviso preexistente de variável não usada). Após o ajuste .2, seis testes focados e typecheck passaram; suíte completa/CI ainda pendente. O custo monetário depende de preço verificado; registrar tokens, latência e limites antes de alegar custo em USD.
+- [x] Implementar extração estruturada com Haiku 5.5 e fallback seletivo Sonnet 5.5, página/trecho, fila e Cron de um minuto restritos ao dev sintético; revisão por item e acesso ao original separados. Migrations `20261010210749`/`20261010212152` aplicadas (67 no total), Edge v9 ACTIVE e Cron job 1 mantido. A chave Claude permanece segredo da Edge.
+- [x] Conta QA permanente com login real, onboarding sintético enviado e consentimento de compartilhamento confirmado no banco; IDs em [CONTA_TESTE](CONTA_TESTE.md), senha apenas no arquivo local ignorado `0600`.
+- [x] Três fixtures sintéticas passaram pela interface autenticada. Reprocessamento v2 pelo Cron: três jobs concluídos na primeira tentativa, 25 itens em quatro páginas e três metadados; histórico v1 preservado. Médico confirmou revisão v1 de um item; paciente recebeu 403 na extração.
+- [x] Tabela progressiva, original e briefing conferidos com médico autenticado. No #106 publicado, só “Glicose 92” apareceu como fato revisado, com data e link de origem; 24 itens ficaram pendentes. PDF original retornou 200 e hash idêntico. Capturas em `output/playwright/20261010-exams/`.
+- [x] [PR #106](https://github.com/vitormilanez/instituto-vivance/pull/106) integrado (`d2f1dd2`); CI do PR `38088315846` e release main `38088441125` passaram 488 testes. Deployment `dpl_J1kcUtEfxcfCZkWXzutaL11W4niR` promovido, SHA/READY/aliases e smoke autenticado conferidos. Operações automáticas de banco/promoção foram skipped; execução manual acima foi verificada.
+- [x] [PR #107](https://github.com/vitormilanez/instituto-vivance/pull/107) integrado em `718e599`, CI do PR `38088708513` passou 488 testes; Edge v9 ACTIVE. Corrige fallback do rótulo para nome do arquivo.
+- [x] Deployment web #107 `dpl_FZ4aX2gzUJGfimWAm1kyKs63FTcw` READY/production no SHA `718e599`; release `38088840558` passou verify com 488 testes, etapas automáticas de migration/promoção skipped e execução manual confirmada. Aliases apontam ao novo deployment; médico autenticado viu 25 itens, 24 pendentes, nome dos arquivos 01/02 e revisão do item da extração v2 persistente após recarga; link profundo à fonte abriu corretamente, 390 px sem overflow.
+- [ ] Preview autenticado: **não executado** nesta rodada. Registrar como marco distinto; a verificação pós-publicação do #106 não é Preview.
 
-## Dev sintético e avaliação autorizada
+## Avaliação e próximos gates
 
-- [x] Confirmar projeto/ref `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`): migrations `20261010210749`/`20261010212152` aplicadas (67 no total), Edge `exam-text-worker` v8 ACTIVE após v7, Cron job 1 `vivance-ia2-exam-text-worker-synthetic` `* * * * *` intacto. Preservar registros de origem incerta e conferir desativação antes de nova mudança.
-- [x] Criar [conta QA permanente](CONTA_TESTE.md) `paciente.teste@vivance.example`, com Auth/paciente/vínculo confirmados e login real local. Credenciais somente no arquivo ignorado `apps/web/.env.test-accounts.local` com permissão `0600`; submissão de onboarding v3 registrada sem confundir RPC com consentimento.
-- [x] Usar, pela autorização específica, PDF privado de 25 páginas e duas imagens JPEG **via API apenas**, fora da aplicação; arquivos permaneceram em `/tmp`. Fixtures sintéticas separadas estão versionadas em `apps/web/tests/fixtures/exams/`.
-- [x] Medir correspondência de offsets de trecho Unicode e latência/tokens: PDF 61/73 após fallback seletivo, JPEGs 9/9 e 6/9; total 76 offsets validados e 15 propostas descartadas. **Isso não atesta título/data narrativos, completude clínica ou preço em USD.** Esses números são do benchmark privado v1, não repetido após a correção .2; detalhes no [status](STATUS_ATUAL.md).
-- [ ] Percorrer Preview autenticado como médico e paciente: upload/enfileiramento/andamento, tabela/original/revisão/recarga, briefing revisado e negação ao paciente. Registrar deployment e identidades sintéticas usadas.
-
-## Integração, publicação e aceites
-
-- [ ] Abrir PR da branch, conferir diff, CI e revisão. Registrar URL, SHA e runs; resolver falhas antes de integrar à main.
-- [ ] Publicar tecnicamente apenas depois de confirmar Vercel equipe/projeto, banco/Edge/Cron e checks. Registrar deployment promovido, domínio e percurso autenticado pós-publicação. `READY` isolado não confirma jornada.
-- [ ] Aceite operacional do médico para o fluxo e contrato de laudo; avaliar qualidade da extração separadamente. Aceite clínico exige protocolo próprio, IA1 e [Gate P](GATE_P.md); não é consequência de teste sintético ou publicação.
+- [x] PDF privado de 25 páginas e duas JPEG processados via API apenas, sem expor os arquivos no app. Avaliação v1: 76 offsets Unicode exatos, 15 propostas descartadas, cobertura parcial. Revalidação **offline** após ajuste .2 confirmou os mesmos 76 offsets, identidade/emissor nulos em 3/3 casos aplicáveis com título do banco como fallback, e 53/53 datas com fonte/calendário válidos. Não houve nova chamada API, medição de completude clínica nem custo em USD.
+- [ ] Construir corpus de referência com campos esperados por arquivo/página e medir omissões por tipo. Priorizar lacunas nas páginas 1, 11 e 21 do PDF e imagem B1; corrigir campos específicos, sem ampliar para interpretação clínica.
+- [ ] Validar separadamente o caminho de publicação de resultados ao paciente com aprovação médica explícita. Revisão de extração não publica conteúdo.
+- [ ] Aceite operacional do médico, contrato de laudo e qualidade; aceite clínico e dados reais dependem de IA1, produção separada e [Gate P](GATE_P.md).
 
 ## Limites contínuos
 

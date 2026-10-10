@@ -2,9 +2,9 @@
 
 ## Entrada rápida
 
-O checkout consolidado é `/Users/vitormilanez/Desktop/Codes/vivance` após a
-integração em andamento. Confirme Git/HEAD e não use pastas antigas ou o
-protótipo como estado vigente. Leia [STATUS_ATUAL](docs/STATUS_ATUAL.md),
+O único checkout Git é `/Users/vitormilanez/Desktop/Codes/vivance`.
+Confirme Git/HEAD e o [registro de consolidação](docs/CONSOLIDACAO_REPOSITORIO.md)
+antes de usar resultados antigos como estado vigente. Leia [STATUS_ATUAL](docs/STATUS_ATUAL.md),
 [DIRECAO_E_SLICES](docs/DIRECAO_E_SLICES.md) e
 [CHECKPOINTS_ENTREGAS](docs/CHECKPOINTS_ENTREGAS.md). Para exames, leia também
 [IA2_EXAMES](docs/IA2_EXAMES.md) e [CONTA_TESTE](docs/CONTA_TESTE.md).
