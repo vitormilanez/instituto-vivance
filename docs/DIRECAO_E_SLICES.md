@@ -1,23 +1,21 @@
 # Direção do Vivance e próximos slices
 
-**Pacote publicado em 10/10:** PRs #97/#98, SHA `95bc995`, domínio principal
-conferido após promoção pela CLI. Próximo: gerar convite novo (o de 08:27
-está cancelado) e percorrer aceite/onboarding no celular.
+**Estado vigente em 10/10:** correções de entrada e medidas do PR #100
+publicadas (código `0ae37fe`); deployment e evidências no
+[status](STATUS_ATUAL.md). As duas contas Auth de Vitor, cadastro, sessões,
+vínculos e convites foram excluídos a pedido do usuário. Médico e cenário QA
+separado permanecem. O usuário fará o teste de primeiro acesso com convite
+novo para `vitor.milanezz@gmail.com`; não criar ou preencher essa conta por ele.
 
-**Ajuste prioritário de 10/10:** facilitar convite e primeiro acesso antes de
-avaliar novamente o onboarding. Adotar do conceito do Claude a ação de convite
-na própria área de Pacientes, estados recentes visíveis e alternativa discreta
-para ficha sem app, adaptados ao azul-marinho e componentes do Vivance. Não
-copiar o QR de recepção sem contrato de aprovação do médico e prevenção de
-cadastros não autorizados. Google Sign-In depende de configuração OAuth real.
+**Próximo:** comprovar recebimento do e-mail para conta inexistente e percorrer
+onboarding → Hoje → alimentação → fotos → exames no celular. O percurso QA
+anterior continua válido como evidência técnica; o aceite do usuário está
+pendente. Não reutilizar links antigos nem recriar cenários C2/C3/IA2 apagados.
 
-**Estado do cenário de teste em 10/10:** após pedido explícito de limpar todos
-os pacientes, o dev sintético está sem fichas, vínculos de paciente ou arquivos.
-O convite pendente para `vitor.milanezz@gmail.com` permite recomeçar o
-onboarding. As contagens e IDs de pacientes nos relatos abaixo são históricos;
-o [status](STATUS_ATUAL.md) registra o reset. A próxima observação útil é Vitor
-aceitar o convite e percorrer o onboarding no celular, antes de alegar aceite
-do fluxo. Não recriar automaticamente os cenários C2/C3/IA2 apagados.
+**Direção de convites:** ação na própria área de Pacientes, estados recentes
+visíveis e ficha sem app discreta, conforme conceito do Claude adaptado à
+identidade Vivance. QR coletivo requer contrato de aprovação do médico;
+Google Sign-In depende de configuração OAuth real antes de oferecer botão.
 
 Consolidada em **08/10/2026**, preservando decisões anteriores e incorporando
 as orientações do usuário para a retomada. O [status](STATUS_ATUAL.md) separa

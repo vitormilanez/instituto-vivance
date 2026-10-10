@@ -1,5 +1,16 @@
 # Checkpoints das próximas entregas
 
+## Recomeço de Vitor — 10/10/2026
+
+- [x] Excluir Auth de `vitor.milanezz@gmail.com` e `vitor@valuefirstconsulting.com`.
+- [x] Remover sessões, cadastro, acolhimento, vínculos e convites de Vitor.
+- [x] Conferir ausência desses registros no dev; médico e QA separados preservados.
+- [ ] Usuário gerar convite novo e comprovar recebimento do e-mail de primeiro acesso.
+- [ ] Usuário criar senha, preencher onboarding e conferir chegada em Hoje.
+
+O usuário assumiu o teste. Não criar a conta antecipadamente nem preencher
+seu cadastro. Os testes e estados anteriores abaixo são evidências históricas.
+
 ## Correções de entrada e medidas — 10/10/2026
 
 - [x] Sessão médica → login com e-mail do paciente → aceite → onboarding real.
@@ -12,7 +23,7 @@
 - [x] PR #100 integrado (`0ae37fe`), deployment `dpl_1R4WspV51ZdTJ8cyyyamZqquQyeF` promovido; login real de Vitor retomou o cadastro a 390 px.
 - [ ] Entrega de e-mail de acesso novo: validar recebimento real.
 
-Vitor continua com cadastro em rascunho. A conta QA sintética separada foi usada
+Antes deste reset, Vitor tinha cadastro em rascunho. A conta QA sintética separada foi usada
 para percorrer o fluxo, sem enviar mensagens de WhatsApp nem e-mail externo.
 
 

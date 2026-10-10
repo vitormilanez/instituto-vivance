@@ -1,5 +1,26 @@
 # Estado atual do Vivance
 
+## Reset de Vitor para primeiro acesso — 10/10/2026
+
+A pedido explícito do usuário, excluídas pelo Auth Admin as duas contas
+`vitor.milanezz@gmail.com` e `vitor@valuefirstconsulting.com` no dev sintético
+confirmado `oxuwrdjojsmgxoljqkuk`. Removidos o paciente
+`666b8ab9-31c7-491e-a53c-5340f2baf055`, cadastro em rascunho, contexto de
+acolhimento e sua versão, vínculo de cuidado, associação à clínica e dois
+convites. As 12 sessões anteriores foram removidas antes da exclusão do Auth.
+Não havia documentos nem objetos de Storage de Vitor nesta rodada.
+
+Conferência posterior: zero contas Auth, sessões, vínculos, paciente,
+onboarding e convites de Vitor. Médico Guilherme ativo e conta QA separada
+preservados, incluindo seus quatro documentos. A evidência anterior de Vitor
+em `draft/profile` abaixo é histórica. Nenhuma alteração de código, migration,
+Edge Function ou deployment foi necessária.
+
+**Próximo checkpoint:** o próprio usuário fará o teste com convite novo para
+`vitor.milanezz@gmail.com`, primeiro acesso pelo e-mail, criação de senha,
+onboarding e chegada em Hoje. Não recriar a conta ou preencher por ele;
+recebimento de e-mail novo e aceite de usabilidade seguem pendentes.
+
 ## Entrada correta e medidas intuitivas — 10/10/2026
 
 Branch `codex/invitation-account-handoff-20261010`, baseada em `33f6f42`.
