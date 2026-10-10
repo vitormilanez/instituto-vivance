@@ -2,6 +2,74 @@
 
 **Estado em 10/10/2026:** [PRs #109](https://github.com/vitormilanez/instituto-vivance/pull/109) e [#110](https://github.com/vitormilanez/instituto-vivance/pull/110) integrados e publicados tecnicamente no dev sintético. A deduplicação .4 foi verificada em reprocessamento QA e interface médica autenticada. Não houve aceite clínico. [Status](STATUS_ATUAL.md) registra SHA, CI, Edge e deployment.
 
+## Robustez de PDFs longos — slice de 10/10 em validação
+
+Branch `codex/exames-checkpoints-lotes-20261010`. A falha observada em um PDF de
+25 páginas ocorreu após o texto ser salvo: um nome literal com controle de
+formatação violou o CHECK de `exam_result_items`. As três tentativas repetiram
+Claude e a RPC final reverteu os resultados. Leitura de texto, organização e
+revisão devem ter estados e evidências separados.
+
+Pipeline: **original privado + hash → texto integral por página + metadados de
+origem → lotes Claude → fundamentação/validação → resultados para conferência**.
+Metadados de origem incluem run/documento/paciente/clínica, número de páginas,
+contagens de leitura, método, hashes e estado. O texto completo permanece nas
+páginas, não em um resumo que possa perder resultados. Não acrescentar uma chamada
+de IA só para resumir/classificar o arquivo antes da extração. Metadados semânticos
+(título, laboratório, data, trechos da conclusão) são fundamentados e salvos na
+finalização; sua presença continua sendo marcador de conclusão, nunca de leitura
+preliminar.
+
+- Adapter `.5`/prompt `vivance-exams-20261010.4`: reutiliza texto salvo do mesmo
+  arquivo/hash **e mesmo job**, inclusive de adapter anterior. Lotes têm até cinco
+  páginas/30 mil caracteres e três chamadas paralelas. Cada resposta completa,
+  inclusive sem resultados, ganha checkpoint imutável antes da próxima onda.
+  Auditorias bem-sucedidas também ficam em cache. Retry reaproveita lotes concluídos
+  sem chamar Claude novamente; falhas de irmãos não impedem gravar seus sucessos.
+- `exam_extraction_batch_checkpoints` é interna, com RLS, sem acesso de paciente
+  ou equipe; escrita somente por RPC de serviço com documento elegível, run,
+  páginas e lease/token ativos. Chave contém hash da entrada, finalidade,
+  modelos e versão do prompt. Resposta diferente na mesma identidade é conflito.
+  Isso não altera aprovação, revisão ou publicação ao paciente.
+- Nome/valor mantêm TAB/LF/CR literais do PDF. Outros controles continuam proibidos.
+  Validação pós-grounding respeita limites SQL em caracteres Unicode, incluindo
+  campos opcionais e limite de bytes das notas. Não cortar nem normalizar um valor
+  clínico para caber no banco; item ilegível/inválido deixa nota para conferência
+  e aciona auditoria limitada. Erro determinístico de validação para a repetição
+  automática e preserva os checkpoints.
+- A tela mostra **Organização não concluída**. Quando as contagens confirmam texto
+  em todas as páginas, informa que o texto está disponível e que a organização
+  não terminou, mantendo o acesso ao original.
+
+### Modelos e controle de custo
+
+Inventário real da API em 10/10 confirmou os dois IDs. Política escolhida:
+
+| Etapa | Modelo/execução | Motivo |
+| --- | --- | --- |
+| PDF com texto embutido, hashes, paginação e validação | Determinística (`unpdf` + código) | Preservar texto completo sem custo de IA. |
+| Extração factual inicial e transcrição visual quando necessária | `claude-haiku-5-5` | Custo e latência baixos, com fonte literal exigida. |
+| Resposta truncada/incompleta, página com lacuna ou proposta rejeitada | `claude-sonnet-5-5` | Segunda leitura seletiva; não enviar o documento inteiro novamente. |
+| Conferência e decisão clínica | Médico | A extração não diagnostica nem publica conclusões. |
+
+Preços oficiais consultados em 10/10: Haiku 5.5 US$0,10/US$0,50 por milhão de
+tokens de entrada/saída em prompts até 100 mil tokens; Sonnet 5.5 US$2/US$10.
+Um exemplo de 10 mil tokens de entrada + 5 mil de saída custa US$0,0035 no Haiku
+ou US$0,07 no Sonnet; é cálculo ilustrativo, não medição por documento. Não usar
+Opus neste pipeline. Registrar tokens/modelo/prompt; chamadas sem resposta válida
+podem ter consumo não refletido nos contadores do resultado. Abrir a ficha não
+chama IA. [Preços](https://platform.claude.com/docs/en/about-claude/pricing) e
+[modelos](https://platform.claude.com/docs/en/models/overview).
+
+Limites vigentes: 50 páginas/500 mil caracteres por documento, auditoria seletiva
+até quatro páginas, lease único de cinco minutos e orçamento de tentativas já
+existente. Checkpoints reduzem retrabalho, mas ainda não dividem o job em leases
+de continuação. Documento que esgota tentativas requer recuperação operacional;
+retomada médica por botão e continuação de jobs são slices posteriores. Não
+prometer completude universal. A rodada local passou 512 testes, build, typecheck,
+lint (um aviso anterior) e `deno check`; publicação e validação remota serão
+registradas no status/checkpoints quando efetivamente verificadas.
+
 ## Contrato vigente e evidência
 
 - Extração com Haiku 5.5 e fallback seletivo Sonnet 5.5 preserva arquivo privado, página, offset, trecho e metadados. Fila/Cron operam no `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`) sem aba aberta; paciente não lê a extração interna. A chave Claude fica em segredo da Edge. Dado ausente ou ambíguo não vira fato clínico.

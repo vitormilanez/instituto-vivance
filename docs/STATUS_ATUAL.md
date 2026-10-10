@@ -2,6 +2,18 @@
 
 **Atualizado em 10/10/2026 — #112 integrado e publicado tecnicamente; UX conferida com médico autenticado e paciente sintético.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada: `7e3b849e3e068509ac35f619999ee54fa1efc45e`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
 
+## IA2 — robustez por lote, em validação (10/10)
+
+Branch `codex/exames-checkpoints-lotes-20261010`, base `7d985d2`. Correção de
+TAB/LF/CR nos nomes/valores literais do PDF, validação completa pós-grounding,
+checkpoint privado por lote inicial/auditoria e reutilização do texto do mesmo
+job/arquivo. Adapter `.5`, prompt `.4`, Haiku 5.5 com fallback seletivo Sonnet 5.5;
+ambos disponíveis no inventário real da conta. [Contrato e custos](IA2_EXAMES.md).
+Migration nova `20261010234104` preparada, ainda não aplicada neste registro.
+Local: 512 testes, lint/typecheck/build e Deno check passaram; um aviso anterior
+no onboarding. Mensagem médica distingue texto disponível de organização não
+concluída. Ainda não marcar este slice como publicado nem o PDF como recuperado.
+
 ## UX do briefing — publicação e conferência de 10/10
 
 O [PR #112](https://github.com/vitormilanez/instituto-vivance/pull/112) integrou

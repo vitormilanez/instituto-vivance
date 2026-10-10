@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { displayedExamValue, displayedExamUnit, displayedExamReference, displayedExamObservedDate, examBriefTopics, examReferencePosition, latestExamReview, type ExamResult } from "../modules/exams/results.ts";
+import { displayedExamValue, displayedExamUnit, displayedExamReference, displayedExamObservedDate, examBriefTopics, examReferencePosition, latestExamReview, examProcessingMessage, type ExamResult } from "../modules/exams/results.ts";
+
+test("processing failure distinguishes available PDF text from unfinished result organization", () => {
+  const document = { id: "d", title: "Fictício", receivedAt: "2026-10-10", observedOn: null, issuer: null,
+    summary: [], qualityNotes: [], items: [], processingStatus: "failed" as const, pageCount: 25, extractedPageCount: 25 };
+  assert.match(examProcessingMessage(document)!, /texto das 25 páginas está disponível/);
+  assert.match(examProcessingMessage(document)!, /organização dos resultados/);
+  assert.doesNotMatch(examProcessingMessage({ ...document, extractedPageCount: 24 })!, /texto das 25/);
+  assert.equal(examProcessingMessage({ ...document, processingStatus: "completed" }), null);
+});
 
 const item: ExamResult = {
   id: "item-1", document_id: "document-1", page_number: 2, item_index: 1,

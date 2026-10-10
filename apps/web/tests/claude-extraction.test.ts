@@ -1,7 +1,99 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { coverageGaps, coverageSegments, extractCoverageWithClaude, groundedItems, groundedMetadata, mergeGroundedAttempts, numericValue, requestClaude, unresolvedPageNotes } from "../../../supabase/functions/exam-text-worker/claude-extraction.ts";
+import { coverageGaps, coverageSegments, extractCoverageWithClaude, extractTextWithClaude, groundedItems, groundedMetadata, mergeGroundedAttempts, numericValue, requestClaude, textBatches, unresolvedPageNotes, type ClaudeResult, type ExtractionCheckpoints } from "../../../supabase/functions/exam-text-worker/claude-extraction.ts";
+
+test("PDF labels keep literal layout whitespace while invalid controls affect only their item", () => {
+  const text = "Colesterol\nLDL: 90 mg/dL\nResultado\tqualitativo: Não\nreagente\nInválido\u0007: 12 mg/dL";
+  const pages = [{ id: "p", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const result = groundedItems(pages, { pages: [{ page_number: 1, source_text: null, items: [
+    { item_kind: "laboratory", literal_name: "Colesterol\nLDL", literal_value: "90", unit_text: "mg/dL", source_excerpt: "Colesterol\nLDL: 90 mg/dL" },
+    { item_kind: "laboratory", literal_name: "Resultado\tqualitativo", literal_value: "Não\nreagente", source_excerpt: "Resultado\tqualitativo: Não\nreagente" },
+    { item_kind: "laboratory", literal_name: "Inválido\u0007", literal_value: "12", source_excerpt: "Inválido\u0007: 12 mg/dL" },
+  ] }], metadata: {} });
+  assert.deepEqual(result.items.map((item) => [item.literal_name, item.literal_value]),
+    [["Colesterol\nLDL", "90"], ["Resultado\tqualitativo", "Não\nreagente"]]);
+  assert.equal(result.discarded, 1);
+  assert.deepEqual(result.rejectedPages, [1]);
+  for (const item of result.items)
+    assert.equal(Array.from(text).slice(Number(item.source_start), Number(item.source_end)).join(""), item.source_excerpt);
+});
+
+test("post-match bounds use Unicode code points and reject expanded optional whitespace", () => {
+  const name = "🧪".repeat(240);
+  const method = `Método${" ".repeat(501)}fictício`;
+  const text = `${name}: 12 mg/dL | ${method}`;
+  const pages = [{ id: "p", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const result = groundedItems(pages, { pages: [{ page_number: 1, source_text: null, items: [
+    { item_kind: "laboratory", literal_name: name, literal_value: "12", method_text: "Método fictício", source_excerpt: text },
+  ] }], metadata: {} });
+  assert.equal(result.items.length, 1);
+  assert.equal(result.items[0].literal_name, name);
+  assert.equal(result.items[0].method_text, null);
+});
+
+test("metadata is persistence-safe without truncating literal issuer or summary", () => {
+  const issuer = "L".repeat(241);
+  const summary = "S".repeat(1001);
+  const text = `Laudo fictício\n${issuer}\n${summary}`;
+  const metadata = groundedMetadata([{ page_number: 1, extracted_text: text }], {
+    title: "Laudo fictício", issuer, summary: [summary, "Laudo fictício"],
+    quality_notes: ["", null, "Conferir original."], model: "claude-haiku-5-5", input_tokens: 15, output_tokens: -1,
+    unexpected: "not a database field",
+  }, null);
+  assert.equal(metadata.issuer, null);
+  assert.deepEqual(metadata.summary, ["Laudo fictício"]);
+  assert.deepEqual(metadata.quality_notes, ["Conferir original."]);
+  assert.equal(metadata.input_tokens, 15);
+  assert.equal(metadata.output_tokens, null);
+  assert.equal("unexpected" in metadata, false);
+  const largeNotes = Array.from({ length: 10 }, (_, index) => `${index}${"🧪".repeat(999)}`);
+  const bounded = groundedMetadata([], { quality_notes: largeNotes }, null);
+  assert.ok(new TextEncoder().encode(JSON.stringify(bounded.quality_notes)).length <= 16000);
+});
+
+test("25-page extraction resumes completed batches including pages without results", async () => {
+  const pages = Array.from({ length: 25 }, (_, index) => ({ page_number: index + 1, extracted_text: `Página fictícia ${index + 1}` }));
+  const saved = new Map<string, ClaudeResult>();
+  const checkpoints: ExtractionCheckpoints = {
+    read: async (batch) => saved.get(JSON.stringify(batch)) ?? null,
+    write: async (batch, _purpose, result) => { saved.set(JSON.stringify(batch), result); },
+  };
+  const called: number[] = [];
+  let failMiddle = true;
+  const fetcher = (async (_url: unknown, init: RequestInit) => {
+    const body = JSON.parse(String(init.body));
+    assert.equal(body.model, "claude-haiku-5-5");
+    const batch = JSON.parse(body.messages[0].content[0].text);
+    called.push(batch[0].page_number);
+    if (batch[0].page_number === 6 && failMiddle) return Response.json({}, { status: 503 });
+    return Response.json({ stop_reason: "tool_use", usage: { input_tokens: 10, output_tokens: 20 },
+      content: [{ type: "tool_use", name: "extract_exam", input: { pages: batch.map((page: { page_number: number }) => ({
+        page_number: page.page_number, source_text: null, items: [],
+      })) } }] });
+  }) as typeof fetch;
+  await assert.rejects(() => extractTextWithClaude("test-only", pages, undefined, { fetcher, checkpoints }), /claude_unavailable/);
+  assert.equal(saved.size, 2); // Sibling successes are durable despite a failure.
+  failMiddle = false;
+  const result = await extractTextWithClaude("test-only", pages, undefined, { fetcher, checkpoints });
+  assert.deepEqual(called, [1, 6, 11, 6, 16, 21]);
+  assert.deepEqual(result.pages.map((page) => page.page_number), pages.map((page) => page.page_number));
+  assert.equal(result.metadata.input_tokens, 50);
+  assert.equal(result.metadata.output_tokens, 100);
+  const noProvider = (async () => { throw new Error("Completed batches must not call the provider"); }) as typeof fetch;
+  const again = await extractTextWithClaude("test-only", pages, undefined, { fetcher: noProvider, checkpoints });
+  assert.equal(again.pages.length, 25);
+  assert.equal(textBatches(pages).length, 5);
+});
+
+test("duplicate or missing pages remain incomplete even after fallback", async () => {
+  const pages = [{ page_number: 1, extracted_text: "Fictício" }, { page_number: 2, extracted_text: "Fictício" }];
+  let calls = 0;
+  const fetcher = (async () => { calls++; return Response.json({ stop_reason: "tool_use", content: [{ type: "tool_use", name: "extract_exam",
+    input: { pages: [{ page_number: 1, source_text: null, items: [] }, { page_number: 1, source_text: null, items: [] }] } }] }); }) as typeof fetch;
+  await assert.rejects(() => extractTextWithClaude("test-only", pages, undefined, { fetcher }), /claude_incomplete/);
+  assert.equal(calls, 2);
+});
 
 test("Claude facts keep exact Unicode provenance and reject invented values/names", () => {
   const text = "🧪 Laboratório\nGlicose 92 mg/dL referência 70 a 99 mg/dL";
