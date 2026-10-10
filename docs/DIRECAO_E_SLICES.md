@@ -1,16 +1,18 @@
 # Direção do Vivance e próximos slices
 
-**Estado vigente em 10/10:** PR #103 publicado no domínio principal; e-mail
-novo recebido no Gmail e percurso real de Vitor concluído: senha → aceite →
+**Estado vigente em 10/10, 17h38:** PRs #103/#104 publicados no domínio principal;
+e-mail novo recebido no Gmail e percurso real de Vitor concluído: senha → aceite →
 onboarding com retomada/edição → Hoje → alimentação → fotos → exames → ficha
-médica. Link de WhatsApp e troca para identidade correta conferidos; nenhuma
-mensagem de WhatsApp enviada. Impeccable revisou desktop/mobile. Ajuste final
-de nascimento na lista médica e reset autorizado em execução; evidência no
-[status](STATUS_ATUAL.md).
+médica. Link de WhatsApp/troca para identidade correta e convite repetido
+conferidos; nenhuma mensagem de WhatsApp enviada. Impeccable revisou
+desktop/mobile. Dados, arquivos e Auth de Vitor apagados ao final; médico e QA
+preservados. Evidência/publicação e limites no [status](STATUS_ATUAL.md).
 
-**Próximo:** publicar o ajuste final, excluir dados de Vitor e deixar o usuário
-repetir manualmente com convite novo. Não reutilizar links consumidos ou antigos.
-QR coletivo/OAuth não estão entregues. Aceite clínico/Gate P separados.
+**Próximo:** usuário repetir manualmente com convite novo para
+`vitor.milanezz@gmail.com`; não recriar a conta ou preencher antes dele, nem
+reutilizar links consumidos/antigos. Após seu aceite de usabilidade, retomar C3
+operacional e contrato/avaliação IA2. QR coletivo/OAuth não estão entregues;
+aceite clínico/Gate P separados.
 
 **Direção de convites:** ação na própria área de Pacientes, estados recentes
 visíveis e ficha sem app discreta, conforme conceito do Claude adaptado à

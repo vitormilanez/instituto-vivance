@@ -1,6 +1,6 @@
 # Estado atual do Vivance
 
-## Convite real e primeiro acesso — 10/10/2026, nova rodada autorizada
+## Convite, onboarding e reset — 10/10/2026, rodada concluída
 
 O usuário autorizou teste completo com `vitor.milanezz@gmail.com`, leitura do
 Gmail, correções/publicação e reset posterior. Médico convidou pela interface
@@ -54,8 +54,39 @@ já existente. A tela de convites agora apresenta “Você já faz parte desta c
 como paciente” e “Abrir meu cuidado” para vínculos patient ativos da mesma clínica,
 preservando aceite explícito para outras clínicas; nenhum vínculo é criado ou
 alterado por essa apresentação. Testes comportamentais cobrem ambos os estados.
-Publicação desses ajustes e reset final de Vitor em andamento. A tentativa
-inicial com redirect antigo foi removida; não usar aquele e-mail para entrar.
+**Ajustes finais publicados:** [PR #104](https://github.com/vitormilanez/instituto-vivance/pull/104),
+main `e7a172aee440186a6da2c157c3510a5255c75dc1`, deployment
+`dpl_9c1AhZfSFzUtpETQm1mXx2d1e2Wq`
+(https://instituto-vivance-lp9dyfju9-vtr-consulting.vercel.app).
+Vercel CLI 63.1.2 confirmou conta/projeto/Root Directory/Node 24 antes do deploy.
+READY/production promovido; ambos os domínios resolveram para esse ID, principal
+HTTP 200 e secundário 307. CI do PR run `38084129899` e release
+`38084244871` passaram; migration/Edge/promoção automáticas skipped. Nenhuma
+migration nem Edge nova neste lote; promoção manual conferida. 482 testes,
+typecheck, lint sem erros (um aviso preexistente) e build passaram. No domínio,
+médico viu nascimento com origem; paciente a 390 px viu aviso de vínculo já
+existente e abriu Hoje sem novo aceite/erro. Convite duplicado não foi aceito
+nem criou identidade extra; seu registro pendente foi removido no reset.
+
+**Reset concluído às 17h38:** excluídos Auth de Vitor, sessão, associação/vínculo,
+paciente `efb86eb3-adfe-467a-9a4c-1ba3ab6c4c6b`, onboarding/submissão,
+perfil/três snapshots, acolhimento/versão e dois convites. As três imagens
+sintéticas e o PDF foram removidos pela API de Storage (HTTP 200, quatro objetos),
+depois os registros e a conta pelo Auth Admin (HTTP 200). Conferência posterior:
+zero Auth para os dois e-mails de Vitor, zero sessão/conta de paciente/vínculo,
+zero cadastro/perfil/snapshots/convites/documentos e zero nos quatro caminhos
+removidos. Guilherme segue com Auth/vínculo médico ativos; QA separado e seus
+quatro documentos/objetos preservados. E-mails recebidos no Gmail preservados
+como evidência, mas seus links não servem para o novo teste.
+
+**Próximo passo:** usuário gerar um convite novo para `vitor.milanezz@gmail.com`
+e percorrer manualmente o cadastro. Não recriar a conta antes dele. Registro de
+execução atualizado no Asana; aceite de usabilidade pelo usuário ainda pendente.
+Evidências visuais locais, sem tokens, em
+`output/playwright/20261010-onboarding/` do checkout oficial. Gmail foi conferido
+pela interface do Chrome; conector continua exigindo reautenticação. O domínio
+público continua ligado ao dev sintético; publicação técnica não cria um banco
+separado de produção nem constitui aceite clínico.
 
 ## Reset de Vitor para primeiro acesso — 10/10/2026
 

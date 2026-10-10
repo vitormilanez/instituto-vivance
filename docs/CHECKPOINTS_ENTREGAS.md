@@ -11,12 +11,27 @@
 - [x] Novo e-mail → senha → aceite → onboarding → Hoje, com persistência.
 - [x] Conferir link WhatsApp e perfil complementar no celular.
 - [x] Impeccable: rodada visual agrupada desktop/mobile e achados concretos.
-- [ ] Publicar/conferir nascimento com origem na lista e texto de clínicas sem vínculo.
-- [ ] Apagar dados/conta/convites de Vitor; preservar médico e QA.
-- [ ] Atualizar status, direção e Asana com evidência final.
+- [x] Publicar/conferir nascimento com origem na lista e texto de clínicas sem vínculo.
+- [x] Apagar dados/conta/convites de Vitor; preservar médico e QA.
+- [x] Atualizar status, direção e Asana com evidência final.
 
 E-mail padrão Supabase permanece: personalização recusada pelo plano atual;
 não configurar SMTP nem contratar plano sem solicitação.
+
+**Resultado:** PRs #103/#104 integrados/publicados; último código `e7a172a`,
+deployment `dpl_9c1AhZfSFzUtpETQm1mXx2d1e2Wq` nos dois domínios. E-mail
+novo recebido às 17h13; cadastro e três seções complementares persistidos e
+vistos pelo médico. 482 testes/typecheck/lint/build e CI passaram. WhatsApp foi
+teste do link com número sintético, sem envio de mensagem. Reset final: zero
+conta/sessão/vínculo/cadastro/convites/arquivos de Vitor; médico e QA preservados.
+Os quatro documentos/objetos restantes são do QA separado. Detalhes no status.
+
+**Próximo aceite pelo usuário:**
+- [ ] Médico gerar convite novo para `vitor.milanezz@gmail.com`.
+- [ ] Vitor receber o novo e-mail, criar senha e fazer o onboarding manualmente.
+- [ ] Confirmar ritmo/medidas/edição/conclusão/Hoje no celular; reportar achados.
+Não recriar a conta antecipadamente. Os itens históricos abaixo não anulam os
+resultados da rodada acima nem significam que os dados apagados continuam vivos.
 
 ## Recomeço de Vitor — 10/10/2026
 
