@@ -2,8 +2,9 @@
 
 ## Refinamento vigente — 10/10/2026
 
-Checkout único: `/Users/vitormilanez/Desktop/Codes/vivance`. Branch
-`codex/ux-briefing-medico-20261010`. Publicação técnica e identificadores vigentes
+Checkout único: `/Users/vitormilanez/Desktop/Codes/vivance`. Implementação integrada
+pelo [PR #112](https://github.com/vitormilanez/instituto-vivance/pull/112), SHA
+`7e3b849e3e068509ac35f619999ee54fa1efc45e`. Publicação técnica e identificadores vigentes
 devem ser consultados no [status](STATUS_ATUAL.md) e nos
 [checkpoints](CHECKPOINTS_ENTREGAS.md); os registros abaixo de 07/10 são históricos.
 
@@ -29,6 +30,15 @@ gráfico respondeu Home/End, comparação abriu e falhas ficaram explícitas.
 Capturas e métricas locais em `output/playwright/20261010-briefing-ux/` (ignorados
 pelo Git). Fixture temporária restaurada antes de integrar; esta conferência
 local não prova publicação ou aceite médico.
+
+Após integração, os 504 testes, lint, typecheck e build passaram em CI e na
+main. A publicação técnica foi conferida nos dois aliases e na sessão médica
+do domínio principal: objetivo, arquivos/fontes, respostas originais, revisão
+da Glicose, peso compacto, Agenda e oito atalhos. O texto pequeno mais claro do
+bloco principal mediu contraste 5,47:1 sobre a superfície computada publicada;
+links e títulos também passaram AA. A conferência autenticada não incluiu
+mutations clínicas nem reprocessamento. Preview separado e aceite de usabilidade
+do médico permanecem pendentes; identificadores e limites no [status](STATUS_ATUAL.md).
 
 ## Histórico — 07/10/2026
 
