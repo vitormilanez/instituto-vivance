@@ -1,6 +1,7 @@
 import type { patientCareContext } from "@/modules/workspace/today";
 import {
   consultationContextCards,
+  withSubmittedOnboarding,
   careRequestActionLabel,
   type ContextCard,
 } from "@/modules/workspace/patient-context-cards";
@@ -128,7 +129,9 @@ export function PatientCareLinks({
   context,
   recordBase,
   compactRequests = false,
+  onboarding,
 }: {
+  onboarding?: Parameters<typeof withSubmittedOnboarding>[1];
   base: string;
   patientId: string;
   context: NonNullable<Awaited<ReturnType<typeof patientCareContext>>>;
@@ -137,7 +140,7 @@ export function PatientCareLinks({
 }) {
   return (
     <ContextCardList
-      cards={contextCardsFrom(base, patientId, context, recordBase)}
+      cards={withSubmittedOnboarding(contextCardsFrom(base, patientId, context, recordBase), onboarding, recordBase ?? `${base}/pacientes/${patientId}`)}
       compactRequests={compactRequests}
       base={base}
       patientId={patientId}

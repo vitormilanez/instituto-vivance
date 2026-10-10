@@ -17,7 +17,7 @@ animada, Hoje, alimentação salva/retomada, três PNGs sintéticos e PDF fictí
 Vitor possui vínculo e onboarding `draft/profile`; suas medidas seguem vazias.
 Os convites de 00h56/01h03 continuam ausentes. Conta existente não recebe novo
 e-mail; recebimento de e-mail para conta inexistente não foi validado.
-Impeccable 4.5 revisou mobile/desktop e estados; 466 testes, typecheck, lint
+Impeccable 4.5 revisou mobile/desktop e estados; 468 testes, typecheck, lint
 sem erros (um aviso preexistente) e build passaram. Publicação web pendente
 neste registro, antes da integração.
 

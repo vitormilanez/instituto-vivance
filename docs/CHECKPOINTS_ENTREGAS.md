@@ -8,7 +8,7 @@
 - [x] Edição pela revisão e bloqueio de medida inválida ao avançar/voltar/sair.
 - [x] Cadastro → conclusão → alimentação → fotos → exames → dados na equipe.
 - [x] Impeccable: desktop/mobile, estados de recuperação e e-mails longos.
-- [x] 466 testes, typecheck, lint sem erros e build; Edge Function v6 no dev.
+- [x] 468 testes, typecheck, lint sem erros e build; Edge Function v6 no dev.
 - [ ] Publicar web integrado e conferir acesso de Vitor no domínio.
 - [ ] Entrega de e-mail de acesso novo: validar recebimento real.
 

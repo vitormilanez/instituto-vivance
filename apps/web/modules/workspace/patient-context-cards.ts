@@ -263,3 +263,19 @@ export function contextSummary(cards: ContextCard[]): string {
   }
   return `${pending} de ${expected.length} informações esperadas do paciente ainda não foram registradas.`;
 }
+
+// Initial patient-reported context is distinct from longitudinal measurements
+// and clinician intake. Link to its submitted snapshot without inventing either.
+export function withSubmittedOnboarding(cards: ContextCard[], onboarding: {
+  measurements: { weightKg: number | null; heightCm: number | null; waistCm: number | null };
+  answers: { goal: string };
+} | null | undefined, recordBase: string): ContextCard[] {
+  if (!onboarding) return cards;
+  const hasMeasures = Object.values(onboarding.measurements).some(value => value !== null && Number.isFinite(value) && value > 0);
+  const href = `${recordBase}?aba=Vis%C3%A3o%20geral#cadastro-paciente`;
+  return cards.map(card => card.id === "measurements" && card.pending && hasMeasures
+    ? { ...card, state: "Informadas no cadastro inicial", pending: false, action: "Ver medidas iniciais", href }
+    : card.id === "goals" && card.pending && onboarding.answers.goal.trim()
+      ? { ...card, state: "Informado no cadastro inicial", pending: false, action: "Ver objetivo inicial", href }
+      : card);
+}

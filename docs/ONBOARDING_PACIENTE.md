@@ -131,8 +131,13 @@ do cadastro, edição de medidas pela revisão, envio e conclusão animada; Hoje
 apresenta alimentação; alimentação salva e retomada, três PNGs sintéticos e PDF
 fictício compartilhados. Banco confirmou 175 cm, 76,10 kg, data 10/10 e as
 três submissões complementares. Vitor permanece em `draft/profile`, medidas
-vazias: seu cadastro não foi preenchido pelo teste. 466 testes, typecheck, lint
+vazias: seu cadastro não foi preenchido pelo teste. 468 testes, typecheck, lint
 (zero erros, aviso preexistente) e build passaram. Impeccable 4.5: revisão
 funcional e visual em 390/1440 px; corrigidos e-mail longo e validação ao voltar.
 Entrega real de e-mail para uma conta inexistente não foi comprovada; Google
 OAuth e QR coletivo continuam pendentes. Publicação web registrada no STATUS.
+
+Na ficha médica, dados iniciais não simulam série longitudinal: medidas e
+objetivo enviados aparecem com origem “cadastro inicial” e link para o snapshot.
+Nascimento informado pelo paciente aparece com essa atribuição se o cadastro
+formal não tem data. Sem acolhimento clínico, o contexto enviado abre visível.

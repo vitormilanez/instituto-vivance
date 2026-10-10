@@ -9,6 +9,7 @@ export type PatientRecordHeaderPatient = {
 
 export type PatientRecordHeaderProps = {
   patient: PatientRecordHeaderPatient;
+  reportedBirthDate?: string | null;
   clinicName: string;
   tenantId: string;
   headerFacts: PatientHeaderFacts | null;
@@ -23,6 +24,7 @@ export type PatientRecordHeaderProps = {
 
 export function PatientRecordHeader({
   patient,
+  reportedBirthDate,
   clinicName,
   tenantId,
   headerFacts,
@@ -54,7 +56,9 @@ export function PatientRecordHeader({
             <p>
               {patient.birth_date
                 ? `Nascimento: ${patient.birth_date.split("-").reverse().join("/")}`
-                : "Nascimento não informado"}
+                : reportedBirthDate
+                  ? `Nascimento informado pelo paciente: ${reportedBirthDate.split("-").reverse().join("/")}`
+                  : "Nascimento não informado"}
             </p>
           </div>
           {(headerFacts || hasOnboarding) && (
