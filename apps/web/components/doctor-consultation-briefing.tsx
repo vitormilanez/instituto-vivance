@@ -100,6 +100,7 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
   const patientTopics = brief?.topics.filter((topic) => topic.kind === "patient") ?? [];
   const pendingTopics = brief?.topics.filter((topic) => topic.kind === "pending") ?? [];
   const documentTopics = brief?.topics.filter((topic) => topic.kind === "documents") ?? [];
+  const examTopics = brief?.topics.filter((topic) => topic.kind === "exams") ?? [];
   return <article className="home-consultation doctor-consultation consultation-briefing" aria-labelledby={`consulta-${appointment.id}-titulo`}>
     <details className="brief-expandable" open>
       <summary className="brief-collapse-summary">
@@ -134,6 +135,7 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
             </div>
             {pendingTopics.length > 0 && <div className="brief-topic-group"><h4>Respostas pendentes</h4><ul className="brief-topics">{pendingTopics.map((topic, index) => <li key={index}><p>{topic.text}</p><div className="brief-sources">{topic.sources.map((source) => <span className="brief-source-with-date" key={`${source.type}:${source.id}`}><BriefSource source={source} received={received} tenantId={tenantId} /><time dateTime={source.date}>{day(source.date)}</time></span>)}</div></li>)}</ul></div>}
             {documentTopics.length > 0 && <div className="brief-topic-group"><h4>Documentos para revisar</h4>{documentTopics.map((topic, index) => <div key={index}><p className="brief-document-count">{topic.text}</p><ol className="brief-document-list">{topic.sources.map((source, sourceIndex) => <li key={`${source.type}:${source.id}`}><span className="brief-document-number">Arquivo {sourceIndex + 1}</span><BriefSource source={source} received={received} tenantId={tenantId} /><time dateTime={source.date}>{day(source.date)}</time></li>)}</ol></div>)}</div>}
+            {examTopics.length > 0 && <div className="brief-topic-group"><h4>Resultados de exames</h4><p className="brief-group-note">Valores literais conferidos por médico; extrações pendentes aparecem apenas como contagem.</p><ul className="brief-topics">{examTopics.map((topic, index) => <li key={index}><p>{topic.text}</p><div className="brief-sources">{topic.sources.map((source) => <BriefSource key={`${source.type}:${source.id}`} source={source} received={received} tenantId={tenantId} />)}</div></li>)}</ul></div>}
             {brief?.retry && <div className="brief-load-error" role="status"><p>O resumo assistido não carregou. Os relatos originais continuam disponíveis.</p><RetryButton /></div>}
           </section>
           <PatientFeed context={context} received={received} base={base} patientId={appointment.patient_id} tenantId={tenantId} />

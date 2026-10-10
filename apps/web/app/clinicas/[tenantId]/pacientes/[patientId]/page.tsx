@@ -22,6 +22,8 @@ import { StaffPatientDocumentsPanel } from "@/components/documents-workspace";
 import { syntheticPilotDocumentIds } from "@/modules/exams/pilot";
 import { patientExamOverview } from "@/modules/exams/overview-service";
 import { ExamExtractionError } from "@/modules/exams/service";
+import { patientExamResults } from "@/modules/exams/results-service";
+import { ExamResultsPanel } from "@/components/exam-results-panel";
 import {
   canInvitePatientToIntake,
   getPatientIntake,
@@ -141,6 +143,12 @@ export default async function Patient({
           throw error;
         })
       : null;
+  const examResults = doctorView && active === "Documentos"
+    ? await patientExamResults(tenantId, patientId).catch((error) => {
+        if (error instanceof ExamExtractionError && error.status === 403) notFound();
+        throw error;
+      })
+    : null;
   const recordSecondary = (
     <div className="patient-record-secondary">
       <section className="panel future-care">
@@ -329,12 +337,18 @@ export default async function Patient({
         ) : active === "Receitas anteriores" ? (
           <PrescriptionsPanel tenantId={tenantId} patientId={patientId} />
         ) : active === "Documentos" && documents ? (
-          <StaffPatientDocumentsPanel
+          <>
+          {examResults && <ExamResultsPanel view={examResults} tenantId={tenantId} />}
+          {doctorView && examResults?.documents.length ? <details className="panel dv-record-disclosure">
+            <summary>Arquivos e revisões dos envios · {documents.documents.length}</summary>
+            <StaffPatientDocumentsPanel initial={documents} base={`${recordBase}?aba=Documentos`} />
+          </details> : <StaffPatientDocumentsPanel
             initial={documents}
             base={`${recordBase}?aba=Documentos`}
             pilotDocumentIds={doctorView ? syntheticPilotDocumentIds() : []}
             overview={examOverview}
-          />
+          />}
+          </>
         ) : active === "Linha do tempo" && longitudinal ? (
           <StaffLongitudinalWorkspace
             initial={longitudinal}

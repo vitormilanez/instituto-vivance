@@ -10,7 +10,7 @@ export type ConsultationBriefSource = {
 };
 
 export type ConsultationBriefTopic = {
-  kind: "patient" | "pending" | "documents";
+  kind: "patient" | "pending" | "documents" | "exams";
   text: string;
   sources: ConsultationBriefSource[];
 };

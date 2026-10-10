@@ -2,12 +2,12 @@
 
 ## Entrada rápida
 
-O [README](README.md) registra o checkout principal e a frente IA2 preservada.
-Leia [STATUS_ATUAL](docs/STATUS_ATUAL.md) para distinguir main, Preview e trabalho
-em andamento; a próxima entrega recomendada está em
-[DIRECAO_E_SLICES](docs/DIRECAO_E_SLICES.md). Para exames, leia também o
-[handoff IA2](docs/IA2_EXAMES.md) e o contrato na branch do PR #78.
-Não use a main local antiga de `vivance-repo` nem o protótipo como estado vigente.
+O checkout consolidado é `/Users/vitormilanez/Desktop/Codes/vivance` após a
+integração em andamento. Confirme Git/HEAD e não use pastas antigas ou o
+protótipo como estado vigente. Leia [STATUS_ATUAL](docs/STATUS_ATUAL.md),
+[DIRECAO_E_SLICES](docs/DIRECAO_E_SLICES.md) e
+[CHECKPOINTS_ENTREGAS](docs/CHECKPOINTS_ENTREGAS.md). Para exames, leia também
+[IA2_EXAMES](docs/IA2_EXAMES.md) e [CONTA_TESTE](docs/CONTA_TESTE.md).
 Antes de propor novo trabalho, aplique o
 [brief e método por slices](docs/RETOMADA_DESENVOLVIMENTO.md).
 
@@ -44,6 +44,10 @@ confirme o estado vivo, sem reutilizar IDs ou resultados antigos.
 ## Política por slice
 
 O usuário pediu escolha automática de modelo por trabalho para equilibrar consumo e qualidade. Aplicar esta política dentro das ferramentas disponíveis; informar brevemente o modelo efetivamente utilizado, sem pedir escolha a cada slice.
+
+Quando o usuário escolher um modelo explicitamente para uma sessão ou entrega,
+essa escolha prevalece sobre os padrões abaixo. Na rodada de 10/10/2026, o
+usuário escolheu `gpt-6-sol`; não rebaixar essa escolha por iniciativa própria.
 
 - Padrão para implementação de interface e fluxos com contrato já definido: `gpt-5.6-terra`, raciocínio `medium`.
 - Texto, espaçamento, documentação e correções pequenas com aceite claro: `gpt-5.6-luna`, `low`; usar `medium` se necessário.
