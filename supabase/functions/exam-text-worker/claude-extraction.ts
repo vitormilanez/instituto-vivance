@@ -285,9 +285,14 @@ export function coverageGaps(pages: GroundingPage[], items: Record<string, unkno
 }
 
 export function unresolvedPageNotes(pages: GroundingPage[], attemptedPages: number[], items: Record<string, unknown>[]) {
-  return pages.filter((page) => attemptedPages.includes(page.page_number)
-    && !items.some((item) => item.source_page_id === page.id))
-    .map((page) => `Página ${page.page_number}: nenhum item com resultado ou narrativa literal verificável foi organizado. Confira o original.`);
+  const remaining = new Map(coverageGaps(pages, items).map((gap) => [gap.page_number, gap.missing]));
+  return pages.filter((page) => attemptedPages.includes(page.page_number)).flatMap((page) => {
+    if (!items.some((item) => item.source_page_id === page.id))
+      return [`Página ${page.page_number}: nenhum item com resultado ou narrativa literal verificável foi organizado. Confira o original.`];
+    if ((remaining.get(page.page_number) ?? 0) > 0)
+      return [`Página ${page.page_number}: a auditoria ainda sinaliza possível resultado sem item literal correspondente. Confira o original.`];
+    return [];
+  });
 }
 
 // A focused second reading gives dense pages a smaller context and output

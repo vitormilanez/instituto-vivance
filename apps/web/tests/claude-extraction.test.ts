@@ -82,6 +82,11 @@ test("coverage audit detects a missing source row without any grounding rejectio
   const grounded = groundedItems(page, result);
   assert.equal(grounded.discarded, 0);
   assert.deepEqual(coverageGaps(page, grounded.items), [{ page_number: 1, candidates: 6, missing: 5 }]);
+  assert.deepEqual(unresolvedPageNotes(page, [1], grounded.items),
+    ["Página 1: a auditoria ainda sinaliza possível resultado sem item literal correspondente. Confira o original."]);
+  const complete = groundedItems(page, { pages: [{ page_number: 1, source_text: null,
+    items: entry.expected.map((item) => proposed(item, entry.observed_on)) }], metadata: {} });
+  assert.deepEqual(unresolvedPageNotes(page, [1], complete.items), []);
 });
 
 test("reference continuation is not counted as results; unsupported proposal leaves a visible page note", () => {
