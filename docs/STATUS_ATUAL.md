@@ -1,5 +1,10 @@
 # Estado atual do Vivance
 
+Recomendação de 11/10: Resend Free para SMTP de convites. Conta do provedor,
+DNS do subdomínio de envio e credencial de envio ainda não configurados;
+Supabase Free permanece. O template médico continua preparado mas não ativo.
+[Passos e custos na raiz](../OPERACAO_SUPABASE_EMAIL.md).
+
 ## Publicação técnica vigente — 11/10/2026, tarde
 
 Auditoria adicional a pedido do usuário: CLI confirmou acesso/vínculo ao projeto;

@@ -20,11 +20,39 @@ A tentativa anterior de aplicar somente o template pelo CLI retornou HTTP 400: c
 
 O provedor padrão tem restrições e não é indicado para operação com pacientes. Consulte a [documentação oficial de SMTP](https://supabase.com/docs/guides/auth/auth-smtp). Um upgrade de plano, sozinho, não comprova entregabilidade nem substitui a configuração de um remetente institucional.
 
+## Recomendação de 11/10: Resend Free durante o desenvolvimento
+
+Usar [Resend Free](https://resend.com/pricing) para o SMTP do Auth: US$ 0,
+até 3.000 e-mails por mês e 100 por dia, três domínios e SMTP relay. O limite
+é adequado para testes e convites iniciais; reavaliar com volume real. O
+Supabase [permite template personalizado no Free quando há SMTP próprio](https://supabase.com/changelog/46599-changes-to-email-template-customisation-on-free-tier).
+
+Preparar o subdomínio de envio `auth.institutovivance.app` e o remetente
+`Vivance <convites@auth.institutovivance.app>`; confirmar o endereço na conta
+Resend antes de ativar. DNS do domínio principal usa `ns1.vercel-dns.com` e
+`ns2.vercel-dns.com`; na checagem de 11/10 não havia TXT/MX no ápice nem TXT
+em `_dmarc.institutovivance.app`. Inserir somente os registros exibidos pela
+verificação de domínio da conta Resend, depois conferir propagação e status.
+Esses valores ainda não foram gerados; não inventar DKIM/SPF/DMARC.
+
+O [Supabase Pro](https://supabase.com/pricing) começa em US$ 25/mês para a
+organização. Vale considerar quando houver piloto contínuo/necessidade de
+backups diários, mais espaço, suporte ou evitar a [pausa por inatividade do
+Free](https://supabase.com/docs/guides/platform/free-project-pausing). Não é
+necessário comprar Pro apenas para ativar este template; para convites a
+destinatários externos, o [SMTP padrão tem restrições próprias](https://supabase.com/docs/guides/auth/auth-smtp).
+
+Estado da configuração: página de cadastro do Resend aberta para o responsável
+entrar/criar a conta; nenhum domínio validado nem SMTP habilitado ainda. Após
+esse login, criar a chave de envio com acesso mínimo, mantê-la em local seguro,
+configurar SMTP no Supabase do projeto confirmado, aplicar o template e verificar
+um convite sintético recebido. Nunca registrar a chave em Git ou neste arquivo.
+
 ## O que falta para ativar o convite personalizado
 
-1. Escolher/identificar provedor SMTP e remetente institucional autorizado. Uma conta de Gmail ou o domínio do site, por si só, não comprovam SMTP preparado.
+1. Entrar/criar a conta Resend controlada pela Vivance e confirmar o remetente proposto. Uma conta de Gmail ou o domínio do site, por si só, não comprovam SMTP preparado.
 2. Obter host, porta, usuário e senha SMTP por canal seguro/cofre; nunca colocar credenciais neste arquivo, no Git ou na conversa.
-3. Validar domínio/remetente e DNS exigido pelo provedor (SPF/DKIM/DMARC). Alterações DNS, contratação e plano exigem escopo próprio.
+3. Validar domínio/remetente e DNS exigido pelo provedor (SPF/DKIM/DMARC), conferindo os valores gerados na conta.
 4. Configurar SMTP no projeto confirmado, aplicar apenas a configuração de convite e verificar leitura remota. HTML: `supabase/templates/invite.html`; procedimento: `supabase/templates/README.md`.
 5. Enviar convite sintético autorizado, verificar recebimento real e ativação no navegador. Pedido de envio não é confirmação de entrega. Não testar consumindo convites reais de terceiros.
 
