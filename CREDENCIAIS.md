@@ -40,6 +40,11 @@ quatro caminhos de compatibilidade resolveram para o arquivo central.
 
 ## O que ainda falta
 
+Desde 11/10, publicação nativa do site pela integração Git da Vercel está
+automática na `main` (`autoAssignCustomDomains=true`), a pedido do usuário.
+Ela não exige `VERCEL_TOKEN` no GitHub; as pendências abaixo são para a
+pipeline completa de banco/Edge/promoção, não para o deploy nativo do site.
+
 Não existem cópias locais de `SUPABASE_DB_PASSWORD`, `SUPABASE_ACCESS_TOKEN`
 e `VERCEL_TOKEN`. As CLIs estão autenticadas pelos cofres próprios do
 computador e permitem as operações manuais atuais; esses acessos globais não
