@@ -13,7 +13,7 @@ test("convite: cada canal diz a própria entrega, e a falha do e-mail não inval
   assert.equal(whatsapp("not_applicable"), "Link ativo · quem já tem conta entra para aceitar");
   assert.equal(
     invitationDeliveryLabel({ channel: "email", status: "pending", deliveryStatus: "not_applicable" }),
-    "Conta existente · entrar para aceitar, sem novo e-mail",
+    "Conta ativada · entrar para aceitar, sem novo e-mail",
   );
   assert.equal(
     whatsapp("failed"),
@@ -22,7 +22,7 @@ test("convite: cada canal diz a própria entrega, e a falha do e-mail não inval
   assert.match(whatsapp("requested") ?? "", /envio do e-mail de criação de conta solicitado/);
   assert.equal(
     invitationDeliveryLabel({ channel: "email", status: "pending", deliveryStatus: "requested" }),
-    "Envio do convite por e-mail solicitado",
+    "E-mail de ativação solicitado · abrir o link mais recente",
   );
   assert.equal(
     invitationDeliveryLabel({ channel: "email", status: "pending", deliveryStatus: "failed" }),

@@ -10,7 +10,7 @@ type CreatedInvitation = {
     id: string;
     displayName: string;
     channel: "email" | "whatsapp";
-    delivery?: { status: "requested" | "not_applicable" | "failed" };
+    delivery?: { status: "requested" | "not_applicable" | "failed"; accountStatus?: "new" | "active" | "pending_activation" };
   };
   shareUrl?: string;
 };
@@ -192,7 +192,7 @@ export function PatientInvitationForm({
       </form>
       {!created && <p className="invitation-help">
         {contact.includes("@")
-          ? "Se a pessoa já tiver conta, o convite aparecerá ao entrar em Minhas clínicas; nenhum novo e-mail será enviado."
+          ? "Se a pessoa já ativou a conta, aceitará o convite em Minhas clínicas. Se o cadastro ainda não foi ativado, enviaremos um novo e-mail de ativação."
           : "Após gerar, abra o WhatsApp para enviar o link. A pessoa confirmará o e-mail antes de começar."}
       </p>}
       {error ? (
@@ -202,7 +202,7 @@ export function PatientInvitationForm({
       ) : null}
       {created ? (
         <div className="inline-confirm invitation-result" role="status">
-          <h3>Convite pronto</h3>
+          <h3>{created.invitation.delivery?.accountStatus === "pending_activation" ? "Cadastro pendente de ativação" : created.invitation.delivery?.status === "not_applicable" ? "Convite para conta ativa" : "Convite pronto"}</h3>
           <p>
             {created.shareUrl
               ? "Link gerado. Envie pelo WhatsApp e peça que a pessoa confirme o e-mail. Se já tiver conta, ela entra com o acesso existente."
@@ -240,8 +240,10 @@ export function PatientInvitationForm({
               {created.invitation.delivery?.status === "failed"
                 ? "O e-mail não foi enviado. Você pode criar um convite por WhatsApp ou pedir à clínica para verificar o serviço de e-mail."
                 : created.invitation.delivery?.status === "not_applicable"
-                  ? "Esta pessoa já tem uma conta; nenhum novo e-mail foi enviado. Peça que entre em Minhas clínicas para aceitar o convite."
-                  : "O envio do e-mail foi solicitado. A pessoa deve conferir também a caixa de spam."}
+                  ? "Esta pessoa já tem uma conta ativada; nenhum novo e-mail foi enviado. Peça que entre em Minhas clínicas para aceitar o convite."
+                  : created.invitation.delivery?.accountStatus === "pending_activation"
+                    ? "Este e-mail tem um cadastro que ainda não foi ativado. Solicitamos um novo e-mail de ativação. Peça que a pessoa abra o link mais recente e confira também a pasta de spam."
+                    : "O envio do e-mail de ativação foi solicitado. A pessoa deve conferir também a caixa de spam."}
             </p>
           )}
         </div>

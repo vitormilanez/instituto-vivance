@@ -8,6 +8,7 @@ type Options = {
   lookupFailure?: boolean;
   sendFailure?: boolean;
   existing?: boolean;
+  pendingActivation?: boolean;
   invalidRedirect?: boolean;
   fullLookup?: boolean;
   revokeFailure?: boolean;
@@ -48,8 +49,8 @@ async function invite(options: Options = {}) {
         lookupCalls++;
         return options.lookupFailure
           ? { data: { users: [] }, error: { code: "auth_unavailable" } }
-          : { data: { users: options.existing
-            ? [{ email: "patient@example.test" }]
+          : { data: { users: options.existing || options.pendingActivation
+            ? [{ email: "patient@example.test", email_confirmed_at: options.pendingActivation ? null : "2026-10-01T00:00:00Z", invited_at: "2026-10-01T00:00:00Z" }]
             : options.fullLookup ? Array.from({ length: 1000 }, () => ({ email: "other@example.test" })) : [] }, error: null };
       },
       inviteUserByEmail: async () => {
@@ -130,4 +131,22 @@ test("new-account mail request and existing-account invite remain successful", a
   assert.equal(existing.result.status, 201);
   assert.equal(existing.mailCalls, 0);
   assert.equal(existing.updates.at(-1)?.delivery_status, "not_applicable");
+  assert.equal((await existing.result.json()).invitation.delivery.accountStatus, "active");
+});
+
+test("an unactivated account requests a fresh activation invite rather than skipping email", async () => {
+  const pending = await invite({ pendingActivation: true });
+  assert.equal(pending.result.status, 201);
+  assert.equal(pending.mailCalls, 1);
+  assert.equal(pending.updates.length, 0);
+  const payload = await pending.result.json();
+  assert.equal(payload.invitation.delivery.status, "requested");
+  assert.equal(payload.invitation.delivery.accountStatus, "pending_activation");
+});
+
+test("failed activation resend revokes the invitation instead of reporting success", async () => {
+  const { result, updates, mailCalls } = await invite({ pendingActivation: true, sendFailure: true });
+  assert.equal(result.status, 503);
+  assert.equal(mailCalls, 1);
+  assert.equal(updates.at(-1)?.status, "revoked");
 });

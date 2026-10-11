@@ -1,5 +1,14 @@
 # Direção do Vivance e próximos slices
 
+**Decisão de 11/10/2026 — convites:** diferenciar conta confirmada de cadastro
+pendente de ativação. Ao convidar uma identidade não confirmada, solicitar
+novo e-mail de ativação e informar claramente o resultado; somente conta
+confirmada recebe orientação de entrar em Minhas clínicas sem novo e-mail.
+O usuário autorizou excluir especificamente a conta antiga de
+`vtrconsultingbr@gmail.com` para teste do zero. Limpeza conferida; implementação
+e publicação têm estados separados no [status](STATUS_ATUAL.md). Não recriar
+essa identidade antes do convite manual do usuário.
+
 **Decisão vigente em 10/10/2026:** cuidado longitudinal supervisionado: convite → contexto inicial → preparação → consulta → registro médico → acompanhamento → retorno. O médico interpreta e decide. Relato literal, dado extraído, cálculo, revisão, aprovação e publicação têm origem e estados separados. O [status](STATUS_ATUAL.md) distingue implementação, teste e publicação.
 
 ## Prioridade atual — validar qualidade e publicação médica (10/10)

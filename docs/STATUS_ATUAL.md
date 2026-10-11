@@ -1,5 +1,31 @@
 # Estado atual do Vivance
 
+## Convites — cadastro não ativado e reset específico (11/10/2026)
+
+A pedido do usuário, removidos no dev sintético confirmado
+`oxuwrdjojsmgxoljqkuk` a conta antiga de `vtrconsultingbr@gmail.com` e o
+convite pendente criado em 11/10 às 09h47 (São Paulo). A conta de 03/10 não
+tinha confirmação, login, sessão, membership, vínculo de paciente, onboarding
+ou documento. Transação com guards de identidade/estado; leitura posterior
+confirmou zero contas e zero convites pendentes para esse endereço. Exclusão
+definitiva; nenhum novo cadastro/convite foi criado pelo agente. O reset de
+10/10 abrangia outros dois e-mails de Vitor, não este terceiro endereço.
+
+Correção preparada na branch `codex/convite-ativacao-pendente-20261011`:
+`invite-patient` e claim por WhatsApp só dispensam e-mail quando
+`email_confirmed_at` existe. Identidade não confirmada recebe novo pedido de
+Invite via Auth, preservando o usuário; UI médica informa **Cadastro pendente
+de ativação**, pedido de novo e-mail e uso do link mais recente. Conta ativa
+continua aceitando em Minhas clínicas sem novo e-mail. Resposta pública do
+claim permanece genérica; falhas de envio revogam convite direto ou devolvem
+o link WhatsApp para retry. Lookup incompleto falha sem envio.
+
+530 testes passaram em Node 24.21.0; typecheck, lint completo (zero erros,
+um aviso anterior) e build Webpack passaram. Deno check das duas funções e
+revisão independente com GPT-5.6 Sol medium aprovados. Publicação de frontend/Edge Functions e recebimento de e-mail real
+continuam pendentes; não há migration neste lote. O usuário repetirá o
+convite novo com o endereço limpo. Tarefa C2 `1219002465981599`.
+
 **Atualizado em 10/10/2026 (São Paulo) — UX médica #119 integrada e publicada tecnicamente.** Checkout Git principal: `/Users/vitormilanez/Desktop/Codes/vivance`. Aplicação publicada: `e05cb4cafa20c3a5b43899fdfae1b7bf4310a17c`; deployment `dpl_4ckHiqrEM1NdXqaf6cUFTigvHt2X`. O #117 e o PR documental #118 são históricos. Aceite médico e [Gate P](GATE_P.md) permanecem separados da publicação técnica. Confira o estado vivo antes de reutilizar estes identificadores.
 
 ## Publicação técnica da UX médica — #119 (10/10)

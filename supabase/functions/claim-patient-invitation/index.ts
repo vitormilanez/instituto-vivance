@@ -41,17 +41,23 @@ Deno.serve(async (request: Request) => {
         .eq("status", "pending")
         .is("token_hash", null);
     }
-    let existing = false;
+    let active = false;
+    let lookupComplete = false;
     for (let page = 1; page <= 5; page += 1) {
       const listed = await admin.auth.admin.listUsers({ page, perPage: 1000 });
       if (listed.error) {
         await releaseClaim();
         return retry();
       }
-      if (listed.data.users.some((user) => user.email?.toLowerCase() === email)) { existing = true; break; }
-      if (listed.data.users.length < 1000) break;
+      const matched = listed.data.users.find((user) => user.email?.toLowerCase() === email);
+      if (matched) { active = Boolean(matched.email_confirmed_at); lookupComplete = true; break; }
+      if (listed.data.users.length < 1000) { lookupComplete = true; break; }
     }
-    if (existing) await admin.from("patient_invitations").update({ delivery_status: "not_applicable" }).eq("id", claimedId);
+    if (!lookupComplete) { await releaseClaim(); return retry(); }
+    if (active) {
+      const updated = await admin.from("patient_invitations").update({ delivery_status: "not_applicable" }).eq("id", claimedId);
+      if (updated.error) { await releaseClaim(); return retry(); }
+    }
     else {
       const redirectTo = redirectUrl();
       if (!redirectTo) {

@@ -97,28 +97,33 @@ Deno.serve(async (request: Request) => {
       return response({ error: "Não foi possível criar o convite.", requestId }, 503);
     }
     let delivery = inserted.data.delivery_status as "requested" | "not_applicable" | "failed";
+    let accountStatus: "new" | "active" | "pending_activation" | undefined;
     if (values.channel === "email") {
       try {
-        let existing = false;
+        let existing: { email_confirmed_at?: string | null } | undefined;
         let lookupComplete = false;
         for (let page = 1; page <= 5; page += 1) {
           const listed = await admin.auth.admin.listUsers({ page, perPage: 1000 });
           if (listed.error) throw listed.error;
-          if (listed.data.users.some((user) => user.email?.toLowerCase() === values.email)) {
-            existing = true;
+          const matched = listed.data.users.find((user) => user.email?.toLowerCase() === values.email);
+          if (matched) {
+            existing = matched;
             lookupComplete = true;
             break;
           }
           if (listed.data.users.length < 1000) { lookupComplete = true; break; }
         }
         if (!lookupComplete) throw new Error("Auth lookup incomplete");
-        if (existing) {
+        accountStatus = existing ? (existing.email_confirmed_at ? "active" : "pending_activation") : "new";
+        if (accountStatus === "active") {
           delivery = "not_applicable";
           const updated = await admin.from("patient_invitations").update({ delivery_status: delivery, updated_at: new Date().toISOString() }).eq("id", inserted.data.id);
           if (updated.error) throw updated.error;
         } else {
           const redirectTo = redirectUrl();
           if (!redirectTo) throw new Error("Patient invite redirect unavailable");
+          // Auth resends Invite to an unconfirmed user without recreating their
+          // identity. Only a confirmed account can skip activation delivery.
           const sent = await admin.auth.admin.inviteUserByEmail(values.email, { redirectTo });
           if (sent.error) throw sent.error;
         }
@@ -133,7 +138,7 @@ Deno.serve(async (request: Request) => {
     return response({ invitation: {
       id: inserted.data.id, tenantId: inserted.data.tenant_id, displayName: inserted.data.display_name,
       channel: inserted.data.channel, status: inserted.data.status, doctorId: inserted.data.doctor_id,
-      expiresAt: inserted.data.expires_at, createdAt: inserted.data.created_at, delivery: { status: delivery },
+      expiresAt: inserted.data.expires_at, createdAt: inserted.data.created_at, delivery: { status: delivery, accountStatus },
     }, ...(token ? { shareUrl: `/convite#${token}` } : {}) }, 201);
   } catch { return response({ error: "Não foi possível concluir o convite.", requestId }, 503); }
 });

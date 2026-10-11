@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 
-type Options = { available?: boolean; existing?: boolean; mailFailure?: boolean };
+type Options = { available?: boolean; existing?: boolean; mailFailure?: boolean; pendingActivation?: boolean; fullLookup?: boolean };
 async function claim(options: Options) {
   const updates: Record<string, unknown>[] = [];
   let mailCalls = 0;
@@ -18,7 +18,7 @@ async function claim(options: Options) {
       return query;
     }}),
     auth: { admin: {
-      listUsers: async () => ({ data: { users: options.existing ? [{ email: "patient@example.test" }] : [] }, error: null }),
+      listUsers: async () => ({ data: { users: options.existing || options.pendingActivation ? [{ email: "patient@example.test", email_confirmed_at: options.pendingActivation ? null : "2026-10-01T00:00:00Z" }] : options.fullLookup ? Array.from({ length: 1000 }, () => ({ email: "other@example.test" })) : [] }, error: null }),
       inviteUserByEmail: async () => { mailCalls++; return { error: options.mailFailure ? { code: "smtp_failed" } : null }; },
     }},
   };
@@ -52,4 +52,26 @@ test("new account requests access email", async () => {
   const { response, mailCalls } = await claim({});
   assert.equal(response.status, 202);
   assert.equal(mailCalls, 1);
+});
+
+test("unactivated account resends activation while keeping the public response generic", async () => {
+  const { response, updates, mailCalls } = await claim({ pendingActivation: true });
+  assert.equal(response.status, 202);
+  assert.equal(mailCalls, 1);
+  assert.equal(updates.at(-1)?.delivery_status, "requested");
+  assert.deepEqual(await response.json(), { verificationRequested: true });
+});
+
+test("activation resend failure restores the one-time link for retry", async () => {
+  const { response, updates } = await claim({ pendingActivation: true, mailFailure: true });
+  assert.equal(response.status, 503);
+  assert.equal(updates.at(-1)?.recipient_email, null);
+  assert.equal(typeof updates.at(-1)?.token_hash, "string");
+});
+
+test("incomplete account lookup restores the link without sending email", async () => {
+  const { response, updates, mailCalls } = await claim({ fullLookup: true });
+  assert.equal(response.status, 503);
+  assert.equal(mailCalls, 0);
+  assert.equal(updates.at(-1)?.recipient_email, null);
 });

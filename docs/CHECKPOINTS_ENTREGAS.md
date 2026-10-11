@@ -23,6 +23,10 @@
 
 ## Base e jornada
 
+- [x] 11/10: excluídos a identidade não ativada de `vtrconsultingbr@gmail.com` e o convite de 09h47 no dev confirmado; zero contas/convites pendentes após limpeza guardada, sem dependências de paciente.
+- [x] Correção local distingue conta confirmada de não ativada em convite direto/WhatsApp e pede novo e-mail de ativação; 530 testes, typecheck e lint dos arquivos alterados passaram.
+- [ ] Publicar frontend e ambas as Edge Functions; conferir novo convite e recebimento real de ativação pelo usuário. Sem recriar sua conta antes do teste.
+
 - [x] PRs #95, #103/#104 e #106/#107 integrados e publicados tecnicamente; detalhes históricos no [status](STATUS_ATUAL.md).
 - [x] Reset de Vitor às 17h38 de 10/10 conferido; médico e conta QA preservados. Links anteriores inválidos.
 - [ ] Vitor percorrer convite **novo** para `vitor.milanezz@gmail.com` e dar aceite de usabilidade. Não recriar/preencher sua conta antes dele.

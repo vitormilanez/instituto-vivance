@@ -50,12 +50,13 @@ export function PatientInvitationClaim({ token }: { token: string }) {
         <div className="invitation-claim-next" role="status">
           <h2>Agora, entre na sua conta</h2>
           <p>
-            Se você já usa <strong>{enteredEmail}</strong> na Vivance, entre com
-            esse acesso e aceite o convite em Minhas clínicas. Não enviaremos
-            outro e-mail para uma conta existente.
+            Se você já ativou a conta de <strong>{enteredEmail}</strong> na Vivance,
+            entre com esse acesso e aceite o convite em Minhas clínicas.
+            Uma conta ativada não recebe outro e-mail.
           </p>
           <p>
-            Se ainda não tem conta, confira o e-mail informado para criar seu
+            Se ainda não ativou seu cadastro ou está começando agora, solicitamos
+            um e-mail de ativação. Abra o link mais recente para preparar seu
             acesso. Verifique também a pasta de spam.
           </p>
           <p>Se outra pessoa estiver conectada neste navegador, vamos sair dessa conta para você entrar com seu e-mail.</p>

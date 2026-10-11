@@ -15,8 +15,8 @@ export function invitationDeliveryLabel(input: InvitationDelivery): string | nul
     if (input.deliveryStatus === "failed")
       return "O e-mail de convite não foi enviado";
     if (input.deliveryStatus === "not_applicable")
-      return "Conta existente · entrar para aceitar, sem novo e-mail";
-    return "Envio do convite por e-mail solicitado";
+      return "Conta ativada · entrar para aceitar, sem novo e-mail";
+    return "E-mail de ativação solicitado · abrir o link mais recente";
   }
   if (input.channel === "whatsapp") {
     if (input.deliveryStatus === "requested")
