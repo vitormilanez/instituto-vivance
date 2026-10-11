@@ -1,5 +1,18 @@
 # Direção do Vivance e próximos slices
 
+**Pedido adicional de 11/10:** conferir SMTP pelo CLI e registrar informações
+operacionais na raiz, sem credenciais. Acesso confirmado, SMTP próprio ausente;
+configuração/contratação ainda requer provedor e remetente autorizados. Índice:
+[OPERACAO_SUPABASE_EMAIL](../OPERACAO_SUPABASE_EMAIL.md).
+
+**Publicação autorizada e conferida em 11/10, tarde:** #121 e #122 estão no
+domínio principal. Colisão email/WhatsApp não deve consumir token nem apresentar
+retry genérico; link revogado orienta recuperação pelo e-mail/novo convite.
+Template médico pronto, mas aplicação Auth bloqueada pelo provedor padrão/free
+tier: configurar SMTP exige decisão/credenciais próprias; não contratar nem
+alterar plano automaticamente. PRs antigos substituídos não voltam ao produto;
+Pulse e governança IA seguem os gates/documentação, sem publicação automática.
+
 **Decisão de 11/10/2026 — convites:** diferenciar conta confirmada de cadastro
 pendente de ativação. Ao convidar uma identidade não confirmada, solicitar
 novo e-mail de ativação e informar claramente o resultado; somente conta
