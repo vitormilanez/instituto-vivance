@@ -38,8 +38,10 @@
 - [x] Checkpoints internos imutáveis de lotes/auditorias, versão/hash/páginas/lease, RLS e retomada sem repetir lotes concluídos.
 - [x] Modelos disponíveis confirmados: Haiku 5.5 inicial, Sonnet 5.5 seletivo. Política/preços/exemplo e limites em [IA2_EXAMES](IA2_EXAMES.md).
 - [x] Local: 512 testes, lint/typecheck/build, Deno check; teste de falha/retomada de 25 páginas, multiline, Unicode, isolamento de checkpoint e idempotência. Aviso lint anterior.
-- [ ] Integração, migration `20261010234104`, Edge adapter `.5` e frontend publicado.
-- [ ] Verificação remota sintética focada. PDF reportado permanece sem recuperação confirmada neste registro.
+- [x] [#114](https://github.com/vitormilanez/instituto-vivance/pull/114) integrado/publicado: 512 testes CI/release; migration `20261010234104` (69), Edge v12/adapter `.5`, deployment `dpl_Fp46Tkhys3rTQT6BpNABqh48AY4S`, ambos os aliases conferidos.
+- [x] Retomada remota sintética: 25/25 páginas, mesma run, dois lotes preservados da primeira tentativa, segunda tentativa completa; nove checkpoints. DOM médico confirmou texto disponível no PDF esgotado, que não foi recuperado.
+- [x] Correção local dos achados remotos: referência não é próximo analito, unidade repetida deduplica e Resultado/Valor só fica coberto na mesma ocorrência do rótulo. 518 testes e Deno check; reaplicação offline do cache: 25 itens/25 páginas com referência/unidade/data, zero offsets inválidos/lacunas; nenhuma nova chamada Claude.
+- [ ] Publicar adapter `.6` e confirmar remotamente referência/unidade/data; histórico anterior de 29 itens imutável. Branch `codex/exames-referencia-literal-20261010`, prompt `.4`.
 - [ ] Próximo reforço operacional: continuação entre leases e retomada médica de job que esgotou tentativas; medir cobertura/estabilidade com gabarito médico.
 
 ## Próximos gates clínicos

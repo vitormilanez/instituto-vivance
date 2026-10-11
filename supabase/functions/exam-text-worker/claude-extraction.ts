@@ -126,6 +126,20 @@ function literalLabValue(excerpt: string, proposed: string, name: string) {
   return distance >= 0 && distance <= 12 && firstNumber === first.text ? first.text : null;
 }
 
+// A reference range may contain numbers on its own line. Keep it with the
+// current analyte, while a genuine next result remains a provenance boundary.
+function nextResultLine(text: string) {
+  const lines = /\n([^\n]*)/gu;
+  let match: RegExpExecArray | null;
+  while ((match = lines.exec(text))) {
+    const line = match[1].trim();
+    if (/^(?:ref(?:er[êe]ncias?)?\.?|faixas?(?:\s+de\s+refer[êe]ncia)?|intervalo(?:\s+de\s+refer[êe]ncia)?|valor(?:es)?\s+de\s+refer[êe]ncia|unidade|material|m[ée]todo|coleta|amostra)(?=$|[^\p{L}\p{M}])/iu.test(line))
+      continue;
+    if (/[\p{L}][^\n]*?\s+\d/u.test(line)) return match.index;
+  }
+  return null;
+}
+
 function groundedDate(value: unknown, text: string): string | null {
   if (typeof value !== "string" || !/^(\d{4})-(\d{2})-(\d{2})$/.test(value)) return null;
   const [, yearText, monthText, dayText] = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)!;
@@ -205,11 +219,11 @@ export function groundedItems(pages: { id: string; page_number: number; extracte
       };
       const afterValue = kind === "laboratory" ? excerpt.slice(excerpt.indexOf(value!, excerpt.indexOf(name) + name.length) + value!.length) : "";
       const refMarker = /\bref(?:er[êe]ncia)?\.?\s*[:=-]?/iu.exec(afterValue);
-      const nextResult = /\n[^\n]{0,100}[\p{L}][^\n]*?\s+\d/u.exec(afterValue);
-      const fieldEnd = Math.min(refMarker?.index ?? afterValue.length, nextResult?.index ?? afterValue.length);
+      const nextResult = nextResultLine(afterValue);
+      const fieldEnd = Math.min(refMarker?.index ?? afterValue.length, nextResult ?? afterValue.length);
       const rawReference = kind === "laboratory" && typeof item.reference_text === "string" ? item.reference_text : "";
       const referenceMatch = rawReference ? sourceMatch(afterValue, rawReference) : null;
-      const reference = referenceMatch && validText(referenceMatch.text, 1000) && (nextResult?.index === undefined || referenceMatch.start < nextResult.index)
+      const reference = referenceMatch && validText(referenceMatch.text, 1000) && (nextResult === null || referenceMatch.start < nextResult)
         ? referenceMatch.text : null;
       const unitArea = afterValue.slice(0, Math.min(fieldEnd, referenceMatch?.start ?? afterValue.length, 80));
       const rawUnit = kind === "laboratory" && typeof item.unit_text === "string" ? item.unit_text : "";
@@ -252,7 +266,7 @@ export function mergeGroundedAttempts(pages: GroundingPage[], attempts: ClaudeRe
     // Only collapse a copied number+unit when the other attempt split that
     // very same literal number and unit. Never normalize digits or units.
     const joined = (whole: string | null, wholeUnit: string | null, number: string | null, unit: string | null) =>
-      whole !== null && wholeUnit === null && number !== null && unit !== null
+      whole !== null && (wholeUnit === null || wholeUnit === unit) && number !== null && unit !== null
       && numericLiteral(number) && whole.startsWith(number) && whole.endsWith(unit)
       && /^[ \t]*$/u.test(whole.slice(number.length, -unit.length));
     return joined(aValue, aUnit, bValue, bUnit) || joined(bValue, bUnit, aValue, aUnit);
@@ -352,9 +366,16 @@ export function coverageGaps(pages: GroundingPage[], items: Record<string, unkno
   for (const page of pages) {
     let candidates = 0, missing = 0;
     const pageItems = items.filter((item) => item.source_page_id === page.id);
-    const lines = (page.extracted_text ?? "").split("\n").map((line) => line.trim());
+    const sourceCharacters = Array.from(page.extracted_text ?? "");
+    let offset = 0;
+    const lines = (page.extracted_text ?? "").split("\n").map((raw) => {
+      const start = offset;
+      offset += characters(raw) + 1;
+      return { raw, text: raw.trim(), start };
+    });
     for (let index = 0; index < lines.length; index++) {
-      const line = lines[index];
+      const { raw, start } = lines[index];
+      const line = lines[index].text;
       const narrative = /^(Achados?|Conclus[aã]o|Descri[cç][aã]o|Impress[aã]o|Observa[cç][aã]o)\s*:\s*(.{4,})$/iu.exec(line);
       if (narrative && !/\s=\s/u.test(narrative[2])) {
         candidates++;
@@ -363,12 +384,38 @@ export function coverageGaps(pages: GroundingPage[], items: Record<string, unkno
           && item.narrative_text === narrative[2])) missing++;
         continue;
       }
+      // "Resultado"/"Valor" is a field heading, not the analyte. Match its
+      // number to the exact source occurrence of the preceding literal label.
+      const generic = /^(\s*(?:Resultado|Valor)\s*(?:\||:)\s*)([<>≤≥]?-?\d+(?:[.,]\d+)?)(?=\s|$)/iu.exec(raw);
+      if (generic) {
+        candidates++;
+        const valueStart = start + characters(generic[1]);
+        const labelWindowStart = lines[Math.max(0, index - 2)].start;
+        const covered = pageItems.some((item) => {
+          if (item.item_kind !== "laboratory" || typeof item.literal_name !== "string"
+            || typeof item.literal_value !== "string" || typeof item.source_excerpt !== "string"
+            || typeof item.source_start !== "number") return false;
+          const excerpt = item.source_excerpt;
+          const nameIndex = excerpt.indexOf(item.literal_name);
+          if (nameIndex < 0) return false;
+          const nameStart = item.source_start + characters(excerpt.slice(0, nameIndex));
+          const nameEnd = nameStart + characters(item.literal_name);
+          if (nameStart < labelWindowStart || nameEnd > start) return false;
+          const between = sourceCharacters.slice(nameEnd, start).join("");
+          if (!/^[\s]*$/u.test(between)) return false;
+          const valueIndex = excerpt.indexOf(item.literal_value, nameIndex + item.literal_name.length);
+          return valueIndex >= 0 && item.source_start + characters(excerpt.slice(0, valueIndex)) === valueStart
+            && item.literal_value.startsWith(generic[2]);
+        });
+        if (!covered) missing++;
+        continue;
+      }
       if (/^(?:data|coleta|realiza[cç][aã]o|emiss[aã]o|nascimento|idade|p[aá]gina|registro|protocolo|c[oó]digo|nota|refer[êe]ncia|faixa|intervalo|valor(?:es)?)\b/iu.test(line)
         || /^(?:\d+\s*(?:a|até|-)\s*\d+|acima\s+de\s+\d+|abaixo\s+de\s+\d+)\s+anos?\s*:/iu.test(line)) continue;
       const lab = /^([\p{L}][\p{L}\p{M}\d\s./%-]{1,79}?)\s*(?:\|\s*|:\s*)([<>≤≥]?-?\d+(?:[.,]\d+)?)(?=\s|$)/u.exec(line);
       if (lab && /^\d{8,}$/u.test(line.slice(line.indexOf(":") + 1).trim())) continue;
       const inline = !lab ? /^([\p{L}][\p{L}\p{M}\d\s./%-]{1,79}?)\s+([<>≤≥]?-?\d+(?:[.,]\d+)?)\s+(?:[%µμ°\p{L}][\p{L}\p{M}\d/%µμ°²³-]{0,15})$/u.exec(line) : null;
-      const next = lines.slice(index + 1).find((entry) => entry.length > 0) ?? "";
+      const next = lines.slice(index + 1).find((entry) => entry.text.length > 0)?.text ?? "";
       const multiline = !lab && !inline && /^[\p{L}][\p{L}\p{M}\d\s./%-]{1,79}$/u.test(line)
         ? /^([<>≤≥]?-?\d+(?:[.,]\d+)?)\s+(?:[%µμ°\p{L}][\p{L}\p{M}\d/%µμ°²³-]{0,15})$/u.exec(next) : null;
       if (!lab && !inline && !multiline) continue;
