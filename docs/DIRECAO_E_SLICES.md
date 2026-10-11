@@ -1,6 +1,20 @@
 # Direção do Vivance e próximos slices
 
-**Decisão vigente em 10/10/2026:** cuidado longitudinal supervisionado: convite → contexto inicial → preparação → consulta → registro médico → acompanhamento → retorno. O médico interpreta e decide. Relato literal, dado extraído, cálculo, revisão, aprovação e publicação têm origem e estados separados. O [status](STATUS_ATUAL.md) distingue implementação, teste e publicação.
+**Decisão vigente em 11/10/2026:** cuidado longitudinal supervisionado: convite → contexto inicial → preparação → consulta → registro médico → acompanhamento → retorno. O médico interpreta e decide. Relato literal, dado extraído, cálculo, revisão, aprovação e publicação têm origem e estados separados. O [status](STATUS_ATUAL.md) distingue implementação, teste e publicação.
+
+## Prioridade de UX do paciente — 11/10
+
+Pedido aprovado: check-in intuitivo e poucas escolhas, com desenhos expressivos,
+também na alimentação. Implementado Energia → Sono → Fome → Banheiro → recado
+opcional; dados adicionais recolhidos, aplicação condicionada à habilitação
+médica. Alimentação aceita foto, texto ou ambos em escolhas diretas. Landing
+e aplicativo compartilham apresentação, sem confundir exemplo com registro.
+GPT-6 Astra fez revisão independente conforme escolha explícita do usuário;
+Product Design, sem Impeccable. Escalas, armazenamento, fontes, histórico e
+permissões existentes preservados, sem mudança de banco ou extração.
+526 testes e percurso sintético paciente → persistência → médico passaram
+localmente. Entrega em PR/Preview; publicação e aceites separados. Ver
+[evidências](UX_CHECKIN_ALIMENTACAO_2026-10-11.md).
 
 ## Prioridade atual — validar qualidade e publicação médica (10/10)
 

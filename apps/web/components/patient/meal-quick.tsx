@@ -7,16 +7,12 @@ import { uploadDocument } from "@/lib/document-upload";
 import Link from "next/link";
 import { Icon } from "./icons";
 import { sendOrQueue } from "./outbox";
+import { Camera, ImagePlus } from "lucide-react";
+import { MomentArtwork } from "./moment-choices";
+import { MealKinds } from "./meal-kinds";
 
 const acceptedPhotoTypes = ["image/jpeg", "image/png"];
 const maxPhotoBytes = 5 * 1024 * 1024;
-
-const kinds = [
-  { value: "breakfast", label: "Café" },
-  { value: "lunch", label: "Almoço" },
-  { value: "dinner", label: "Jantar" },
-  { value: "snack", label: "Lanche" },
-] as const;
 
 // O tipo mais provável pela hora: a pessoa quase sempre registra na hora.
 export function mealKindForHour(hour: number) {
@@ -52,6 +48,7 @@ export function PatientMealQuick({
   const galleryInput = useRef<HTMLInputElement>(null);
   const [kind, setKind] = useState<string>(() => mealKindForHour(Number(nowLocal.slice(11, 13))));
   const [eatenAt, setEatenAt] = useState(nowLocal);
+  const [timeChanged, setTimeChanged] = useState(false);
   const [editTime, setEditTime] = useState(false);
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -95,6 +92,11 @@ export function PatientMealQuick({
     if (busy.current) return;
     if (!description.trim() && !file) {
       setError("Tire uma foto do prato ou conte em poucas palavras o que comeu.");
+      return;
+    }
+    if (!eatenAt || Number.isNaN(new Date(eatenAt).getTime())) {
+      setError("Confira a data e o horário da refeição.");
+      setEditTime(true);
       return;
     }
     busy.current = true;
@@ -176,42 +178,39 @@ export function PatientMealQuick({
     );
 
   return (
-    <form className="pv-stack" onSubmit={submit} noValidate aria-busy={disabled}>
+    <form className="pv-stack moment-meal" onSubmit={submit} noValidate aria-busy={disabled}>
+      <div className="moment-meal-heading">
+        <div><h2>O que teve na sua refeição?</h2><p>Uma foto, uma descrição ou os dois.</p></div>
+        <MomentArtwork name="meal" />
+      </div>
       {error && <p className="pv-form-error" role="alert">{error}</p>}
       <fieldset className="pv-fieldset">
         <legend className="pv-eyebrow">Qual refeição?</legend>
-        <div className="pv-segments">
-          {kinds.map((item) => (
-            <label key={item.value}>
-              <input
-                type="radio"
-                name="meal_type"
-                value={item.value}
-                checked={kind === item.value}
-                onChange={() => setKind(item.value)}
-                disabled={disabled}
-              />
-              <span>{item.label}</span>
-            </label>
-          ))}
-        </div>
+        <MealKinds value={kind} onChange={setKind} disabled={disabled} />
       </fieldset>
 
       <div className="pv-inline">
         <span className="pv-muted">
-          {editTime || !eatenAt ? "Quando" : `Agora, ${clock(eatenAt)}`}
+          {editTime || !eatenAt ? "Quando" : timeChanged ? `${eatenAt.slice(0, 10).split("-").reverse().join("/")}, ${clock(eatenAt)}` : `Hoje, ${clock(eatenAt)}`}
         </span>
         {editTime ? (
           <label className="pv-field pv-grow">
             <span className="pv-visually-hidden">Data e horário</span>
-            <input type="datetime-local" value={eatenAt} onChange={(event) => setEatenAt(event.target.value)} disabled={disabled} />
+            <input type="datetime-local" value={eatenAt} onChange={(event) => { setEatenAt(event.target.value); setTimeChanged(true); }} disabled={disabled} />
           </label>
         ) : (
-          <button type="button" className="pv-link" onClick={() => setEditTime(true)}>
+          <button type="button" className="pv-link" onClick={() => setEditTime(true)} disabled={disabled}>
             Alterar
           </button>
         )}
       </div>
+
+      <label className="pv-field">
+        {file ? "Quer acrescentar algo?" : "O que você comeu?"}
+        <textarea name="description" aria-label={file ? "Quer acrescentar algo?" : "O que você comeu?"} maxLength={2000} rows={3} placeholder="Ex.: arroz, feijão, frango e salada."
+          value={description} onChange={(event) => setDescription(event.target.value)} disabled={disabled} aria-describedby="meal-quick-text-hint" />
+        <small id="meal-quick-text-hint">{file ? "Opcional: a foto já é suficiente." : "Pode escrever ou adicionar uma foto abaixo."}</small>
+      </label>
 
       {preview ? (
         <div className="pv-photo-preview">
@@ -220,38 +219,20 @@ export function PatientMealQuick({
           <span>
             <strong>Foto adicionada</strong>
           </span>
-          <button type="button" className="pv-link" onClick={clearPhoto} disabled={disabled}>
-            Trocar
-          </button>
+          <div className="pv-inline">
+            <button type="button" className="pv-link" onClick={() => galleryInput.current?.click()} disabled={disabled}>Trocar foto</button>
+            <button type="button" className="pv-link" onClick={clearPhoto} disabled={disabled}>Remover foto</button>
+          </div>
         </div>
       ) : (
-        <div className="pv-stack pv-tight">
-          <label className="pv-photo-drop">
-            <input ref={cameraInput} className="pv-visually-hidden" type="file" accept="image/jpeg,image/png" capture="environment" onChange={pickPhoto} disabled={disabled} />
-            <Icon name="camera" size={32} />
-            <strong>Tirar foto do prato</strong>
-            <span className="pv-muted">Opcional · ajuda a sua equipe a entender o relato</span>
-          </label>
-          <label className="pv-link pv-center-self">
-            <input ref={galleryInput} className="pv-visually-hidden" type="file" accept="image/jpeg,image/png" onChange={pickPhoto} disabled={disabled} />
-            Escolher da galeria
-          </label>
+        <div className="moment-photo-actions">
+          <button type="button" onClick={() => cameraInput.current?.click()} disabled={disabled}><Camera size={22} aria-hidden="true" />Tirar foto</button>
+          <button type="button" onClick={() => galleryInput.current?.click()} disabled={disabled}><ImagePlus size={22} aria-hidden="true" />Da galeria</button>
         </div>
       )}
-
-      <label className="pv-field">
-        Quer descrever? {file ? "Opcional" : ""}
-        <textarea
-          name="description"
-          maxLength={2000}
-          rows={3}
-          placeholder="Ex.: arroz, frango, salada e água."
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          disabled={disabled}
-        />
-        <small>{file ? "Com a foto, o texto é opcional." : "Sem foto, conte em poucas palavras."}</small>
-      </label>
+      <input ref={cameraInput} hidden type="file" accept="image/jpeg,image/png" capture="environment" onChange={pickPhoto} disabled={disabled} aria-label="Tirar foto do prato" />
+      <input ref={galleryInput} hidden type="file" accept="image/jpeg,image/png" onChange={pickPhoto} disabled={disabled} aria-label="Escolher foto da galeria" />
+      <p className="pv-muted">JPG ou PNG, até 5 MB. Compartilhada com sua equipe de cuidado.</p>
 
       <button className="pv-button is-center" disabled={disabled}>
         {pending === "photo" ? "Enviando a foto…" : pending === "meal" ? "Salvando…" : "Salvar refeição"}

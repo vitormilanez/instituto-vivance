@@ -3,8 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { LandingFutureFeatures } from "./landing-future-features";
-
-const energyLabels = ["Muito baixa", "Baixa", "Moderada", "Boa", "Muito boa"];
+import { LandingCheckInDemo } from "./landing-daily-demos";
 
 const historyExamples = {
   30: {
@@ -49,7 +48,6 @@ const historyExamples = {
 
 export function PublicLanding() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [energy, setEnergy] = useState(4);
   const [period, setPeriod] = useState<30 | 90>(30);
   const menuToggleRef = useRef<HTMLButtonElement>(null);
   const history = historyExamples[period];
@@ -507,12 +505,6 @@ export function PublicLanding() {
               <div className="checkin-topics">
                 <span>
                   <svg className="icon" aria-hidden="true">
-                    <use href="#sun" />
-                  </svg>
-                  Disposição
-                </span>
-                <span>
-                  <svg className="icon" aria-hidden="true">
                     <use href="#bolt" />
                   </svg>
                   Energia
@@ -533,7 +525,7 @@ export function PublicLanding() {
                   <svg className="icon" aria-hidden="true">
                     <use href="#heart" />
                   </svg>
-                  Conforto intestinal
+                  Banheiro
                 </span>
               </div>
               <ul className="feature-list">
@@ -565,73 +557,10 @@ export function PublicLanding() {
             </div>
             <div className="checkin-demo">
               <div className="demo-topline">
-                <span className="sample-pill">Experimente uma pergunta</span>
+                <span className="sample-pill">Experimente o check-in</span>
                 <span>Exemplo de check-in</span>
               </div>
-              <div className="energy-question">
-                <span className="energy-icon">
-                  <svg className="icon" aria-hidden="true">
-                    <use href="#bolt" />
-                  </svg>
-                </span>
-                <p className="card-eyebrow">UM OLHAR PARA O SEU DIA</p>
-                <h3>Como está sua energia?</h3>
-                <p>Um registro simples ajuda a contar a sua história.</p>
-                <div
-                  className="energy-options"
-                  role="group"
-                  aria-label="Escolha uma resposta de exemplo sobre energia"
-                >
-                  <button
-                    type="button"
-                    aria-pressed={energy === 1}
-                    aria-label="1 — Muito baixa"
-                    onClick={() => setEnergy(1)}
-                  >
-                    1
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={energy === 2}
-                    aria-label="2 — Baixa"
-                    onClick={() => setEnergy(2)}
-                  >
-                    2
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={energy === 3}
-                    aria-label="3 — Moderada"
-                    onClick={() => setEnergy(3)}
-                  >
-                    3
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={energy === 4}
-                    aria-label="4 — Boa"
-                    onClick={() => setEnergy(4)}
-                  >
-                    4
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={energy === 5}
-                    aria-label="5 — Muito boa"
-                    onClick={() => setEnergy(5)}
-                  >
-                    5
-                  </button>
-                </div>
-                <div className="energy-scale">
-                  <span>Muito baixa</span>
-                  <span>Muito boa</span>
-                </div>
-                <div className="demo-result" role="status" aria-live="polite">
-                  Resposta de exemplo:{" "}
-                  <strong>{energyLabels[energy - 1]}</strong>
-                </div>
-              </div>
+              <LandingCheckInDemo />
               <div className="checkin-demo-footer">
                 <svg className="icon" aria-hidden="true">
                   <use href="#lock" />

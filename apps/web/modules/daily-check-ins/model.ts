@@ -59,14 +59,11 @@ export type CheckInAnswers = {
 // As etapas, na ordem da tela. A de aplicação só existe se o médico ativou.
 export function checkInSteps(applicationEnabled: boolean) {
   return [
-    "weight",
-    "feeling",
-    "effects",
-    "hunger",
     "energy",
-    "water",
-    "adherence",
-    ...(applicationEnabled ? ["application"] : []),
+    "sleep",
+    "hunger",
+    "bowel",
+    ...(applicationEnabled ? ["application"] as const : []),
     "note",
   ] as const;
 }
@@ -230,10 +227,8 @@ export function checkInSummary(answers: CheckInAnswers) {
         .join(", "),
     });
   if (answers.bowel_status) rows.push({ label: "Intestino", value: bowelStatusLabels[answers.bowel_status] });
-  if (answers.hunger || answers.satiety)
-    rows.push({ label: "Fome · saciedade", value: `${answers.hunger ?? "–"} · ${answers.satiety ?? "–"} de 5` });
-  if (answers.energy || answers.sleep)
-    rows.push({ label: "Energia · sono", value: `${answers.energy ?? "–"} · ${answers.sleep ?? "–"} de 5` });
+  for (const [key, label] of [["energy", "Energia"], ["sleep", "Sono"], ["hunger", "Fome"], ["satiety", "Saciedade"]] as const)
+    if (answers[key] !== undefined) rows.push({ label, value: `${answers[key]} de 5` });
   if (answers.water_glasses !== undefined)
     rows.push({ label: "Água", value: `${answers.water_glasses} ${answers.water_glasses === 1 ? "copo" : "copos"}` });
   if (answers.adherence)

@@ -90,6 +90,22 @@ Este guia descreve somente `apps/web`, a aplicação autenticada. Herda a identi
 
 ## Colors
 
+### Check-in e alimentação — 11/10/2026
+
+Uma pergunta por etapa: Energia, Sono, Fome, Banheiro e recado opcional. Seleção
+explícita avança, com aviso e edição pelo resumo; foco/hover não escolhem.
+Ilustrações originais decorativas reforçam os rótulos, sem substituir texto.
+Escalas 1–5 e banheiro Bom/Regular/Ruim preservam os contratos existentes.
+Aplicação habilitada mantém etapa própria; demais dados ficam em expansão.
+
+Reutilizar `MomentScale`, `MomentArtwork` e `MealKinds` na landing e nos fluxos
+autenticados. Superfície clara, navegação navy, seleção dourada suave, campos
+16 px, escolhas 12–13 px, títulos 22–26 px e alvos de pelo menos 44 px. Energia
+tem mascote cansado e super-herói; sono, fome, banheiro e refeição têm figuras
+próprias. Alimentação oferece foto, texto ou ambos, câmera/galeria e um envio.
+Sem juízo de saúde, calorias ou análise automática. Demonstração pública anuncia
+que nada é salvo. [Evidências](../../docs/UX_CHECKIN_ALIMENTACAO_2026-10-11.md).
+
 O azul-marinho estrutura a navegação e as ações primárias. O azul de ação marca links, foco e orientação. Texto principal usa ink; descrições usam muted. Branco sobre canvas separa as superfícies de trabalho, com border como limite discreto.
 
 Ice identifica orientação e hover secundário. Quiet-surface distingue a lista vazia de conversas e acessos restritos. Attention-surface, attention-border e attention identificam uma pendência que pede ação da pessoa, sem atribuir urgência clínica. Disabled identifica operações futuras, sempre acompanhado de texto que explique a indisponibilidade. A seleção de navegação combina nav-selected com texto claro e `aria-current`.

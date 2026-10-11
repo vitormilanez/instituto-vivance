@@ -33,12 +33,13 @@ test("native runtime does not import the Cloudflare prototype or demonstration p
   ).dependencies;
   assert.equal(dependencies.vinext, undefined);
   assert.equal(dependencies.wrangler, undefined);
-  // Marca, ícones, service worker e a landing pública aprovada do Virada 90.
+  // Marca, ícones, ilustrações, service worker e landing pública do Virada 90.
   assert.deepEqual(readdirSync(join(root, "public")).sort(), [
     "apple-touch-icon.png",
     "brand",
     "icon-192.png",
     "icon-512.png",
+    "illustrations",
     "manifest.webmanifest",
     "sw.js",
     "virada90",
