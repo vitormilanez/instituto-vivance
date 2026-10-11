@@ -2,9 +2,14 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "@supabase/supabase-js";
 
 const response = () => Response.json({ verificationRequested: true }, { status: 202, headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
-const failure = (status: number, error: string) => Response.json({ error }, { status, headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
-const unavailable = () => failure(410, "Este convite não está mais disponível. Peça um novo link à clínica.");
+const failure = (status: number, error: string, code?: string) => Response.json({ error, ...(code ? { code } : {}) }, { status, headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
+const unavailable = () => failure(410, "Este link do WhatsApp não está mais disponível. Se você recebeu um convite por e-mail, abra o link mais recente. Caso contrário, peça um novo convite à clínica.");
 const retry = () => failure(503, "Não foi possível preparar o convite agora. Tente novamente em instantes.");
+const emailInvitationPending = () => failure(
+  409,
+  "Já existe um convite por e-mail aguardando ativação para este endereço.",
+  "email_invitation_pending",
+);
 async function sha256(value: string) { const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)); return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join(""); }
 function key(dictionaryName: string, legacyName: string) { const dictionary = Deno.env.get(dictionaryName); if (dictionary) try { const keys = JSON.parse(dictionary) as Record<string, unknown>; if (typeof keys.default === "string" && keys.default) return keys.default; } catch {} return Deno.env.get(legacyName) ?? ""; }
 function redirectUrl() { const raw = Deno.env.get("PATIENT_INVITE_REDIRECT_URL")?.trim(); if (!raw) return null; try { const url = new URL(raw); return url.protocol === "https:" && url.pathname === "/primeiro-acesso" && !url.search && !url.hash ? url.toString() : null; } catch { return null; } }
@@ -23,6 +28,11 @@ Deno.serve(async (request: Request) => {
     const admin = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
     const tokenHash = await sha256(token);
     const claimed = await admin.from("patient_invitations").update({ recipient_email: email, token_hash: null, claimed_at: new Date().toISOString(), delivery_status: "requested", updated_at: new Date().toISOString() }).eq("token_hash", tokenHash).eq("channel", "whatsapp").eq("status", "pending").gt("expires_at", new Date().toISOString()).select("id,doctor_id").maybeSingle();
+    // This UPDATE is a single Postgres statement. If the tenant already has a
+    // pending email invitation, the partial unique index rejects the complete
+    // statement, so the opaque WhatsApp token remains available for a corrected
+    // email or a later retry.
+    if (claimed.error?.code === "23505") return emailInvitationPending();
     if (claimed.error) return retry();
     if (!claimed.data) return unavailable();
     const claimedId = claimed.data.id;

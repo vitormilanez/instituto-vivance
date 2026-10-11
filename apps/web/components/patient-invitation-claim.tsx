@@ -1,12 +1,14 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Link from "next/link";
 import { enterPatientInvitation } from "@/app/actions";
 
 export function PatientInvitationClaim({ token }: { token: string }) {
   const [entryState, entryAction, entering] = useActionState(enterPatientInvitation, { error: "" });
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [errorCode, setErrorCode] = useState("");
   const [sent, setSent] = useState(false);
   const [email, setEmail] = useState("");
   const [enteredEmail, setEnteredEmail] = useState("");
@@ -15,6 +17,7 @@ export function PatientInvitationClaim({ token }: { token: string }) {
     event.preventDefault();
     setPending(true);
     setError("");
+    setErrorCode("");
     try {
       const confirmedEmail = email.trim();
       const response = await fetch("/api/patient-invitations/claim", {
@@ -23,7 +26,12 @@ export function PatientInvitationClaim({ token }: { token: string }) {
         body: JSON.stringify({ token, email: confirmedEmail }),
       });
       if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
+        const payload = (await response.json()) as { error?: string; code?: string };
+        if (payload.code === "email_invitation_pending") {
+          setErrorCode(payload.code);
+          setError(payload.error ?? "Já existe um convite por e-mail aguardando ativação.");
+          return;
+        }
         throw new Error(payload.error ?? "Não foi possível continuar agora.");
       }
       setEnteredEmail(confirmedEmail);
@@ -87,7 +95,16 @@ export function PatientInvitationClaim({ token }: { token: string }) {
           </button>
         </form>
       )}
-      {error ? (
+      {errorCode === "email_invitation_pending" ? (
+        <div className="invitation-claim-next" role="alert">
+          <h2>Use o convite enviado por e-mail</h2>
+          <p>{error} Abra o e-mail de ativação mais recente e use esse link para continuar. Confira também a pasta de spam.</p>
+          <p>
+            Não recebeu o link? <Link href="/esqueci-minha-senha">Solicite um link de recuperação de acesso</Link> para esse mesmo e-mail ou peça à clínica para reenviar o convite.
+          </p>
+          <p>Digitou outro endereço? Corrija o e-mail acima e confirme novamente.</p>
+        </div>
+      ) : error ? (
         <p className="feedback" role="alert">
           {error}
         </p>

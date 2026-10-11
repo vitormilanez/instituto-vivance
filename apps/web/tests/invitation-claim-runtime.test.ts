@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 
-type Options = { available?: boolean; existing?: boolean; mailFailure?: boolean; pendingActivation?: boolean; fullLookup?: boolean; metadataFailure?: boolean };
+type Options = { available?: boolean; existing?: boolean; mailFailure?: boolean; pendingActivation?: boolean; fullLookup?: boolean; metadataFailure?: boolean; pendingEmailConflict?: boolean };
 async function claim(options: Options) {
   const updates: Record<string, unknown>[] = [];
   let mailCalls = 0;
@@ -15,7 +15,9 @@ async function claim(options: Options) {
     from: () => ({ update(values: Record<string, unknown>) {
       updates.push(values);
       const query = { eq: () => query, gt: () => query, is: () => query, select: () => query,
-        maybeSingle: async () => ({ data: options.available === false ? null : { id: "invitation", doctor_id: "verified-invitation-doctor" }, error: null }),
+        maybeSingle: async () => options.pendingEmailConflict
+          ? ({ data: null, error: { code: "23505" } })
+          : ({ data: options.available === false ? null : { id: "invitation", doctor_id: "verified-invitation-doctor" }, error: null }),
         then: (resolve: (value: unknown) => void) => resolve({ error: null }) };
       return query;
     }}),
@@ -36,8 +38,19 @@ async function claim(options: Options) {
 test("removed invitations do not pretend that email was requested", async () => {
   const { response, mailCalls } = await claim({ available: false });
   assert.equal(response.status, 410);
-  assert.match((await response.json()).error, /novo link/);
+  assert.match((await response.json()).error, /convite por e-mail/);
   assert.equal(mailCalls, 0);
+});
+test("pending email invitation returns a recoverable conflict without consuming the WhatsApp claim", async () => {
+  const { response, updates, mailCalls, metadataUpdates } = await claim({ pendingEmailConflict: true });
+  assert.equal(response.status, 409);
+  assert.deepEqual(await response.json(), {
+    error: "Já existe um convite por e-mail aguardando ativação para este endereço.",
+    code: "email_invitation_pending",
+  });
+  assert.equal(updates.length, 1);
+  assert.equal(mailCalls, 0);
+  assert.equal(metadataUpdates.length, 0);
 });
 test("existing account proceeds without sending another email", async () => {
   const { response, updates, mailCalls } = await claim({ existing: true });

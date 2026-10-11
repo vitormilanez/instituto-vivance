@@ -13,7 +13,13 @@ import {
 import { emptyHealthContext, type OnboardingRecord, type PatientInvitation } from "./types";
 import type { Database } from "@/lib/supabase/database.types";
 
-export class OnboardingError extends DomainError {}
+export class OnboardingError extends DomainError {
+  readonly code?: string;
+  constructor(message: string, status: number, code?: string) {
+    super(message, status);
+    this.code = code;
+  }
+}
 
 const onboardingFields = "tenant_id,patient_id,status,current_step,skipped_steps,questionnaire_version,exam_document_ids,photo_document_id,birth_date,weight_kg,height_cm,waist_cm,measured_on,answer_goal,answer_history,answer_routine,answer_treatments,answer_questions,health_context,share_consent,version,submitted_at,updated_at" as const;
 const submissionFields = "tenant_id,patient_id,current_step,skipped_steps,questionnaire_version,exam_document_ids,photo_document_id,birth_date,weight_kg,height_cm,waist_cm,measured_on,answer_goal,answer_history,answer_routine,answer_treatments,answer_questions,health_context,share_consent,source_version,submitted_at" as const;
@@ -112,8 +118,13 @@ export async function claimPatientInvitation(input: unknown) {
     const context = (invoked.error as { context?: unknown }).context;
     if (context instanceof Response) {
       let message = "Não foi possível preparar seu convite. Tente novamente.";
-      try { const body = await context.clone().json() as { error?: unknown }; if (typeof body.error === "string") message = body.error; } catch {}
-      throw new OnboardingError(message, context.status >= 400 && context.status < 600 ? context.status : 503);
+      let code: string | undefined;
+      try {
+        const body = await context.clone().json() as { error?: unknown; code?: unknown };
+        if (typeof body.error === "string") message = body.error;
+        if (body.code === "email_invitation_pending") code = body.code;
+      } catch {}
+      throw new OnboardingError(message, context.status >= 400 && context.status < 600 ? context.status : 503, code);
     }
     throw new Error("Patient invitation claim failed");
   }

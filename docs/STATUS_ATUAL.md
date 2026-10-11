@@ -2,6 +2,20 @@
 
 ## Convites — cadastro não ativado e reset específico (11/10/2026)
 
+Rodada de 11/10 à tarde: logs confirmaram colisão `23505` entre convite por
+WhatsApp e e-mail já pendente. Claim agora retorna 409 com orientação explícita
+de usar o e-mail, spam, recuperação ou reenvio pela clínica, sem consumir token;
+410 orienta sobre link cancelado. O link reportado já estava revogado na leitura
+remota; seu convite por e-mail permanece pendente, sem confirmação/login. Não
+alteradas essas identidades/convites. 30 testes correlatos passaram.
+
+CLI Supabase 2.117.0 autenticada confirmou o destino. `config diff` isolado
+mostrou só assunto/corpo declarados para escrita. `config push` foi recusado
+com HTTP 400: template customizado indisponível no free tier com o provedor
+padrão; requer SMTP próprio ou plano diferente. Nenhuma configuração Auth foi
+aplicada nessa tentativa, sem contratação/mudança de plano. Template segue
+preparado, mas não ativo. Usuário autorizou publicação das entregas pendentes.
+
 A pedido do usuário, removidos no dev sintético confirmado
 `oxuwrdjojsmgxoljqkuk` a conta antiga de `vtrconsultingbr@gmail.com` e o
 convite pendente criado em 11/10 às 09h47 (São Paulo). A conta de 03/10 não
