@@ -184,7 +184,7 @@
   font-size: 11px;
 }
 .dv .conversation-workspace-staff .conversation-composer button:not(.secondary) {
-  min-height: 36px;
+  min-height: 44px;
   padding: 7px 13px;
   background: var(--dv-ink);
 }
@@ -241,13 +241,11 @@
   gap: 4px;
   margin: 0 0 18px;
 }
-.dv-area-agenda .page-heading > div { display: none; }
-.dv-area-agenda .page-heading { justify-content: flex-end; margin-bottom: 12px; }
 .dv .appointment-more-actions { position: relative; }
-.dv .appointment-more-actions > summary { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--dv-line); border-radius: 8px; cursor: pointer; list-style: none; }
+.dv .appointment-more-actions > summary { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--dv-line); border-radius: 8px; cursor: pointer; list-style: none; }
 .dv .appointment-more-actions > summary::-webkit-details-marker { display: none; }
-.dv .appointment-more-actions > div { position: absolute; right: 0; top: 40px; min-width: 150px; padding: 6px; border: 1px solid var(--dv-line); border-radius: 10px; background: white; box-shadow: 0 8px 24px #0a1a3314; z-index: 5; }
-.dv .appointment-more-actions button { display: block; width: 100%; text-align: left; }
+.dv .appointment-more-actions > div { position: absolute; right: 0; top: 48px; min-width: 150px; padding: 6px; border: 1px solid var(--dv-line); border-radius: 10px; background: white; box-shadow: 0 8px 24px #0a1a3314; z-index: 5; }
+.dv .appointment-more-actions button { display: block; width: 100%; min-height: 44px; text-align: left; }
 .dv .agenda-range-controls {
   display: flex;
   margin-right: 8px;
@@ -257,7 +255,7 @@
 }
 .dv .agenda-range-controls button,
 .dv .agenda-view-controls > button {
-  min-height: 38px;
+  min-height: 44px;
   padding: 7px 13px;
   border-radius: 8px;
 }
@@ -268,19 +266,19 @@
   color: var(--dv-ink);
   box-shadow: 0 1px 2px rgba(10, 26, 51, .08);
 }
-.dv .agenda-date-nav { width: 38px; padding: 0 !important; font-size: 21px; }
+.dv .agenda-date-nav { width: 44px; padding: 0 !important; font-size: 21px; }
 .dv .agenda-today-button { font-weight: 650; }
 .dv .agenda-view-controls > button[aria-pressed="true"] { background: var(--dv-ink); color: white; }
 .dv .calendar-workspace { grid-template-columns: 240px minmax(0, 1fr); min-height: 610px; border-radius: 12px; }
 .dv .calendar-month { padding: 22px; background: #f7f5f1; }
 .dv .calendar-toolbar { margin-bottom: 12px; }
 .dv .calendar-toolbar h2 { font-size: 16px; }
-.dv .calendar-toolbar button { min-height: 36px; width: 36px; padding: 5px; }
+.dv .calendar-toolbar button { min-height: 44px; width: 44px; flex-shrink: 0; padding: 5px; }
 .dv .calendar-grid { gap: 1px 0; }
 .dv .calendar-weekday { padding: 7px 0; font-size: 11px; font-weight: 650; }
-.dv button.calendar-day { min-height: 37px; border-radius: 8px; font-size: 13px; }
+.dv button.calendar-day { min-height: 44px; border-radius: 8px; font-size: 13px; }
 .dv button.calendar-day[aria-pressed="true"] { box-shadow: none; }
-.dv .calendar-today { min-height: 38px; margin-top: 14px; }
+.dv .calendar-today { min-height: 44px; margin-top: 14px; }
 .dv .calendar-schedule { padding: 0; background: white; }
 .dv .calendar-schedule > h2 { margin: 0; padding: 22px 24px 0; font-size: 19px; }
 .dv .calendar-schedule > .schedule-caption { margin: 2px 0 14px; padding: 0 24px; font-size: 12px; }
@@ -297,8 +295,8 @@
 .dv .calendar-schedule .appointment-actions { grid-row: 2; }
 .dv .calendar-schedule .appointment-patient { grid-row: 1 / span 2; }
 .dv .calendar-schedule .appointment-time { grid-row: 1 / span 2; }
-.dv .calendar-schedule .appointment-actions button { min-height: 34px; padding: 6px 9px; font-size: 11px; }
-.dv .calendar-schedule .appointment-patient-link { min-height: 0; padding: 0; }
+.dv .calendar-schedule .appointment-actions button { min-height: 44px; padding: 9px 12px; font-size: 13px; }
+.dv .calendar-schedule .appointment-patient-link { min-height: 44px; display: inline-flex; align-items: center; padding: 0; }
 .dv .agenda-week-grid { display: grid; grid-template-columns: repeat(7, minmax(150px, 1fr)); overflow-x: auto; border-top: 1px solid var(--dv-line); }
 .dv .agenda-week-day { min-width: 150px; border-right: 1px solid var(--dv-line); }
 .dv .agenda-week-day:last-child { border-right: 0; }

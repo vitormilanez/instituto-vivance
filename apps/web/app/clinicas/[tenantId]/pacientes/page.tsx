@@ -9,6 +9,8 @@ import { PatientInvitationList } from "@/components/patient-invitation-list";
 import { listClinicPatientInvitations } from "@/modules/onboarding/service";
 import { PatientForm } from "@/components/forms";
 import { patientBirthLabel } from "@/modules/patients/birth-date";
+import { MedicalPageHeader } from "@/components/medical-page-header";
+import { MedicalSelector } from "@/components/medical-selector";
 export const dynamic = "force-dynamic";
 
 export default async function Patients({
@@ -77,24 +79,14 @@ export default async function Patients({
   return (
     <ClinicShell clinic={context.clinic} active="patients">
       <div className={doctorView ? "dv-directory" : undefined}>
-        <div className={doctorView ? "dv-directory-heading" : "page-heading"}>
-          <div>
-            <h1>Pacientes</h1>
-            <p>
-              {doctorView
-                ? "Acompanhe os cadastros e abra a ficha certa para a próxima conversa."
-                : "Encontre um cadastro ou adicione uma pessoa à clínica."}
-            </p>
-          </div>
-          {!doctorView && (
+        <MedicalPageHeader className={doctorView ? "dv-directory-heading" : "page-heading"} title="Pacientes" description={doctorView ? "Acompanhe os cadastros e abra a ficha certa para a próxima conversa." : "Encontre um cadastro ou adicione uma pessoa à clínica."} actions={!doctorView && (
             <Link
               className="button page-heading-jump"
               href={canInvite ? "#convidar-paciente" : "#novo-paciente"}
             >
               {canInvite ? "Adicionar paciente" : "Cadastrar paciente"}
             </Link>
-          )}
-        </div>
+          )} />
         <div
           className={
             doctorView ? "dv-directory-layout" : "grid patient-directory-grid"
@@ -151,26 +143,12 @@ export default async function Patients({
               <button type="submit">Buscar</button>
             </form>
             {doctorView && (
-              <nav
-                className="dv-directory-filters"
-                aria-label="Filtrar pacientes nesta página"
-              >
-                <span>Filtrar esta página</span>
-                {[
-                  ["todos", "Todos"],
-                  ["cadastro", "Cadastro enviado"],
-                  ["acolhimento-pendente", "Acolhimento pendente"],
-                  ["acolhimento-concluido", "Acolhimento concluído"],
-                ].map(([value, label]) => (
-                  <Link
-                    key={value}
-                    href={filterHref(value)}
-                    aria-current={context.filtro === value ? "page" : undefined}
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </nav>
+              <MedicalSelector mode="navigation" label="Filtrar pacientes nesta página" options={[
+                { value: "todos", label: "Todos nesta página", href: filterHref("todos") },
+                { value: "cadastro", label: "Cadastro enviado", href: filterHref("cadastro") },
+                { value: "acolhimento-pendente", label: "Acolhimento pendente", href: filterHref("acolhimento-pendente") },
+                { value: "acolhimento-concluido", label: "Acolhimento concluído", href: filterHref("acolhimento-concluido") },
+              ]} value={context.filtro} />
             )}
             <p
               className={

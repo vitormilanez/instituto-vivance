@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
+import { MedicalSelector } from "@/components/medical-selector";
 
 type TabId = "initial" | "preparation" | "received" | "prescriptions";
 
@@ -24,42 +25,15 @@ export function ConsultationContextTabs({
   prescriptions?: ReactNode;
 }) {
   const [active, setActive] = useState<TabId>("initial");
-  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const id = useId();
   const tabs = prescriptions
     ? [...baseTabs, { id: "prescriptions" as const, label: "Receitas" }]
     : baseTabs;
   const panels: Record<TabId, ReactNode> = { initial, preparation, received, prescriptions };
 
-  function onKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    const direction = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
-    if (!direction && event.key !== "Home" && event.key !== "End") return;
-    event.preventDefault();
-    const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + direction + tabs.length) % tabs.length;
-    setActive(tabs[next].id);
-    tabRefs.current[next]?.focus();
-  }
-
   return (
     <section className="doctor-context-tabs" aria-label="Contexto da consulta">
-      <div className="doctor-context-tablist" role="tablist" aria-label="Contexto da consulta">
-        {tabs.map((tab, index) => (
-          <button
-            key={tab.id}
-            ref={(node) => { tabRefs.current[index] = node; }}
-            id={`${id}-tab-${tab.id}`}
-            type="button"
-            role="tab"
-            aria-selected={active === tab.id}
-            aria-controls={`${id}-panel-${tab.id}`}
-            tabIndex={active === tab.id ? 0 : -1}
-            onClick={() => setActive(tab.id)}
-            onKeyDown={(event) => onKeyDown(event, index)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <MedicalSelector mode="tabs" id={id} label="Contexto da consulta" options={tabs.map((tab) => ({ value: tab.id, label: tab.label }))} value={active} onChange={(value) => setActive(value as TabId)} />
       {tabs.map((tab) => (
         <div
           key={tab.id}

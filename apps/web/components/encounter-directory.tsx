@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { MedicalPageHeader } from "./medical-page-header";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import type { EncounterList } from "@/modules/encounters/service";
@@ -71,15 +72,7 @@ export function EncounterDirectory({
 
   return (
     <section className="panel encounter-directory">
-      <div className="section-heading encounter-directory-heading">
-        <div>
-          <h2>Registros clínicos</h2>
-          <p>Atendimentos visíveis conforme seu vínculo de cuidado.</p>
-        </div>
-        <span className="directory-count">
-          {encounters.length} {encounters.length === 1 ? "registro" : "registros"}
-        </span>
-      </div>
+      <MedicalPageHeader level={2} title="Registros clínicos" description="Atendimentos visíveis conforme seu vínculo de cuidado." actions={<span className="directory-count">{encounters.length} {encounters.length === 1 ? "registro exibido" : "registros exibidos"}</span>} />
       <form className="encounter-search" onSubmit={search} role="search">
         <div className="field">
           <label htmlFor="encounter-search">Buscar paciente</label>

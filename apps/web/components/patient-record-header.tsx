@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ModuleTabs } from "@/components/module-ui";
+import { MedicalPageHeader } from "@/components/medical-page-header";
 import type { PatientHeaderFacts } from "@/modules/workspace/patient-header-facts";
 
 export type PatientRecordHeaderPatient = {
@@ -45,14 +46,13 @@ export function PatientRecordHeader({
 
   return (
     <>
-      <header className="clinical-patient-header patient-record-header">
+      <div className="clinical-patient-header patient-record-header">
         <span className="patient-avatar patient-avatar-xl" aria-hidden="true">
           {initials}
         </span>
         <div className="clinical-patient-title">
-          <h1>{patient.display_name}</h1>
+          <MedicalPageHeader title={patient.display_name} context={`Contexto do paciente · ${clinicName}`} />
           <div className="patient-record-meta">
-            <p>Contexto do paciente · {clinicName}</p>
             <p>
               {patient.birth_date
                 ? `Nascimento: ${patient.birth_date.split("-").reverse().join("/")}`
@@ -98,7 +98,7 @@ export function PatientRecordHeader({
             <Link href={`/clinicas/${tenantId}/planos`}>Planos de cuidado</Link>
           </nav>
         )}
-      </header>
+      </div>
       {headerFacts && (
         <dl
           className="encounter-context-strip patient-record-facts"

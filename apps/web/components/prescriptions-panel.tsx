@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import type { FormEvent, KeyboardEvent } from "react";
+import type { FormEvent } from "react";
+import { MedicalSelector } from "@/components/medical-selector";
 import { uploadDocument } from "@/lib/document-upload";
 import type {
   PrescriptionArchive,
@@ -99,7 +100,6 @@ function PrescriptionsPanelContent({
   const consentId = useId();
   const sectionId = useId();
   const [section, setSection] = useState<"history" | "send">("history");
-  const sectionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [archive, setArchive] = useState<PrescriptionArchive | null>(null);
   const [loadError, setLoadError] = useState("");
   const [submitError, setSubmitError] = useState("");
@@ -254,7 +254,7 @@ function PrescriptionsPanelContent({
       setNotice("Receita anterior adicionada ao histórico.");
       await load();
       setSection("history");
-      sectionRefs.current[0]?.focus();
+      document.getElementById(`${sectionId}-tab-history`)?.focus();
     } catch (reason) {
       setSubmitError(
         reason instanceof Error && reason.name !== "TimeoutError"
@@ -264,14 +264,6 @@ function PrescriptionsPanelContent({
     } finally {
       setPending(false);
     }
-  }
-
-  function onSectionKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-    event.preventDefault();
-    const next = event.key === "Home" ? 0 : event.key === "End" ? 1 : 1 - index;
-    setSection(next === 0 ? "history" : "send");
-    sectionRefs.current[next]?.focus();
   }
 
   return (
@@ -284,24 +276,7 @@ function PrescriptionsPanelContent({
         </div>
       </div>
 
-      {!continuous && <div className="prescriptions-panel__tabs" role="tablist" aria-label="Receitas">
-        {(["history", "send"] as const).map((tab, index) => (
-          <button
-            key={tab}
-            ref={(node) => { sectionRefs.current[index] = node; }}
-            id={`${sectionId}-tab-${tab}`}
-            type="button"
-            role="tab"
-            aria-selected={section === tab}
-            aria-controls={`${sectionId}-panel-${tab}`}
-            tabIndex={section === tab ? 0 : -1}
-            onClick={() => setSection(tab)}
-            onKeyDown={(event) => onSectionKeyDown(event, index)}
-          >
-            {tab === "history" ? "Já enviadas" : "Enviar"}
-          </button>
-        ))}
-      </div>}
+      {!continuous && <MedicalSelector mode="tabs" id={sectionId} label="Receitas" options={[{ value: "history", label: "Já enviadas" }, { value: "send", label: "Enviar" }]} value={section} onChange={(value) => setSection(value as "history" | "send")} />}
 
       <div id={`${sectionId}-panel-history`} className="prescriptions-panel__section" role={continuous ? undefined : "tabpanel"} aria-labelledby={continuous ? undefined : `${sectionId}-tab-history`} hidden={!continuous && section !== "history"} tabIndex={continuous ? undefined : 0}>
         {notice && <p role="status">{notice}</p>}

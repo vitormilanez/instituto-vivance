@@ -1,0 +1,86 @@
+/* Shared clinical presentation. Selectors change a view; actions keep buttons. */
+.medical-page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+.medical-page-header h1,.medical-page-header h2,.medical-page-header h3,.medical-page-header p{margin:0}
+.medical-page-header h1{font-size:26px;line-height:1.2;letter-spacing:-.025em}
+.medical-page-header h2{font-size:22px;line-height:1.3}
+.medical-page-header .medical-page-description{margin-top:5px;color:var(--dv-muted,var(--muted));max-width:75ch}
+.medical-page-context{font-size:13px;color:var(--dv-muted,var(--muted));margin-bottom:4px!important}
+.medical-page-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.medical-selector{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));grid-auto-rows:1fr;border:1px solid var(--dv-line,var(--border));background:var(--surface,#fff);margin:0 0 16px;isolation:isolate}
+.medical-selector .medical-selector-option{display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:center;align-items:baseline;gap:8px;min-height:56px;min-width:0;padding:10px 14px;border:0;border-radius:0;box-shadow:inset -1px 0 var(--dv-line,var(--border));background:var(--surface,#fff);color:var(--dv-muted,var(--muted));font:inherit;font-size:15px;font-weight:650;line-height:1.35;text-align:left;text-decoration:none;overflow-wrap:anywhere;cursor:pointer}
+.medical-selector[data-mode=steps] .medical-selector-option{grid-template-columns:auto minmax(0,1fr)}
+.medical-selector[data-has-counts=true] .medical-selector-option{min-height:60px}
+.medical-selector .medical-selector-option>span{min-width:0}
+.medical-selector .medical-selector-count{margin-left:auto;font-size:20px;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--dv-ink,var(--ink))}
+.medical-selector[data-mode=steps] .medical-selector-count{margin:0}
+.medical-selector .medical-selector-option:is([aria-current],[aria-selected=true],[aria-pressed=true]){background:var(--dv-ink,var(--navy));color:#fff;box-shadow:none}
+.medical-selector .medical-selector-option:is([aria-current],[aria-selected=true],[aria-pressed=true]) .medical-selector-count{color:inherit}
+.medical-selector .medical-selector-option:hover:not(:disabled){box-shadow:inset 0 -3px var(--blue);background:var(--blue-soft,#edf3fb)}
+.medical-selector .medical-selector-option:is([aria-current],[aria-selected=true],[aria-pressed=true]):hover{background:var(--navy-soft,#082553);color:#fff}
+.medical-selector .medical-selector-option:focus-visible{outline:3px solid var(--blue);outline-offset:-3px;position:relative;z-index:1}
+.medical-selector .medical-selector-option:disabled{opacity:1;color:var(--muted);background:var(--disabled,#e8eef6);cursor:not-allowed}
+.medical-selector .medical-selector-option[data-tone=positive]:not([aria-pressed=true]) .medical-selector-count{color:#195d39}
+.medical-selector .medical-selector-option[data-tone=negative]:not([aria-pressed=true]) .medical-selector-count{color:#a52632}
+.medical-tab-panel{outline-offset:4px;min-width:0}
+.medical-tab-panel[hidden]{display:none!important}
+.medical-toolbar{display:flex;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.medical-toolbar label{display:grid;gap:6px;font-size:14px;font-weight:600}
+.medical-toolbar select,.medical-toolbar input{min-height:44px}
+.dv .agenda-view-controls>.medical-selector{width:100%;flex:1 1 100%}
+.dv .medical-tabs .medical-page-header{margin-bottom:16px}
+.dv .doctor-home.home>.medical-page-header{margin-bottom:0}
+.dv :is(.panel,.medical-tab-panel) :is(input:not([type=checkbox]):not([type=radio]),select){min-height:44px}
+.dv :is(.feedback,.notice){border-radius:8px;padding:12px 16px}
+.dv :is(.empty,.module-empty){text-align:left}
+.dv :is(.page-heading,.module-heading,.staff-page-heading,.preparation-heading,.documents-header,.reports-header){gap:16px;margin-bottom:16px}
+.dv :is(.page-heading,.module-heading,.staff-page-heading,.preparation-heading,.documents-header,.reports-header) :is(h1,h2,p){margin-top:0}
+@media(max-width:760px){.medical-page-header{flex-direction:column;gap:10px;margin-bottom:14px}.medical-page-header h1{font-size:24px}.medical-page-actions{width:100%}.medical-selector{grid-template-columns:repeat(2,minmax(0,1fr))}.medical-selector .medical-selector-option{min-height:56px;padding:10px 12px;border-bottom:1px solid var(--dv-line,var(--border));font-size:14px;align-content:start}.medical-selector .medical-selector-option:last-child:nth-child(odd){grid-column:1/-1}.medical-selector[data-has-counts=true] .medical-selector-option{min-height:60px}.medical-selector .medical-selector-count{font-size:20px}.medical-toolbar{align-items:stretch;gap:12px}.medical-toolbar label{flex:1 1 180px;min-width:0}.medical-toolbar select,.medical-toolbar input{width:100%;max-width:100%}}
+
+/* One selection band owns the consultation views; summaries stay readable. */
+.dv .brief-medical-tabs>.medical-selector{margin:0;border-inline:0}
+.dv .brief-medical-tabs .brief-content{display:grid;grid-template-columns:minmax(0,1fr)}
+.dv .brief-medical-tabs .brief-facts{border-left:0;border-top:1px solid var(--border);padding:20px 24px}
+.dv .brief-medical-tabs .brief-facts>h3{margin:0 0 8px}
+.dv .brief-view-body{padding:20px 24px}
+.dv .brief-view-body>h3{margin:0 0 12px}
+.dv .brief-view-body>.brief-documents{margin:0;border:0;padding:0}
+.dv .brief-view-body .brief-request-form{padding-top:8px}
+.dv .brief-view-body>p{color:var(--muted);margin:0 0 16px}
+@media(max-width:760px){.dv .brief-view-body,.dv .brief-medical-tabs .brief-facts{padding:20px}}
+
+/* Literal patient information: clear labels, restrained surfaces and useful width. */
+.dv .brief-medical-tabs .brief-summary{background:#f8fafc;padding:20px 24px}
+.dv .brief-summary .brief-mode{font-size:13px;line-height:1.5;margin:6px 0 20px}
+.brief-summary-heading{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 16px;margin-bottom:12px}
+.dv .brief-summary-heading h3{margin:0;font-size:18px;line-height:1.35}
+.dv .brief-summary-heading .brief-mode{margin:0}
+.brief-summary-grid{display:grid;gap:16px;align-items:start}
+.brief-summary-grid[data-has-context=true]{grid-template-columns:minmax(220px,1fr) minmax(0,2fr)}
+.brief-summary-context{display:grid;gap:16px;min-width:0}
+.dv .brief-summary .brief-summary-card{min-width:0;background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px}
+.dv .brief-summary-card h4{font-size:18px;line-height:1.35;color:var(--ink);margin:0}
+.dv .brief-summary-card .brief-card-note,.dv .brief-summary-card .brief-group-note{font-size:13px;line-height:1.5;color:var(--brief-muted);margin:5px 0 14px}
+.dv .brief-summary-card .brief-card-note{margin-bottom:10px}
+.dv .brief-summary-card blockquote,.dv .brief-summary-card .brief-topics p{font-size:16px;line-height:1.55;max-width:65ch}
+.dv .brief-goal.brief-summary-card blockquote{font-size:18px;font-weight:600;margin:0 0 8px}
+.dv .brief-summary-card .brief-topics>li{padding:14px 0 8px}
+.dv .brief-summary-card .brief-topics>li:first-child{padding-top:0}
+.dv .brief-summary-card .brief-topics>li:last-child{padding-bottom:0}
+.dv .brief-topic-label{font-size:14px;font-weight:650;line-height:1.4;margin:0 0 6px;color:var(--brief-muted)}
+.dv .brief-summary-card .brief-sources{margin-top:4px}
+.dv .brief-summary-card .brief-sources a{font-size:13px;line-height:1.4}
+.dv .brief-summary-card .doctor-current-goal{border:0;padding:0}
+.dv .brief-summary-card .doctor-current-goal h3{font-size:18px}
+.dv .brief-summary-card .doctor-current-goal p{font-size:16px;line-height:1.55}
+.dv .brief-summary-card .doctor-current-goal small{font-size:13px}
+.dv .brief-medical-tabs .brief-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.dv .brief-medical-tabs .brief-facts>h3,.dv .brief-facts>.brief-open-work,.dv .brief-facts>.brief-load-error{grid-column:1/-1;margin:0}
+.dv .brief-medical-tabs .brief-fact{border:1px solid var(--border);border-radius:8px;padding:14px;align-items:flex-start}
+.dv .brief-medical-tabs .brief-fact strong{font-size:14px}
+.dv .brief-medical-tabs .brief-fact span{font-size:13px;line-height:1.5}
+.dv .brief-medical-tabs .brief-fact>svg{margin-top:2px}
+.dv .doctor-home.home{gap:20px}
+.dv.dv-area-home .dv-main{max-width:1440px}
+.dv .brief-patient-feed{padding:20px 24px}
+@media(max-width:900px){.brief-summary-grid[data-has-context=true]{grid-template-columns:minmax(0,1fr)}.brief-summary-context{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}}
+@media(max-width:760px){.dv .brief-medical-tabs .brief-summary{padding:20px 16px}.dv .brief-summary .brief-summary-card{padding:16px}.brief-summary-context{grid-template-columns:minmax(0,1fr)}.dv .brief-medical-tabs .brief-facts{grid-template-columns:minmax(0,1fr);padding:20px 16px}}

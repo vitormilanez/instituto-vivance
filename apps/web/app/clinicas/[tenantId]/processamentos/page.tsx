@@ -1,3 +1,4 @@
+import { MedicalPageHeader } from "@/components/medical-page-header";
 import { notFound, redirect } from "next/navigation";
 import { ClinicShell } from "@/components/clinic-shell";
 import { ProcessingWorkspace } from "@/components/processing-workspace";
@@ -25,14 +26,9 @@ export default async function ProcessingPage({
   });
   return (
     <ClinicShell clinic={initial.clinic} active="processamentos">
-      <header className="page-heading">
-        <div>
-          <h1>Processamentos</h1>
-          <p>
+      <MedicalPageHeader title={<>Processamentos</>} description={<>
             Acompanhamento técnico privado de tarefas autorizadas do seu cuidado.
-          </p>
-        </div>
-      </header>
+          </>} />
       <ProcessingWorkspace initial={initial} />
     </ClinicShell>
   );

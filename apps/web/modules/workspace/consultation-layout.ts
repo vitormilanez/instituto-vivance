@@ -13,7 +13,7 @@ export function consultationAction(input: { draft: { id: string; appointment_id:
   const resume = input.draft && (input.draft.appointment_id === input.appointmentId || input.draft.appointment_id === null);
   return resume
     ? { label: "Retomar atendimento", href: `${input.base}/atendimentos/${input.draft!.id}${input.query ?? ""}` }
-    : { label: input.preparable ? "Preparar atendimento" : "Ver na agenda", href: input.agendaHref };
+    : { label: "Ver na agenda", href: input.agendaHref };
 }
 
 export function reviewSidebar(input: { patients: { patientId: string; name: string; items: ReceivedItem[] }[]; work: OpenWorkItem[] | null; focusPatientId: string | null }) {

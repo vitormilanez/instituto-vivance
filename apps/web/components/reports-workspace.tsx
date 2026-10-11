@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { MedicalPageHeader } from "./medical-page-header";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
@@ -96,13 +97,7 @@ export function ReportsWorkspace({ initial }: { initial: ReportsList }) {
       </details>
 
       <section className="report-list" aria-labelledby="reports-title">
-        <div className="section-heading">
-          <div>
-            <h2 id="reports-title">Relatórios internos</h2>
-            <p>Rascunhos e versões aprovadas para organização do cuidado.</p>
-          </div>
-          <span className="quiet-label">{initial.reports.length} nesta página</span>
-        </div>
+        <MedicalPageHeader level={2} id="reports-title" title="Relatórios internos" description="Rascunhos e versões aprovadas para organização do cuidado." actions={<span className="quiet-label">{initial.reports.length} nesta página</span>} />
         {initial.reports.length ? (
           initial.reports.map((report) => (
             <article className="report-row" key={report.id}>

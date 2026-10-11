@@ -44,6 +44,36 @@ Após a recuperação operacional, validar com médico os resultados e fontes; e
 
 ## Experiência médica
 
+**Padronização UX em PR/Preview para revisão (10/10/2026):** aplicar, via Product
+Design e sem Impeccable, a ordem cabeçalho de contexto → seletores retangulares
+→ conteúdo nas superfícies médicas. Hoje usa quatro abas — Resumo, Exames e
+documentos, Evolução, Solicitações — sem “Preparar”. Exames têm filtros
+independentes de comparação com a referência do laudo e de estado da revisão;
+o formulário de revisão aparece abaixo da linha factual. Cores servem à
+comparação documentada, sem inferência clínica. Preservar URL, permissões por
+papel/vínculo, paginação, formulários e rascunhos. Não criar banco ou funções
+clínicas. [PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119)
+em draft e Preview disponíveis, com 525 testes e CI aprovados; esta decisão não
+altera a publicação técnica histórica #117 nem o PR documental #118 e não
+constitui aceite médico. [Guia visual](../apps/web/DESIGN.md) e
+[checkpoints](CHECKPOINTS_ENTREGAS.md).
+
+Refinamento do Resumo: cards brancos/neutros no lugar do bloco azul contínuo;
+objetivo e pendências em um terço e relatos em dois terços no desktop, com
+fatos em grid; uma coluna no celular. Rótulos derivam da fonte. Tipos de
+18/14/16/13 px para card/rótulo/conteúdo/fonte e espaços de 16/20/24 px.
+Responsividade, teclado, preservação de edição e build final foram conferidos;
+login real do paciente sintético passou localmente e no novo Preview.
+Login médico real com Guilherme passou localmente e no novo Preview: sessão,
+fonte/histórico, filtros, links diretos, voltar e edição preservados. O
+enquadramento limita o Hoje a 1440 px, compacta contexto e faixas, e mantém
+conteúdo em 16 px e alvos de 44 px. Cards começam em 262 px na composição
+desktop de 1330×625; mobile 320 px sem corte horizontal. Aceite de usabilidade
+desta UX permanece pendente. Links e SHA no
+[status](STATUS_ATUAL.md) e [evidências](UX_MEDICA_PADRAO_2026-10-10.md).
+Uma resposta API **simulada** para o valor 99 no limite
+superior validou cor verde e preservação da fonte/histórico, sem mutação remota.
+
 **Prioridade solicitada em 10/10, entregue pelo #112:** briefing da Home com
 objetivo destacado, exames/revisão consolidados, originais recolhidos e peso
 único compacto. Publicado tecnicamente em `7e3b849`, com revisão GPT-6 Sol Ultra

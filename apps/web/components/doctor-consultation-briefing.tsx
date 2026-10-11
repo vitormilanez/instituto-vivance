@@ -18,6 +18,7 @@ import { CareLinkAccept } from "./care-link-accept";
 import { ConsultationPrescriptions, ConsultationRequests } from "./consultation-tools";
 import { TeleconsultationLink } from "./teleconsultation-link";
 import { DoctorCurrentGoal } from "./doctor-current-goal";
+import { MedicalTabs } from "./medical-selector";
 
 const day = (at: string) => new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" }).format(new Date(at.length === 10 ? `${at}T12:00:00Z` : at));
 const fullDay = (at: string) => new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "America/Sao_Paulo" }).format(new Date(at));
@@ -87,6 +88,13 @@ function BriefSource({ source, received, tenantId }: { source: ConsultationBrief
   return kind ? <ReceivedLink tenantId={tenantId} kind={kind} itemId={source.id} href={source.href} unseen={original?.seen === false}>{label}</ReceivedLink> : <Link href={source.href}>{label}</Link>;
 }
 
+function patientTopicLabel(source: ConsultationBriefSource | undefined) {
+  if (!source) return "Relato enviado";
+  if (source.type === "return_preparation_request") return source.label.split(" · ").slice(1).join(" · ") || source.label;
+  if (source.type === "patient_onboarding_submission") return source.label.split(" · ")[0];
+  return source.label;
+}
+
 export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebrow, link, context, weight, received, draft, brief, workItems, now, agendaHref, backToNext }: { base: string; tenantId: string; appointment: BlockAppointment; eyebrow: string; link: CareLink; context: PatientCareContext | null; weight: WeightPoint[] | null; received: ReceivedView | null; draft: BlockDraft | null; brief?: ConsultationBrief | null; workItems?: OpenWorkItem[] | null; now: string; agendaHref: string; backToNext?: string | null }) {
   const name = appointment.patients?.display_name ?? "Paciente";
   const canPrepare = appointment.status === "in_progress" || (appointment.status === "scheduled" && Date.parse(appointment.ends_at) > Date.parse(now));
@@ -98,7 +106,6 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
   const pendingWork = work.filter((item) => !(item.kind === "encounter" && item.id === draft?.id && action.label === "Retomar atendimento"));
   const documentWork = pendingWork.filter((item) => item.kind === "documents");
   const otherWork = pendingWork.filter((item) => item.kind !== "documents");
-  const prep = context?.preparation?.submitted_at ? context.preparation : context?.previousPreparation;
   const patientTopics = brief?.topics.filter((topic) => topic.kind === "patient") ?? [];
   const pendingTopics = brief?.topics.filter((topic) => topic.kind === "pending") ?? [];
   const documentTopics = brief?.topics.filter((topic) => topic.kind === "documents") ?? [];
@@ -117,16 +124,13 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
   return <article className="home-consultation doctor-consultation consultation-briefing" aria-labelledby={`consulta-${appointment.id}-titulo`}>
     <details className="brief-expandable" open>
       <summary className="brief-collapse-summary">
-        <div className="brief-identity"><span className="dv-avatar" aria-hidden="true">{name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span><div><h2 id={`consulta-${appointment.id}-titulo`}>{name}</h2><p><span>{eyebrow}</span> · <time dateTime={appointment.starts_at}>{appointmentClock(appointment.starts_at)}–{appointmentClock(appointment.ends_at)}</time></p><small>{appointment.kind === "return" ? "Retorno" : "Consulta"} · {appointment.doctor_display_name}</small></div></div>
+        <div className="brief-identity"><span className="dv-avatar" aria-hidden="true">{name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span><div><h2 id={`consulta-${appointment.id}-titulo`}>{name}</h2><div className="brief-appointment-meta"><p><span>{eyebrow}</span> · <time dateTime={appointment.starts_at}>{appointmentClock(appointment.starts_at)}–{appointmentClock(appointment.ends_at)}</time></p><p>{appointment.kind === "return" ? "Retorno" : "Consulta"} · {appointment.doctor_display_name}</p></div></div></div>
         <span className="brief-collapse-control"><span className="brief-minimize-label">Minimizar</span><span className="brief-expand-label">Expandir</span><ChevronRight size={18} aria-hidden="true" /></span>
       </summary>
     <div className="brief-expandable-body">
     <header className="brief-header">
-      {context && link.status === "active" && <ul className="brief-readiness" aria-label="Fontes disponíveis para o preparo">
-        {prep?.submitted_at && <li><Link href={`${base}/preparo?solicitacao=${prep.id}#preparo-${prep.id}`}><ClipboardList size={14} aria-hidden="true" />Pré-consulta {day(prep.submitted_at)}</Link></li>}
-      </ul>}
       <div className="home-consultation-actions brief-actions">
-        {link.status === "active" && <><Link className="button" href={action.href}>{action.label}</Link><Link className="button secondary" href={`${base}/pacientes/${appointment.patient_id}`}>Abrir ficha</Link><Link className="button secondary" href={`${base}/mensagens?paciente=${appointment.patient_id}`}>Mensagem</Link>{context && !failed.includes("requests") && <ConsultationRequests tenantId={tenantId} patientId={appointment.patient_id} requests={context.requests} />}</>}
+        {link.status === "active" && <>{action.label === "Retomar atendimento" && <Link className="button" href={action.href}>{action.label}</Link>}<Link className="button secondary" href={`${base}/pacientes/${appointment.patient_id}`}>Abrir ficha</Link><Link className="button secondary" href={`${base}/mensagens?paciente=${appointment.patient_id}`}>Mensagem</Link></>}
         {video && canPrepare && appointment.teleconsultation?.join_url && <TeleconsultationLink url={appointment.teleconsultation.join_url} compact />}
       </div>
       {draft && draft.appointment_id !== null && draft.appointment_id !== appointment.id && <p className="brief-other-draft">Há um rascunho de outro atendimento. <Link href={`${base}/atendimentos/${draft.id}`}>Retomar esse rascunho</Link></p>}
@@ -134,12 +138,15 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
     </header>
     {access ? <div className="home-care-link"><p>{access}</p>{link.status === "assigned" && <CareLinkAccept tenantId={tenantId} relationshipId={link.relationshipId} version={link.version} patientName={name} />}</div> : !context ? <div className="brief-load-error" role="status"><p>Não foi possível carregar o contexto desta consulta.</p><RetryButton /></div> : <>
       {failed.length > 0 && <div className="brief-load-error" role="status"><p>Parte do contexto não carregou. Os registros disponíveis continuam abaixo.</p><RetryButton /></div>}
+      <MedicalTabs key={appointment.id} label="Informações desta consulta" className="brief-medical-tabs" tabs={[
+        { value: "summary", label: "Resumo", content: <>
       <div className="brief-content">
         <div className="brief-narrative">
           <section className="brief-summary" aria-labelledby={`brief-${appointment.id}`}>
-            <div className="brief-section-heading"><h3 id={`brief-${appointment.id}`}>Para esta consulta</h3></div>
-            <p className="brief-mode">{brief?.mode === "ai" ? "Seleção assistida de trechos literais · conferir as fontes" : "Trechos literais e pendências · conferir as fontes"}</p>
-            {context.intake && <DoctorCurrentGoal
+            <div className="brief-summary-heading"><h3 id={`brief-${appointment.id}`}>Para esta consulta</h3><p className="brief-mode">{brief?.mode === "ai" ? "Seleção assistida de trechos literais · conferir as fontes" : "Trechos literais e pendências · conferir as fontes"}</p></div>
+            <div className="brief-summary-grid" data-has-context={Boolean(context.intake || showInitialGoal || pendingTopics.length)}>
+            {(context.intake || showInitialGoal || pendingTopics.length > 0) && <div className="brief-summary-context">
+            {context.intake && <div className="brief-summary-card"><DoctorCurrentGoal
               expectedOutcome={context.intake.expectedOutcome ?? null}
               firstPriority={context.intake.firstPriority ?? null}
               source={context.intake.source ?? null}
@@ -147,18 +154,40 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
               updatedAt={context.intake.updatedAt}
               awaitingPatient={context.requests.some((request) => request.kind === "goals")}
               href={`${base}/pacientes/${appointment.patient_id}?aba=Vis%C3%A3o%20geral&acolhimento=ver#patient-intake-context`}
-            />}
-            {showInitialGoal && context.onboarding && <section className="brief-goal" aria-labelledby={`goal-${appointment.id}`}>
-              <h4 id={`goal-${appointment.id}`}>Objetivo informado no cadastro inicial</h4>
+            /></div>}
+            {showInitialGoal && context.onboarding && <section className="brief-goal brief-summary-card" aria-labelledby={`goal-${appointment.id}`}>
+              <h4 id={`goal-${appointment.id}`}>Objetivo do paciente</h4>
+              <p className="brief-card-note">Informado no cadastro inicial</p>
               <blockquote>{initialGoal}</blockquote>
               <div className="brief-sources">{initialGoalTopic ? initialGoalTopic.sources.map((source) => <BriefSource key={`${source.type}:${source.id}`} source={source} received={received} tenantId={tenantId} />) : <Link href={`${base}/pacientes/${appointment.patient_id}?aba=Vis%C3%A3o%20geral`}>Cadastro inicial · {day(context.onboarding.submittedAt)}<ChevronRight size={12} aria-hidden="true" /></Link>}</div>
             </section>}
-            <div className="brief-topic-group">
+            {pendingTopics.length > 0 && <section className="brief-topic-group brief-summary-card brief-pending-card"><h4>Respostas pendentes</h4><ul className="brief-topics">{pendingTopics.map((topic, index) => <li key={index}><p>{topic.text}</p><div className="brief-sources">{topic.sources.map((source) => <span className="brief-source-with-date" key={`${source.type}:${source.id}`}><BriefSource source={source} received={received} tenantId={tenantId} /><time dateTime={source.date}>{day(source.date)}</time></span>)}</div></li>)}</ul></section>}
+            </div>}
+            <section className="brief-topic-group brief-summary-card brief-patient-card">
               <h4>Relatos do paciente</h4>
               <p className="brief-group-note">Respostas enviadas pelo paciente, sem interpretação.</p>
-              {remainingPatientTopics.length ? <ul className="brief-topics">{remainingPatientTopics.map((topic, index) => <li key={index}><blockquote>{topic.text}</blockquote><div className="brief-sources">{topic.sources.map((source) => <BriefSource key={`${source.type}:${source.id}`} source={source} received={received} tenantId={tenantId} />)}</div></li>)}</ul> : <p className="brief-group-empty">Nenhum outro relato disponível neste recorte. Consulte os registros originais abaixo.</p>}
+              {remainingPatientTopics.length ? <ul className="brief-topics">{remainingPatientTopics.map((topic, index) => <li key={index}><h5 className="brief-topic-label">{patientTopicLabel(topic.sources[0])}</h5><blockquote>{topic.text}</blockquote><div className="brief-sources">{topic.sources.map((source) => <BriefSource key={`${source.type}:${source.id}`} source={source} received={received} tenantId={tenantId} />)}</div></li>)}</ul> : <p className="brief-group-empty">Nenhum outro relato disponível neste recorte. Consulte os registros originais abaixo.</p>}
+            </section>
             </div>
-            {pendingTopics.length > 0 && <div className="brief-topic-group"><h4>Respostas pendentes</h4><ul className="brief-topics">{pendingTopics.map((topic, index) => <li key={index}><p>{topic.text}</p><div className="brief-sources">{topic.sources.map((source) => <span className="brief-source-with-date" key={`${source.type}:${source.id}`}><BriefSource source={source} received={received} tenantId={tenantId} /><time dateTime={source.date}>{day(source.date)}</time></span>)}</div></li>)}</ul></div>}
+
+            {brief?.retry && <div className="brief-load-error" role="status"><p>O resumo assistido não carregou. Os relatos originais continuam disponíveis.</p><RetryButton /></div>}
+          </section>
+          <PatientFeed context={context} received={received} base={base} patientId={appointment.patient_id} tenantId={tenantId} />
+        </div>
+            <aside className="brief-facts" aria-label="Fatos da consulta">
+
+          <h3>Fatos da consulta</h3>
+          {(failed.includes("intake") || failed.includes("requests") || context.requests.some((item) => item.kind === "goals") || (!context.intake?.hasGoal && !hasLiteralGoal)) && <div className="brief-fact"><Target size={18} aria-hidden="true" /><div><strong>Metas</strong><span>{failed.includes("intake") || failed.includes("requests") ? "Estado indisponível" : context.requests.some((item) => item.kind === "goals") ? "Solicitadas · aguardando resposta" : "Não informadas"}</span></div></div>}
+          <div className="brief-fact"><CalendarDays size={18} aria-hidden="true" /><div><strong>Última consulta</strong><span>{failed.includes("encounter") ? "Registro indisponível" : context.encounter?.finalized_at ? `Finalizada em ${day(context.encounter.finalized_at)}` : "Sem registro finalizado"}</span></div>{context.encounter && <Link href={`${base}/atendimentos/${context.encounter.id}`}>Abrir</Link>}</div>
+          <div className="brief-fact"><ClipboardList size={18} aria-hidden="true" /><div><strong>Plano de cuidado</strong><span>{failed.includes("publications") ? "Estado indisponível" : context.publications[0] ? `Publicado · revisão ${context.publications[0].revision}` : "Nenhum publicado"}</span></div>{context.publications[0] && <Link href={`${base}/planos/${context.publications[0].plan_id}`}>Abrir</Link>}</div>
+          <ConsultationPrescriptions tenantId={tenantId} patientId={appointment.patient_id} total={context.prescriptions?.total ?? null} available={context.prescriptions?.available ?? false} />
+
+          {otherWork.length > 0 && <section className="brief-open-work"><h3>Seu trabalho com este paciente</h3><ul>{otherWork.map((item) => <li key={`${item.kind}:${item.id}`}><span>{item.state}</span><Link href={item.href}>{item.action}</Link></li>)}</ul></section>}
+          {workItems === null && <div className="brief-load-error" role="status"><p>Não foi possível carregar o trabalho com este paciente.</p><RetryButton /></div>}
+        </aside>
+      </div>
+        </> },
+        { value: "documents", label: "Exames e documentos", count: failed.includes("documents") ? null : context.documents.total, content: <div className="brief-view-body">
             <section className="brief-topic-group brief-documents" aria-labelledby={`documents-${appointment.id}`}>
               <div className="brief-section-heading"><h4 id={`documents-${appointment.id}`}>Exames e documentos</h4>{!documentWork.some((item) => item.href === documentsHref) && <Link href={documentsHref}>Abrir Documentos</Link>}</div>
               <p className="brief-document-count">{failed.includes("documents") || context.documents.total === null ? "Contagem indisponível" : `${context.documents.total} ${context.documents.total === 1 ? "documento disponível" : "documentos disponíveis"}${context.documents.latest_at ? ` · último em ${day(context.documents.latest_at)}` : ""}`}</p>
@@ -167,22 +196,19 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
               {documentSources.length > 0 && <details className="brief-document-details"><summary>Ver arquivos recentes ({documentSources.length})</summary><ol className="brief-document-list">{documentSources.map((source, index) => <li key={`${source.type}:${source.id}`}><span className="brief-document-number">Arquivo {index + 1}</span><BriefSource source={source} received={received} tenantId={tenantId} /><time dateTime={source.date}>{day(source.date)}</time></li>)}</ol></details>}
               {documentWork.map((item) => <Link className="brief-document-work" key={`${item.kind}:${item.id}`} href={item.href}>{item.state} · {item.action}</Link>)}
             </section>
-            {brief?.retry && <div className="brief-load-error" role="status"><p>O resumo assistido não carregou. Os relatos originais continuam disponíveis.</p><RetryButton /></div>}
-          </section>
-          <PatientFeed context={context} received={received} base={base} patientId={appointment.patient_id} tenantId={tenantId} />
-        </div>
-        <aside className="brief-facts" aria-label="Evolução e fatos da consulta">
+        </div> },
+        { value: "evolution", label: "Evolução", content: <div className="brief-view-body">
+          <h3>Evolução do paciente</h3>
           <div id={`peso-${appointment.id}`}><DoctorWeightChart initialWeight={context.onboarding?.measurements.weightKg != null && context.onboarding.measurements.measuredOn ? { value: context.onboarding.measurements.weightKg, date: context.onboarding.measurements.measuredOn } : null} points={weight} href={`${base}/acompanhamento?aba=evolucao&paciente=${appointment.patient_id}`} /></div>
-          <h3>Fatos da consulta</h3>
-          {(failed.includes("intake") || failed.includes("requests") || context.requests.some((item) => item.kind === "goals") || (!context.intake?.hasGoal && !hasLiteralGoal)) && <div className="brief-fact"><Target size={18} aria-hidden="true" /><div><strong>Metas</strong><span>{failed.includes("intake") || failed.includes("requests") ? "Estado indisponível" : context.requests.some((item) => item.kind === "goals") ? "Solicitadas · aguardando resposta" : "Não informadas"}</span></div></div>}
-          <div className="brief-fact"><CalendarDays size={18} aria-hidden="true" /><div><strong>Última consulta</strong><span>{failed.includes("encounter") ? "Registro indisponível" : context.encounter?.finalized_at ? `Finalizada em ${day(context.encounter.finalized_at)}` : "Sem registro finalizado"}</span></div>{context.encounter && <Link href={`${base}/atendimentos/${context.encounter.id}`}>Abrir</Link>}</div>
-          <div className="brief-fact"><ClipboardList size={18} aria-hidden="true" /><div><strong>Plano de cuidado</strong><span>{failed.includes("publications") ? "Estado indisponível" : context.publications[0] ? `Publicado · revisão ${context.publications[0].revision}` : "Nenhum publicado"}</span></div>{context.publications[0] && <Link href={`${base}/planos/${context.publications[0].plan_id}`}>Abrir</Link>}</div>
-          <ConsultationPrescriptions tenantId={tenantId} patientId={appointment.patient_id} total={context.prescriptions?.total ?? null} available={context.prescriptions?.available ?? false} />
           {context.encounter?.evolution?.trim() && <details className="brief-evolution"><summary>Evolução registrada pelo médico</summary><p>{context.encounter.evolution}</p><Link href={`${base}/atendimentos/${context.encounter.id}`}>Ler registro completo</Link></details>}
-          {otherWork.length > 0 && <section className="brief-open-work"><h3>Seu trabalho com este paciente</h3><ul>{otherWork.map((item) => <li key={`${item.kind}:${item.id}`}><span>{item.state}</span><Link href={item.href}>{item.action}</Link></li>)}</ul></section>}
-          {workItems === null && <div className="brief-load-error" role="status"><p>Não foi possível carregar o trabalho com este paciente.</p><RetryButton /></div>}
-        </aside>
-      </div>
+        </div> },
+        { value: "requests", label: "Solicitações", content: <div className="brief-view-body">
+          <h3>Solicitações ao paciente</h3>
+          <p>Peça informações para a próxima consulta e acompanhe as respostas.</p>
+          {failed.includes("requests") ? <div className="brief-load-error" role="status"><p>Não foi possível carregar as solicitações.</p><RetryButton /></div>
+            : <ConsultationRequests tenantId={tenantId} patientId={appointment.patient_id} requests={context.requests} embedded />}
+        </div> },
+      ]} />
     </>}
     </div>
     </details>

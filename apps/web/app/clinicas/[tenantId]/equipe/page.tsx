@@ -1,3 +1,4 @@
+import { MedicalPageHeader } from "@/components/medical-page-header";
 import { notFound, redirect } from "next/navigation";
 import { ClinicShell } from "@/components/clinic-shell";
 import { TeamWorkspace } from "@/components/team-workspace";
@@ -36,16 +37,11 @@ export default async function TeamPage({
     : undefined;
   return (
     <ClinicShell clinic={context.clinic} active="team">
-      <div className="page-heading">
-        <div>
-          <h1>Equipe e vínculos de cuidado</h1>
-          <p>
+      <MedicalPageHeader title={<>Equipe e vínculos de cuidado</>} description={<>
             {context.clinic.role === "admin"
               ? "Organize acessos e atribuições sem abrir o conteúdo clínico dos pacientes."
               : "Revise as atribuições e aceite apenas as responsabilidades que você assumirá."}
-          </p>
-        </div>
-      </div>
+          </>} />
       <TeamWorkspace
         tenantId={tenantId}
         role={context.clinic.role}

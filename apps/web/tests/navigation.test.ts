@@ -60,7 +60,7 @@ test("today preserves the focused patient when opening the record and documents"
   );
   assert.match(workspace, /contextCardsFrom\(\s*base,\s*appointment\.patient_id,/);
   assert.match(workspace, /`\$\{base\}\/pacientes\/\$\{appointment\.patient_id\}`/);
-  assert.match(workspace, /Preparar atendimento/);
+  assert.doesNotMatch(workspace, /Preparar atendimento/);
   // A aba recebe a identidade da consulta e mantém as ações no mesmo paciente.
   assert.match(workspace, /<PreparationAnswers\b[^\n]*\bpatientId=\{appointment\.patient_id\}/);
   assert.match(workspace, /<ContextCardList[^>]+base=\{base\} patientId=\{patientId\}/);

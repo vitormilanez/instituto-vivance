@@ -27,6 +27,8 @@ import { listReports } from "@/modules/reports/service";
 import { ReportsWorkspace } from "@/components/reports-workspace";
 import { staffReturnPreparations } from "@/modules/return-preparation/service";
 import { StaffReturnPreparationWorkspace } from "@/components/return-preparation-workspace";
+import { MedicalSelector } from "@/components/medical-selector";
+import { MedicalPageHeader } from "@/components/medical-page-header";
 export const dynamic = "force-dynamic";
 
 export default async function ModulePage({
@@ -82,32 +84,17 @@ export default async function ModulePage({
         : null;
     return (
       <ClinicShell clinic={clinic} active="acompanhamento">
-        <div className="page-heading">
-          <div>
-            <h1>Acompanhamento</h1>
-            <p>Veja primeiro os pedidos de check-in, depois refeições e a evolução de cada paciente.</p>
-          </div>
-        </div>
-        <nav className="module-tabs" aria-label="Áreas do acompanhamento">
-          <Link
-            href={`${base}?aba=check-ins`}
-            aria-current={active === "check-ins" ? "page" : undefined}
-          >
-            Check-ins
-          </Link>
-          <Link
-            href={`${base}?aba=refeicoes`}
-            aria-current={active === "refeicoes" ? "page" : undefined}
-          >
-            Refeições
-          </Link>
-          <Link
-            href={`${base}?aba=evolucao`}
-            aria-current={active === "evolucao" ? "page" : undefined}
-          >
-            Evolução
-          </Link>
-        </nav>
+        <MedicalPageHeader className="page-heading" title="Acompanhamento" description="Veja primeiro os pedidos de check-in, depois refeições e a evolução de cada paciente." />
+        <MedicalSelector mode="navigation" label="Áreas do acompanhamento" options={[
+          { value: "check-ins", label: "Check-ins" },
+          { value: "refeicoes", label: "Refeições" },
+          { value: "evolucao", label: "Evolução" },
+        ].map((tab) => {
+          const params = new URLSearchParams();
+          for (const [key, value] of Object.entries(query)) if (typeof value === "string") params.set(key, value);
+          params.set("aba", tab.value);
+          return { ...tab, href: `${base}?${params}` };
+        })} value={active} />
         {active === "evolucao" && longitudinal ? (
           <StaffLongitudinalWorkspace
             initial={longitudinal}
@@ -135,13 +122,7 @@ export default async function ModulePage({
     const query = await searchParams;
     return (
       <ClinicShell clinic={clinic} active="preparo">
-        <div className="page-heading">
-          <div>
-            <h1>Pré-consultas e retornos</h1>
-            <p>Relatos enviados pelo paciente, ligados ao compromisso e preservados sem alterações.</p>
-          </div>
-          <Link className="button secondary" href={`/clinicas/${tenantId}/agenda`}>Abrir Agenda</Link>
-        </div>
+        <MedicalPageHeader className="page-heading" title="Pré-consultas e retornos" description="Relatos enviados pelo paciente, ligados ao compromisso e preservados sem alterações." actions={<Link className="button secondary" href={`/clinicas/${tenantId}/agenda`}>Abrir Agenda</Link>} />
         <StaffReturnPreparationWorkspace initial={await staffReturnPreparations(tenantId, query.solicitacao ? undefined : query.pagina, query.solicitacao).catch((error) => {
           if (error instanceof InputError) redirect(`/clinicas/${tenantId}/preparo`);
           throw error;
@@ -166,12 +147,7 @@ export default async function ModulePage({
     const query = await searchParams;
     return (
       <ClinicShell clinic={clinic} active="documentos">
-        <div className="page-heading">
-          <div>
-            <h1>Documentos</h1>
-            <p>Exames e arquivos privados no contexto de cada paciente.</p>
-          </div>
-        </div>
+        <MedicalPageHeader className="page-heading" title="Documentos" description="Exames e arquivos privados no contexto de cada paciente." />
         <StaffDocumentsWorkspace
           initial={
             // Filtro por paciente vindo da URL. Um valor inválido ou de
@@ -216,15 +192,7 @@ export default async function ModulePage({
     });
     return (
       <ClinicShell clinic={clinic} active="mensagens">
-        <div className="page-heading">
-          <div>
-            <h1>Mensagens</h1>
-            <p>
-              Conversas diretas e assíncronas com pacientes que têm vínculo
-              ativo com você.
-            </p>
-          </div>
-        </div>
+        <MedicalPageHeader className="page-heading" title="Mensagens" description="Conversas diretas e assíncronas com pacientes que têm vínculo ativo com você." />
         <StaffMessagesWorkspace initial={initial} />
       </ClinicShell>
     );
@@ -243,12 +211,7 @@ export default async function ModulePage({
     const query = await searchParams;
     return (
       <ClinicShell clinic={clinic} active="relatorios">
-        <div className="page-heading">
-          <div>
-            <h1>Relatórios</h1>
-            <p>Reúna fontes reais e prepare uma síntese para revisão médica.</p>
-          </div>
-        </div>
+        <MedicalPageHeader className="page-heading" title="Relatórios" description="Reúna fontes reais e prepare uma síntese para revisão médica." />
         <ReportsWorkspace initial={await listReports(tenantId, query.pagina)} />
       </ClinicShell>
     );
@@ -262,13 +225,7 @@ export default async function ModulePage({
   }).format(new Date());
   return (
     <ClinicShell clinic={clinic} active={area.slug}>
-      <div className="page-heading">
-        <div>
-          <h1>{area.title}</h1>
-          <p>{area.description}</p>
-        </div>
-        <FutureButton>{area.action}</FutureButton>
-      </div>
+      <MedicalPageHeader className="page-heading" title={area.title} description={area.description} actions={<FutureButton>{area.action}</FutureButton>} />
       <DevelopmentNotice />
       <ModuleTabs
         tabs={area.tabs}

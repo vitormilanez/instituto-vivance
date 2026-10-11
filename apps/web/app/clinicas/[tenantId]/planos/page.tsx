@@ -1,3 +1,4 @@
+import { MedicalPageHeader } from "@/components/medical-page-header";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AccessError } from "@/modules/identity/service";
@@ -28,15 +29,10 @@ export default async function PlansPage({
   const base = `/clinicas/${tenantId}`;
   return (
     <ClinicShell clinic={data.clinic} active="planos">
-      <header className="page-heading">
-        <div>
-          <h1>Planos de cuidado</h1>
-          <p>
+      <MedicalPageHeader title={<>Planos de cuidado</>} description={<>
             Objetivos e orientações construídos pelo médico, com revisão e
             histórico.
-          </p>
-        </div>
-      </header>
+          </>} />
       <section className="panel encounter-directory">
         <div className="section-heading">
           <div>

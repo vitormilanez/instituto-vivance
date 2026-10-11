@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { MedicalPageHeader } from "./medical-page-header";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
@@ -718,13 +719,7 @@ export function StaffPatientDocumentsPanel({
   return (
     <section className="document-board" aria-labelledby="patient-documents-title">
       {overview && <ExamOverviewPanel overview={overview} tenant={initial.clinic.id} />}
-      <div className="section-heading">
-        <div>
-          <h2 id="patient-documents-title">Documentos do paciente</h2>
-          <p>Exames e arquivos enviados, com acesso ao original e ao histórico de revisão.</p>
-        </div>
-        <span className="quiet-label">{initial.documents.length} {initial.documents.length === 1 ? "documento" : "documentos"} nesta página</span>
-      </div>
+      <MedicalPageHeader level={2} id="patient-documents-title" title="Documentos do paciente" description="Exames e arquivos enviados, com acesso ao original e ao histórico de revisão." actions={<span className="quiet-label">{initial.documents.length} {initial.documents.length === 1 ? "documento" : "documentos"} nesta página</span>} />
       <DocumentList
         documents={initial.documents}
         tenant={initial.clinic.id}
@@ -775,13 +770,7 @@ export function StaffDocumentsWorkspace({ initial }: { initial: StaffDocuments }
         </form>
       ) : null}
       <section className="document-board">
-        <div className="section-heading">
-          <div>
-            <h2>Documentos disponíveis</h2>
-            <p>Arquivos dos pacientes sob seu cuidado, com acesso ao original e à revisão.</p>
-          </div>
-          <span className="quiet-label">{initial.documents.length} {initial.documents.length === 1 ? "documento" : "documentos"} nesta página</span>
-        </div>
+        <MedicalPageHeader level={2} title="Documentos disponíveis" description="Arquivos dos pacientes sob seu cuidado, com acesso ao original e à revisão." actions={<span className="quiet-label">{initial.documents.length} {initial.documents.length === 1 ? "documento" : "documentos"} nesta página</span>} />
         <DocumentList
           documents={initial.documents}
           tenant={initial.clinic.id}

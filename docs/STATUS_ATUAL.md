@@ -1,6 +1,62 @@
 # Estado atual do Vivance
 
-**Atualizado em 10/10/2026 (São Paulo) — #117 integrado/publicado; recuperação técnica do PDF concluída.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada: `2454345626b56d259a71aa59c34d23a688e13850`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
+**Atualizado em 10/10/2026 (São Paulo) — padronização UX em PR/Preview para revisão; #117 integrado/publicado e recuperação técnica do PDF concluída anteriormente.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada anteriormente: `2454345626b56d259a71aa59c34d23a688e13850`. O PR #118 documentou esse histórico; seu merge não comprova publicação da UX atual. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
+
+## Padronização da experiência médica — PR #119 / Preview (10/10)
+
+Na branch `codex/padronizacao-experiencia-medica-20261010`, componentes
+compartilhados de cabeçalho e seleção organizam contexto → retângulos →
+conteúdo em superfícies médicas. Hoje apresenta Resumo, Exames e documentos,
+Evolução e Solicitações, sem “Preparar”. Exames separam quatro filtros de
+comparação com a referência do laudo de quatro estados de revisão; acima/abaixo
+têm refinamento, e o formulário de revisão fica abaixo da linha factual. Cor
+de comparação e estado de revisão não se confundem. Ficha, pacientes, convites,
+revisão de envios, Agenda, teleconsulta, atendimento, receitas e módulos adotam
+o mesmo seletor sem mudar contratos, permissões ou gravações clínicas. O filtro
+de cadastros médicos é explicitamente **nesta página**. A direção desta rodada
+usa Product Design sem Impeccable.
+
+Refinamento do Resumo local: o bloco azul contínuo deu lugar a cards
+neutros/brancos. Objetivo e pendências ocupam um terço, relatos dois terços no
+desktop; fatos ficam em grid e o celular usa uma coluna. Rótulos derivam da
+fonte, com hierarquia 18 px (card), 14 px (rótulo), 16 px (conteúdo), 13 px
+(fonte) e espaços de 16/20/24 px.
+
+Enquadramento refinado: largura máxima do Hoje de 1440 px, identidade/contexto
+e ações compactos; rótulos e contagens na mesma linha dos seletores, mantendo
+etapas numeradas. Altura mínima da faixa 56/60 px, conforme contagem; alvos
+≥44 px. Na composição sintética 1330×625, primeiro card em 262 px do topo do
+briefing; em 390/320 px, 482/528 px, sem overflow. No celular, o controle de
+expansão ocupa 44 px e o contexto usa a largura disponível. Revisão independente
+das capturas sem impedimento; os relatos ainda exigem rolagem no celular.
+
+Estado desta frente: **[PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119)
+em draft, pronto para revisão**. 525 testes, typecheck, lint e build final
+passaram; lint teve zero erros e um aviso anterior. O
+[CI 38105274475](https://github.com/vitormilanez/instituto-vivance/actions/runs/38105274475)
+passou no SHA `5445083c4205a3e7b7ef6061399620b61ab4237c`.
+Browser local em Hoje, exames, Agenda, convites, documentos e mensagens a
+1440/900/390/320 px sem overflow; controles de exames e Agenda com altura de
+pelo menos 44 px. Teclado Home/End e edição preservada ao alternar aba,
+resultado e filtro foram conferidos. Resposta de API **simulada** testou 99
+no limite máximo: verde, fonte 108 e histórico preservados, sem mutação remota.
+
+[Preview](https://instituto-vivance-pq76f1h6n-vtr-consulting.vercel.app)
+`dpl_5jWLNZWFSXczYnfadtbUoGha9jkV`, READY após build, solicitado explicitamente
+com `--target preview` no SHA `5445083c4205a3e7b7ef6061399620b61ab4237c`.
+Conta `vtrconsulting`, equipe `vtr-consulting`, projeto `instituto-vivance` /
+`prj_ligeZuFRycRXA21u5rRzaLAORTrI` conferidos; `/login` HTTP 200 usando proteção
+Vercel existente. Commits posteriores alteram somente documentação.
+Paciente sintético fez login real pela interface local e no novo Preview,
+manteve sessão após recarga, recebeu 404 na ficha médica e 403 na extração.
+Guilherme fez login real localmente e neste Preview, mantendo sessão após
+recarga: ficha, API de extração
+e original HTTP 200, Glicose 92 mg/dL, histórico de cinco revisões, link direto,
+URL Evolução/voltar Documentos e correção em edição preservados. Filtros com
+todos os documentos/itens expandidos mostraram 4 fora, 30 dentro e 108 sem
+comparação, total 142. Nenhuma correção foi enviada. Não houve integração,
+publicação em produção ou aceite médico desta UX. Banco/Edge abaixo pertencem à entrega anterior #117 e
+ao registro #118. Detalhes em [evidências](UX_MEDICA_PADRAO_2026-10-10.md).
 
 ## IA2 — retomada operacional e referências (#117, 10/10)
 

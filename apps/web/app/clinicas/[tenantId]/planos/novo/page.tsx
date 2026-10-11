@@ -1,3 +1,4 @@
+import { MedicalPageHeader } from "@/components/medical-page-header";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AccessError } from "@/modules/identity/service";
@@ -33,12 +34,7 @@ export default async function NewPlanPage({
       <Link className="back-link" href={`/clinicas/${tenantId}/planos`}>
         Voltar aos planos
       </Link>
-      <header className="page-heading">
-        <div>
-          <h1>Novo plano de cuidado</h1>
-          <p>{context.patientName}</p>
-        </div>
-      </header>
+      <MedicalPageHeader title={<>Novo plano de cuidado</>} description={<>{context.patientName}</>} />
       <section className="panel">
         <h2>Começar um rascunho interno</h2>
         <p>

@@ -9,6 +9,8 @@ import { localToInstant } from "@/modules/agenda/validation";
 import { MEET_ACCOUNT, meetNewRoomUrl } from "@/modules/teleconsultations/meet-account";
 import { normalizeMeetUrl } from "@/modules/teleconsultations/validation";
 import { whatsappShareUrl } from "@/modules/teleconsultations/share";
+import { MedicalSelector } from "@/components/medical-selector";
+import { MedicalPageHeader } from "@/components/medical-page-header";
 
 const meetPattern = /^https:\/\/meet\.google\.com\/[a-z]{3}-[a-z]{4}-[a-z]{3}$/;
 
@@ -400,15 +402,7 @@ export function TeleconsultationHub({
 
   return (
     <div className="teleconsultation-hub">
-      <div className="page-heading">
-        <div>
-          <h1>Teleconsulta</h1>
-          <p>
-            Consultas por vídeo pelo Google Meet. A chamada abre em outra aba;
-            o registro clínico continua aqui.
-          </p>
-        </div>
-      </div>
+      <MedicalPageHeader className="page-heading" title="Teleconsulta" description="Consultas por vídeo pelo Google Meet. A chamada abre em outra aba; o registro clínico continua aqui." />
 
       {todays.length > 0 && (
         <section className="panel tele-hub-today" aria-labelledby="tele-today">
@@ -532,26 +526,7 @@ export function TeleconsultationHub({
 
       <section className="panel tele-hub-form" aria-labelledby="tele-new">
         <h2 id="tele-new">Nova teleconsulta</h2>
-        <div className="tele-hub-switch" role="group" aria-label="Quando">
-          {isDoctor && (
-            <button
-              type="button"
-              className="secondary"
-              aria-pressed={mode === "now"}
-              onClick={() => setMode("now")}
-            >
-              Iniciar agora
-            </button>
-          )}
-          <button
-            type="button"
-            className="secondary"
-            aria-pressed={mode === "scheduled"}
-            onClick={() => setMode("scheduled")}
-          >
-            Agendar
-          </button>
-        </div>
+        <MedicalSelector label="Quando" options={[...(isDoctor ? [{ value: "now", label: "Iniciar agora" }] : []), { value: "scheduled", label: "Agendar" }]} value={mode} onChange={(value) => setMode(value as "now" | "scheduled")} />
         {!isDoctor && (
           <p className="tele-hub-hint">
             Só o médico inicia uma teleconsulta na hora. Aqui você agenda e

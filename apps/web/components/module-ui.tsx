@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { MedicalSelector } from "@/components/medical-selector";
 
 export function DevelopmentNotice() {
   return (
@@ -48,17 +48,12 @@ export function ModuleTabs({
   base: string;
 }) {
   return (
-    <nav className="module-tabs" aria-label="Seções desta área">
-      {tabs.map((tab) => (
-        <Link
-          key={tab}
-          href={`${base}?aba=${encodeURIComponent(tab)}`}
-          aria-current={tab === active ? "page" : undefined}
-        >
-          {tab}
-        </Link>
-      ))}
-    </nav>
+    <MedicalSelector
+      mode="navigation"
+      label="Seções desta área"
+      options={tabs.map((tab) => ({ value: tab, label: tab, href: `${base}?aba=${encodeURIComponent(tab)}` }))}
+      value={active}
+    />
   );
 }
 
