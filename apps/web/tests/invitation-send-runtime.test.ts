@@ -9,6 +9,7 @@ type Options = {
   sendFailure?: boolean;
   existing?: boolean;
   pendingActivation?: boolean;
+  metadataFailure?: boolean;
   invalidRedirect?: boolean;
   fullLookup?: boolean;
   revokeFailure?: boolean;
@@ -17,6 +18,8 @@ type Options = {
 async function invite(options: Options = {}) {
   const updates: Record<string, unknown>[] = [];
   let mailCalls = 0;
+  let mailOptions: Record<string, unknown> | undefined;
+  const metadataUpdates: unknown[] = [];
   let lookupCalls = 0;
   let handler: (request: Request) => Promise<Response> = async () => new Response();
   const doctorId = "11111111-1111-4111-8111-111111111111";
@@ -50,10 +53,15 @@ async function invite(options: Options = {}) {
         return options.lookupFailure
           ? { data: { users: [] }, error: { code: "auth_unavailable" } }
           : { data: { users: options.existing || options.pendingActivation
-            ? [{ email: "patient@example.test", email_confirmed_at: options.pendingActivation ? null : "2026-10-01T00:00:00Z", invited_at: "2026-10-01T00:00:00Z" }]
+            ? [{ id: "pending-user", user_metadata: { vivance_invite_kind: "patient", vivance_doctor_id: "forged-or-old-doctor", display_name: "Preserved" }, email: "patient@example.test", email_confirmed_at: options.pendingActivation ? null : "2026-10-01T00:00:00Z", invited_at: "2026-10-01T00:00:00Z" }]
             : options.fullLookup ? Array.from({ length: 1000 }, () => ({ email: "other@example.test" })) : [] }, error: null };
       },
-      inviteUserByEmail: async () => {
+      updateUserById: async (id: string, attributes: unknown) => {
+        metadataUpdates.push({ id, attributes });
+        return { error: options.metadataFailure ? { code: "metadata_failed" } : null };
+      },
+      inviteUserByEmail: async (_email: string, inviteOptions: Record<string, unknown>) => {
+        mailOptions = inviteOptions;
         mailCalls++;
         return { error: options.sendFailure ? { code: "smtp_failed" } : null };
       },
@@ -84,7 +92,7 @@ async function invite(options: Options = {}) {
     headers: { "Content-Type": "application/json", Authorization: "Bearer test-session" },
     body: JSON.stringify({ tenantId, displayName: "Paciente Teste", channel: "email", email: "patient@example.test" }),
   }));
-  return { result, updates, mailCalls, lookupCalls };
+  return { result, updates, mailCalls, lookupCalls, mailOptions, metadataUpdates };
 }
 
 test("Auth lookup failure revokes the pending invite and never sends email", async () => {
@@ -125,6 +133,7 @@ test("new-account mail request and existing-account invite remain successful", a
   const fresh = await invite();
   assert.equal(fresh.result.status, 201);
   assert.equal(fresh.mailCalls, 1);
+  assert.equal(JSON.stringify(fresh.mailOptions), JSON.stringify({ redirectTo: "https://institutovivance.app/primeiro-acesso", data: { vivance_invite_kind: "patient", vivance_doctor_id: "11111111-1111-4111-8111-111111111111" } }));
   assert.equal(fresh.updates.length, 0);
 
   const existing = await invite({ existing: true });
@@ -138,6 +147,7 @@ test("an unactivated account requests a fresh activation invite rather than skip
   const pending = await invite({ pendingActivation: true });
   assert.equal(pending.result.status, 201);
   assert.equal(pending.mailCalls, 1);
+  assert.equal(JSON.stringify(pending.metadataUpdates), JSON.stringify([{ id: "pending-user", attributes: { user_metadata: { vivance_invite_kind: "patient", vivance_doctor_id: "11111111-1111-4111-8111-111111111111", display_name: "Preserved" } } }]));
   assert.equal(pending.updates.length, 0);
   const payload = await pending.result.json();
   assert.equal(payload.invitation.delivery.status, "requested");
@@ -149,4 +159,11 @@ test("failed activation resend revokes the invitation instead of reporting succe
   assert.equal(result.status, 503);
   assert.equal(mailCalls, 1);
   assert.equal(updates.at(-1)?.status, "revoked");
+});
+
+test("presentation update failure cannot send mail attributed to an old doctor", async () => {
+  const pending = await invite({ pendingActivation: true, metadataFailure: true });
+  assert.equal(pending.result.status, 503);
+  assert.equal(pending.mailCalls, 0);
+  assert.equal(pending.updates.at(-1)?.status, "revoked");
 });

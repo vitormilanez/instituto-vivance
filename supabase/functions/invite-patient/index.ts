@@ -100,7 +100,7 @@ Deno.serve(async (request: Request) => {
     let accountStatus: "new" | "active" | "pending_activation" | undefined;
     if (values.channel === "email") {
       try {
-        let existing: { email_confirmed_at?: string | null } | undefined;
+        let existing: { id: string; email_confirmed_at?: string | null; user_metadata?: Record<string, unknown> } | undefined;
         let lookupComplete = false;
         for (let page = 1; page <= 5; page += 1) {
           const listed = await admin.auth.admin.listUsers({ page, perPage: 1000 });
@@ -122,9 +122,22 @@ Deno.serve(async (request: Request) => {
         } else {
           const redirectTo = redirectUrl();
           if (!redirectTo) throw new Error("Patient invite redirect unavailable");
+          const presentation = { vivance_invite_kind: "patient", vivance_doctor_id: doctorId };
+          // GoTrue uses invite data only on creation. Refresh these hints on
+          // pending accounts so old/self-written metadata cannot name a doctor.
+          if (existing) {
+            const updated = await admin.auth.admin.updateUserById(existing.id, {
+              user_metadata: { ...existing.user_metadata, ...presentation },
+            });
+            if (updated.error) throw updated.error;
+          }
           // Auth resends Invite to an unconfirmed user without recreating their
           // identity. Only a confirmed account can skip activation delivery.
-          const sent = await admin.auth.admin.inviteUserByEmail(values.email, { redirectTo });
+          const sent = await admin.auth.admin.inviteUserByEmail(values.email, {
+            redirectTo,
+            // Presentation only; identity/permission checks still use the DB.
+            data: presentation,
+          });
           if (sent.error) throw sent.error;
         }
       } catch {

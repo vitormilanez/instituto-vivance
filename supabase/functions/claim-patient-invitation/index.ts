@@ -22,7 +22,7 @@ Deno.serve(async (request: Request) => {
     if (!url || !secret) return retry();
     const admin = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
     const tokenHash = await sha256(token);
-    const claimed = await admin.from("patient_invitations").update({ recipient_email: email, token_hash: null, claimed_at: new Date().toISOString(), delivery_status: "requested", updated_at: new Date().toISOString() }).eq("token_hash", tokenHash).eq("channel", "whatsapp").eq("status", "pending").gt("expires_at", new Date().toISOString()).select("id").maybeSingle();
+    const claimed = await admin.from("patient_invitations").update({ recipient_email: email, token_hash: null, claimed_at: new Date().toISOString(), delivery_status: "requested", updated_at: new Date().toISOString() }).eq("token_hash", tokenHash).eq("channel", "whatsapp").eq("status", "pending").gt("expires_at", new Date().toISOString()).select("id,doctor_id").maybeSingle();
     if (claimed.error) return retry();
     if (!claimed.data) return unavailable();
     const claimedId = claimed.data.id;
@@ -42,6 +42,7 @@ Deno.serve(async (request: Request) => {
         .is("token_hash", null);
     }
     let active = false;
+    let existing: { id: string; user_metadata?: Record<string, unknown> } | undefined;
     let lookupComplete = false;
     for (let page = 1; page <= 5; page += 1) {
       const listed = await admin.auth.admin.listUsers({ page, perPage: 1000 });
@@ -50,7 +51,7 @@ Deno.serve(async (request: Request) => {
         return retry();
       }
       const matched = listed.data.users.find((user) => user.email?.toLowerCase() === email);
-      if (matched) { active = Boolean(matched.email_confirmed_at); lookupComplete = true; break; }
+      if (matched) { existing = matched; active = Boolean(matched.email_confirmed_at); lookupComplete = true; break; }
       if (listed.data.users.length < 1000) { lookupComplete = true; break; }
     }
     if (!lookupComplete) { await releaseClaim(); return retry(); }
@@ -64,7 +65,17 @@ Deno.serve(async (request: Request) => {
         await releaseClaim();
         return retry();
       }
-      const invitation = await admin.auth.admin.inviteUserByEmail(email, { redirectTo });
+      const presentation = { vivance_invite_kind: "patient", vivance_doctor_id: claimed.data.doctor_id };
+      if (existing) {
+        const updated = await admin.auth.admin.updateUserById(existing.id, {
+          user_metadata: { ...existing.user_metadata, ...presentation },
+        });
+        if (updated.error) { await releaseClaim(); return retry(); }
+      }
+      const invitation = await admin.auth.admin.inviteUserByEmail(email, {
+        redirectTo,
+        data: presentation,
+      });
       if (invitation.error) {
         if (["email_exists", "user_already_exists"].includes(invitation.error.code ?? "")) {
           await admin.from("patient_invitations").update({ delivery_status: "not_applicable" }).eq("id", claimedId);

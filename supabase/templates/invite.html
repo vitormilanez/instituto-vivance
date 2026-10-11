@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Seu convite para a Vivance</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .outer { padding: 16px 8px !important; }
+      .pad { padding-left: 24px !important; padding-right: 24px !important; }
+      .title { font-size: 34px !important; line-height: 39px !important; }
+      .doctor-photo { width: 76px !important; height: 94px !important; }
+      .doctor-copy { padding-left: 16px !important; }
+      .cta { display: block !important; text-align: center !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#f2f4f7;color:#142a43;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;">
+  <div style="display:none;font-size:1px;color:#f2f4f7;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">Você recebeu um convite da Vivance. Ative seu acesso para continuar.</div>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f2f4f7;">
+    <tr><td align="center" class="outer" style="padding:32px 16px;">
+      <!--[if mso]><table role="presentation" width="600"><tr><td><![endif]-->
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background-color:#ffffff;border:1px solid #dfe5ed;border-radius:20px;overflow:hidden;">
+        <tr><td class="pad" style="padding:32px 40px 27px;border-bottom:1px solid #e8edf3;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
+            <td style="font-size:25px;letter-spacing:4px;font-weight:700;color:#122e50;">VIVANCE</td>
+            <td align="right" style="font-size:10px;letter-spacing:1.4px;line-height:16px;color:#64768a;">CUIDADO<br>QUE CONTINUA</td>
+          </tr></table>
+        </td></tr>
+        {{ if and (eq .Data.vivance_invite_kind "patient") (eq .Data.vivance_doctor_id "5fa1330b-a7d3-4843-8e4a-57ef3533062e") }}
+        <!-- patient-guilherme:start -->
+        <tr><td class="pad" style="padding:34px 40px 18px;">
+          <h1 class="title" style="margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:43px;line-height:48px;letter-spacing:-1.3px;color:#122e50;">Vamos dar o próximo<br>passo no seu cuidado?</h1>
+          <p style="margin:22px 0 0;font-size:16px;line-height:26px;color:#4b5e72;">O <strong style="color:#142a43;">Dr. Guilherme Martins</strong> convidou você para iniciar seu acompanhamento na Vivance.</p>
+        </td></tr>
+        <tr><td class="pad" style="padding:8px 40px 25px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#edf3f8;border-radius:12px;"><tr><td style="padding:20px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
+              <td width="88" valign="middle"><img class="doctor-photo" src="https://institutovivance.app/virada90/assets/dr-guilherme-martins.jpg" width="88" height="108" alt="Dr. Guilherme Martins" style="display:block;width:88px;height:108px;object-fit:cover;border-radius:9px;border:0;"></td>
+              <td class="doctor-copy" valign="middle" style="padding-left:22px;">
+                <p style="margin:0 0 7px;font-size:10px;font-weight:700;letter-spacing:1.1px;color:#64768a;">QUEM CONVIDOU VOCÊ</p>
+                <p style="margin:0 0 7px;font-size:18px;line-height:24px;font-weight:700;color:#122e50;">Dr. Guilherme Martins</p>
+                <p style="margin:0;font-size:13px;line-height:21px;color:#52667d;">Médico · CRM-SP 182364</p>
+              </td>
+            </tr></table>
+          </td></tr></table>
+        </td></tr>
+        <tr><td class="pad" style="padding:0 40px 26px;">
+          <p style="margin:0;font-size:16px;line-height:26px;color:#4b5e72;">Um espaço para reunir suas informações, compartilhar documentos com a equipe e acompanhar seu cuidado entre as consultas.</p>
+        </td></tr>
+        <tr><td class="pad" style="padding:0 40px 13px;">
+          <a class="cta" href="{{ .ConfirmationURL }}" style="display:inline-block;background-color:#122e50;border:1px solid #122e50;border-radius:9px;color:#ffffff;font-size:16px;font-weight:700;line-height:22px;padding:16px 26px;text-decoration:none;mso-padding-alt:16px 26px;">Ativar meu acesso à Vivance</a>
+        </td></tr>
+        <tr><td class="pad" style="padding:0 40px 31px;">
+          <p style="margin:0;font-size:12px;line-height:20px;color:#64768a;">Ao abrir o link, você criará sua senha e poderá aceitar o convite.</p>
+        </td></tr>
+        <tr><td class="pad" style="padding:27px 40px 30px;background-color:#f8fafc;border-top:1px solid #e8edf3;">
+          <p style="margin:0 0 18px;font-size:11px;font-weight:700;letter-spacing:1.5px;color:#64768a;">SEUS PRIMEIROS PASSOS</p>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+            <tr><td width="32" valign="top" style="font-size:13px;line-height:23px;font-weight:700;color:#66819a;">01</td><td style="padding:0 0 12px;font-size:14px;line-height:23px;color:#243f5d;"><strong>Ative seu acesso</strong> e defina sua senha.</td></tr>
+            <tr><td width="32" valign="top" style="font-size:13px;line-height:23px;font-weight:700;color:#66819a;">02</td><td style="padding:0 0 12px;font-size:14px;line-height:23px;color:#243f5d;"><strong>Aceite o convite</strong> da sua equipe de cuidado.</td></tr>
+            <tr><td width="32" valign="top" style="font-size:13px;line-height:23px;font-weight:700;color:#66819a;">03</td><td style="font-size:14px;line-height:23px;color:#243f5d;"><strong>Conte um pouco sobre você</strong> para preparar seu acompanhamento.</td></tr>
+          </table>
+        </td></tr>
+        <!-- patient-guilherme:end -->
+        {{ else }}
+        <!-- generic:start -->
+        <tr><td class="pad" style="padding:36px 40px;">
+          <h1 style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:34px;line-height:40px;font-weight:400;color:#122e50;">Seu acesso começa aqui.</h1>
+          <p style="margin:0 0 25px;font-size:16px;line-height:26px;color:#4b5e72;">Você recebeu um convite para acessar a Vivance. Ative seu acesso e defina sua senha para continuar.</p>
+          <a class="cta" href="{{ .ConfirmationURL }}" style="display:inline-block;background-color:#122e50;border:1px solid #122e50;border-radius:9px;color:#ffffff;font-size:16px;font-weight:700;line-height:22px;padding:16px 26px;text-decoration:none;mso-padding-alt:16px 26px;">Ativar meu acesso à Vivance</a>
+        </td></tr>
+        <!-- generic:end -->
+        {{ end }}
+        <tr><td class="pad" style="padding:25px 40px 30px;border-top:1px solid #e8edf3;">
+          <p style="margin:0 0 9px;font-size:12px;line-height:20px;color:#64768a;">Este link é pessoal. Use o e-mail que recebeu o convite e abra sempre o link mais recente.</p>
+          <p style="margin:0;font-size:12px;line-height:20px;color:#64768a;">Se você não esperava este convite, pode ignorar esta mensagem.</p>
+        </td></tr>
+      </table>
+      <!--[if mso]></td></tr></table><![endif]-->
+      <p style="margin:20px 0 0;font-size:11px;line-height:18px;color:#758496;">VIVANCE · Seu espaço de cuidado</p>
+    </td></tr>
+  </table>
+</body>
+</html>

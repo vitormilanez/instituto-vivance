@@ -20,9 +20,25 @@ continua aceitando em Minhas clínicas sem novo e-mail. Resposta pública do
 claim permanece genérica; falhas de envio revogam convite direto ou devolvem
 o link WhatsApp para retry. Lookup incompleto falha sem envio.
 
-530 testes passaram em Node 24.21.0; typecheck, lint completo (zero erros,
+Pedido adicional de 11/10: substituir o convite Auth padrão em inglês por
+HTML institucional em português, com foto e CRM-SP 182364 fornecido do
+Dr. Guilherme Martins, contexto de acompanhamento e CTA de ativação. Template
+e [guia de aplicação](../supabase/templates/README.md) preparados; prévia local
+desktop/mobile e fallback institucional sem médico conferidos. Metadados de
+apresentação usam o médico verificado do convite e não concedem acesso.
+`invite-staff` marca o envio como equipe para evitar atribuição médica indevida.
+O painel Supabase solicitou login: template hospedado e recebimento em clientes
+de e-mail não foram verificados. Remetente institucional exige SMTP separado;
+HTML sozinho não substitui o remetente Supabase Auth. Não enviado novo e-mail.
+Go `html/template` real validou Guilherme, equipe, ausência de metadados e outro
+médico. Os reenvios atualizam apenas os campos de apresentação antes do Invite,
+preservam metadados anteriores e interrompem o envio se essa atualização falhar.
+16 testes focados (incluindo autoria antiga/forjada e falha de atualização) e
+Deno check das três funções passaram; evidências locais em `output/email-invite/`.
+
+530 testes passaram em Node 24.21.0 antes da inclusão do template; typecheck, lint completo (zero erros,
 um aviso anterior) e build Webpack passaram. Deno check das duas funções e
-revisão independente com GPT-5.6 Sol medium aprovados. Publicação de frontend/Edge Functions e recebimento de e-mail real
+revisão independente com GPT-5.6 Sol medium aprovados para o fluxo inicial. Publicação de frontend/Edge Functions, template e recebimento de e-mail real
 continuam pendentes; não há migration neste lote. O usuário repetirá o
 convite novo com o endereço limpo. Tarefa C2 `1219002465981599`.
 

@@ -9,6 +9,12 @@ O usuário autorizou excluir especificamente a conta antiga de
 e publicação têm estados separados no [status](STATUS_ATUAL.md). Não recriar
 essa identidade antes do convite manual do usuário.
 
+**Convite por e-mail (11/10):** preparar apresentação acolhedora em português,
+com identidade Vivance, Dr. Guilherme Martins e CRM-SP 182364 informado pelo
+usuário, sem CPF, dados clínicos ou promessas de resultado. Atribuição médica
+somente para seu convite de paciente; outros usam fallback institucional.
+Template e remetente SMTP são configurações distintas da publicação do código.
+
 **Decisão vigente em 10/10/2026:** cuidado longitudinal supervisionado: convite → contexto inicial → preparação → consulta → registro médico → acompanhamento → retorno. O médico interpreta e decide. Relato literal, dado extraído, cálculo, revisão, aprovação e publicação têm origem e estados separados. O [status](STATUS_ATUAL.md) distingue implementação, teste e publicação.
 
 ## Prioridade atual — validar qualidade e publicação médica (10/10)
