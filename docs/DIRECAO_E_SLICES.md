@@ -1,5 +1,13 @@
 # Direção do Vivance e próximos slices
 
+**Publicação autorizada e conferida em 11/10, tarde:** #121 e #122 estão no
+domínio principal. Colisão email/WhatsApp não deve consumir token nem apresentar
+retry genérico; link revogado orienta recuperação pelo e-mail/novo convite.
+Template médico pronto, mas aplicação Auth bloqueada pelo provedor padrão/free
+tier: configurar SMTP exige decisão/credenciais próprias; não contratar nem
+alterar plano automaticamente. PRs antigos substituídos não voltam ao produto;
+Pulse e governança IA seguem os gates/documentação, sem publicação automática.
+
 **Decisão de 11/10/2026 — convites:** diferenciar conta confirmada de cadastro
 pendente de ativação. Ao convidar uma identidade não confirmada, solicitar
 novo e-mail de ativação e informar claramente o resultado; somente conta

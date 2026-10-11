@@ -37,9 +37,11 @@ real em Gmail/Outlook.
    foto, variante correta e ativação/aceite no domínio principal. Não consumir
    links nem recriar a conta do usuário antes de seu teste.
 
-Esta rodada prepara código e prévia local: **template hospedado, envio real e
-aceite não estão verificados**. Não pressupor bloqueio por plano sem resposta
-atual do painel/API.
+Em 11/10 à tarde, a CLI autenticada confirmou o projeto e tentou aplicar somente
+assunto/corpo declarados. Auth respondeu HTTP400: customização indisponível no
+free tier com provedor padrão; exige SMTP próprio ou plano diferente. Portanto
+**template hospedado, envio real e aceite não estão verificados**. Não contratar
+serviço/alterar plano automaticamente. Código/Edge foram publicados separadamente.
 
 Fontes: https://supabase.com/docs/guides/auth/auth-email-templates e
 https://supabase.com/docs/guides/auth/auth-smtp.

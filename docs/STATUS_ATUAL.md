@@ -1,5 +1,47 @@
 # Estado atual do Vivance
 
+## Publicação técnica vigente — 11/10/2026, tarde
+
+PRs #121 (check-in/alimentação) e #122 (ativação/convites) integrados à main
+`18a6a1881870d8ea60b0a4caa982c4ac39bb4a48`. 534 testes passaram localmente;
+CI do #122 `38167067903` e release `38167223687` aprovados em testes, lint,
+tipos e build. Etapas automáticas de banco/Edge/promoção **skipped** por
+configuração: publicação manual conferida, não inferida do verde.
+
+Supabase CLI 2.117.0 publicou somente `invite-patient` v10 (JWT true),
+`claim-patient-invitation` v9 (JWT false, token opaco validado) e `invite-staff`
+v9 (JWT true), ACTIVE em `oxuwrdjojsmgxoljqkuk`. Sem migration nova; última
+remota `20261011002635`. Nenhuma função de exames foi alterada.
+
+Vercel CLI confirmou conta/equipe/projeto e promoveu deployment Git nativo
+`dpl_7k8WpipTjZuJKRYrhjkNn7u3xCfx`, [URL técnica](https://instituto-vivance-4z1p46fd1-vtr-consulting.vercel.app),
+READY/production do mesmo SHA. `targets.production` e os dois domínios
+resolveram para esse ID. Principal: três HTTP 200, TTFB 0,256–0,799 s;
+secundário 307 para principal. Anterior para reversão:
+`dpl_4ckHiqrEM1NdXqaf6cUFTigvHt2X`, código `e05cb4c`.
+
+Reprodução real browser → API → Edge → índice no domínio principal, com
+dois convites exclusivamente sintéticos `.test`, retornou 409 e apresentou
+“Use o convite enviado por e-mail”; banco confirmou token/claim intactos.
+Mobile 390 px sem overflow. As duas fixtures foram **revogadas**, tokens
+desativados; nenhum e-mail/WhatsApp enviado e nenhum destinatário real alterado.
+Paciente QA entrou pela interface, abriu alimentação com as cinco escolhas
+e manteve sessão após recarga; sem novos registros nesta publicação. O percurso
+de persistência paciente → médico é evidência do Preview #121, não repetido aqui.
+
+**Pendente operacional:** CLI recusou template com HTTP 400 no free tier/provedor
+padrão: requer SMTP próprio ou plano diferente. HTML preparado, **não ativo**;
+sem contratação ou alteração de plano. E-mail de Alfredo permanece pendente de
+ativação; seu WhatsApp já estava revogado antes desta rodada. Usar o e-mail mais
+recente ou solicitar recuperação/reenvio, não insistir no link cancelado.
+
+PRs antigos #94/#78/#40 foram auditados e não integrados: conteúdo substituído
+ou housekeeping desatualizado. #79/Pulse e #64/governança permanecem drafts com
+pré-requisitos próprios; não são capacidades entregues. Nenhum PR foi fechado
+automaticamente. Gate P e aceite clínico permanecem separados.
+
+Os registros abaixo são históricos; a publicação vigente é a deste bloco.
+
 ## Convites — cadastro não ativado e reset específico (11/10/2026)
 
 Rodada de 11/10 à tarde: logs confirmaram colisão `23505` entre convite por

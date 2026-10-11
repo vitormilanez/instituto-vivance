@@ -1,5 +1,15 @@
 # Checkpoints das entregas
 
+## Release combinado — 11/10, tarde
+
+- [x] #121/#122 integrados no código `18a6a18`; 534 testes locais e CI/release aprovados. Automação de banco/Edge/promoção skipped, aplicação manual conferida.
+- [x] Três Edge de convite ACTIVE no dev confirmado; nenhuma migration nova.
+- [x] Deployment `dpl_7k8WpipTjZuJKRYrhjkNn7u3xCfx` production/READY, targets.production e dois domínios no mesmo código; HTTP200/307.
+- [x] Colisão sintética no domínio real retornou409; UI mobile390 sem overflow e token preservado. Fixtures revogadas ao terminar, nenhum e-mail enviado.
+- [x] Login paciente real, alimentação publicada e sessão após recarga; persistência/isolamento do Preview permanecem evidências separadas.
+- [ ] Configurar SMTP autorizado e aplicar template: CLI retornou400/free tier/provedor padrão. Recebimento real do novo layout não verificado.
+- [ ] Aceites de usabilidade e clínico/GateP. Drafts históricos/incompletos não integrados indiscriminadamente.
+
 ## Check-in e alimentação — 11/10/2026
 
 - [x] Direção aprovada: Energia/Sono/Fome/Banheiro, recado opcional, poucos toques e figuras expressivas; aplicar também à alimentação. Product Design e revisão GPT-6 Astra, sem Impeccable.
