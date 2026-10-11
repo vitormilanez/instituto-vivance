@@ -11,6 +11,7 @@ import { PatientForm } from "@/components/forms";
 import { patientBirthLabel } from "@/modules/patients/birth-date";
 import { MedicalPageHeader } from "@/components/medical-page-header";
 import { MedicalSelector } from "@/components/medical-selector";
+import { PatientDirectoryWorkspace } from "@/components/patient-directory-workspace";
 export const dynamic = "force-dynamic";
 
 export default async function Patients({
@@ -87,6 +88,11 @@ export default async function Patients({
               {canInvite ? "Adicionar paciente" : "Cadastrar paciente"}
             </Link>
           )} />
+        <PatientDirectoryWorkspace enabled={doctorView}
+          invitation={doctorView && canInvite && <PatientInvitationForm tenantId={tenantId} role="doctor" />}
+          invitations={doctorView && canInvite && <PatientInvitationList tenantId={tenantId} invitations={invitationContext.invitations} />}
+          registration={doctorView && <PatientForm tenantId={tenantId} role={context.clinic.role} />}
+        >
         <div
           className={
             doctorView ? "dv-directory-layout" : "grid patient-directory-grid"
@@ -100,15 +106,9 @@ export default async function Patients({
             }
             aria-labelledby="patients-title"
           >
-            {doctorView && canInvite && (
-              <div className="dv-invite-workspace" id="convidar-paciente">
-                <PatientInvitationForm tenantId={tenantId} role="doctor" />
-                <PatientInvitationList tenantId={tenantId} invitations={invitationContext.invitations} />
-              </div>
-            )}
             <div className={doctorView ? "dv-section-heading" : undefined}>
               <div>
-                <h2 id="patients-title">Cadastros da clínica</h2>
+                <h2 id="patients-title">Pacientes da clínica</h2>
                 {doctorView && (
                   <p>Abra a ficha para consultar o contexto disponível.</p>
                 )}
@@ -182,7 +182,7 @@ export default async function Patients({
                     ? "Confira o nome ou tente buscar apenas parte dele."
                     : context.page > 1
                       ? "Volte para a página anterior."
-                      : doctorView && canInvite ? "Os novos pacientes aparecem aqui depois de aceitar o convite. Adicione uma pessoa pelo formulário acima." : "Ajuste os filtros ou registre o primeiro paciente."}
+                      : doctorView && canInvite ? "Os pacientes aparecem aqui após aceitar o convite. Use Convidar paciente para começar." : "Ajuste os filtros ou registre o primeiro paciente."}
                 </p>
               </div>
             ) : (
@@ -273,20 +273,6 @@ export default async function Patients({
               )}
             </nav>
           </section>
-          {doctorView && (
-            <aside className="dv-registration-aside" aria-label="Outras formas de cadastrar">
-              <section className="dv-registration-guide">
-                <h2>Um convite, um novo começo</h2>
-                <p>A pessoa confirma seu acesso e preenche o perfil inicial. A ficha aparece aqui assim que ela aceita o convite.</p>
-                <ol><li>Informe nome e contato.</li><li>Compartilhe o link ou envie por e-mail.</li><li>Acompanhe o aceite nesta lista.</li></ol>
-              </section>
-              <details className="dv-disclosure" id="novo-paciente">
-                <summary>Cadastrar sem acesso ao app</summary>
-                <p>Para quem prefere começar com ajuda da equipe. Você pode convidar depois, pela mesma ficha.</p>
-                <PatientForm tenantId={tenantId} role={context.clinic.role} />
-              </details>
-            </aside>
-          )}
           {!doctorView && <aside
             className={
               doctorView ? "dv-directory-aside" : "patient-directory-aside"
@@ -318,6 +304,7 @@ export default async function Patients({
             </section>
           </aside>}
         </div>
+        </PatientDirectoryWorkspace>
       </div>
     </ClinicShell>
   );

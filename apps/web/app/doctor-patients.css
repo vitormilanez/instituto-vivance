@@ -97,9 +97,48 @@
 
 .dv .dv-directory-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   align-items: start;
+}
+
+/* Patients lead. Invitation tasks open in place, keeping each action nearby. */
+.dv .dv-patients-workspace [hidden] { display: none !important; }
+.dv .dv-patients-toolbar,
+.dv .dv-patients-actions,
+.dv .dv-patients-manual {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.dv .dv-patients-toolbar { justify-content: space-between; margin-bottom: 20px; }
+.dv .dv-patients-toolbar p,
+.dv .dv-patients-manual p { margin: 0; color: var(--dv-muted); }
+.dv .dv-patients-toolbar button,
+.dv .dv-patients-manual button { min-height: 44px; }
+.dv .dv-patients-workspace [data-directory-view] { outline: none; }
+.dv .dv-patients-workspace .dv-directory-panel { box-shadow: none; }
+.dv .dv-patients-workspace .dv-invite-workspace { margin-bottom: 16px !important; }
+.dv .dv-patients-workspace .dv-invite-workspace .patient-invitation-form,
+.dv .dv-patients-workspace .dv-invitation-tracker,
+.dv .dv-patients-registration {
+  border: 1px solid var(--dv-line);
+  border-radius: 16px;
+  box-shadow: none;
+  overflow: hidden;
+}
+.dv .dv-patients-registration { padding: 24px; }
+.dv .dv-patients-registration h2 { margin-top: 0; }
+.dv .dv-patients-registration form { max-width: 680px; }
+.dv .dv-patients-manual { justify-content: space-between; }
+@media (max-width: 700px) {
+  .dv .dv-patients-toolbar { align-items: stretch; }
+  .dv .dv-patients-actions { width: 100%; }
+  .dv .dv-patients-actions button { flex: 1 1 140px; }
+  .dv .dv-patients-manual { align-items: stretch; }
+  .dv .dv-patients-manual button { width: 100%; }
+  .dv .dv-patients-registration { padding: 20px 16px; }
 }
 .dv .dv-directory-panel,
 .dv .dv-directory-aside .panel {

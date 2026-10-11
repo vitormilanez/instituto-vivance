@@ -1,5 +1,13 @@
 # Checkpoints das entregas
 
+## 11/10/2026 — Pacientes como foco da página
+
+- Lista/busca/fichas primeiro; convite e histórico em áreas separadas, abertas
+  por botões locais. Formulário, resultado e filtros mantidos na troca de área.
+- Links diretos, recarga, Voltar, menu móvel e 320 px conferidos localmente;
+  nenhum convite enviado, cancelado ou excluído. 538 testes e tipos passaram.
+- Refinamento preparado sobre d06e3d6; publicação em andamento, sem banco/Edge.
+
 ## Limpeza e histórico de convites — 11/10, 17h
 
 - [x] Reset autorizado: só médico/QA, um paciente, nove documentos/objetos, zero convites antigos; sessões revogadas, hashes preservados, 100 tabelas/173 FKs conferidas.

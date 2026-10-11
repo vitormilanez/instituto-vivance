@@ -1,5 +1,18 @@
 # Estado atual do Vivance
 
+## Pacientes com foco na lista — refinamento de 11/10/2026
+
+Pedido posterior à publicação dos widgets: separar convites de pacientes.
+Interface médica abre busca, filtros e fichas em largura integral; ações
+locais abrem convite, histórico ou cadastro sem app. Painéis permanecem
+montados para conservar rascunhos e resultados na troca. Atalhos por fragmento,
+recarregamento, Voltar e fechamento do menu móvel conferidos localmente com
+sessão médica existente. Layout em 320 px sem overflow; formulário preenchido
+e recuperado sem enviar. Convites existentes não foram modificados.
+538 testes e tipos passaram; revisão independente aprovada. Código preparado
+sobre main d06e3d6, publicação deste refinamento ainda em andamento. Sem banco,
+Edge ou alteração clínica; regras de admin/enfermagem preservadas no código.
+
 ## Widgets e fluidez publicados — 11/10/2026, 19h (São Paulo)
 
 [PR #131](https://github.com/vitormilanez/instituto-vivance/pull/131) integrado
