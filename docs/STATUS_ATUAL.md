@@ -1,5 +1,45 @@
 # Estado atual do Vivance
 
+## Widgets e fluidez publicados — 11/10/2026, 19h (São Paulo)
+
+[PR #131](https://github.com/vitormilanez/instituto-vivance/pull/131) integrado
+à `main` em `5251384dbd1a20289d3f8d0910581ff2cffe8517`. O deployment
+`dpl_HcUg7BHmuz8ZiWThQBC9WybD8uN8`,
+[`instituto-vivance-h1ms4zmm5-vtr-consulting.vercel.app`](https://instituto-vivance-h1ms4zmm5-vtr-consulting.vercel.app),
+ficou READY/production e assumiu automaticamente os dois domínios oficiais.
+Conta `vtrconsulting`, equipe `vtr-consulting`, projeto
+`prj_ligeZuFRycRXA21u5rRzaLAORTrI`, Root Directory `apps/web`, Node 24.x
+e `targets.production` conferidos. Artefato anterior preservado:
+`dpl_Ey7hfunrJGxHUytnwxodnZNmmsPD`, SHA `49bd0f3`.
+
+Oito widgets médicos de tamanhos variados, Agenda destacada e próximo passo
+compacto; filtros responsivos de Pacientes, rolagem de Agenda/Mensagens e menu
+móvel refinados. Entregas recentes de convites foram preservadas ao aplicar o
+lote sobre a main atual. Sem migration, Edge Function ou alteração clínica.
+Verificação local em Node 24.21.0: **538 testes**, tipos e build passaram;
+lint zero erros/um aviso anterior. CI do PR `38179496671` e release
+[`38179626717`](https://github.com/vitormilanez/instituto-vivance/actions/runs/38179626717)
+aprovaram verify; migration, Edge e promoção automáticas skipped por configuração.
+Publicação do frontend ocorreu pelo deploy nativo do Git na Vercel.
+
+Domínio principal: três `/login` HTTP200, TTFB 0,124–0,374 s, `x-vercel-id`
+em `gru1`; secundário: três HTTP307 para o principal. Ambos os inspect resolveram
+ao ID acima. Sessão médica existente no site, preservada após recarga: oito
+destinos abriram, calendário mostrou data/contagens atuais, filtro Cadastro →
+Todos conservou scrollY 271,5; dia seguinte da Agenda conservou scrollY 0.
+Novo agendamento abriu com foco e foi fechado sem salvar. Conversa QA e contexto
+carregaram, compositor vazio ao retornar; nenhuma mensagem enviada.
+Widgets/Pacientes/Mensagens em 1440/320 px sem overflow; menu móvel fechou ao
+abrir o convite. Console da rodada sem erros; consulta de erros do deployment
+nos últimos 10 min retornou zero entradas. Não é uma auditoria de todos os
+fluxos do produto; envio/paginação de conversa preenchida e guarda de rascunho
+não tiveram teste conclusivo nesta publicação.
+
+[Evidência desktop](../output/widgets-fluidez-20261011/site-publicado-desktop.png),
+[celular](../output/widgets-fluidez-20261011/site-publicado-320.png) e
+[QA detalhado](../design-qa.md). Publicação técnica conferida; aceites de
+usabilidade e clínico/Gate P seguem separados.
+
 ## Limpeza e lista de convites — 11/10/2026, 17h
 
 **Publicado e conferido:** [PR129](https://github.com/vitormilanez/instituto-vivance/pull/129)

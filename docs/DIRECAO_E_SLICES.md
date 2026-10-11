@@ -71,8 +71,10 @@ próximo passo compacto. Autorizou melhorias adjacentes em Pacientes, Agenda e
 Mensagens, priorizando navegação fluida, qualidade visual e modernidade.
 Evitar saltos de layout, rolagem automática desnecessária e animação decorativa;
 preservar rascunhos, acessibilidade, destinos existentes e regras clínicas.
-Implementação e QA locais registrados no [status](STATUS_ATUAL.md) e
-[design-qa](../design-qa.md); publicação e aceite não são inferidos.
+Implementação integrada pelo PR #131 e publicação técnica de `5251384`
+conferida no domínio oficial em 11/10, 19h. QA local e publicado registrado
+no [status](STATUS_ATUAL.md) e [design-qa](../design-qa.md).
+Aceite de usabilidade permanece separado da verificação técnica.
 
 ## Prioridade de UX do paciente — 11/10
 
