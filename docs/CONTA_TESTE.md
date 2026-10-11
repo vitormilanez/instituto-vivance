@@ -1,5 +1,11 @@
 # Conta permanente de QA — paciente sintético
 
+**Reset geral de 11/10:** conta QA e Guilherme preservados. Restam um paciente
+QA, nove documentos/objetos e dois memberships; zero convites antigos.
+Dados/exames/revisões atuais mantidos com hashes iguais; nenhum dado novo
+injetado. [Limpeza conferida](../OPERACAO_LIMPEZA_E_CONVITES.md). Os totais abaixo
+são fotografias históricas e não inventário corrente.
+
 **Criada e preservada em 10/10/2026 no dev sintético confirmado.** A identidade `paciente.teste@vivance.example` serve para testes repetíveis de autenticação, convite, onboarding, documentos e isolamento no projeto temporário `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`). Houve login real pela interface local e no percurso pós-publicação sintético; médico e paciente foram conferidos no domínio publicado. A conta permaneceu intacta após as rodadas #109/#110. O domínio `.example` identifica uma conta de fixture; não presumir entrega de e-mail. Ela não representa pessoa real nem autorização para importar dados clínicos.
 
 ## Preparação e registro

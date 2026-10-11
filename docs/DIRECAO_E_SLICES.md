@@ -1,5 +1,13 @@
 # Direção do Vivance e próximos slices
 
+**Decisão de 11/10 — limpeza e convites:** usuário pediu manter somente médico
+e conta permanente QA e convidar os demais novamente. Reset operacional
+executado com dados QA preservados; não recriar contas antecipadamente.
+A tela médica passa a oferecer “Excluir da lista” com confirmação, ocultação
+auditável e revogação atômica do pendente. Não usar essa ação para excluir
+paciente/conta/prontuário; aceite e histórico clínico permanecem separados.
+[Escopo e verificação](../OPERACAO_LIMPEZA_E_CONVITES.md).
+
 **Decisão de 11/10 — publicação automática do site:** por pedido explícito do
 usuário, ativado `autoAssignCustomDomains=true` na Vercel
 `vtr-consulting/instituto-vivance`, branch de produção `main`. Builds de

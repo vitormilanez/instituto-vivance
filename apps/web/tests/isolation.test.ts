@@ -5434,6 +5434,49 @@ test("patient invitation revocation is creator-or-admin controlled and consumes 
   });
 });
 
+test("patient invitation archive is tenant-controlled, revokes pending tokens and preserves accepted patients", async () => {
+  await asUser("doctor", async () => {
+    await db.exec("reset role");
+    const pending = await db.query<{ id: string }>(
+      "insert into public.patient_invitations(tenant_id,display_name,channel,recipient_phone,token_hash,doctor_id,invited_by) values($1,'Archived Pending','whatsapp','+5511666666666',$3,$2,$2) returning id",
+      [a, users.doctor.id, "d".repeat(64)],
+    );
+    await switchActor("outsider");
+    await denied("select public.archive_patient_invitation($1,$2,true)", [a, pending.rows[0].id]);
+    await switchActor("doctor");
+    await denied("select public.archive_patient_invitation($1,$2,false)", [a, pending.rows[0].id]);
+    assert.equal((await db.query<{ archived: boolean }>(
+      "select public.archive_patient_invitation($1,$2,true) archived", [a, pending.rows[0].id],
+    )).rows[0].archived, true);
+    await db.exec("reset role");
+    assert.deepEqual((await db.query<{ status: string; token_hash: string | null; archived_by: string }>(
+      "select status,token_hash,archived_by from public.patient_invitations where id=$1", [pending.rows[0].id],
+    )).rows, [{ status: "revoked", token_hash: null, archived_by: users.doctor.id }]);
+    await switchActor("doctor");
+    assert.equal((await db.query("select * from public.list_clinic_patient_invitations($1) where id=$2", [a, pending.rows[0].id])).rows.length, 0);
+
+    await db.exec("reset role");
+    const patient = randomUUID();
+    await db.query("insert into public.patients(id,tenant_id,display_name,created_by) values($1,$2,'Accepted Patient',$3)", [patient, a, users.doctor.id]);
+    const accepted = await db.query<{ id: string }>(
+      `insert into public.patient_invitations(
+        tenant_id,display_name,channel,recipient_email,doctor_id,invited_by,status,
+        accepted_at,accepted_by,patient_id
+      ) values($1,'Accepted Patient','email','accepted@example.test',$2,$2,'accepted',clock_timestamp(),$3,$4) returning id`,
+      [a, users.doctor.id, users.patient.id, patient],
+    );
+    await switchActor("admin");
+    assert.equal((await db.query<{ archived: boolean }>(
+      "select public.archive_patient_invitation($1,$2,true) archived", [a, accepted.rows[0].id],
+    )).rows[0].archived, true);
+    await db.exec("reset role");
+    assert.deepEqual((await db.query<{ status: string; patient_id: string }>(
+      "select status,patient_id from public.patient_invitations where id=$1", [accepted.rows[0].id],
+    )).rows, [{ status: "accepted", patient_id: patient }]);
+    assert.equal((await db.query("select id from public.patients where id=$1", [patient])).rows.length, 1);
+  });
+});
+
 test("return preparation keeps a private draft, one immutable submission and an internal doctor review", async () => {
   await asUser("doctor", async () => {
     await db.exec("reset role");
