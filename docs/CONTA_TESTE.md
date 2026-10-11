@@ -5,7 +5,7 @@
 ## Preparação e registro
 
 1. Confirmar conta, projeto/ref e ambiente do Supabase antes de criar Auth, vínculo ou paciente. Criar apenas dados sintéticos, identificados como fixture, com clínica e papel esperados. Usar fluxo de convite/consentimento real da aplicação quando o cenário exigir; não forjar consentimento de pessoa real nem decisão médica.
-2. Guardar usuário e senha apenas em `apps/web/.env.test-accounts.local` no checkout consolidado `/Users/vitormilanez/Desktop/Codes/vivance`. O arquivo existe, é ignorado pelo Git e tem permissão `0600`. **Nunca registrar a senha, token, hash, URL de recuperação ou conteúdo de sessão em Git, Asana, logs, screenshots ou nesta página.**
+2. Guardar usuário e senha apenas em `.env.vivance.local` na raiz do checkout consolidado `/Users/vitormilanez/Desktop/Codes/vivance`. Desde 11/10, `apps/web/.env.test-accounts.local` é um link simbólico para esse arquivo central, ignorado pelo Git e com permissão `0600`. **Nunca registrar a senha, token, hash, URL de recuperação ou conteúdo de sessão em Git, Asana, logs, screenshots ou nesta página.**
 3. Registrar aqui apenas identificadores não secretos e estado. Os IDs abaixo foram confirmados no projeto dev. Não usar o nome da conta como prova de que o vínculo existe.
 4. Conferir login pela interface, persistência, papel e isolamento médico/paciente; guardar evidência sem tokens. Preservar a conta entre ciclos de QA. Para reiniciar um cenário, limpar somente os registros sintéticos explicitamente vinculados a ela após conferir dependências; preservar registros de origem incerta.
 
