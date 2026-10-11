@@ -1,7 +1,34 @@
 # QA — widgets médicos e fluidez (11/10/2026)
 
-Final result: **passed** para implementação e verificação local delimitadas.
-Não constitui publicação, aceite do usuário ou aceite clínico.
+Final result: **passed** para implementação e verificação técnica delimitadas,
+incluindo o domínio publicado. Aceite do usuário e aceite clínico são separados.
+
+## Publicação e verificação no domínio — 19h
+
+PR131/main `5251384dbd1a20289d3f8d0910581ff2cffe8517`, deployment
+`dpl_HcUg7BHmuz8ZiWThQBC9WybD8uN8` READY/production. Ambos os domínios e
+targets.production conferidos; três HTTP200 no principal e três 307 no
+secundário. CI e release verify passaram; backend/promoção de CI skipped,
+frontend publicado pela integração Git da Vercel. Sem migrations/Edge novas.
+
+Após aplicação sobre a main atual: 538 testes/tipos/build em Node24.21.0;
+lint zero erros/um aviso anterior. Preservadas as melhorias recentes de convites.
+Sessão médica existente reutilizada no domínio (sem novo login), recarga
+preservada, oito destinos abriram. Filtro Cadastro → Todos manteve scrollY
+271,5; Agenda passou a 12/10 mantendo scrollY0. Formulário recebeu foco sem
+rolagem dupla e foi fechado sem salvar. Mensagens mostrou conversa/contexto QA
+e compositor vazio; menu móvel fechou ao abrir o convite. Sem envios nesta rodada.
+
+Widgets, Pacientes e Mensagens sem overflow em 1440/320px; screenshots com
+viewport CSS aferido em DOM e devicePixelRatio1:
+[desktop](output/widgets-fluidez-20261011/site-publicado-desktop.png),
+[320px](output/widgets-fluidez-20261011/site-publicado-320.png).
+Console não registrou erros; consulta limitada a10min de erros do deployment
+retornou zero entradas. Envio/paginação com conversa preenchida não testados.
+A tentativa de conferir guarda de rascunho foi inconclusiva pela interação do
+navegador; não se declara esse caminho validado. Nenhum texto foi enviado.
+
+As seções abaixo preservam as evidências da implementação local anterior.
 
 ## Referência e evidência
 
@@ -57,7 +84,7 @@ preexistentes em `doctor-home.css` (home-work e cards de contexto). As bordas
 neutras uniformes, os rótulos e as cores de identificação foram preservados.
 Nenhuma regra ou arquivo recebeu supressão; nenhum dos dois achados ficou pendente.
 
-Resultado somente local na branch `codex/checkin-alimentacao-intuitivos-20261011`,
+Estado na rodada inicial: somente local na branch `codex/checkin-alimentacao-intuitivos-20261011`,
 sobre HEAD `9f9866b`. Sem PR/deploy novo. Publicação, aceite visual do usuário,
 fluxos com outros papéis e aceite clínico exigem evidência separada. Não houve
 migration, Edge Function, ampliação de permissão ou mudança em IA clínica.
