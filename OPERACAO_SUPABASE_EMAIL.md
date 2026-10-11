@@ -35,6 +35,11 @@ em `_dmarc.institutovivance.app`. Inserir somente os registros exibidos pela
 verificação de domínio da conta Resend, depois conferir propagação e status.
 Esses valores ainda não foram gerados; não inventar DKIM/SPF/DMARC.
 
+A CLI Vercel confirmou que `institutovivance.app` está registrado sob a equipe
+`vtr-consulting`, com nameservers atuais corretos, e permitiu listar a zona
+DNS. Após o login na conta Resend e a geração dos registros, a edição DNS pode
+ser feita na conta Vercel conectada, preservando os registros atuais.
+
 O [Supabase Pro](https://supabase.com/pricing) começa em US$ 25/mês para a
 organização. Vale considerar quando houver piloto contínuo/necessidade de
 backups diários, mais espaço, suporte ou evitar a [pausa por inatividade do
