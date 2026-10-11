@@ -1,5 +1,12 @@
 # Direção do Vivance e próximos slices
 
+**Envio de convites — 11/10:** recomendado Resend Free como SMTP do Auth no
+desenvolvimento, com subdomínio `auth.institutovivance.app`. Login/criação da
+conta do provedor e validação DNS ainda pendentes; nenhum envio com novo layout
+foi testado. Supabase Free pode receber SMTP próprio e customizar template;
+avaliar Pro por disponibilidade/backups no piloto, não apenas pelo e-mail.
+[Detalhes operacionais](../OPERACAO_SUPABASE_EMAIL.md).
+
 **Pedido adicional de 11/10:** conferir SMTP pelo CLI e registrar informações
 operacionais na raiz, sem credenciais. Acesso confirmado, SMTP próprio ausente;
 configuração/contratação ainda requer provedor e remetente autorizados. Índice:
