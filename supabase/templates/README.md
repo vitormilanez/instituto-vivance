@@ -37,11 +37,14 @@ real em Gmail/Outlook.
    foto, variante correta e ativação/aceite no domínio principal. Não consumir
    links nem recriar a conta do usuário antes de seu teste.
 
-Em 11/10 à tarde, a CLI autenticada confirmou o projeto e tentou aplicar somente
-assunto/corpo declarados. Auth respondeu HTTP400: customização indisponível no
-free tier com provedor padrão; exige SMTP próprio ou plano diferente. Portanto
-**template hospedado, envio real e aceite não estão verificados**. Não contratar
-serviço/alterar plano automaticamente. Código/Edge foram publicados separadamente.
+Em 11/10 às 16h55, após o bloqueio HTTP400 com o provedor padrão, foi aplicado
+SMTP Resend no Free e o template de convite pelo CLI no projeto dev confirmado.
+`config diff` posterior não mostrou diferenças. Um convite sintético chegou ao
+Gmail com a variante médica, mas foi inicialmente classificado como Spam;
+Resend marcou Delivered. A identidade Auth de teste foi removida e o link ficou
+inválido. Isso verifica o HTML e o transporte, **não** o aceite/ativação de um
+paciente nem a entregabilidade na entrada de outros destinatários. Código/Edge
+foram publicados separadamente.
 
 Fontes: https://supabase.com/docs/guides/auth/auth-email-templates e
 https://supabase.com/docs/guides/auth/auth-smtp.

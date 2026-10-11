@@ -2,6 +2,17 @@
 
 Verificado em 11/10/2026 (São Paulo). Este arquivo é um índice operacional sem segredos; releia o estado remoto antes de executar mudanças.
 
+## Estado vigente — 16h55 de 11/10/2026
+
+- Resend Free configurado sob a conta `vtrconsultingbr`; domínio de envio `auth.institutovivance.app` **Verified** em São Paulo. DNS Vercel: DKIM TXT `resend._domainkey.auth`, CNAMEs `rsend.auth` e `send.auth`, todos verificados pelo Resend. DMARC opcional ainda não publicado; recebimento no subdomínio não habilitado.
+- Supabase Auth do projeto sintético confirmado `oxuwrdjojsmgxoljqkuk` recebeu SMTP `smtp.resend.com:465`, usuário SMTP `resend`, remetente `Vivance <convites@auth.institutovivance.app>`, assunto **Seu convite para a Vivance** e `supabase/templates/invite.html`. Push isolado de nove propriedades; `config diff` de retorno sem alterações pendentes. A senha foi lida de arquivo local `.env.smtp.local` ignorado pelo Git e modo `600`; **não** registrá-la neste documento, em terminal ou commit.
+- Um convite Auth sintético enviado a alias do próprio Gmail foi marcado **Delivered** no Resend e encontrado no Gmail às 16h54. Layout, foto, Dr. Guilherme Martins/CRM-SP 182364 e CTA foram renderizados. Gmail exibiu `mailed-by: rsend.auth.institutovivance.app`, `signed-by: auth.institutovivance.app` e TLS.
+- **Entregabilidade ainda é ressalva:** o primeiro envio caiu em Spam no Gmail (“similar a mensagens identificadas como spam no passado”). Foi marcado “não é spam” somente nessa caixa, sem enviar o conteúdo à equipe anti-spam do Google. Isso não corrige nem garante a entrega na entrada de terceiros. Orientar destinatários a verificar Spam enquanto o domínio ganha histórico e monitorar próximos envios; validar com outro destinatário autorizado antes de declarar aceite.
+- A identidade Auth sintética de teste foi excluída com guarda de ID/e-mail/estado e ausência posterior confirmada. O e-mail permanece na caixa como evidência, **mas seu link de ativação é inválido**. Não houve teste de clique, ativação nem aceite de convite de paciente neste envio.
+- Supabase continua no Free. Nenhuma assinatura paga, migration, Edge Function ou deploy Vercel ocorreu nesta configuração de e-mail. Gate P e separação futura de produção permanecem pendentes.
+
+As seções de auditoria e recomendação abaixo descrevem o estado **anterior** à configuração acima.
+
 ## Ambiente e acesso
 
 - Checkout canônico: `/Users/vitormilanez/Desktop/Codes/vivance`.
@@ -12,7 +23,7 @@ Verificado em 11/10/2026 (São Paulo). Este arquivo é um índice operacional se
 - Vercel: conta `vtrconsulting`, equipe `vtr-consulting`, projeto `instituto-vivance` / `prj_ligeZuFRycRXA21u5rRzaLAORTrI`.
 - Domínio principal: https://institutovivance.app . Secundário: https://instituto-vivance.vercel.app .
 
-## SMTP: conectado não significa configurado
+## Auditoria anterior: conectado não significava configurado
 
 Auditoria somente de leitura com `config diff --output-format json`, em configuração isolada, comparou explicitamente SMTP desabilitado, host/usuário/senha/remetente vazios e porta 587: **zero diferenças SMTP** no projeto remoto. Não há SMTP próprio configurado. Não foram encontradas variáveis SMTP/Resend/SendGrid/Postmark/Brevo/Mailgun/Mailjet/SES nos arquivos locais `apps/web/.env.local` e `apps/web/.env.test-accounts.local`; nenhum valor foi exibido. Isso não prova inexistência de uma conta de provedor fora deste projeto.
 
@@ -20,7 +31,7 @@ A tentativa anterior de aplicar somente o template pelo CLI retornou HTTP 400: c
 
 O provedor padrão tem restrições e não é indicado para operação com pacientes. Consulte a [documentação oficial de SMTP](https://supabase.com/docs/guides/auth/auth-smtp). Um upgrade de plano, sozinho, não comprova entregabilidade nem substitui a configuração de um remetente institucional.
 
-## Recomendação de 11/10: Resend Free durante o desenvolvimento
+## Decisão de 11/10: Resend Free durante o desenvolvimento
 
 Usar [Resend Free](https://resend.com/pricing) para o SMTP do Auth: US$ 0,
 até 3.000 e-mails por mês e 100 por dia, três domínios e SMTP relay. O limite
@@ -47,19 +58,19 @@ Free](https://supabase.com/docs/guides/platform/free-project-pausing). Não é
 necessário comprar Pro apenas para ativar este template; para convites a
 destinatários externos, o [SMTP padrão tem restrições próprias](https://supabase.com/docs/guides/auth/auth-smtp).
 
-Estado da configuração: página de cadastro do Resend aberta para o responsável
+Estado anterior da configuração: página de cadastro do Resend aberta para o responsável
 entrar/criar a conta; nenhum domínio validado nem SMTP habilitado ainda. Após
 esse login, criar a chave de envio com acesso mínimo, mantê-la em local seguro,
 configurar SMTP no Supabase do projeto confirmado, aplicar o template e verificar
 um convite sintético recebido. Nunca registrar a chave em Git ou neste arquivo.
 
-## O que falta para ativar o convite personalizado
+## Checklist original de ativação (itens 1–4 concluídos)
 
 1. Entrar/criar a conta Resend controlada pela Vivance e confirmar o remetente proposto. Uma conta de Gmail ou o domínio do site, por si só, não comprovam SMTP preparado.
 2. Obter host, porta, usuário e senha SMTP por canal seguro/cofre; nunca colocar credenciais neste arquivo, no Git ou na conversa.
 3. Validar domínio/remetente e DNS exigido pelo provedor (SPF/DKIM/DMARC), conferindo os valores gerados na conta.
 4. Configurar SMTP no projeto confirmado, aplicar apenas a configuração de convite e verificar leitura remota. HTML: `supabase/templates/invite.html`; procedimento: `supabase/templates/README.md`.
-5. Enviar convite sintético autorizado, verificar recebimento real e ativação no navegador. Pedido de envio não é confirmação de entrega. Não testar consumindo convites reais de terceiros.
+5. Convite sintético enviado e recebido no Gmail, inicialmente em Spam. Ativação e aceite no navegador não testados; não usar o link da identidade QA excluída. Não testar consumindo convites reais de terceiros.
 
 ## Publicação técnica de 11/10
 
@@ -68,6 +79,6 @@ um convite sintético recebido. Nunca registrar a chave em Git ou neste arquivo.
 - Edge: `invite-patient` v10, `claim-patient-invitation` v9 e `invite-staff` v9 ACTIVE; nenhuma migration nova.
 - Colisão e-mail/WhatsApp pendente retorna 409 com orientação específica, sem consumir token. Link revogado retorna 410 e orienta novo convite/e-mail mais recente.
 - Fluxo sintético publicado e mobile 390 px verificados; fixtures revogadas após teste. Convites de destinatários reais preservados. Aceites de usabilidade e clínico separados.
-- Rascunhos antigos/substituídos não foram integrados indiscriminadamente; SMTP/layout do e-mail continuam pendentes.
+- Rascunhos antigos/substituídos não foram integrados indiscriminadamente. SMTP/layout foram aplicados mais tarde nesta data; entregabilidade e aceite seguem pendentes conforme o estado vigente acima.
 
 Evidências e histórico: [STATUS_ATUAL](docs/STATUS_ATUAL.md), [DIRECAO_E_SLICES](docs/DIRECAO_E_SLICES.md), [CHECKPOINTS_ENTREGAS](docs/CHECKPOINTS_ENTREGAS.md) e [GUIA_OPERACIONAL_CODEX](docs/GUIA_OPERACIONAL_CODEX.md).

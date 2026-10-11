@@ -1,5 +1,14 @@
 # Checkpoints das entregas
 
+## SMTP e convite médico — 11/10, 16h55
+
+- [x] Resend Free e `auth.institutovivance.app` configurados; DKIM e dois CNAMEs de envio `Verified` no Resend, com DNS Vercel confirmado.
+- [x] Supabase Auth do dev sintético recebeu somente SMTP e template Invite user; `config diff` pós-push sem diferenças. Nenhuma chave versionada ou plano alterado.
+- [x] Convite sintético entregue pelo Resend e localizado no Gmail com assunto, remetente e variante Dr. Guilherme/CRM corretos.
+- [x] Identidade Auth QA não confirmada removida e ausência confirmada; e-mail fica como evidência, mas link é inválido.
+- [ ] Entregabilidade externa: Gmail classificou o primeiro envio como Spam apesar de assinatura do domínio. O “não é spam” aplicado vale só para a caixa de teste. Monitorar e validar com outro destinatário autorizado.
+- [ ] Percurso de ativação/aceite real e aceite de usabilidade continuam pendentes; Gate P clínico separado.
+
 ## Release combinado — 11/10, tarde
 
 - [x] #121/#122 integrados no código `18a6a18`; 534 testes locais e CI/release aprovados. Automação de banco/Edge/promoção skipped, aplicação manual conferida.
@@ -7,7 +16,7 @@
 - [x] Deployment `dpl_7k8WpipTjZuJKRYrhjkNn7u3xCfx` production/READY, targets.production e dois domínios no mesmo código; HTTP200/307.
 - [x] Colisão sintética no domínio real retornou409; UI mobile390 sem overflow e token preservado. Fixtures revogadas ao terminar, nenhum e-mail enviado.
 - [x] Login paciente real, alimentação publicada e sessão após recarga; persistência/isolamento do Preview permanecem evidências separadas.
-- [ ] Configurar SMTP autorizado e aplicar template: CLI retornou400/free tier/provedor padrão. Recebimento real do novo layout não verificado.
+- [x] Configurar SMTP e aplicar template: pendência daquela rodada resolvida às 16h55; recebimento sintético confirmado, inicialmente em Spam (ver bloco acima).
 - [ ] Aceites de usabilidade e clínico/GateP. Drafts históricos/incompletos não integrados indiscriminadamente.
 
 ## Check-in e alimentação — 11/10/2026
