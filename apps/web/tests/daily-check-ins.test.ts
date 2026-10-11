@@ -15,9 +15,10 @@ import { mealInput } from "../modules/meals/validation.ts";
 const key = "4f12a070-7a7d-4a56-804d-00f4b579a573";
 const today = "2026-09-23";
 
-test("etapas: nove com a aplicação ativada pelo médico, oito sem", () => {
-  assert.equal(checkInSteps(true).length, 9);
-  assert.deepEqual(checkInSteps(false).includes("application"), false);
+test("quatro respostas principais e recado; aplicação só quando o médico ativa", () => {
+  assert.deepEqual(checkInSteps(false), ["energy", "sleep", "hunger", "bowel", "note"]);
+  assert.equal(checkInSteps(true).length, 6);
+  assert.deepEqual(checkInSteps(true).slice(-2), ["application", "note"]);
   assert.equal(checkInSteps(false).at(-1), "note");
 });
 
@@ -56,7 +57,22 @@ test("intestino usa Bom/Regular/Ruim sem alterar efeitos antigos", () => {
   ]);
   const flow = readFileSync(new URL("../components/patient/check-in-flow.tsx", import.meta.url), "utf8");
   assert.match(flow, /selectableEffectKeys/);
-  assert.match(flow, /Como está seu intestino hoje/);
+  const presentation = readFileSync(new URL("../modules/daily-check-ins/experience.ts", import.meta.url), "utf8");
+  assert.match(presentation, /Como está seu intestino hoje/);
+});
+
+test("escalas ficam separadas no recibo e mantêm os extremos históricos 1–5", () => {
+  const answers = { energy: 1, sleep: 5, hunger: 5, bowel_status: "poor" as const };
+  assert.deepEqual(dailyCheckInInput({ request_key: key, answers }, today).answers, answers);
+  assert.deepEqual(checkInSummary(answers), [
+    { label: "Intestino", value: "Ruim" },
+    { label: "Energia", value: "1 de 5" },
+    { label: "Sono", value: "5 de 5" },
+    { label: "Fome", value: "5 de 5" },
+  ]);
+  for (const field of ["energy", "sleep", "hunger"]) {
+    for (const value of [0, 6, 2.5]) assert.throws(() => dailyCheckInInput({ request_key: key, answers: { [field]: value } }, today));
+  }
 });
 
 test("pendência: diário se não houve hoje; a cada 3 dias conta a partir do último", () => {

@@ -21,19 +21,20 @@ import {
   type Intensity,
 } from "@/modules/daily-check-ins/model";
 import { Icon, type IconName } from "./icons";
+import { Check, ChevronRight, MessageSquare, Moon, Toilet, Utensils, Zap } from "lucide-react";
+import { momentQuestions, topicLabels } from "@/modules/daily-check-ins/experience";
+import { MomentArtwork, MomentScale } from "./moment-choices";
 import { sendOrQueue } from "./outbox";
 
 const titles: Record<string, [string, string]> = {
-  weight: ["Quanto você está pesando hoje?", "Se não se pesou hoje, pode pular."],
-  feeling: ["Como você está se sentindo hoje?", "Escolha o que mais combina com o seu dia."],
-  effects: ["Sentiu algum desses efeitos?", "Toque em todos que sentiu e diga a intensidade."],
-  hunger: ["Como estão a fome e a saciedade?", "De 1 a 5."],
-  energy: ["E a energia e o sono?", "De 1 a 5."],
-  water: ["Quantos copos de água você bebeu hoje?", "1 copo = 250 ml"],
-  adherence: ["Seguiu o tratamento como combinado?", "Sem problema se não deu — é importante saber."],
-  application: ["Registre sua aplicação", "Pedido pelo seu médico."],
-  note: ["Quer contar mais alguma coisa ao seu médico?", "Opcional."],
+  energy: [momentQuestions.energy, "Toque em uma opção para continuar."],
+  sleep: [momentQuestions.sleep, "Pense no seu último sono. Toque para continuar."],
+  hunger: [momentQuestions.hunger, "Como está agora? Toque para continuar."],
+  bowel: [momentQuestions.bowel, "Escolha como foi para você. Toque para continuar."],
+  application: ["Quer registrar sua aplicação?", "Pedido pelo seu médico."],
+  note: ["Quer acrescentar algo?", "Um recado é opcional. Você já pode enviar."],
 };
+const topicIcons = { energy: Zap, sleep: Moon, hunger: Utensils, bowel: Toilet, application: Check, note: MessageSquare };
 
 // Enjoo e náusea aparecem como uma escolha no novo registro. A chave legada
 // "queasy" continua aceita e legível no histórico, sem reescrever respostas.
@@ -108,14 +109,16 @@ export function CheckInFlow({
   nextLabel: string;
 }) {
   const steps = checkInSteps(applicationEnabled);
-  const requestKey = useRef(crypto.randomUUID());
+  const request = useRef<{ key: string; fingerprint: string } | null>(null);
   const busy = useRef(false);
-  const initialView = useRef(true);
+  const lastFocusState = useRef({ index: 0, done: false });
   const stepHeading = useRef<HTMLHeadingElement>(null);
   const doneHeading = useRef<HTMLHeadingElement>(null);
+  const extraFields = useRef<HTMLDetailsElement>(null);
+  const weightInput = useRef<HTMLInputElement>(null);
   const [index, setIndex] = useState(0);
-  const [weight, setWeight] = useState(lastWeight ? decimal.format(lastWeight) : "");
-  const [answers, setAnswers] = useState<CheckInAnswers>({ water_glasses: 0 });
+  const [weight, setWeight] = useState("");
+  const [answers, setAnswers] = useState<CheckInAnswers>({});
   const [waterTouched, setWaterTouched] = useState(false);
   const [applicationDay, setApplicationDay] = useState<"today" | "yesterday" | "other">("today");
   const [pending, setPending] = useState(false);
@@ -128,10 +131,9 @@ export function CheckInFlow({
   const doctor = doctorName ?? "seu médico";
 
   useEffect(() => {
-    if (initialView.current) {
-      initialView.current = false;
-      return;
-    }
+    const previous = lastFocusState.current;
+    if (previous.index === index && previous.done === Boolean(done)) return;
+    lastFocusState.current = { index, done: Boolean(done) };
     const heading = done ? doneHeading.current : stepHeading.current;
     heading?.closest(".pv-checkin, .pv-done")?.scrollIntoView({ block: "start", behavior: "instant" });
     heading?.focus({ preventScroll: true });
@@ -152,21 +154,31 @@ export function CheckInFlow({
       result.application_on =
         applicationDay === "today" ? today : applicationDay === "yesterday" ? addDays(today, -1) : result.application_on;
     }
-    if (result.adherence === "yes") delete result.adherence_reason;
+    if (result.adherence !== "partial" && result.adherence !== "no") delete result.adherence_reason;
     if (!result.note?.trim()) delete result.note;
     return result;
   }
 
   async function send() {
     if (busy.current) return;
+    const weightValue = parseWeight(weight);
+    if (weight.trim() && (weightValue === null || weightValue > 500)) {
+      setError("Confira o peso: use um número maior que zero e até 500 kg.");
+      if (extraFields.current) extraFields.current.open = true;
+      weightInput.current?.focus();
+      return;
+    }
     busy.current = true;
     setPending(true);
     setError("");
     const body = payload();
+    const fingerprint = JSON.stringify(body);
+    if (!request.current || request.current.fingerprint !== fingerprint)
+      request.current = { key: crypto.randomUUID(), fingerprint };
     try {
       const sent = await sendOrQueue(
         `/api/v1/clinics/${tenantId}/daily-check-ins`,
-        { request_key: requestKey.current, answers: body },
+        { request_key: request.current.key, answers: body },
         "Check-in",
       );
       if (!sent.queued) {
@@ -231,163 +243,46 @@ export function CheckInFlow({
   const faces: IconName[] = ["f1", "f2", "f3", "f4", "f5"];
 
   return (
-    <div className="pv-checkin">
-      <div className="pv-progress" aria-hidden="true">
-        {steps.map((item, position) => (
-          <span key={item} className={position <= index ? "is-done" : undefined} />
-        ))}
-      </div>
-      <p className="pv-muted pv-progress-label">
-        {index + 1} de {steps.length}
-      </p>
-      <div className="pv-stack pv-tight">
-        <h2 className="pv-big" id="pv-checkin-title" tabIndex={-1} ref={stepHeading}>{title}</h2>
-        <p className="pv-lead">{step === "application" ? `Pedido por ${doctor}.` : subtitle}</p>
+    <div className="pv-checkin moment-flow">
+      <nav className="moment-steps" aria-label="Perguntas do check-in">
+        {steps.map((item, position) => {
+          const TopicIcon = topicIcons[item];
+          const answered = item === "bowel" ? Boolean(answers.bowel_status) : item === "note" ? Boolean(answers.note?.trim()) : item === "application" ? Boolean(answers.application_site || answers.application_on) : answers[item] !== undefined;
+          return <button type="button" key={item} aria-current={index === position ? "step" : undefined} onClick={() => setIndex(position)} disabled={pending}>
+            <TopicIcon size={18} aria-hidden="true" /><span>{topicLabels[item]}</span>{answered && <Check size={12} className="moment-step-check" aria-hidden="true" />}
+          </button>;
+        })}
+      </nav>
+      <div className="moment-question-heading">
+        <div className="pv-stack pv-tight">
+          <p className="moment-kicker">{index + 1} de {steps.length} · {topicLabels[step]}</p>
+          <h2 className="pv-big" id="pv-checkin-title" tabIndex={-1} ref={stepHeading}>{title}</h2>
+          <p className="pv-lead">{step === "application" ? `Pedido por ${doctor}.` : subtitle}</p>
+        </div>
+        {(step === "sleep" || step === "hunger" || step === "bowel") && <MomentArtwork name={step === "bowel" ? "bathroom" : step} />}
       </div>
 
       <div className="pv-checkin-body" aria-labelledby="pv-checkin-title" role="group">
-        {step === "weight" && (
-          <>
-            <div className="pv-weight">
-              <button type="button" className="pv-step" aria-label="Diminuir 0,1 kg" onClick={() => {
-                const current = parseWeight(weight) ?? lastWeight ?? 0;
-                setWeight(decimal.format(Math.max(0, Math.round((current - 0.1) * 10) / 10)));
-              }}>−</button>
-              <label className="pv-weight-input">
-                <span className="pv-visually-hidden">Peso em quilos</span>
-                <input inputMode="decimal" autoComplete="off" placeholder="0,0" value={weight} onChange={(event) => setWeight(event.target.value)} />
-                <span aria-hidden="true">kg</span>
-              </label>
-              <button type="button" className="pv-step" aria-label="Aumentar 0,1 kg" onClick={() => {
-                const current = parseWeight(weight) ?? lastWeight ?? 0;
-                setWeight(decimal.format(Math.round((current + 0.1) * 10) / 10));
-              }}>+</button>
-            </div>
-            {lastWeight && <p className="pv-muted pv-center">Último registro: {decimal.format(lastWeight)} kg</p>}
-          </>
+        {(step === "energy" || step === "sleep" || step === "hunger") && (
+          <MomentScale topic={step} value={answers[step]} advance onChoose={(value) => {
+            set({ [step]: value });
+            setIndex(index + 1);
+          }} disabled={pending} />
         )}
-
-        {step === "feeling" && (
-          <div className="pv-options">
-            {[5, 4, 3, 2, 1].map((n) => (
-              <button key={n} type="button" className="pv-option" aria-pressed={answers.feeling === n} onClick={() => set({ feeling: answers.feeling === n ? undefined : n })}>
-                <Icon name={faces[n - 1]} size={28} />
-                <span>{feelingLabels[n - 1]}</span>
-                {answers.feeling === n && <Icon name="check" size={20} />}
+        {step === "bowel" && (
+          <div className="moment-bowel-options" role="group" aria-label="Intestino">
+            {(["poor", "regular", "good"] as const).map((key) => (
+              <button type="button" key={key} aria-pressed={answers.bowel_status === key} disabled={pending}
+                aria-label={`${bowelStatusLabels[key]}. Escolher e continuar`}
+                onClick={() => { set({ bowel_status: key }); setIndex(index + 1); }}>
+                <Icon name={{ poor: "f2", regular: "f3", good: "f4" }[key] as IconName} size={32} />
+                <strong>{bowelStatusLabels[key]}</strong>
+                <span>{{ poor: "Com desconforto", regular: "Mais ou menos", good: "Confortável" }[key]}</span>
               </button>
             ))}
           </div>
         )}
-
-        {step === "effects" && (
-          <div className="pv-stack">
-            <div className="pv-chips">
-              {selectableEffectKeys.map((key) => {
-                const selected = Boolean(answers.effects?.[key]);
-                return (
-                  <button key={key} type="button" className="pv-chip" aria-pressed={selected} onClick={() => {
-                    const effects = { ...(answers.effects ?? {}) };
-                    if (effects[key]) delete effects[key];
-                    else effects[key] = "mild";
-                    set({ effects, no_effects: false });
-                  }}>
-                    {selected && <Icon name="check" size={16} />} {entryEffectLabel(key)}
-                  </button>
-                );
-              })}
-              <button type="button" className="pv-chip" aria-pressed={Boolean(answers.no_effects)} onClick={() => set({ no_effects: !answers.no_effects, effects: {} })}>
-                {answers.no_effects && <Icon name="check" size={16} />} Nenhum hoje
-              </button>
-            </div>
-            {Object.entries(answers.effects ?? {}).map(([key, level]) => (
-              <fieldset key={key} className="pv-fieldset">
-                <legend className="pv-scale-label">{entryEffectLabel(key as EffectKey)}</legend>
-                <div className="pv-segments">
-                  {intensities.map((option) => (
-                    <button key={option} type="button" aria-pressed={level === option} onClick={() => set({ effects: { ...(answers.effects ?? {}), [key]: option as Intensity } })}>
-                      {intensityLabels[option]}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-            ))}
-            <fieldset className="pv-fieldset">
-              <legend className="pv-scale-label">Como está seu intestino hoje? <span className="pv-muted">Opcional</span></legend>
-              <div className="pv-segments">
-                {(Object.keys(bowelStatusLabels) as (keyof typeof bowelStatusLabels)[]).map((key) => (
-                  <button key={key} type="button" aria-pressed={answers.bowel_status === key} onClick={() => set({ bowel_status: answers.bowel_status === key ? undefined : key })}>
-                    {bowelStatusLabels[key]}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-            {hasStrongEffect(answers) && (
-              <Link className="pv-notice pv-notice-link" href={`${base}/alerta`}>
-                Sentiu algo forte ou diferente? <strong>Veja o que fazer.</strong>
-              </Link>
-            )}
-          </div>
-        )}
-
-        {step === "hunger" && (
-          <div className="pv-stack">
-            <Scale label="Fome" low="Pouca" high="Muita" value={answers.hunger} onChange={(value) => set({ hunger: value })} />
-            <Scale label="Saciedade depois de comer" low="Pouca" high="Muita" value={answers.satiety} onChange={(value) => set({ satiety: value })} />
-          </div>
-        )}
-
-        {step === "energy" && (
-          <div className="pv-stack">
-            <Scale label="Energia" low="Pouca" high="Muita" value={answers.energy} onChange={(value) => set({ energy: value })} />
-            <Scale label="Como dormiu" low="Mal" high="Muito bem" value={answers.sleep} onChange={(value) => set({ sleep: value })} />
-          </div>
-        )}
-
-        {step === "water" && (
-          <div className="pv-stack">
-            <div className="pv-weight">
-              <button type="button" className="pv-step" aria-label="Menos um copo" onClick={() => { setWaterTouched(true); set({ water_glasses: Math.max(0, (answers.water_glasses ?? 0) - 1) }); }}>−</button>
-              <p className="pv-water" aria-live="polite">
-                <strong>{answers.water_glasses ?? 0}</strong> {answers.water_glasses === 1 ? "copo" : "copos"}
-                <small>{new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format((answers.water_glasses ?? 0) * 0.25)} L</small>
-              </p>
-              <button type="button" className="pv-step" aria-label="Mais um copo" onClick={() => { setWaterTouched(true); set({ water_glasses: Math.min(30, (answers.water_glasses ?? 0) + 1) }); }}>+</button>
-            </div>
-            <div className="pv-cups" aria-hidden="true">
-              {Array.from({ length: Math.max(8, answers.water_glasses ?? 0) }, (_, position) => (
-                <span key={position} className={position < (answers.water_glasses ?? 0) ? "is-full" : undefined}>
-                  <Icon name="drop" size={20} />
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {step === "adherence" && (
-          <div className="pv-stack">
-            <div className="pv-segments">
-              {(Object.keys(adherenceLabels) as (keyof typeof adherenceLabels)[]).map((key) => (
-                <button key={key} type="button" aria-pressed={answers.adherence === key} onClick={() => set({ adherence: answers.adherence === key ? undefined : key })}>
-                  {adherenceLabels[key]}
-                </button>
-              ))}
-            </div>
-            {(answers.adherence === "partial" || answers.adherence === "no") && (
-              <fieldset className="pv-fieldset">
-                <legend className="pv-scale-label">Quer dizer o motivo? <span className="pv-muted">Opcional</span></legend>
-                <div className="pv-chips">
-                  {(Object.keys(reasonLabels) as (keyof typeof reasonLabels)[]).map((key) => (
-                    <button key={key} type="button" className="pv-chip" aria-pressed={answers.adherence_reason === key} onClick={() => set({ adherence_reason: answers.adherence_reason === key ? undefined : key })}>
-                      {reasonLabels[key]}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-            )}
-          </div>
-        )}
-
-        {step === "application" && (
+{step === "application" && (
           <div className="pv-stack">
             <fieldset className="pv-fieldset">
               <legend className="pv-scale-label">Dia</legend>
@@ -431,12 +326,134 @@ export function CheckInFlow({
             </fieldset>
           </div>
         )}
-
         {step === "note" && (
-          <label className="pv-field">
-            <span className="pv-visually-hidden">Recado para {doctor}</span>
-            <textarea rows={4} maxLength={2000} placeholder="Escreva aqui, se quiser." value={answers.note ?? ""} onChange={(event) => set({ note: event.target.value })} />
-          </label>
+          <>
+            <label className="pv-field">
+              <span className="pv-visually-hidden">Quer acrescentar algo? Recado para {doctor}</span>
+              <textarea rows={3} maxLength={2000} placeholder="Algo diferente no seu dia? Conte aqui, se quiser." value={answers.note ?? ""} onChange={(event) => set({ note: event.target.value })} disabled={pending} />
+            </label>
+            <div className="moment-review" aria-label="Suas respostas">
+              {(["energy", "sleep", "hunger", "bowel"] as const).map((topic) => {
+                const value = topic === "bowel" ? (answers.bowel_status ? bowelStatusLabels[answers.bowel_status] : null) : answers[topic] ? `${answers[topic]} de 5` : null;
+                return <button type="button" key={topic} onClick={() => setIndex(steps.indexOf(topic))} disabled={pending}>
+                  <span>{topicLabels[topic]}</span><strong>{value ?? "Não informado"}</strong><ChevronRight size={16} aria-hidden="true" />
+                </button>;
+              })}
+            </div>
+            <details className="moment-more" ref={extraFields}>
+              <summary>Mais sobre meu dia <span>Peso, efeitos, água e tratamento · opcional</span></summary>
+              <fieldset disabled={pending} className="moment-extra-fields">
+<section className="moment-extra-section"><h3>Peso</h3><>
+            <div className="pv-weight">
+              <button type="button" className="pv-step" aria-label="Diminuir 0,1 kg" onClick={() => {
+                const current = parseWeight(weight) ?? lastWeight ?? 0;
+                setWeight(decimal.format(Math.max(0, Math.round((current - 0.1) * 10) / 10)));
+              }}>−</button>
+              <label className="pv-weight-input">
+                <span className="pv-visually-hidden">Peso em quilos</span>
+                <input ref={weightInput} inputMode="decimal" autoComplete="off" placeholder="0,0" value={weight} onChange={(event) => setWeight(event.target.value)} />
+                <span aria-hidden="true">kg</span>
+              </label>
+              <button type="button" className="pv-step" aria-label="Aumentar 0,1 kg" onClick={() => {
+                const current = parseWeight(weight) ?? lastWeight ?? 0;
+                setWeight(decimal.format(Math.round((current + 0.1) * 10) / 10));
+              }}>+</button>
+            </div>
+            {lastWeight && <p className="pv-muted pv-center">Último registro: {decimal.format(lastWeight)} kg</p>}
+          </></section>
+<section className="moment-extra-section"><h3>Como você se sentiu</h3><div className="pv-options">
+            {[5, 4, 3, 2, 1].map((n) => (
+              <button key={n} type="button" className="pv-option" aria-pressed={answers.feeling === n} onClick={() => set({ feeling: answers.feeling === n ? undefined : n })}>
+                <Icon name={faces[n - 1]} size={28} />
+                <span>{feelingLabels[n - 1]}</span>
+                {answers.feeling === n && <Icon name="check" size={20} />}
+              </button>
+            ))}
+          </div></section>
+<section className="moment-extra-section"><h3>Efeitos que sentiu</h3><div className="pv-stack">
+            <div className="pv-chips">
+              {selectableEffectKeys.map((key) => {
+                const selected = Boolean(answers.effects?.[key]);
+                return (
+                  <button key={key} type="button" className="pv-chip" aria-pressed={selected} onClick={() => {
+                    const effects = { ...(answers.effects ?? {}) };
+                    if (effects[key]) delete effects[key];
+                    else effects[key] = "mild";
+                    set({ effects, no_effects: false });
+                  }}>
+                    {selected && <Icon name="check" size={16} />} {entryEffectLabel(key)}
+                  </button>
+                );
+              })}
+              <button type="button" className="pv-chip" aria-pressed={Boolean(answers.no_effects)} onClick={() => set({ no_effects: !answers.no_effects, effects: {} })}>
+                {answers.no_effects && <Icon name="check" size={16} />} Nenhum hoje
+              </button>
+            </div>
+            {Object.entries(answers.effects ?? {}).map(([key, level]) => (
+              <fieldset key={key} className="pv-fieldset">
+                <legend className="pv-scale-label">{entryEffectLabel(key as EffectKey)}</legend>
+                <div className="pv-segments">
+                  {intensities.map((option) => (
+                    <button key={option} type="button" aria-pressed={level === option} onClick={() => set({ effects: { ...(answers.effects ?? {}), [key]: option as Intensity } })}>
+                      {intensityLabels[option]}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            ))}
+            {hasStrongEffect(answers) && (
+              <Link className="pv-notice pv-notice-link" href={`${base}/alerta`}>
+                Sentiu algo forte ou diferente? <strong>Veja o que fazer.</strong>
+              </Link>
+            )}
+          </div></section>
+<section className="moment-extra-section"><h3>Água</h3><div className="pv-stack">
+            <div className="pv-weight">
+              <button type="button" className="pv-step" aria-label="Menos um copo" onClick={() => { setWaterTouched(true); set({ water_glasses: Math.max(0, (answers.water_glasses ?? 0) - 1) }); }}>−</button>
+              <p className="pv-water" aria-live="polite">
+                <strong>{answers.water_glasses ?? 0}</strong> {answers.water_glasses === 1 ? "copo" : "copos"}
+                <small>{new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format((answers.water_glasses ?? 0) * 0.25)} L</small>
+              </p>
+              <button type="button" className="pv-step" aria-label="Mais um copo" onClick={() => { setWaterTouched(true); set({ water_glasses: Math.min(30, (answers.water_glasses ?? 0) + 1) }); }}>+</button>
+            </div>
+            <div className="pv-cups" aria-hidden="true">
+              {Array.from({ length: Math.max(8, answers.water_glasses ?? 0) }, (_, position) => (
+                <span key={position} className={position < (answers.water_glasses ?? 0) ? "is-full" : undefined}>
+                  <Icon name="drop" size={20} />
+                </span>
+              ))}
+            </div>
+          </div></section>
+<section className="moment-extra-section"><h3>Tratamento</h3><div className="pv-stack">
+            <div className="pv-segments">
+              {(Object.keys(adherenceLabels) as (keyof typeof adherenceLabels)[]).map((key) => (
+                <button key={key} type="button" aria-pressed={answers.adherence === key} onClick={() => {
+                  const adherence = answers.adherence === key ? undefined : key;
+                  set({ adherence, adherence_reason: adherence === "partial" || adherence === "no" ? answers.adherence_reason : undefined });
+                }}>
+                  {adherenceLabels[key]}
+                </button>
+              ))}
+            </div>
+            {(answers.adherence === "partial" || answers.adherence === "no") && (
+              <fieldset className="pv-fieldset">
+                <legend className="pv-scale-label">Quer dizer o motivo? <span className="pv-muted">Opcional</span></legend>
+                <div className="pv-chips">
+                  {(Object.keys(reasonLabels) as (keyof typeof reasonLabels)[]).map((key) => (
+                    <button key={key} type="button" className="pv-chip" aria-pressed={answers.adherence_reason === key} onClick={() => set({ adherence_reason: answers.adherence_reason === key ? undefined : key })}>
+                      {reasonLabels[key]}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+          </div></section>
+                <section className="moment-extra-section"><h3>Depois de comer</h3>
+                  <Scale label="Saciedade" low="Pouca" high="Muita" value={answers.satiety} onChange={(value) => set({ satiety: value })} />
+                </section>
+              </fieldset>
+            </details>
+          </>
         )}
       </div>
 
@@ -451,14 +468,19 @@ export function CheckInFlow({
           <Link className="pv-link" href={`${base}/hoje`}>Agora não</Link>
         )}
         {!last && (
-          <button type="button" className="pv-link" onClick={() => setIndex(index + 1)} disabled={pending}>
+          <button type="button" className="pv-link" onClick={() => {
+            if (step === "bowel") set({ bowel_status: undefined });
+            else if (step === "application") set({ application_on: undefined, application_time: undefined, application_site: undefined, application_side: undefined });
+            else if (step === "energy" || step === "sleep" || step === "hunger") set({ [step]: undefined });
+            setIndex(index + 1);
+          }} disabled={pending}>
             Pular
           </button>
         )}
       </div>
-      <button type="button" className="pv-button is-center" disabled={pending} onClick={() => (last ? send() : setIndex(index + 1))}>
+      {(last || step === "application") && <button type="button" className="pv-button is-center" disabled={pending} onClick={() => (last ? send() : setIndex(index + 1))}>
         {last ? (pending ? "Enviando…" : "Enviar check-in") : "Continuar"}
-      </button>
+      </button>}
     </div>
   );
 }

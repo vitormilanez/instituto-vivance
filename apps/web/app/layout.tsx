@@ -10,6 +10,7 @@ import "./message-context.css";
 import "./prescriptions.css";
 import "./doctor-weight-chart.css";
 import "./consultation-briefing.css";
+import "./daily-moments.css";
 
 const geist = Geist({
   subsets: ["latin"],
