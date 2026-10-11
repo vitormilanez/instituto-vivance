@@ -86,6 +86,19 @@ export async function revokePatientInvitation(id: string, invitationId: string) 
   return { invitation: { id: invitation, status: "revoked" as const } };
 }
 
+export async function archivePatientInvitation(id: string, invitationId: string) {
+  const tenant = tenantId(id); const invitation = tenantId(invitationId);
+  const { client } = await requireClinic(tenant, ["admin", "doctor"]);
+  const result = await client.rpc("archive_patient_invitation", {
+    target_tenant: tenant,
+    target_invitation: invitation,
+    explicit_confirm: true,
+  });
+  if (result.error) databaseError(result.error);
+  if (!result.data) throw new OnboardingError("Convite não encontrado.", 404);
+  return { invitation: { id: invitation, archived: true as const } };
+}
+
 export async function createPatientInvitation(id: string, input: unknown) {
   const tenant = tenantId(id);
   const values = patientInvitationInput(input);

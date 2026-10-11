@@ -498,12 +498,14 @@
 .dv .dv-invitation-filters span { font-size:12px; }
 .dv .dv-invitation-filters button[aria-pressed="true"] { background:var(--dv-ink); color:#fff; }
 .dv .dv-invitation-filters button:hover { box-shadow:inset 0 -2px var(--dv-gold); }
-.dv .dv-invitation-columns, .dv .dv-invitation-tracker li { display:grid; grid-template-columns:minmax(120px,1fr) minmax(160px,1.3fr) 100px 116px; align-items:center; gap:16px; padding:14px 24px; }
+.dv .dv-invitation-columns, .dv .dv-invitation-tracker li { display:grid; grid-template-columns:minmax(120px,1fr) minmax(160px,1.3fr) 100px 180px; align-items:center; gap:16px; padding:14px 24px; }
 .dv .dv-invitation-columns { font-size:12px; color:var(--dv-muted); background:#fcfbf8; }
 .dv .dv-invitation-tracker .list { margin:0; }
 .dv .dv-invitation-tracker small { display:block; margin-top:4px; color:var(--dv-muted); font-size:12px; }
 .dv .dv-invitation-tracker time { color:var(--dv-muted); font-size:12px; font-variant-numeric:tabular-nums; }
 .dv .dv-invitation-tracker li button { min-height:44px; padding:8px 10px; font-size:12px; }
+.dv .dv-invitation-actions { display:grid; gap:8px; }
+.dv .dv-invitation-actions p { margin:0; color:var(--dv-muted); font-size:14px; line-height:1.5; }
 .dv .dv-invitation-badge { display:inline-block; padding:4px 8px; border-radius:6px; background:#f6eedc; color:#71521b; font-size:12px; font-weight:650; }
 .dv .dv-invitation-accepted { background:#e8f3ee; color:#235c45; }
 .dv .dv-invitation-expired, .dv .dv-invitation-revoked { background:#f1f0ed; color:var(--dv-muted); }
@@ -538,5 +540,6 @@
  .dv .dv-invitation-columns { display:none; }
  .dv .dv-invitation-tracker li { grid-template-columns:minmax(0,1fr); gap:12px; padding:20px 16px; }
  .dv .dv-invitation-tracker li > div:last-child { grid-column:auto; }
+ .dv .dv-invitation-actions p { font-size:16px; }
  .dv .dv-directory-panel > .dv-search-form, .dv .dv-directory-panel > .dv-directory-filters, .dv .dv-directory-panel > .dv-results-count, .dv .dv-directory-panel > .empty, .dv .dv-directory-panel > .pagination { margin-inline:16px !important; }
 }

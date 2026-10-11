@@ -33,7 +33,7 @@ export function PatientInvitationList({
   const router = useRouter();
   const [filter, setFilter] = useState("all");
   const [pending, setPending] = useState<string>();
-  const [confirming, setConfirming] = useState<string>();
+  const [confirming, setConfirming] = useState<{ id: string; action: "revoke" | "archive" }>();
   const [error, setError] = useState("");
   async function revoke(id: string) {
     setPending(id);
@@ -50,6 +50,29 @@ export function PatientInvitationList({
       const body = await response.json();
       if (!response.ok)
         throw new Error(body.error ?? "Não foi possível cancelar o convite.");
+      setConfirming(undefined);
+      router.refresh();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Tente novamente.");
+    } finally {
+      setPending(undefined);
+    }
+  }
+  async function archive(id: string) {
+    setPending(id);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/v1/clinics/${tenantId}/patient-invitations/${id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "archive", confirm: true }),
+        },
+      );
+      const body = await response.json();
+      if (!response.ok)
+        throw new Error(body.error ?? "Não foi possível excluir o convite da lista.");
       setConfirming(undefined);
       router.refresh();
     } catch (reason) {
@@ -97,9 +120,9 @@ export function PatientInvitationList({
               )}
             </div>
             <time dateTime={invitation.createdAt}>{invitation.createdAt ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }).format(new Date(invitation.createdAt)) : "—"}</time>
-            {invitation.status === "pending" && (
-              <div>
-                {confirming === invitation.id ? (
+            <div className="dv-invitation-actions">
+              {confirming?.id === invitation.id ? (
+                confirming.action === "revoke" ? (
                   <>
                     <p>
                       Cancelar este convite? A pessoa precisará de um novo para
@@ -124,16 +147,54 @@ export function PatientInvitationList({
                     </button>
                   </>
                 ) : (
+                  <>
+                    <p>
+                      Excluir este convite da lista? O registro ficará oculto.
+                      Se ainda estiver aguardando aceite, também será cancelado.
+                      Nenhum paciente ou conta será excluído.
+                    </p>
+                    <button
+                      type="button"
+                      disabled={Boolean(pending)}
+                      onClick={() => void archive(invitation.id)}
+                    >
+                      {pending === invitation.id
+                        ? "Excluindo…"
+                        : "Confirmar exclusão da lista"}
+                    </button>
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={Boolean(pending)}
+                      onClick={() => setConfirming(undefined)}
+                    >
+                      Voltar
+                    </button>
+                  </>
+                )
+              ) : (
+                <>
+                  {invitation.status === "pending" && (
                   <button
                     type="button"
                     className="secondary"
-                    onClick={() => setConfirming(invitation.id)}
+                    disabled={Boolean(pending)}
+                    onClick={() => setConfirming({ id: invitation.id, action: "revoke" })}
                   >
                     Cancelar convite
                   </button>
-                )}
-              </div>
-            )}
+                  )}
+                  <button
+                    type="button"
+                    className="secondary"
+                    disabled={Boolean(pending)}
+                    onClick={() => setConfirming({ id: invitation.id, action: "archive" })}
+                  >
+                    Excluir da lista
+                  </button>
+                </>
+              )}
+            </div>
           </li>
         ))}
       </ul>

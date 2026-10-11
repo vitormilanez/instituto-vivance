@@ -36,6 +36,15 @@ test("convite: cada canal diz a própria entrega, e a falha do e-mail não inval
   assert.doesNotMatch(read("../components/patient-invitation-list.tsx"), /Falha no envio do e-mail/);
 });
 
+test("convites: exclusão do histórico é explícita e não promete apagar paciente", () => {
+  const component = read("../components/patient-invitation-list.tsx");
+  const route = read("../app/api/v1/clinics/[tenantId]/patient-invitations/[invitationId]/route.ts");
+  assert.match(component, /Excluir da lista/);
+  assert.match(component, /Nenhum paciente ou conta será excluído/);
+  assert.match(component, /action: "archive", confirm: true/);
+  assert.match(route, /values\.action === "archive" && values\.confirm === true/);
+});
+
 test("áreas sem conteúdo dizem 'em breve' no menu e continuam alcançáveis", () => {
   const ia = staffModules.find((item) => item.slug === "ia")!;
   assert.equal(navLabel(ia), "Central da IA · em breve");

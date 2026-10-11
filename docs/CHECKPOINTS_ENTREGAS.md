@@ -1,5 +1,13 @@
 # Checkpoints das entregas
 
+## Limpeza e histórico de convites — 11/10, 17h
+
+- [x] Reset autorizado: só médico/QA, um paciente, nove documentos/objetos, zero convites antigos; sessões revogadas, hashes preservados, 100 tabelas/173 FKs conferidas.
+- [x] Ação “Excluir da lista” com confirmação, arquivamento auditável e cancelamento atômico de pendente; não apaga paciente/conta; revisão independente aprovada.
+- [x] Migration `20261011202934` aplicada e pareada; 536 testes/tipos/lint/build Node24 passaram; Edge/SMTP não necessários.
+- [ ] Publicar/conferir UI no domínio.
+- [ ] Usuário gerar convites novos e validar ativação/aceite; Gate P separado.
+
 ## SMTP e convite médico — 11/10, 16h55
 
 - [x] Resend Free e `auth.institutovivance.app` configurados; DKIM e dois CNAMEs de envio `Verified` no Resend, com DNS Vercel confirmado.

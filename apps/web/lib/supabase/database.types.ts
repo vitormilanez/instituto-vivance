@@ -1354,6 +1354,7 @@ export type Database = {
           claimed_at: string | null; accepted_at: string | null;
           accepted_by: string | null; patient_id: string | null;
           target_patient_id: string | null;
+          archived_at: string | null; archived_by: string | null;
           created_at: string; updated_at: string;
         };
         Insert: never;
@@ -2028,6 +2029,14 @@ export type Database = {
       };
       revoke_patient_invitation: {
         Args: { target_tenant: string; target_invitation: string };
+        Returns: boolean;
+      };
+      archive_patient_invitation: {
+        Args: {
+          target_tenant: string;
+          target_invitation: string;
+          explicit_confirm: boolean;
+        };
         Returns: boolean;
       };
       mark_in_app_notification_read: {

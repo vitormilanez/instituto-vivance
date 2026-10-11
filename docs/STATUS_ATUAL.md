@@ -1,5 +1,22 @@
 # Estado atual do Vivance
 
+## Limpeza e lista de convites — 11/10/2026, 17h
+
+Pedido explícito de manter só médico e QA executado no dev confirmado.
+Restam `guilhe.martins@gmail.com` e `paciente.teste@vivance.example`, um paciente
+QA com seus nove arquivos/exames e dois memberships. Quatro Auth/três
+pacientes/seis convites/quatro objetos removidos definitivamente, sessões
+revogadas. Zero referências aos alvos em 100 tabelas e 173 FKs sem órfãos;
+hashes de registros mantidos iguais. [Registro na raiz](../OPERACAO_LIMPEZA_E_CONVITES.md).
+Links anteriores inválidos; usuário fará novos convites, não recriar contas.
+
+Opção médica “Excluir da lista” implementada com confirmação: cancela um
+pendente antes de ocultar; aceitos/cancelados ficam ocultos sem apagar paciente
+ou conta. Arquivamento auditável com sessão viva/tenant/papel/autor. Revisão
+independente aprovada; 536 testes, tipos, lint/build passaram no Node 24.21.0.
+Migration `20261011202934` aplicada e pareada; publicação ainda pendente neste checkpoint.
+Gate P/aceite clínico não alterados; exclusão não abrange logs/e-mails externos.
+
 ## Publicação automática do site — 11/10/2026
 
 Pedido explícito do usuário atendido na configuração Vercel do projeto
