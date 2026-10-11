@@ -1,18 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
+import { Fragment, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Check, Minus } from "lucide-react";
 import type { ExamDocumentResult, ExamResult, ExamResultsView, ExamReview } from "@/modules/exams/results";
 import { displayedExamValue, displayedExamValueWithUnit, displayedExamUnit, displayedExamReference, displayedExamObservedDate, examReferencePosition, latestExamReview, examProcessingMessage } from "@/modules/exams/results";
+import { MedicalSelector } from "./medical-selector";
 import "./exam-results-panel.css";
 
-type Filter = "all" | "pending" | "outside" | "above" | "below" | "within";
-const matchesFilter = (item: ExamResult, filter: Filter) => {
-  if (filter === "all") return true;
-  if (filter === "pending") return !latestExamReview(item);
+type ComparisonFilter = "all" | "outside" | "within" | "unavailable";
+type ReviewFilter = "all" | "pending" | "reviewed" | "rejected";
+type OutsideFilter = "all" | "above" | "below";
+const matchesFilter = (item: ExamResult, comparison: ComparisonFilter, review: ReviewFilter, outside: OutsideFilter) => {
+  const latest = latestExamReview(item);
+  if (review === "pending" && latest) return false;
+  if (review === "reviewed" && (!latest || latest.decision === "rejected")) return false;
+  if (review === "rejected" && latest?.decision !== "rejected") return false;
   const position = examReferencePosition(item);
-  return filter === "outside" ? position === "above" || position === "below" : position === filter;
+  if (comparison === "all") return true;
+  if (comparison === "unavailable") return position === null;
+  if (comparison === "within") return position === "within";
+  return outside === "all" ? position === "above" || position === "below" : position === outside;
 };
 const positionLabel = { above: "Acima da referência do laudo", below: "Abaixo da referência do laudo", within: "Dentro da referência do laudo" } as const;
 const positionIcon = { above: ArrowUp, below: ArrowDown, within: Check } as const;
@@ -112,16 +120,17 @@ function ResultReview({ item, tenantId, documentId, onReviewed, onBusyChange }: 
   </form>;
 }
 
-function ResultDocument({ document, tenantId, filter, onReviewed, onBusyChange, reviewBusy }: { document: ExamDocumentResult; tenantId: string; filter: Filter; onReviewed: (documentId: string, itemId: string, review: ExamReview) => void; onBusyChange: (itemId: string, busy: boolean) => void; reviewBusy: boolean }) {
+function ResultDocument({ document, tenantId, comparison, review, outside, onReviewed, onBusyChange, reviewBusy }: { document: ExamDocumentResult; tenantId: string; comparison: ComparisonFilter; review: ReviewFilter; outside: OutsideFilter; onReviewed: (documentId: string, itemId: string, review: ExamReview) => void; onBusyChange: (itemId: string, busy: boolean) => void; reviewBusy: boolean }) {
   const router = useRouter();
   const [selected, setSelected] = useState<string | null>(null);
+  const [opened, setOpened] = useState<Set<string>>(() => new Set());
   const [showAll, setShowAll] = useState(false);
   const [resuming, setResuming] = useState(false);
   const [resumeAttempt, setResumeAttempt] = useState<{ status: "pending" | "processing"; previousStatus: ExamDocumentResult["processingStatus"] } | null>(null);
   const [resumeError, setResumeError] = useState("");
   const [pollStopped, setPollStopped] = useState(false);
   const disclosure = useRef<HTMLDetailsElement>(null);
-  const sourcePanel = useRef<HTMLElement>(null);
+  const sourcePanel = useRef<HTMLTableRowElement>(null);
   const pollAttempts = useRef(0);
   const canResume = document.canResume ?? document.processingStatus === "failed";
   const awaitingServer = Boolean(resumeAttempt && document.processingStatus === resumeAttempt.previousStatus && document.canResume !== false);
@@ -173,6 +182,7 @@ function ResultDocument({ document, tenantId, filter, onReviewed, onBusyChange, 
         if (disclosure.current) disclosure.current.open = true;
         setShowAll(true);
         setSelected(itemId);
+        setOpened((current) => new Set(current).add(itemId));
       });
     };
     reveal();
@@ -184,9 +194,8 @@ function ResultDocument({ document, tenantId, filter, onReviewed, onBusyChange, 
     const frame = requestAnimationFrame(() => sourcePanel.current?.scrollIntoView({ block: "start", behavior: "smooth" }));
     return () => cancelAnimationFrame(frame);
   }, [selected]);
-  const rows = document.items.filter((item) => matchesFilter(item, filter));
-  const visibleRows = showAll ? rows : rows.slice(0, 6);
-  const current = visibleRows.find((item) => item.id === selected) ?? null;
+  const rows = document.items.filter((item) => matchesFilter(item, comparison, review, outside));
+  const visibleIds = new Set((showAll ? rows : rows.slice(0, 6)).map((item) => item.id));
   const original = `/api/v1/clinics/${encodeURIComponent(tenantId)}/documents/${encodeURIComponent(document.id)}/download`;
   const pending = document.items.filter((item) => !latestExamReview(item)).length;
   const processingLabel = processingStatus === "pending" ? "Na fila"
@@ -201,15 +210,18 @@ function ResultDocument({ document, tenantId, filter, onReviewed, onBusyChange, 
       {resumeError && <p className="exam-results-resume-error" role="alert">{resumeError}</p>}
       {document.summary.length > 0 && <div className="exam-results-report-summary"><h4>Do laudo</h4><ul>{document.summary.map((line, index) => <li key={index}>{line}</li>)}</ul></div>}
       {document.qualityNotes.length > 0 && <details className="exam-results-quality"><summary>Notas da leitura · {document.qualityNotes.length} {document.qualityNotes.length === 1 ? "observação" : "observações"}</summary><ul>{document.qualityNotes.map((note, index) => <li key={index}>{note}</li>)}</ul></details>}
-      {rows.length ? <div className="exam-results-layout"><div className="exam-results-table-wrap"><table><thead><tr><th scope="col">Resultado</th><th scope="col">Valor</th><th scope="col">Referência no laudo</th><th scope="col">Revisão</th></tr></thead><tbody>{visibleRows.map((item) => {
+      {document.items.length > 0 && <div className="exam-results-table-wrap"><table><thead><tr><th scope="col">Resultado</th><th scope="col">Valor/unidade</th><th scope="col">Referência</th><th scope="col">Comparação</th><th scope="col">Revisão</th></tr></thead><tbody>{document.items.map((item) => {
         const position = examReferencePosition(item);
-        return <tr key={item.id} id={`resultado-${item.id}`} data-selected={selected === item.id} data-reference-position={position ?? "unavailable"}>
-          <th scope="row"><button type="button" aria-expanded={selected === item.id} onClick={() => setSelected(selected === item.id ? null : item.id)}>{item.literal_name}</button></th>
-          <td data-label="Valor">{displayedExamValueWithUnit(item) ?? "—"}{displayedExamObservedDate(item) && displayedExamObservedDate(item) !== document.observedOn && <small>Exame de {date(displayedExamObservedDate(item))}</small>}</td>
-          <td data-label="Referência no laudo">{displayedExamReference(item) ?? "—"}{item.item_kind === "laboratory" && latestExamReview(item)?.decision !== "rejected" && <small className="exam-results-reference-status" data-position={position ?? "unavailable"}>{position ? (() => { const Icon = positionIcon[position]; return <><Icon size={14} aria-hidden="true" />{positionLabel[position]}</>; })() : <><Minus size={14} aria-hidden="true" />Comparação indisponível</>}</small>}</td>
+        const visible = visibleIds.has(item.id);
+        return <Fragment key={item.id}><tr id={`resultado-${item.id}`} hidden={!visible} data-selected={selected === item.id} data-reference-position={position ?? "unavailable"}>
+          <th scope="row"><button type="button" aria-expanded={selected === item.id} aria-controls={`resultado-detalhe-${item.id}`} onClick={() => { setOpened((current) => new Set(current).add(item.id)); setSelected(selected === item.id ? null : item.id); }}>{item.literal_name}</button></th>
+          <td data-label="Valor/unidade">{displayedExamValueWithUnit(item) ?? "—"}{displayedExamObservedDate(item) && displayedExamObservedDate(item) !== document.observedOn && <small>Exame de {date(displayedExamObservedDate(item))}</small>}</td>
+          <td data-label="Referência">{displayedExamReference(item) ?? "—"}</td>
+          <td data-label="Comparação"><span className="exam-results-reference-status" data-position={position ?? "unavailable"}>{position ? (() => { const Icon = positionIcon[position]; return <><Icon size={14} aria-hidden="true" />{positionLabel[position]}</>; })() : <><Minus size={14} aria-hidden="true" />Comparação indisponível</>}</span></td>
           <td data-label="Revisão"><span className="exam-results-review" data-pending={!latestExamReview(item)}>{rowStatus(item)}</span></td>
-        </tr>;
-      })}</tbody></table>{rows.length > 6 && <button type="button" className="exam-results-show-all" disabled={reviewBusy} aria-expanded={showAll} onClick={() => { setShowAll(!showAll); if (showAll && !rows.slice(0, 6).some((item) => item.id === selected)) setSelected(null); }}>{showAll ? "Mostrar menos resultados" : `Mostrar todos os ${rows.length} resultados`}</button>}</div>{current && <aside ref={sourcePanel} className="exam-results-source" aria-live="polite"><h4>{current.literal_name}</h4><p>Página {current.page_number} · {rowStatus(current)}{displayedExamObservedDate(current) ? ` · Exame de ${date(displayedExamObservedDate(current))}` : ""}</p><p><strong>Trecho de origem</strong></p><blockquote>{current.source_excerpt}</blockquote><a href={`${original}#page=${current.page_number}`} target="_blank" rel="noreferrer">Abrir página original</a><ResultReview key={`${current.id}:${latestExamReview(current)?.version ?? 0}`} item={current} tenantId={tenantId} documentId={document.id} onReviewed={(itemId, review) => onReviewed(document.id, itemId, review)} onBusyChange={onBusyChange} /></aside>}</div> : <p className="exam-results-no-match">{processingStatus === "pending" ? "Na fila para organizar os resultados." : processingStatus === "processing" ? canResume && !awaitingServer ? "A organização precisa ser retomada." : "Organizando resultados…" : processingStatus === "failed" ? "Confira o laudo original enquanto a organização não é concluída." : processingStatus === "completed" ? "Leitura concluída sem itens organizados. Confira o original." : filter === "all" ? "Este arquivo ainda não tem resultados organizados. Abra o original para conferir." : "Nenhum resultado neste filtro."}</p>}
+        </tr>{opened.has(item.id) && <tr ref={selected === item.id ? sourcePanel : undefined} id={`resultado-detalhe-${item.id}`} className="exam-results-detail-row" hidden={!visible || selected !== item.id}><td colSpan={5}><div className="exam-results-detail-content"><div className="exam-results-source"><h4>{item.literal_name}</h4><p>Página {item.page_number} · {rowStatus(item)}{displayedExamObservedDate(item) ? ` · Exame de ${date(displayedExamObservedDate(item))}` : ""}</p><p><strong>Trecho de origem</strong></p><blockquote>{item.source_excerpt}</blockquote><a href={`${original}#page=${item.page_number}`} target="_blank" rel="noreferrer">Abrir página original</a></div><ResultReview key={`${item.id}:${latestExamReview(item)?.version ?? 0}`} item={item} tenantId={tenantId} documentId={document.id} onReviewed={(itemId, savedReview) => onReviewed(document.id, itemId, savedReview)} onBusyChange={onBusyChange} /></div></td></tr>}</Fragment>;
+      })}</tbody></table>{rows.length > 6 && <button type="button" className="exam-results-show-all" disabled={reviewBusy} aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>{showAll ? "Mostrar menos resultados" : `Mostrar todos os ${rows.length} resultados`}</button>}</div>}
+      {!rows.length && <p className="exam-results-no-match">{document.items.length ? "Nenhum resultado neste filtro." : processingStatus === "pending" ? "Na fila para organizar os resultados." : processingStatus === "processing" ? canResume && !awaitingServer ? "A organização precisa ser retomada." : "Organizando resultados…" : processingStatus === "failed" ? "Confira o laudo original enquanto a organização não é concluída." : processingStatus === "completed" ? "Leitura concluída sem itens organizados. Confira o original." : "Este arquivo ainda não tem resultados organizados. Abra o original para conferir."}</p>}
       <a className="exam-results-original" href={original} target="_blank" rel="noreferrer">Abrir laudo original</a>
     </div>
   </details>;
@@ -218,13 +230,27 @@ function ResultDocument({ document, tenantId, filter, onReviewed, onBusyChange, 
 export function ExamResultsPanel({ view, tenantId }: { view: ExamResultsView; tenantId: string }) {
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
-  const [filter, setFilter] = useState<Filter>("all");
+  const [comparison, setComparison] = useState<ComparisonFilter>("all");
+  const [review, setReview] = useState<ReviewFilter>("all");
+  const [outside, setOutside] = useState<OutsideFilter>("all");
   const [localReviews, setLocalReviews] = useState<Record<string, ExamReview[]>>({});
   const [reviewing, setReviewing] = useState<Set<string>>(() => new Set());
   const documents = view.documents.map((document) => ({ ...document, items: document.items.map((item) => ({
     ...item,
     reviews: [...item.reviews, ...(localReviews[item.id] ?? []).filter((review) => !item.reviews.some((saved) => saved.id === review.id))],
   })) }));
+  const itemIds = documents.flatMap((document) => document.items.map((item) => item.id)).join(",");
+  useEffect(() => {
+    const reveal = () => {
+      let target = "";
+      try { target = decodeURIComponent(window.location.hash.slice(1)); } catch { return; }
+      if (target.startsWith("resultado-") && itemIds.split(",").includes(target.slice("resultado-".length))) {
+        setComparison("all"); setReview("all"); setOutside("all");
+      }
+    };
+    window.addEventListener("hashchange", reveal);
+    return () => window.removeEventListener("hashchange", reveal);
+  }, [itemIds]);
   function onBusyChange(itemId: string, busy: boolean) {
     setReviewing((current) => {
       const next = new Set(current);
@@ -245,13 +271,29 @@ export function ExamResultsPanel({ view, tenantId }: { view: ExamResultsView; te
   const above = positions.filter((position) => position === "above").length;
   const below = positions.filter((position) => position === "below").length;
   const within = positions.filter((position) => position === "within").length;
-  const visible = documents.filter((document) => filter === "all" || document.items.some((item) => matchesFilter(item, filter)));
+  const unavailable = total - above - below - within;
+  const rejected = documents.reduce((count, document) => count + document.items.filter((item) => latestExamReview(item)?.decision === "rejected").length, 0);
+  const reviewed = total - pending - rejected;
+  const visible = documents.filter((document) => (comparison === "all" && review === "all") || document.items.some((item) => matchesFilter(item, comparison, review, outside)));
+  const updateComparison = (value: string) => { if (reviewing.size) return; setComparison(value as ComparisonFilter); setOutside("all"); };
+  const updateReview = (value: string) => { if (!reviewing.size) setReview(value as ReviewFilter); };
   return <section className="exam-results-panel" aria-labelledby="exam-results-heading">
     <header><div><h2 id="exam-results-heading">Exames organizados</h2><p>Último arquivo: {latest.title} · {documentDate(latest)}</p></div><div className="exam-results-header-actions"><p className="exam-results-totals">{total} {total === 1 ? "resultado" : "resultados"} · {pending} para conferir</p>{refreshButton}</div></header>
     <p className="exam-results-caution">Valores extraídos para conferência médica. As indicações acima, abaixo e dentro usam apenas faixas numéricas simples do próprio laudo; não são uma interpretação clínica. Compare com o original.</p>
-    <div className="exam-results-filters" role="group" aria-label="Filtrar resultados">
-      {([["outside", `Fora da referência · ${above + below}`], ["above", `Acima · ${above}`], ["below", `Abaixo · ${below}`], ["pending", `Para conferir · ${pending}`], ["within", `Dentro · ${within}`], ["all", `Todos · ${total}`]] as const).map(([key, label]) => <button type="button" key={key} disabled={reviewing.size > 0} aria-pressed={filter === key} onClick={() => setFilter(key)}>{label}</button>)}
-    </div>
-    <div className="exam-results-documents">{visible.length ? visible.map((document) => <ResultDocument key={document.id} document={document} tenantId={tenantId} filter={filter} onReviewed={onReviewed} onBusyChange={onBusyChange} reviewBusy={reviewing.size > 0} />) : <p className="exam-results-no-match">Nenhum resultado neste filtro.</p>}</div>
+    <div className="exam-results-filters"><MedicalSelector label="Comparação com a referência do laudo" value={comparison} onChange={updateComparison} options={[
+      { value: "all", label: "Todos", count: total, disabled: reviewing.size > 0 },
+      { value: "outside", label: "Fora da referência", count: above + below, tone: "negative", disabled: reviewing.size > 0 },
+      { value: "within", label: "Dentro da referência", count: within, tone: "positive", disabled: reviewing.size > 0 },
+      { value: "unavailable", label: "Sem comparação", count: unavailable, tone: "neutral", disabled: reviewing.size > 0 },
+    ]} />
+      <div className="exam-results-secondary">{comparison === "outside" && <MedicalSelector className="exam-results-outside-filter" label="Refinar resultados fora da referência" value={outside} onChange={(value) => { if (!reviewing.size) setOutside(value as OutsideFilter); }} options={[
+        { value: "all", label: "Acima e abaixo", count: above + below, disabled: reviewing.size > 0 },
+        { value: "above", label: "Acima", count: above, disabled: reviewing.size > 0 },
+        { value: "below", label: "Abaixo", count: below, disabled: reviewing.size > 0 },
+      ]} />}
+      <label className="exam-results-review-filter">Revisão<select value={review} disabled={reviewing.size > 0} onChange={(event) => updateReview(event.target.value)}>
+        <option value="all">Todas ({total})</option><option value="pending">Para conferir ({pending})</option><option value="reviewed">Conferidas ({reviewed})</option><option value="rejected">Descartadas ({rejected})</option>
+      </select></label></div><p className="exam-results-filter-help">“Sem comparação” reúne resultados sem posição numérica confiável frente à referência do laudo, inclusive texto narrativo, faixa não comparável ou dados ausentes.</p></div>
+    <div className="exam-results-documents">{!visible.length && <p className="exam-results-no-match">Nenhum resultado neste filtro.</p>}{documents.map((document) => <div key={document.id} hidden={!visible.some((candidate) => candidate.id === document.id)}><ResultDocument document={document} tenantId={tenantId} comparison={comparison} review={review} outside={outside} onReviewed={onReviewed} onBusyChange={onBusyChange} reviewBusy={reviewing.size > 0} /></div>)}</div>
   </section>;
 }

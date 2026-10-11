@@ -147,17 +147,57 @@ Continuam conectados os fluxos existentes de autenticação, cadastro e consulta
 
 ## Briefing médico — 10/10/2026
 
-A consulta selecionada usa um painel de leitura com cabeçalho compacto,
+### Padrão de leitura médica — implementação local de 10/10/2026
+
+Nas superfícies médicas, mostrar primeiro o cabeçalho com identidade e contexto,
+depois os seletores retangulares e, por fim, o conteúdo da seleção. Os seletores
+compartilham estados ativos, foco visível, alvos de pelo menos 44 px e rótulos
+textuais; contagens só aparecem quando vêm dos dados disponíveis. Navegação por
+URL preserva o caminho e os parâmetros relevantes. Abas mantêm os painéis
+montados para conservar formulários e rascunhos. Seleção de etapa não substitui
+autosave, revisão ou finalização.
+
+No Hoje médico, a consulta selecionada tem quatro abas: **Resumo**, **Exames e
+documentos**, **Evolução** e **Solicitações**. O resumo abre primeiro; não há aba
+“Preparar”; o botão que antes abria a Agenda foi removido. Em exames, uma faixa
+de quatro filtros mostra a comparação com a referência do próprio laudo
+(**Todos**, **Fora da referência**, **Dentro da referência**, **Sem comparação**).
+O seletor secundário de revisão oferece **Todas**, **Para
+conferir**, **Conferidas**, **Descartadas**). “Fora” pode ser refinado em acima ou
+abaixo. Cores da comparação e estado de revisão são independentes; toda
+indicação tem texto e nunca representa diagnóstico ou prioridade clínica. A
+revisão de cada resultado fica abaixo da linha factual e conserva o acesso à
+fonte original. A linha expandida usa duas colunas internas no desktop, fonte e
+conferência, passando a uma coluna até 900 px sem reduzir a largura da tabela.
+
+No **Resumo** desta rodada, cards neutros/brancos substituem o bloco azul
+contínuo. Em desktop, objetivo e pendências ocupam cerca de um terço da largura,
+com relatos nos dois terços restantes; fatos aparecem em grid. No celular,
+as áreas se empilham em uma coluna. Os rótulos vêm da fonte disponível, sem
+atribuir autoria nova. A hierarquia interna usa título do card em 18 px,
+rótulos em 14 px, conteúdo em 16 px e fontes em 13 px; espaçamentos recorrentes
+de 16, 20 e 24 px mantêm a leitura entre elementos, cards e seções.
+
+Agenda, ficha, convites, revisão dos envios, teleconsulta, atendimento e receitas
+usam o mesmo vocabulário de seleção, respeitando papel, vínculo, URL, paginação
+e rascunhos existentes. Filtros da lista de pacientes atuam **nesta página**,
+sem sugerir contagem global. O padrão é uma mudança local de interface, sem
+novos contratos de banco ou funções clínicas. Validação, PR e Preview ainda
+estão em andamento; publicação e aceite médico não foram estabelecidos por
+esta implementação. A direção desta rodada foi Product Design, sem Impeccable.
+
+A base anterior do briefing (#112) usa um painel de leitura com cabeçalho compacto,
 objetivo em destaque, relatos literais e uma seção única de exames/documentos.
-Azul claro delimita o resumo; navy identifica marca e ações. Cor não classifica
+Nessa base, azul claro delimitava o resumo; os cards neutros descritos acima
+substituem esse bloco na implementação local atual. Navy identifica marca e ações. Cor não classifica
 gravidade nem prioridade. Objetivo estruturado conserva autoria; quando ausente,
 o objetivo do cadastro inicial conserva sua fonte e não se repete nos relatos.
 Pré-consulta completa, comparação, históricos, cadastro e lista de arquivos
 ficam sob expansões explícitas. Resultados conferidos mantêm fonte; extrações
 pendentes aparecem apenas como contagem. Contagem indisponível não é zero.
 
-No desktop, fatos e peso ocupam a coluna interna de 300–350 px; até 1050 px
-ficam abaixo dos relatos. As filas dos demais pacientes ficam depois do
+Na base #112, fatos e peso ocupavam a coluna interna de 300–350 px; a
+distribuição atual do Resumo segue a divisão um terço/dois terços acima. As filas dos demais pacientes ficam depois do
 briefing, sem repetir o selecionado. Vazios clínicos são linhas compactas.
 Receitas abrem em dialog lateral com título, fechamento por Escape e foco
 restaurado, sem abas internas. Peso único aparece com valor, data e origem,

@@ -44,6 +44,28 @@ Após a recuperação operacional, validar com médico os resultados e fontes; e
 
 ## Experiência médica
 
+**Padronização UX em implementação local (10/10/2026):** aplicar, via Product
+Design e sem Impeccable, a ordem cabeçalho de contexto → seletores retangulares
+→ conteúdo nas superfícies médicas. Hoje usa quatro abas — Resumo, Exames e
+documentos, Evolução, Solicitações — sem “Preparar”. Exames têm filtros
+independentes de comparação com a referência do laudo e de estado da revisão;
+o formulário de revisão aparece abaixo da linha factual. Cores servem à
+comparação documentada, sem inferência clínica. Preservar URL, permissões por
+papel/vínculo, paginação, formulários e rascunhos. Não criar banco ou funções
+clínicas. Código local ainda requer validação, PR e Preview; esta decisão não
+altera a publicação técnica histórica #117 nem o PR documental #118 e não
+constitui aceite médico. [Guia visual](../apps/web/DESIGN.md) e
+[checkpoints](CHECKPOINTS_ENTREGAS.md).
+
+Refinamento do Resumo: cards brancos/neutros no lugar do bloco azul contínuo;
+objetivo e pendências em um terço e relatos em dois terços no desktop, com
+fatos em grid; uma coluna no celular. Rótulos derivam da fonte. Tipos de
+18/14/16/13 px para card/rótulo/conteúdo/fonte e espaços de 16/20/24 px.
+Evidência local de responsividade, teclado e preservação de edição já existe,
+mas o build final após os últimos ajustes, login médico, PR e Preview ainda
+precisam ser registrados. Uma resposta API **simulada** para o valor 99 no limite
+superior validou cor verde e preservação da fonte/histórico, sem mutação remota.
+
 **Prioridade solicitada em 10/10, entregue pelo #112:** briefing da Home com
 objetivo destacado, exames/revisão consolidados, originais recolhidos e peso
 único compacto. Publicado tecnicamente em `7e3b849`, com revisão GPT-6 Sol Ultra

@@ -1,3 +1,4 @@
+import { MedicalPageHeader } from "@/components/medical-page-header";
 import { notFound, redirect } from "next/navigation";
 import { ClinicShell } from "@/components/clinic-shell";
 import { NotificationsWorkspace } from "@/components/notifications-workspace";
@@ -28,15 +29,10 @@ export default async function NoticesPage({
   );
   const content = (
     <>
-      <header className="page-heading">
-        <div>
-          <h1>Avisos</h1>
-          <p>
+      <MedicalPageHeader title={<>Avisos</>} description={<>
             Atualizações pessoais dentro da Vivance. O resumo nunca exibe
             conteúdo clínico.
-          </p>
-        </div>
-      </header>
+          </>} />
       <NotificationsWorkspace initial={initial} />
     </>
   );

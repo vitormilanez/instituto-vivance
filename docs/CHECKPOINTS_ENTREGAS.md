@@ -2,6 +2,19 @@
 
 **IA2 sintética, 10/10/2026.** Código, banco/Edge, Preview, integração, publicação e aceite exigem evidências próprias. [Status](STATUS_ATUAL.md) contém os identificadores confirmados.
 
+## UX — padronização médica local (10/10)
+
+- [x] Direção Product Design, sem Impeccable: cabeçalho de contexto → seletores retangulares → conteúdo; sem banco ou funções clínicas novas.
+- [x] Código local: Hoje com Resumo, Exames e documentos, Evolução e Solicitações, sem “Preparar”; exames com quatro filtros de comparação e quatro de revisão independentes, refinamento acima/abaixo e revisão abaixo da linha factual.
+- [x] Código local: seletores compartilhados nas superfícies médicas adjacentes; preservar URL, papel/vínculo, paginação, datas, formulários e rascunhos. Filtro de pacientes identificado como limitado à página.
+- [x] Refinamento local do Resumo: cards neutros/brancos; objetivo e pendências 1/3, relatos 2/3 no desktop; fatos em grid, uma coluna no celular; rótulos conforme a fonte, hierarquia 18/14/16/13 px e espaços 16/20/24 px.
+- [x] Validação local: 525 testes, typecheck, lint com zero erros e um aviso anterior. Browser Hoje/exames em 1440/900/390/320 px sem overflow; exames com alvos ≥44 px, teclado Home/End e edição preservada ao trocar aba, resultado e filtro.
+- [x] Resposta API **simulada** para 99 no limite máximo: verde, fonte 108 e histórico preservados; sem mutação remota.
+- [x] Build final aprovado após os ajustes; login real do paciente de QA, sessão após recarga e bloqueio 404 à ficha médica.
+- [ ] Conferir login médico real e Preview desta UX.
+- [ ] Registrar PR, CI e Preview desta UX após conferência. Nenhum item acima equivale a integração ou publicação.
+- [ ] Aceite de usabilidade e, separadamente, aceite clínico quando aplicável. O histórico publicado #117 e o PR documental #118 não os substituem.
+
 ## Base e jornada
 
 - [x] PRs #95, #103/#104 e #106/#107 integrados e publicados tecnicamente; detalhes históricos no [status](STATUS_ATUAL.md).

@@ -24,5 +24,5 @@ test("um documento adicionado pela equipe aparece mesmo sem envio do paciente", 
 test("rascunho desta consulta ou ainda não agendado vira a ação principal", () => {
   const input = { appointmentId: "today", preparable: true, base: "/clinic", agendaHref: "/agenda" };
   for (const appointment_id of ["today", null]) assert.deepEqual(consultationAction({ ...input, draft: { id: "draft", appointment_id } }), { label: "Retomar atendimento", href: "/clinic/atendimentos/draft" });
-  assert.equal(consultationAction({ ...input, draft: { id: "draft", appointment_id: "other" } }).label, "Preparar atendimento");
+  assert.equal(consultationAction({ ...input, draft: { id: "draft", appointment_id: "other" } }).label, "Ver na agenda");
 });

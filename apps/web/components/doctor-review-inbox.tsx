@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Activity, ArrowLeft, ClipboardList, FileText, MessageCircle, Ruler, Search } from "lucide-react";
 import { doctorReviewCounts, doctorReviewGroups, doctorReviewStateLabel, type DoctorReviewPatient, type DoctorReviewStatus } from "@/modules/workspace/doctor-review";
 import { receivedItemLabels, type ReceivedItemKind } from "@/modules/workspace/received-items";
+import { MedicalSelector } from "@/components/medical-selector";
+import { MedicalPageHeader } from "@/components/medical-page-header";
 
 const icons = { preparation: ClipboardList, documents: FileText, messages: MessageCircle, checkins: Activity, daily_checkins: Activity, measurements: Ruler };
 const filters = [
@@ -49,18 +51,17 @@ export function DoctorReviewInbox({ tenantId, patients, failed, selectedKey = nu
   function reset() { setKind("all"); setStatus("all"); setSearch(""); }
   return <div className={`dv-inbox${mobileDetail && selectedPatient ? " is-detail-open" : ""}`}>
     <section className="dv-inbox-list" aria-label="Envios dos pacientes">
-      <header className="dv-inbox-filters">
-        <h1>{counts.total} {counts.total === 1 ? "envio recebido" : "envios recebidos"}{failed.length ? " · contagem parcial" : ""}</h1>
-        <p>Na seleção atual, por paciente e por ordem de chegada. Abrir um envio não registra revisão.</p>
+      <div className="dv-inbox-filters">
+        <MedicalPageHeader title={`${counts.total} ${counts.total === 1 ? "envio recebido" : "envios recebidos"}${failed.length ? " · contagem parcial" : ""}`} description="Na seleção atual, por paciente e por ordem de chegada. Abrir um envio não registra revisão." />
         <div className="dv-inbox-summary" aria-label="Estados dos envios na seleção atual">
           <span>{counts.unopened} não {counts.unopened === 1 ? "aberto" : "abertos"}</span>
           <span>{counts.opened} já {counts.opened === 1 ? "aberto" : "abertos"}</span>
           <span>{counts.reviewed} {counts.reviewed === 1 ? "revisado" : "revisados"}</span>
           {counts.unknown > 0 ? <span>{counts.unknown} sem estado confirmado</span> : null}
         </div>
-        <div className="dv-inbox-kinds" role="group" aria-label="Tipo de envio">{filters.map((filter) => <button key={filter.key} type="button" aria-pressed={kind === filter.key} onClick={() => { setKind(filter.key); setMobileDetail(false); }}>{filter.label}</button>)}</div>
+        <MedicalSelector label="Tipo de envio" options={filters.map((filter) => ({ value: filter.key, label: filter.label }))} value={kind} onChange={(value) => { setKind(value as ReceivedItemKind | "all"); setMobileDetail(false); }} />
         <div className="dv-inbox-search"><Search size={16} aria-hidden="true" /><label className="sr-only" htmlFor="review-search">Buscar paciente na revisão</label><input id="review-search" type="search" placeholder="Buscar paciente" value={search} onChange={(event) => setSearch(event.target.value)} maxLength={80} /><label className="sr-only" htmlFor="review-state">Estado do envio</label><select id="review-state" value={status} onChange={(event) => setStatus(event.target.value as DoctorReviewStatus)}><option value="all">Todos os estados</option><option value="unopened">Não abertos</option><option value="opened">Já abertos</option><option value="reviewed">Revisados</option><option value="unknown">Sem confirmação</option></select></div>
-      </header>
+      </div>
       {failed.length > 0 && <div className="notice" role="status">Indisponível: {failed.map((item) => receivedItemLabels[item]).join(", ")}. <a href={`${base}/revisar`}>Tentar novamente</a></div>}
       <div className="dv-inbox-results">{groups.map((patient) => <section className="dv-inbox-group" key={patient.patientId} aria-labelledby={`review-${patient.patientId}`}>
         <h2 id={`review-${patient.patientId}`}><span className="dv-avatar" aria-hidden="true">{initials(patient.name)}</span>{patient.name}<small>{patient.items.length} {patient.items.length === 1 ? "envio" : "envios"}</small></h2>

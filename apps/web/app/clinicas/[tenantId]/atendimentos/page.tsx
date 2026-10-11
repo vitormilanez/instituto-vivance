@@ -1,3 +1,4 @@
+import { MedicalPageHeader } from "@/components/medical-page-header";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireClinic, AccessError } from "@/modules/identity/service";
@@ -33,19 +34,13 @@ export default async function EncountersPage({
   const result = await listEncounters(tenantId);
   return (
     <ClinicShell clinic={result.clinic} active="atendimentos">
-      <div className="page-heading">
-        <div>
-          <h1>Atendimentos</h1>
-          <p>
+      <MedicalPageHeader title={<>Atendimentos</>} description={<>
             Rascunhos e registros dos pacientes com vínculo de cuidado ativo.
-          </p>
-        </div>
-        {result.clinic.role === "doctor" && (
+          </>} actions={<>{result.clinic.role === "doctor" && (
           <Link className="button" href={`/clinicas/${tenantId}/agenda`}>
             Abrir agenda
           </Link>
-        )}
-      </div>
+        )}</>} />
       <EncounterDirectory tenantId={tenantId} initial={result} />
     </ClinicShell>
   );

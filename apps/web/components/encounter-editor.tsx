@@ -9,6 +9,8 @@ import type { EncounterPreparation } from "@/modules/return-preparation/service"
 import { EncounterPreparationSummary } from "./preparation-summary";
 import type { StaffPatientIntake } from "@/modules/patient-intake/types";
 import { PatientIntakeSummary } from "./patient-intake-summary";
+import { MedicalSelector } from "@/components/medical-selector";
+import { MedicalPageHeader } from "@/components/medical-page-header";
 export function clinicalTime(value: string) {
   return new Date(value).toLocaleString("pt-BR", {
     timeZone: "America/Sao_Paulo",
@@ -287,7 +289,7 @@ export function EncounterEditor({
       >
         Voltar aos atendimentos
       </Link>}
-      <header className="clinical-patient-header">
+      <div className="clinical-patient-header">
         <span className="patient-avatar patient-avatar-xl" aria-hidden="true">
           {(e.patients?.display_name ?? "Atendimento")
             .split(/\s+/)
@@ -298,13 +300,7 @@ export function EncounterEditor({
             .toUpperCase()}
         </span>
         <div className="clinical-patient-title">
-          <h1>{e.patients?.display_name ?? "Atendimento"}</h1>
-          <p>
-            {e.status === "finalized"
-              ? "Atendimento finalizado"
-              : "Registro do atendimento"}{" "}
-            · Médico: {doctorName}
-          </p>
+          <MedicalPageHeader title={e.patients?.display_name ?? "Atendimento"} description={`${e.status === "finalized" ? "Atendimento finalizado" : "Registro do atendimento"} · Médico: ${doctorName}`} />
           <p>Iniciado em {clinicalTime(e.created_at)} · Horário de Brasília</p>
         </div>
         <span
@@ -314,7 +310,7 @@ export function EncounterEditor({
         >
           {e.status === "finalized" ? "Concluído" : "Em atendimento"}
         </span>
-      </header>
+      </div>
       <dl
         className="encounter-context-strip"
         aria-label="Contexto do atendimento"
@@ -332,22 +328,9 @@ export function EncounterEditor({
           <dd>Versão {e.version}</dd>
         </div>
       </dl>
-      <nav className="encounter-journey" aria-label="Etapas do atendimento">
-        <ol>
-          {stages.map((item, index) => (
-            <li key={item.id} className={stage === item.id ? "current" : ""}>
-              <button
-                type="button"
-                aria-current={stage === item.id ? "step" : undefined}
-                onClick={() => changeStage(item.id)}
-              >
-                <span aria-hidden="true">{index + 1}</span>
-                <strong>{item.label}</strong>
-                <small>{item.description}</small>
-              </button>
-            </li>
-          ))}
-        </ol>
+      <nav className="medical-encounter-steps" aria-label="Etapas do atendimento">
+        <MedicalSelector mode="steps" label="Etapas do atendimento" options={stages.map((item) => ({ value: item.id, label: item.label }))} value={stage} onChange={(value) => changeStage(value as EncounterStage)} />
+        <p>{stages.find((item) => item.id === stage)?.description}</p>
       </nav>
       {notice && !(autoSave && recordDirty) && (
         <p className="notice" role="status">

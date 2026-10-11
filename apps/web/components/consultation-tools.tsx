@@ -8,20 +8,18 @@ import type { CareRequestKind } from "@/modules/workspace/patient-context-cards"
 
 const requestLabels: Record<CareRequestKind, string> = { preparation: "Pré-consulta", exams: "Exames", measurements: "Medidas", goals: "Metas e expectativas" };
 
-export function ConsultationRequests({ tenantId, patientId, requests }: { tenantId: string; patientId: string; requests: { kind: string; requested_at: string }[] }) {
+export function ConsultationRequests({ tenantId, patientId, requests, embedded = false }: { embedded?: boolean; tenantId: string; patientId: string; requests: { kind: string; requested_at: string }[] }) {
   const [kind, setKind] = useState<CareRequestKind>("preparation");
   const id = useId();
-  return <details className="brief-requests">
-    <summary className="button secondary">Solicitar… <ChevronDown size={16} aria-hidden="true" /></summary>
-    <div className="brief-request-form">
+  const form = <div className="brief-request-form">
       <label className="field" htmlFor={id}>O que solicitar
         <select id={id} value={kind} onChange={(event) => setKind(event.target.value as CareRequestKind)}>
           {Object.entries(requestLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
         </select>
       </label>
       <CareRequestAction key={kind} tenantId={tenantId} patientId={patientId} kind={kind} requestedAt={requests.find((item) => item.kind === kind)?.requested_at ?? null} />
-    </div>
-  </details>;
+    </div>;
+  return embedded ? form : <details className="brief-requests"><summary className="button secondary">Solicitar… <ChevronDown size={16} aria-hidden="true" /></summary>{form}</details>;
 }
 
 export function ConsultationPrescriptions({ tenantId, patientId, total, available }: { tenantId: string; patientId: string; total: number | null; available: boolean }) {

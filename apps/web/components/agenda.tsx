@@ -13,6 +13,8 @@ import { TeleconsultationLink } from "./teleconsultation-link";
 import { sentenceCase } from "@/lib/format";
 import { appointmentPresentation, needsAppointmentOutcome } from "@/modules/agenda/presentation";
 import { useAgendaClock } from "./use-agenda-clock";
+import { MedicalSelector } from "@/components/medical-selector";
+import { MedicalPageHeader } from "@/components/medical-page-header";
 
 export function AppointmentList({
   showDate = true,
@@ -445,12 +447,7 @@ export function Agenda({
   return (
     <>
       {preparing && <PreparationRequestEditor key={preparing.id} tenantId={tenantId} appointmentId={preparing.id} patientName={preparing.patients?.display_name ?? "paciente"} onClose={() => setPreparing(null)} />}
-      <div className="page-heading">
-        <div>
-          <h1>Agenda</h1>
-          <p>Consultas e retornos no horário de Brasília (UTC−3).</p>
-        </div>
-        {canManage && (
+      <MedicalPageHeader className="page-heading" title="Agenda" description="Consultas e retornos no horário de Brasília (UTC−3)." actions={canManage && (
           <div className="agenda-heading-actions">
             <Link
               className="button secondary"
@@ -460,8 +457,7 @@ export function Agenda({
             </Link>
             <button onClick={() => open("new")}>Novo agendamento</button>
           </div>
-        )}
-      </div>
+        )} />
       {nextAppointment && !returns && !isDoctorView && (
         <section
           className="agenda-focus-card"
@@ -764,28 +760,7 @@ export function Agenda({
         </section>
       )}
       <div className="agenda-actions agenda-view-controls">
-        {isDoctorView ? <div className="agenda-range-controls" aria-label="Formato da agenda">
-          <button
-            className="secondary"
-            aria-pressed={!returns && scheduleView === "day"}
-            onClick={() => {
-              setReturns(false);
-              setScheduleView("day");
-            }}
-          >
-            Dia
-          </button>
-          <button
-            className="secondary"
-            aria-pressed={!returns && scheduleView === "week"}
-            onClick={() => {
-              setReturns(false);
-              setScheduleView("week");
-            }}
-          >
-            Semana
-          </button>
-        </div> : <button
+        {isDoctorView ? <MedicalSelector label="Formato da agenda" options={[{ value: "day", label: "Dia" }, { value: "week", label: "Semana" }, { value: "returns", label: "Próximos retornos do mês" }]} value={returns ? "returns" : scheduleView} onChange={(value) => { if (value === "returns") setReturns(true); else { setReturns(false); setScheduleView(value as "day" | "week"); } }} /> : <button
           className="secondary"
           aria-pressed={!returns}
           onClick={() => setReturns(false)}
@@ -823,13 +798,13 @@ export function Agenda({
         >
           <ChevronRight aria-hidden="true" size={18} />
         </button>}
-        <button
+        {!isDoctorView && <button
           className="secondary"
           aria-pressed={returns}
           onClick={() => setReturns(true)}
         >
           Próximos retornos do mês
-        </button>
+        </button>}
         <button
           className="secondary"
           disabled={navigating}

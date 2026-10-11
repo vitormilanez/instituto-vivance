@@ -1,3 +1,4 @@
+import { MedicalPageHeader } from "./medical-page-header";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { todayWorkspace } from "@/modules/workspace/today";
@@ -443,19 +444,7 @@ export function HomeDay({
           label={stickyLabel}
         />
       ) : null}
-      <header className="home-head doctor-home-head">
-        <div>
-
-          <h1>{dayHeading(data.today)}</h1>
-          <p>
-            {dayCountsLine(counts)}
-            {data.truncated ? " · lista limitada" : ""}
-          </p>
-        </div>
-        <Link className="home-agenda-link" href={`${base}/agenda`}>
-          Abrir agenda
-        </Link>
-      </header>
+      <MedicalPageHeader title={dayHeading(data.today)} description={<>{dayCountsLine(counts)}{data.truncated ? " · lista limitada" : ""}</>} actions={<Link className="home-agenda-link" href={`${base}/agenda`}>Abrir agenda</Link>} />
 
       <div className="doctor-home-overview">
         <aside className="doctor-home-focus" aria-label="Foco do dia">

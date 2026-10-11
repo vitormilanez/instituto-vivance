@@ -147,15 +147,11 @@ export function ConsultationBlock({
             <Link className="button" href={`${base}/atendimentos/${draft.id}`}>
               Retomar atendimento
             </Link>
-          ) : preparable ? (
-            <Link className="button" href={agendaHref}>
-              Preparar atendimento
-            </Link>
-          ) : (
+          ) : !preparable ? (
             <Link className="button secondary" href={agendaHref}>
               Ver na agenda
             </Link>
-          )}
+          ) : null}
           {backToNext ? (
             <Link className="home-back" href={backToNext}>
               Voltar para a próxima consulta

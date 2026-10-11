@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { invitationDeliveryLabel } from "@/modules/onboarding/invitation-delivery";
+import { MedicalSelector } from "@/components/medical-selector";
 
 type Invitation = {
   id: string;
@@ -70,9 +71,7 @@ export function PatientInvitationList({
     <section className="panel dv-invitation-tracker">
       <h2>Convites recentes</h2>
       <p>Acompanhe os convites recentes e o aceite do paciente.</p>
-      <div className="dv-invitation-filters" role="group" aria-label="Filtrar convites recentes">
-        {groups.map(([value, label]) => <button type="button" key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}><strong>{invitations.filter((invitation) => matches(invitation, value)).length}</strong><span>{label}</span></button>)}
-      </div>
+      <MedicalSelector label="Filtrar convites recentes" options={groups.map(([value, label]) => ({ value, label, count: invitations.filter((invitation) => matches(invitation, value)).length }))} value={filter} onChange={setFilter} />
       {error && (
         <p role="alert" className="feedback">
           {error}

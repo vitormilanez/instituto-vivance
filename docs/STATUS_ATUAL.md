@@ -1,6 +1,39 @@
 # Estado atual do Vivance
 
-**Atualizado em 10/10/2026 (São Paulo) — #117 integrado/publicado; recuperação técnica do PDF concluída.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada: `2454345626b56d259a71aa59c34d23a688e13850`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
+**Atualizado em 10/10/2026 (São Paulo) — padronização UX local em andamento; #117 integrado/publicado e recuperação técnica do PDF concluída anteriormente.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada anteriormente: `2454345626b56d259a71aa59c34d23a688e13850`. O PR #118 documentou esse histórico; seu merge não comprova publicação da UX atual. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
+
+## Padronização da experiência médica — implementação local (10/10)
+
+Na branch `codex/padronizacao-experiencia-medica-20261010`, componentes
+compartilhados de cabeçalho e seleção organizam contexto → retângulos →
+conteúdo em superfícies médicas. Hoje apresenta Resumo, Exames e documentos,
+Evolução e Solicitações, sem “Preparar”. Exames separam quatro filtros de
+comparação com a referência do laudo de quatro estados de revisão; acima/abaixo
+têm refinamento, e o formulário de revisão fica abaixo da linha factual. Cor
+de comparação e estado de revisão não se confundem. Ficha, pacientes, convites,
+revisão de envios, Agenda, teleconsulta, atendimento, receitas e módulos adotam
+o mesmo seletor sem mudar contratos, permissões ou gravações clínicas. O filtro
+de cadastros médicos é explicitamente **nesta página**. A direção desta rodada
+usa Product Design sem Impeccable.
+
+Refinamento do Resumo local: o bloco azul contínuo deu lugar a cards
+neutros/brancos. Objetivo e pendências ocupam um terço, relatos dois terços no
+desktop; fatos ficam em grid e o celular usa uma coluna. Rótulos derivam da
+fonte, com hierarquia 18 px (card), 14 px (rótulo), 16 px (conteúdo), 13 px
+(fonte) e espaços de 16/20/24 px.
+
+Estado desta frente: **código local em validação; PR e Preview em andamento**.
+Na rodada local, 525 testes, typecheck e lint passaram; lint teve zero erros e
+um aviso anterior. O build passou **antes dos últimos ajustes** e será refeito.
+Browser local em Hoje/exames a 1440/900/390/320 px sem overflow; alvos dos
+exames com pelo menos 44 px. Teclado Home/End e edição preservada ao alternar
+aba, resultado e filtro foram conferidos localmente. Uma resposta de API
+**simulada** testou 99 no limite máximo: cor verde, fonte 108 e histórico
+preservados. Não houve mutação remota nessa verificação. Login médico real,
+PR e Preview desta UX ainda faltam. Não há evidência de integração, publicação,
+verificação autenticada ou aceite médico desta UX. A evidência de domínio, banco e Edge
+abaixo pertence à entrega anterior #117 e ao registro documental #118; não
+deve ser atribuída à padronização atual. Links serão registrados após os checks.
 
 ## IA2 — retomada operacional e referências (#117, 10/10)
 

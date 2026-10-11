@@ -2,7 +2,6 @@
 .dv .dv-inbox { display: grid; grid-template-columns: minmax(300px, 36%) minmax(0, 1fr); min-height: calc(100dvh - 64px); }
 .dv .dv-inbox-list { background: #fff; border-right: 1px solid var(--dv-line); min-width: 0; }
 .dv .dv-inbox-filters { padding: 22px 20px 16px; }
-.dv .dv-inbox-filters h1 { font-size: 16px; letter-spacing: -.02em; margin: 0 0 8px; }
 .dv .dv-inbox-filters p { margin: 0 0 14px; font-size: 13px; }
 .dv .dv-inbox-summary { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 0 0 16px; color: var(--dv-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .dv .dv-inbox-summary span { white-space: nowrap; }
