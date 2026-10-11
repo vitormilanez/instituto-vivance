@@ -38,4 +38,3 @@ Prompts utilizados:
 
 A imagem de fome recebeu uma edição adicional para remover um terceiro braço
 gerado por engano, mantendo exatamente dois braços e duas mãos.
-
