@@ -1,5 +1,12 @@
 # Direção do Vivance e próximos slices
 
+**Refinamento de 11/10 — foco em Pacientes:** a lista, busca e fichas devem
+abrir primeiro. Convite e histórico são tarefas separadas, acessíveis por
+“Convidar paciente” e “Ver convites” junto à lista. Envio permanece junto aos
+campos; cancelar/excluir permanece junto ao convite correspondente. Cadastro
+sem app continua acessível pelo fluxo de inclusão. Trocas locais preservam
+campos e resultados; atalhos existentes e regras de acesso permanecem.
+
 **Decisão de 11/10 — limpeza e convites:** usuário pediu manter somente médico
 e conta permanente QA e convidar os demais novamente. Reset operacional
 executado com dados QA preservados; não recriar contas antecipadamente.
