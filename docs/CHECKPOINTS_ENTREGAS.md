@@ -27,6 +27,15 @@
 - [x] Configurar SMTP e aplicar template: pendência daquela rodada resolvida às 16h55; recebimento sintético confirmado, inicialmente em Spam (ver bloco acima).
 - [ ] Aceites de usabilidade e clínico/GateP. Drafts históricos/incompletos não integrados indiscriminadamente.
 
+## Widgets e fluidez — 11/10/2026 (local)
+
+- [x] Protótipo aprovado; oito widgets com tamanhos variados, Agenda destacada e próximo passo compacto.
+- [x] Melhorias autorizadas em Pacientes, Agenda, Mensagens e navegação compartilhada, sem mudar contratos clínicos ou permissões.
+- [x] Tipos/build e 528 testes passaram; suíte em cópia isolada, preservando duplicatas locais preexistentes. Lint zero erros/um aviso anterior.
+- [x] Sessão médica existente no local: destinos, filtro com rolagem preservada, data/edição na Agenda, fechamento do menu móvel; widgets em 1440/900/320 px sem overflow. Sem envio de formulário ou mensagem.
+- [x] Revisão independente das alterações sem regressão concreta encontrada. [QA visual](../design-qa.md).
+- [ ] PR/Preview, publicação técnica e aceite de usabilidade deste lote. Gate P/aceite clínico permanecem separados.
+
 ## Check-in e alimentação — 11/10/2026
 
 - [x] Direção aprovada: Energia/Sono/Fome/Banheiro, recado opcional, poucos toques e figuras expressivas; aplicar também à alimentação. Product Design e revisão GPT-6 Astra, sem Impeccable.

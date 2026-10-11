@@ -7,6 +7,8 @@ import { ClinicShell } from "@/components/clinic-shell";
 import { TodayWorkspace } from "@/components/today-workspace";
 import { todayWorkspace } from "@/modules/workspace/today";
 import { staffActions, staffShortcuts } from "@/modules/workspace/navigation";
+import { DoctorQuickActions } from "@/components/doctor-quick-actions";
+import { dayCounts, dayCountsLine } from "@/modules/workspace/home-day";
 export const dynamic = "force-dynamic";
 
 // Ícones de traço 1.6 em 20x20, a mesma família da barra do celular.
@@ -100,11 +102,8 @@ export default async function Dashboard({
     </ul>
   );
   const shortcuts =
-    context.clinic.role === "doctor" ? (
-      <section className="shortcuts-section doctor-shortcuts" aria-labelledby="quick-actions">
-        <h2 id="quick-actions">Ações rápidas</h2>
-        {shortcutList}
-      </section>
+    context.clinic.role === "doctor" && today ? (
+      <DoctorQuickActions base={base} today={today.today} agendaSummary={`${dayCountsLine(dayCounts(today.appointments.map(item => ({ id: item.id, patientId: item.patient_id, patientName: item.patients?.display_name ?? "Paciente", startsAt: item.starts_at, endsAt: item.ends_at, status: item.status }))))}${today.truncated ? " · lista limitada" : ""}`} />
     ) : (
       <section className="shortcuts-section" aria-labelledby="quick-actions">
         <h2 id="quick-actions">Ações rápidas</h2>

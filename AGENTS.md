@@ -43,11 +43,15 @@ confirme o estado vivo, sem reutilizar IDs ou resultados antigos.
 
 ## Política por slice
 
-O usuário pediu escolha automática de modelo por trabalho para equilibrar consumo e qualidade. Aplicar esta política dentro das ferramentas disponíveis; informar brevemente o modelo efetivamente utilizado, sem pedir escolha a cada slice.
+O usuário pode escolher manualmente, a qualquer momento, o modelo e o esforço
+de raciocínio disponíveis no Codex. Essa escolha prevalece para a conversa ou
+entrega atual e substitui os padrões abaixo, inclusive se mudar durante o
+trabalho. Estas instruções não devem ser apresentadas como uma restrição ao
+seletor de modelos da interface nem como motivo para impedir a troca.
 
-Quando o usuário escolher um modelo explicitamente para uma sessão ou entrega,
-essa escolha prevalece sobre os padrões abaixo. Na rodada de 10/10/2026, o
-usuário escolheu `gpt-6-sol`; não rebaixar essa escolha por iniciativa própria.
+Na ausência de uma escolha manual vigente, aplicar esta política para equilibrar
+consumo e qualidade; informar brevemente o modelo efetivamente utilizado, sem
+pedir escolha a cada slice.
 
 - Padrão para implementação de interface e fluxos com contrato já definido: `gpt-5.6-terra`, raciocínio `medium`.
 - Texto, espaçamento, documentação e correções pequenas com aceite claro: `gpt-5.6-luna`, `low`; usar `medium` se necessário.

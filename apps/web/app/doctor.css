@@ -1,5 +1,8 @@
 /* Doctor workspace: the Claude reference's quiet canvas and compact hierarchy.
    Every override lives inside this role-specific shell. */
+html:has(.dv) {
+  scrollbar-gutter: stable;
+}
 .dv {
   font-family: var(--font-doctor-figtree), var(--font-geist-sans), sans-serif;
   --dv-ink: #0a1a33;
@@ -679,6 +682,7 @@
     padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
   }
   .dv .dv-mobile-nav a {
+    position: relative;
     color: var(--dv-muted);
     text-decoration: none;
     display: flex;
@@ -689,6 +693,12 @@
     border-radius: 8px;
     min-height: 48px;
     font-size: 10px;
+  }
+  .dv .dv-mobile-nav .dv-nav-pending {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    margin: 0;
   }
   .dv .dv-mobile-nav a[aria-current="page"] {
     background: #f6f0e4;

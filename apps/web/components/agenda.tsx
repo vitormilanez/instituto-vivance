@@ -253,14 +253,20 @@ export function Agenda({
   }, [router, editing, closing, starting, preparing, teleconsultation, pending]);
   useEffect(() => {
     if (starting) {
-      startPanel.current?.focus();
-      startPanel.current?.scrollIntoView({ block: "start" });
+      startPanel.current?.focus({ preventScroll: true });
+      startPanel.current?.scrollIntoView({
+        block: "nearest",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      });
     }
   }, [starting]);
   useEffect(() => {
     if (editing || closing) {
-      activePanel.current?.focus();
-      activePanel.current?.scrollIntoView({ block: "start" });
+      activePanel.current?.focus({ preventScroll: true });
+      activePanel.current?.scrollIntoView({
+        block: "nearest",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      });
     }
   }, [editing, closing]);
   async function startCare(event: FormEvent<HTMLFormElement>) {
@@ -348,7 +354,7 @@ export function Agenda({
   const edit = editing && editing !== "new" ? editing : null;
   function selectDate(next: string) {
     startTransition(() =>
-      router.push(`/clinicas/${tenantId}/agenda?data=${next}`),
+      router.push(`/clinicas/${tenantId}/agenda?data=${next}`, { scroll: false }),
     );
   }
   function move(delta: number) {

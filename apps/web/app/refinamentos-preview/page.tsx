@@ -22,6 +22,8 @@ import { clinicDate } from "@/modules/agenda/validation";
 import { StaffPatientDocumentsPanel } from "@/components/documents-workspace";
 import type { StaffDocuments } from "@/modules/documents/service";
 import { ExamResultsPanel } from "@/components/exam-results-panel";
+import { HomeDay } from "@/components/home-day";
+import { DoctorQuickActions } from "@/components/doctor-quick-actions";
 import type { ExamResult, ExamResultsView } from "@/modules/exams/results";
 
 export const dynamic = "force-dynamic";
@@ -54,6 +56,14 @@ export default async function RefinementsPreview({ searchParams }: {
     healthContext: emptyHealthContext(),
     examDocumentIds: [], shareConsent: false, submittedAt: null, updatedAt: now.toISOString(),
   };
+  if (tela === "widgets") {
+    const previewToday = "2026-10-11";
+    const clinic = { id: tenant, name: "Clínica demonstrativa", role: "doctor" as const, displayName: "Dra. Marina · FICTÍCIO" };
+    return <DoctorShell clinic={clinic} active="home" notificationCount={0}>
+      <HomeDay base={base} doctorView data={{ clinic, appointments: [], truncated: false, next: null, nextToday: null, open: null, nextDate: null, context: null, contexts: new Map(), briefs: new Map(), weights: new Map(), work: [], drafts: [], links: new Map(), cutoffs: new Map(), received: new Map(), failed: [], between: [], now: "2026-10-11T21:00:00Z", today: previewToday }} shortcuts={<DoctorQuickActions base={base} today={previewToday} agendaSummary="Nenhuma consulta hoje" />} />
+      <p className="dv-muted">Prévia local · dados fictícios · 11/10/2026</p>
+    </DoctorShell>;
+  }
   if (["onboarding","onboarding-complete","alimentacao","fotos","exames","perfil-home"].includes(tela??"")) {
     const initialProfile:PatientProfileContext={tenantId:tenant,patientId:patient,version:1,nutrition:emptyNutrition(),photos:emptyPhotos(),examsStatus:"not_started",examsDocumentIds:[],nutritionSubmittedAt:null,photosSubmittedAt:null,examsSubmittedAt:null,updatedAt:null};
     return <div className={`pv pv-is-task ${figtree.variable}`}><main id="conteudo" className="pv-main"><p className="pv-muted">Prévia local · dados fictícios</p>{tela==="onboarding"||tela==="onboarding-complete"?<OnboardingWorkspace tenantId={tenant} doctorName="Dra. Marina" initial={{...draft,currentStep:"profile",version:1,status:tela==="onboarding-complete"?"submitted":"draft"}}/>:tela==="perfil-home"?<ProfileCompletionPrompt tenantId={tenant} profile={initialProfile}/>:<PatientProfileWorkspace tenantId={tenant} initial={initialProfile} section={tela==="fotos"?"photos":tela==="exames"?"exams":"nutrition"}/>}</main></div>;
