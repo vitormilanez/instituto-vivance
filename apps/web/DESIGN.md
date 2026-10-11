@@ -193,16 +193,16 @@ usam o mesmo vocabulário de seleção, respeitando papel, vínculo, URL, pagina
 e rascunhos existentes. Filtros da lista de pacientes atuam **nesta página**,
 sem sugerir contagem global. O padrão é uma mudança local de interface, sem
 novos contratos de banco ou funções clínicas. [PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119)
-em draft e Preview estão disponíveis, com testes/CI aprovados. Login médico
-real com Guilherme passou localmente e no Preview. Publicação em produção e
-aceite médico continuam separados;
+integrado e publicado tecnicamente em [institutovivance.app](https://institutovivance.app),
+com testes e release da `main` aprovados. Login médico real com Guilherme passou
+no Preview e no domínio final. Aceite médico continua separado;
 detalhes nas [evidências](../../docs/UX_MEDICA_PADRAO_2026-10-10.md).
 A direção desta rodada foi Product Design, sem Impeccable.
 
 A base anterior do briefing (#112) usa um painel de leitura com cabeçalho compacto,
 objetivo em destaque, relatos literais e uma seção única de exames/documentos.
 Nessa base, azul claro delimitava o resumo; os cards neutros descritos acima
-substituem esse bloco na implementação local atual. Navy identifica marca e ações. Cor não classifica
+substituem esse bloco na implementação publicada. Navy identifica marca e ações. Cor não classifica
 gravidade nem prioridade. Objetivo estruturado conserva autoria; quando ausente,
 o objetivo do cadastro inicial conserva sua fonte e não se repete nos relatos.
 Pré-consulta completa, comparação, históricos, cadastro e lista de arquivos
