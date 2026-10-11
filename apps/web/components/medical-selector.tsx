@@ -13,7 +13,7 @@ export type MedicalSelectionOption = {
   tone?: "positive" | "negative" | "neutral";
 };
 
-export function MedicalSelector({ options, value, label, onChange, mode = "filter", id, className = "" }: {
+export function MedicalSelector({ options, value, label, onChange, mode = "filter", id, className = "", scroll }: {
   options: readonly MedicalSelectionOption[];
   value: string;
   label: string;
@@ -21,6 +21,7 @@ export function MedicalSelector({ options, value, label, onChange, mode = "filte
   mode?: "filter" | "tabs" | "steps" | "navigation";
   id?: string;
   className?: string;
+  scroll?: boolean;
 }) {
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
   const hasCounts = mode === "steps" || options.some((option) => option.count !== undefined);
@@ -43,7 +44,7 @@ export function MedicalSelector({ options, value, label, onChange, mode = "filte
   </>;
   return <div className={`medical-selector ${className}`} role={mode === "tabs" ? "tablist" : mode === "navigation" ? "navigation" : "group"} aria-label={label} data-mode={mode} data-has-counts={hasCounts}>
     {options.map((option, index) => option.href && mode === "navigation" && !option.disabled
-      ? <Link key={option.value} href={option.href} className="medical-selector-option" data-tone={option.tone} aria-current={option.value === value ? "page" : undefined}>{contents(option, index)}</Link>
+      ? <Link key={option.value} href={option.href} scroll={scroll} className="medical-selector-option" data-tone={option.tone} aria-current={option.value === value ? "page" : undefined}>{contents(option, index)}</Link>
       : <button key={option.value} ref={(node) => { refs.current[index] = node; }} type="button" className="medical-selector-option" data-tone={option.tone}
         id={id ? `${id}-tab-${option.value}` : undefined} role={mode === "tabs" ? "tab" : undefined}
         aria-selected={mode === "tabs" ? option.value === value : undefined} aria-pressed={mode === "filter" ? option.value === value : undefined}

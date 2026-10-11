@@ -90,6 +90,24 @@ Este guia descreve somente `apps/web`, a aplicação autenticada. Herda a identi
 
 ## Colors
 
+### Widgets médicos e fluidez — 11/10/2026
+
+O Hoje médico apresenta oito ações independentes em grid de tamanhos variados:
+Agenda alta, quatro atalhos horizontais, Planos/Documentos compactos e Equipe
+horizontal. Branco, azul-gelo e marfim do convite mantêm a identidade Vivance.
+Raio 22 px, intervalos 14 px e ícones lineares; em telas estreitas a Agenda
+ocupa a largura inteira e as demais ações se reorganizam sem ocultar destinos.
+Calendário e resumo vêm da data da clínica/contagens existentes, nunca de
+estatísticas demonstrativas. O próximo passo vazio é uma faixa compacta.
+Os outros papéis conservam suas ações existentes.
+
+Interações usam transições de cor/borda/sombra de 180 ms, sem elevar ou mover
+cards. Respeitar movimento reduzido. Indicadores de carregamento têm espaço
+estável. Filtros de pacientes, data da Agenda e links de conversa da equipe
+preservam a rolagem externa; a conversa controla somente sua área interna.
+Foco programático na Agenda não deve disparar duas rolagens. No celular,
+menu fecha na navegação e os estados da lista de pacientes ganham rótulos.
+
 ### Check-in e alimentação — 11/10/2026
 
 Uma pergunta por etapa: Energia, Sono, Fome, Banheiro e recado opcional. Seleção

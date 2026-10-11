@@ -63,6 +63,17 @@ Template e remetente SMTP são configurações distintas da publicação do cód
 
 **Decisão vigente em 11/10/2026:** cuidado longitudinal supervisionado: convite → contexto inicial → preparação → consulta → registro médico → acompanhamento → retorno. O médico interpreta e decide. Relato literal, dado extraído, cálculo, revisão, aprovação e publicação têm origem e estados separados. O [status](STATUS_ATUAL.md) distingue implementação, teste e publicação.
 
+## Widgets e continuidade da navegação — 11/10
+
+Usuário aprovou o protótipo de widgets inspirado na Apple: oito ações rápidas
+independentes, tamanhos variados, Agenda proeminente, superfícies claras e
+próximo passo compacto. Autorizou melhorias adjacentes em Pacientes, Agenda e
+Mensagens, priorizando navegação fluida, qualidade visual e modernidade.
+Evitar saltos de layout, rolagem automática desnecessária e animação decorativa;
+preservar rascunhos, acessibilidade, destinos existentes e regras clínicas.
+Implementação e QA locais registrados no [status](STATUS_ATUAL.md) e
+[design-qa](../design-qa.md); publicação e aceite não são inferidos.
+
 ## Prioridade de UX do paciente — 11/10
 
 Pedido aprovado: check-in intuitivo e poucas escolhas, com desenhos expressivos,

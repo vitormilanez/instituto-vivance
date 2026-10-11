@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { logout } from "@/app/actions";
 import type { ClinicAccess } from "@/modules/identity/service";
 import { navLabel, staffModules } from "@/modules/workspace/navigation";
-import { DoctorNavPending } from "./doctor-nav-pending";
+import { DoctorMobileTools, DoctorNavPending } from "./doctor-nav-pending";
 import "@/app/doctor.css";
 import "@/app/doctor-home.css";
 import "@/app/doctor-patients.css";
@@ -181,26 +181,23 @@ export function DoctorShell({
               <b>{notificationCount > 99 ? "99+" : notificationCount}</b>
             )}
           </Link>
-          <details className="dv-mobile-tools">
-            <summary>Menu</summary>
-            <nav aria-label="Outras áreas">
-              <Link href={`${base}/pacientes#convidar-paciente`}>Adicionar novo paciente<DoctorNavPending /></Link>
-              <Link
-                href={`${base}/teleconsulta`}
-                aria-current={active === "teleconsulta" ? "page" : undefined}
-              >
-                Teleconsulta
-                <DoctorNavPending />
-              </Link>
-              {secondaryLinks}
-              <Link href="/clinicas">Minhas clínicas</Link>
-              <form action={logout}>
-                <button type="submit" data-leave-clinic>
-                  Sair
-                </button>
-              </form>
-            </nav>
-          </details>
+          <DoctorMobileTools>
+            <Link href={`${base}/pacientes#convidar-paciente`}>Adicionar novo paciente<DoctorNavPending /></Link>
+            <Link
+              href={`${base}/teleconsulta`}
+              aria-current={active === "teleconsulta" ? "page" : undefined}
+            >
+              Teleconsulta
+              <DoctorNavPending />
+            </Link>
+            {secondaryLinks}
+            <Link href="/clinicas">Minhas clínicas</Link>
+            <form action={logout}>
+              <button type="submit" data-leave-clinic>
+                Sair
+              </button>
+            </form>
+          </DoctorMobileTools>
         </header>
         <main id="conteudo" className="workspace-main dv-main">
           {children}

@@ -27,7 +27,7 @@
 .dv .dv-directory-heading h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .dv .dv-directory-heading p { display: none; }
 .dv .dv-directory-heading { margin-bottom: 0; }
-.dv .dv-directory-panel .dv-section-heading { display: none; }
+.dv .dv-directory-panel .dv-section-heading { display: flex; margin-top: 24px; }
 
 .dv .dv-invite-workspace {
   display: grid;
@@ -109,6 +109,8 @@
 .dv .dv-directory-panel {
   padding: 0;
   overflow: hidden;
+  container-type: inline-size;
+  border-radius: 20px;
 }
 .dv .dv-directory-panel > :not(.dv-directory-columns):not(.dv-patient-list):not(.dv-directory-table-wrap) {
   margin-inline: 20px;
@@ -207,6 +209,20 @@
 }
 .dv .dv-patient-list li > a:hover {
   background: #fbf6ec;
+}
+.dv #patients-title { scroll-margin-top: 100px; }
+.dv .dv-status-cell::before { content: none; }
+@container (max-width: 720px) {
+  .dv .dv-directory-columns { display: none; }
+  .dv .dv-patient-list li > a {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 16px;
+    padding: 16px 20px;
+  }
+  .dv .dv-patient-list .dv-patient-identity { grid-column: 1; grid-row: 1; min-width: 0; }
+  .dv .dv-patient-list .row-action { grid-column: 2; grid-row: 1; font-size: 12px; }
+  .dv .dv-patient-list .dv-status-cell { display: block; grid-column: 1 / -1; font-size: 12px; line-height: 1.4; }
+  .dv .dv-patient-list .dv-status-cell::before { content: attr(data-label) ": "; color: var(--dv-muted); }
 }
 .dv .dv-patient-list strong {
   color: var(--dv-ink);

@@ -184,6 +184,32 @@ convite novo com o endereço limpo. Tarefa C2 `1219002465981599`.
 
 **Atualizado em 11/10/2026 (São Paulo) — check-in/alimentação em PR/Preview; UX médica #119 publicada anteriormente.** Checkout Git principal: `/Users/vitormilanez/Desktop/Codes/vivance`. Aplicação publicada anteriormente: `e05cb4cafa20c3a5b43899fdfae1b7bf4310a17c`; deployment `dpl_4ckHiqrEM1NdXqaf6cUFTigvHt2X`. Aceite médico e [Gate P](GATE_P.md) permanecem separados da publicação técnica. Confira o estado vivo antes de reutilizar estes identificadores.
 
+## Widgets e fluidez — implementação local de 11/10
+
+Protótipo aprovado: oito ações rápidas médicas em widgets independentes de
+tamanhos variados, Agenda em destaque e próximo passo compacto. Autorizado
+estender refinamentos a Pacientes, Agenda e Mensagens. Destinos, papéis,
+formulários e regras clínicas preservados; sem banco/Edge/IA novos.
+
+Pacientes ganhou lista responsiva com estados identificados e filtros sem
+reiniciar a rolagem. Agenda conserva posição ao trocar a data; abrir edição
+usa foco sem salto e rolagem mínima. Mensagens da equipe usa rolagem interna;
+menu móvel fecha ao navegar e indicadores de carregamento não deslocam itens.
+Movimento reduzido respeitado nos novos widgets e na abertura da Agenda.
+
+Build, tipos e 528 testes passaram. A suíte foi executada numa cópia isolada
+dos arquivos versionados mais os novos arquivos deste lote: três migrations
+locais preexistentes com sufixo ` 2.sql` causavam aplicação duplicada no checkout
+original e foram preservadas. Lint: zero erros e um aviso anterior.
+Conferência local reutilizou sessão médica autenticada, sem novo login e sem
+enviar convites, consultas ou mensagens: oito destinos, filtros de pacientes,
+mudança de data e abertura/fechamento da Agenda, menu móvel e layouts em
+1440/900/320 px (conforme superfície). Revisão independente sem regressão
+concreta encontrada. [QA e capturas](../design-qa.md).
+
+Alterações ainda locais, sem novo PR, Preview ou publicação. Aceite final de
+usabilidade permanece separado; histórico publicado abaixo não inclui este lote.
+
 ## Check-in e alimentação — 11/10
 
 Branch `codex/checkin-alimentacao-intuitivos-20261011`, código `5249e56`.

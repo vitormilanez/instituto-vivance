@@ -467,18 +467,20 @@ export function HomeDay({
               aria-labelledby="doctor-home-focus-empty-title"
             >
               <p className="doctor-home-kicker">Próximo passo</p>
+              <div className="doctor-home-empty-copy">
               <h2 id="doctor-home-focus-empty-title">
                 Nenhuma consulta futura agendada
               </h2>
               <p>Quando houver um horário agendado, ele aparecerá aqui.</p>
+              </div>
               <Link className="button secondary" href={`${base}/agenda`}>
                 Organizar agenda
               </Link>
             </section>
           )}
 
-          {shortcuts}
-
+        </aside>
+        {shortcuts}
           <section
             className="doctor-home-schedule"
             aria-labelledby="doctor-home-schedule-title"
@@ -528,7 +530,6 @@ export function HomeDay({
               </div>
             )}
           </section>
-        </aside>
         <aside className="doctor-home-aside" aria-label="Revisão e trabalho em aberto">
           <DoctorReviewPanel base={base} data={data} focusPatientId={briefingPatient} />
           <OpenWork items={data.work ? outsideBriefing(data.work, briefingPatient) : null} today={data.today} />

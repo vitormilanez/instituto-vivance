@@ -60,7 +60,7 @@ export default async function Patients({
       q: context.term,
       page: String(page),
       ...(context.filtro !== "todos" ? { filtro: context.filtro } : {}),
-    })}`;
+    })}#patients-title`;
   const doctorView = context.clinic.role === "doctor";
   const filteredPatients = doctorView ? context.patients.filter((patient) => {
     if (context.filtro === "cadastro") return Boolean(patient.onboardingSubmittedAt);
@@ -143,7 +143,7 @@ export default async function Patients({
               <button type="submit">Buscar</button>
             </form>
             {doctorView && (
-              <MedicalSelector mode="navigation" label="Filtrar pacientes nesta página" options={[
+              <MedicalSelector mode="navigation" scroll={false} label="Filtrar pacientes nesta página" options={[
                 { value: "todos", label: "Todos nesta página", href: filterHref("todos") },
                 { value: "cadastro", label: "Cadastro enviado", href: filterHref("cadastro") },
                 { value: "acolhimento-pendente", label: "Acolhimento pendente", href: filterHref("acolhimento-pendente") },
@@ -162,7 +162,7 @@ export default async function Patients({
               {context.term && (
                 <>
                   {" "}
-                  para “{context.term}” · <Link href={base}>Limpar busca</Link>
+                  para “{context.term}” · <Link href={`${base}#patients-title`}>Limpar busca</Link>
                 </>
               )}
             </p>
@@ -225,12 +225,12 @@ export default async function Patients({
                         </span>
                       </span>
                       {doctorView && (
-                        <span className="dv-status-cell">
+                        <span className="dv-status-cell" data-label="Cadastro">
                           {p.onboardingSubmittedAt ? "Enviado" : "Não enviado"}
                         </span>
                       )}
                       {doctorView && (
-                        <span className="dv-status-cell">
+                        <span className="dv-status-cell" data-label="Acolhimento">
                           {p.intakeStatus === "completed"
                             ? "Concluído"
                             : p.intakeStatus

@@ -292,9 +292,9 @@ function ConversationWorkspace({
   }, [selectedKey]);
 
   useEffect(() => {
-    if (initial.page !== 1 || !latestMessageId) return;
     const pane = messagesPane.current;
-    if (pane) pane.scrollTop = pane.scrollHeight;
+    if (!pane) return;
+    pane.scrollTop = initial.page === 1 ? pane.scrollHeight : 0;
   }, [initial.page, latestMessageId, selectedKey]);
 
   useEffect(() => {
@@ -627,6 +627,7 @@ function ConversationWorkspace({
                 key={recipient.id}
                 className="conversation-recipient"
                 href={conversationHref(base, recipientParam, recipient.id)}
+                scroll={false}
                 aria-current={
                   selected &&
                   (recipientParam === "paciente"
@@ -744,6 +745,7 @@ function ConversationWorkspace({
                       : selected.doctorId,
                     initial.page - 1,
                   )}
+                  scroll={false}
                 >
                   Anterior
                 </Link>
@@ -758,6 +760,7 @@ function ConversationWorkspace({
                       : selected.doctorId,
                     initial.page + 1,
                   )}
+                  scroll={false}
                 >
                   Próxima
                 </Link>
