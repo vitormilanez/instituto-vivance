@@ -23,6 +23,16 @@ anterior servem como histórico, não como alvo para a próxima.
 
 ## Publicar e promover para institutovivance.app
 
+**Configuração desde 11/10/2026:** a pedido do usuário, auto-assignment está
+ativo na Vercel, com branch de produção `main`. Cada build de produção
+bem-sucedido assume o domínio automaticamente; não é necessário promover
+manualmente cada merge. Essa configuração não aguarda necessariamente os
+jobs do GitHub e não aplica banco/Edge/Auth. Não integrar frontend que dependa
+de backend ainda ausente: alinhar primeiro o backend compatível e exigir
+testes/revisão antes do merge. Conferir domínio/SHA continua obrigatório.
+Se forem necessários gates automáticos de backend, configurar o fluxo
+completo como trabalho separado, sem presumir que esse toggle os fornece.
+
 ### 1. Definir exatamente o que será publicado
 
 1. Confirme que há pedido ou autorização vigente para publicar. Uma aprovação

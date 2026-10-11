@@ -1,5 +1,16 @@
 # Estado atual do Vivance
 
+## Publicação automática do site — 11/10/2026
+
+Pedido explícito do usuário atendido na configuração Vercel do projeto
+confirmado `prj_ligeZuFRycRXA21u5rRzaLAORTrI`, equipe `vtr-consulting`:
+`autoAssignCustomDomains` mudou de false para true; branch de produção `main`.
+O site passa a publicar builds bem-sucedidos da main automaticamente. Banco,
+Edge Functions e Auth/SMTP permanecem operações separadas; os secrets de CI
+ausentes não bloqueiam o deploy nativo do site, mas ainda impedem o pipeline
+completo de backend. Verificação do próximo merge documental e domínio é
+registrada no PR desta decisão; sem código, migration ou dados alterados.
+
 ## Credenciais centralizadas e publicação reconferida — 11/10/2026
 
 Credenciais locais disponíveis reunidas em `.env.vivance.local`, modo `0600`,
@@ -7,7 +18,8 @@ ignorado pelo Git. Quatro caminhos anteriores agora são atalhos para o mesmo
 arquivo; valores preservados. Supabase, Resend, Anthropic, segredo do Cron e
 contas QA estão disponíveis; faltam cópias locais de senha do banco e tokens
 Supabase/Vercel para CI. GitHub não tem secrets/variables configurados no repo
-ou environment production, portanto publicação automática continua pendente.
+ou environment production, portanto automação completa de backend via CI
+continua pendente; publicação nativa do site foi ativada posteriormente.
 [Inventário sem valores na raiz](../CREDENCIAIS.md).
 
 Reconferidos: domínio oficial no deployment `dpl_7k8WpipTjZuJKRYrhjkNn7u3xCfx`

@@ -1,5 +1,14 @@
 # Direção do Vivance e próximos slices
 
+**Decisão de 11/10 — publicação automática do site:** por pedido explícito do
+usuário, ativado `autoAssignCustomDomains=true` na Vercel
+`vtr-consulting/instituto-vivance`, branch de produção `main`. Builds de
+produção bem-sucedidos passam a assumir os domínios oficiais automaticamente.
+Isso não automatiza migrations, Edge Functions ou configuração Auth do
+Supabase. Antes de integrar mudanças dependentes de banco/Edge, alinhar o
+backend compatível; testes e revisão antes de merge continuam necessários.
+Nenhuma proteção ou gate clínico foi alterado.
+
 **Decisão de 11/10 — credenciais:** centralizar as disponíveis na raiz em
 `.env.vivance.local`, ignorado e modo `0600`, com atalhos dos quatro caminhos
 anteriores. Inventário sem segredos em [CREDENCIAIS](../CREDENCIAIS.md).
