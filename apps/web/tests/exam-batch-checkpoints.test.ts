@@ -122,15 +122,19 @@ test("literal names and values keep PDF layout but reject other controls", async
       source_excerpt: text, source_start: 0, source_end: text.length,
       extraction_confidence: null, requires_review_reason: "ai_extraction",
     };
-    const call = "select public.persist_exam_result_items($1,'claude-test','1',$2::jsonb) count";
-    assert.equal((await db.query<{ count: number }>(call, [run, JSON.stringify([item])])).rows[0].count, 1);
+    const call = "select public.persist_queued_exam_ai_extraction($1,$2,$3,'claude-test','1',$4::jsonb,$5::jsonb) count";
+    const metadata = { document_type: "laudo", title: "Laudo sintético", issuer: null,
+      observed_on: null, identity_text: null, summary: [], quality_notes: [],
+      model: "claude-test", prompt_version: "1", input_tokens: 0, output_tokens: 0 };
+    const args = (items: unknown) => [run, job, lease, JSON.stringify(items), JSON.stringify(metadata)];
+    assert.equal((await db.query<{ count: number }>(call, args([item]))).rows[0].count, 1);
     await db.exec("reset role");
     assert.deepEqual((await db.query<{ literal_name: string; literal_value: string }>(
       "select literal_name,literal_value from public.exam_result_items where extraction_run_id=$1", [run],
     )).rows, [{ literal_name: item.literal_name, literal_value: item.literal_value }]);
     await db.exec("set local role service_role");
-    await denied(call, [run, JSON.stringify([{ ...item, item_index: 2, literal_name: "Bad\u0007name" }])]);
-    await denied(call, [run, JSON.stringify([{ ...item, item_index: 2, literal_value: "Bad\fvalue" }])]);
-    await denied(call, [run, JSON.stringify([{ ...item, item_index: 2, literal_name: " \n\t " }])]);
+    await denied(call, args([{ ...item, item_index: 2, literal_name: "Bad\u0007name" }]));
+    await denied(call, args([{ ...item, item_index: 2, literal_value: "Bad\fvalue" }]));
+    await denied(call, args([{ ...item, item_index: 2, literal_name: " \n\t " }]));
   } finally { await db.exec("rollback"); }
 });

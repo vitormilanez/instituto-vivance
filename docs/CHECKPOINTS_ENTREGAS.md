@@ -45,6 +45,17 @@
 - [x] Novo PDF fictício de três páginas completou na primeira tentativa: três medições com unidade/referência/data, nome multiline, dois checkpoints (Haiku + auditoria Sonnet). Médico autenticado abriu item, fonte na página 2 e conferência no domínio principal. Histórico anterior de 29 itens imutável; PDF esgotado continua sem reprocessamento. IDs em [CONTA_TESTE](CONTA_TESTE.md).
 - [ ] Próximo reforço operacional: continuação entre leases e retomada médica de job que esgotou tentativas; medir cobertura/estabilidade com gabarito médico.
 
+## IA2 — retomada operacional e referências (10/10)
+
+- [x] Retomada pelo médico responsável de job falho/esgotado ou lease expirada; sessão, papel, vínculo, elegibilidade e autoria exigidos; mesmo job, histórico e texto preservados; duplicatas idempotentes e auditadas.
+- [x] Continuação com checkpoints e margem de runtime; tentativa devolvida somente com novo progresso durável. Falhas reais mantêm limite de tentativas. Finalização protegida pelo token da lease vigente; writers antigos sem token ficam internos.
+- [x] Dentro da faixa em verde discreto; acima/abaixo com ícone, texto, âmbar e valor destacado; comparação indisponível em cinza. Filtros e correções efetivas preservados; sem conversão ou conclusão clínica.
+- [x] Conferência visual local com fixtures em desktop e celular, retomada simulada e filtros. Artefatos em `output/playwright/20261011-exams-resume/`; Preview remoto separado não executado.
+- [x] Local: 525 testes, lint/typecheck/build e Deno check passaram; revisão independente da retomada/lease sem impeditivos. Um aviso lint anterior no onboarding. Celular 320/390 e desktop 1440 sem overflow, filtros 2 fora/2 dentro e alvos de resultado ≥44 px.
+- [ ] CI e release do commit integrado.
+- [ ] Migration `20261011002635`, Edge e aplicação publicados; aliases e ambiente confirmados.
+- [ ] Recuperar o PDF reportado pela sessão médica e confirmar resultados/fontes, mesmo job/run e preservação do original. Atualizar Asana e IDs no status.
+
 ## Próximos gates clínicos
 
 - [ ] Publicar explicitamente ao paciente apenas fatos aprovados pelo médico, em entrega separada. Revisão de extração não publica conteúdo.

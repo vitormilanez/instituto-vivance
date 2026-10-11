@@ -10,6 +10,7 @@ export const fallbackModel = "claude-sonnet-5-5";
 export type ExtractionCheckpoints = {
   read: (pages: TextPage[], purpose: "initial" | "coverage") => Promise<ClaudeResult | null>;
   write: (pages: TextPage[], purpose: "initial" | "coverage", result: ClaudeResult) => Promise<void>;
+  beforeRequest?: (timeoutMs: number) => void;
 };
 const characters = (value: string) => Array.from(value).length;
 // PDF layout may put a literal label/value across lines. Keep those source
@@ -463,6 +464,7 @@ export async function extractCoverageWithClaude(apiKey: string, pages: TextPage[
     const settled = await Promise.allSettled(segments.slice(offset, offset + 3).map(async (page) => {
       const cached = await checkpoints?.read([page], "coverage");
       if (cached && completeBatch([page], cached)) return cached;
+      checkpoints?.beforeRequest?.(45_000);
       const result = await requestClaude(apiKey, fallbackModel, [{ type: "text", text: JSON.stringify([page]) },
         { type: "text", text: "Auditoria de cobertura desta parte da página: percorra cada linha e cada subitem. Copie somente campos literais do trecho fornecido; não parafraseie, normalize nem acrescente dados." }],
         fetcher, { timeoutMs: 45_000, maxTokens: 6_000 });
@@ -470,6 +472,9 @@ export async function extractCoverageWithClaude(apiKey: string, pages: TextPage[
       await checkpoints?.write([page], "coverage", result);
       return result;
     }));
+    const continuation = settled.find((entry) => entry.status === "rejected"
+      && entry.reason instanceof Error && entry.reason.message === "continue_required");
+    if (continuation?.status === "rejected") throw continuation.reason;
     settled.forEach((entry, index) => {
       if (entry.status === "fulfilled" && entry.value.pages.length === 1
         && entry.value.pages[0].page_number === segments[offset + index].page_number)
@@ -539,7 +544,9 @@ export async function extractTextWithClaude(apiKey: string, pages: TextPage[], m
       let result: ClaudeResult;
       const attempts: ClaudeResult[] = [];
       const read = async (selectedModel: string) => {
-        const output = await requestClaude(apiKey, selectedModel, content, options.fetcher ?? fetch);
+        const timeoutMs = selectedModel === fallbackModel ? 45_000 : 100_000;
+        options.checkpoints?.beforeRequest?.(timeoutMs);
+        const output = await requestClaude(apiKey, selectedModel, content, options.fetcher ?? fetch, { timeoutMs });
         attempts.push(output);
         return output;
       };

@@ -3,11 +3,12 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "@supabase/supabase-js";
 import { extractText, getDocumentProxy } from "unpdf";
 import { parseSyntheticFixture, type SourcePage } from "./synthetic-structure.ts";
+import { ExtractionContinuationRequired, extractionBudget } from "./processing-budget.ts";
 import { extractTextWithClaude, requestClaude, groundedItems, mergeGroundedAttempts, coverageGaps, unresolvedPageNotes, extractCoverageWithClaude, groundedMetadata, primaryModel, fallbackModel, promptVersion, type ClaudeResult, type ExtractionCheckpoints, type TextPage } from "./claude-extraction.ts";
 
 const bucket = "vivance-documents";
 const extractorName = "unpdf-embedded-text";
-const extractorVersion = "1.8.1+vivance-claude.6";
+const extractorVersion = "1.8.1+vivance-claude.7";
 const maxPages = 50;
 const maxPageCharacters = 80_000;
 const maxDocumentCharacters = 500_000;
@@ -110,7 +111,8 @@ function base64(bytes: Uint8Array) {
   return btoa(value);
 }
 
-async function extractVisual(bytes: Uint8Array, contentType: string, pageNumbers: number[], apiKey: string) {
+async function extractVisual(bytes: Uint8Array, contentType: string, pageNumbers: number[], apiKey: string,
+  beforeRequest: (timeoutMs: number) => void) {
   if (pageNumbers.length > 20) throw new Error("ocr_page_limit");
   const content = [
     { type: contentType === "application/pdf" ? "document" : "image", source: {
@@ -118,9 +120,12 @@ async function extractVisual(bytes: Uint8Array, contentType: string, pageNumbers
     } },
     { type: "text", text: `Transcreva SOMENTE as páginas ${pageNumbers.join(", ")}. Preserve a numeração original e todos os resultados.` },
   ];
+  beforeRequest(100_000);
   let result = await requestClaude(apiKey, primaryModel, content);
-  if (pageNumbers.some((number) => !result.pages.find((p) => p.page_number === number)?.source_text))
-    result = await requestClaude(apiKey, fallbackModel, content);
+  if (pageNumbers.some((number) => !result.pages.find((p) => p.page_number === number)?.source_text)) {
+    beforeRequest(45_000);
+    result = await requestClaude(apiKey, fallbackModel, content, fetch, { timeoutMs: 45_000 });
+  }
   if (pageNumbers.some((number) => !result.pages.some((p) => p.page_number === number)))
     throw new Error("claude_incomplete");
   const pages = [];
@@ -146,7 +151,9 @@ Deno.serve(async (request) => {
   if (claimed.error) return json({ error: "Não foi possível reservar a fila." }, 503);
   if (!claimed.data?.length) return new Response(null, { status: 204 });
   const job = claimed.data[0] as Job;
+  const beforeRequest = extractionBudget(Date.now());
   let outcome: "retryable" | "permanent" = "retryable";
+  let durableProgress = false;
   try {
     const source = await client.from("patient_documents")
       .select("id,patient_id,storage_path,byte_size,content_type,display_title,original_filename")
@@ -176,11 +183,11 @@ Deno.serve(async (request) => {
           pages = await extractPdf(bytes);
           const unreadable = pages.filter((p) => !p.extracted_text || p.extracted_text.length < 50).map((p) => p.page_number);
           if (unreadable.length) {
-            const visual = await extractVisual(bytes, source.data.content_type, unreadable, apiKey);
+            const visual = await extractVisual(bytes, source.data.content_type, unreadable, apiKey, beforeRequest);
             pages = pages.map((page) => visual.pages.find((p) => p.page_number === page.page_number) ?? page);
           }
         } else if (!prior.data) {
-          const visual = await extractVisual(bytes, source.data.content_type, [1], apiKey);
+          const visual = await extractVisual(bytes, source.data.content_type, [1], apiKey, beforeRequest);
           pages = visual.pages;
           visualResult = visual.result;
         }
@@ -191,6 +198,7 @@ Deno.serve(async (request) => {
           extractor_version: extractorVersion, pages, failure_code: null,
         });
         if (saved.error || !saved.data) throw new Error("persist_failed");
+        if (!prior.data) durableProgress = true;
         const storedPages = await client.from("document_extracted_pages")
           .select("id,page_number,extracted_text,possible_duplicate_of_page")
           .eq("extraction_run_id", saved.data)
@@ -208,6 +216,7 @@ Deno.serve(async (request) => {
           pages: batch.map((page) => ({ page_number: page.page_number, extracted_text: page.extracted_text })),
         }));
         const checkpoints: ExtractionCheckpoints = {
+          beforeRequest,
           read: async (batch, purpose) => batchesByKey.get(await batchKey(batch, purpose)) ?? null,
           write: async (batch, purpose, result) => {
             const key = await batchKey(batch, purpose);
@@ -217,16 +226,18 @@ Deno.serve(async (request) => {
               p_page_numbers: batch.map((page) => page.page_number), p_result: result,
             });
             if (checkpoint.error) throw new Error("checkpoint_persist_failed");
+            if (!batchesByKey.has(key)) durableProgress = true;
             batchesByKey.set(key, result);
           },
         };
         const structured = parseSyntheticFixture(sourcePages);
         if (!existing.data && structured.length) {
-          const persisted = await client.rpc("persist_synthetic_exam_result_items", {
+          const persisted = await client.rpc("persist_queued_exam_ai_extraction", {
             target_run: saved.data,
+            target_job: job.job_id, target_lease: job.lease_token,
             structured_extractor_name: "vivance-synthetic-fixture",
             structured_extractor_version: "1",
-            items: structured,
+            items: structured, metadata: null,
           });
           if (persisted.error) throw new Error("structured_persist_failed");
         } else if (!existing.data) {
@@ -264,8 +275,9 @@ Deno.serve(async (request) => {
             .filter((entry: unknown) => typeof entry === "string" && allText.includes(entry)).slice(0, 3);
           result.metadata.prompt_version = promptVersion;
           result.metadata = groundedMetadata(sourcePages, result.metadata, source.data.display_title || source.data.original_filename);
-          const persisted = await client.rpc("persist_exam_ai_extraction", {
-            target_run: saved.data, structured_extractor_name: "claude-factual-extraction",
+          const persisted = await client.rpc("persist_queued_exam_ai_extraction", {
+            target_run: saved.data, target_job: job.job_id, target_lease: job.lease_token,
+            structured_extractor_name: "claude-factual-extraction",
             structured_extractor_version: promptVersion, items: grounded.items, metadata: result.metadata,
           });
           if (persisted.error) {
@@ -283,6 +295,16 @@ Deno.serve(async (request) => {
       }
     }
   } catch (error) {
+    // A pause without a new durable page/run/batch is a bounded retry, not an
+    // unlimited refund loop (notably before visual transcription is saved).
+    if (error instanceof ExtractionContinuationRequired && durableProgress) {
+      const continued = await client.rpc("continue_exam_text_extraction_job", {
+        target_job: job.job_id, target_lease: job.lease_token,
+      });
+      if (continued.error || continued.data !== true)
+        return json({ error: "Não foi possível continuar a organização.", job_id: job.job_id }, 503);
+      return json({ status: "pending", continued: true, job_id: job.job_id }, 202);
+    }
     if (error instanceof Error && ["invalid_pdf", "page_limit", "ocr_page_limit", "text_limit", "incomplete_text", "claude_configuration"].includes(error.message))
       outcome = "permanent";
     // Operational codes only: no document text, personal information or provider response.

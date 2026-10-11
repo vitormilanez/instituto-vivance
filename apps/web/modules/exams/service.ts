@@ -24,6 +24,31 @@ export async function enqueueDocumentText(tenantInput: string, documentInput: st
   return { jobId: result.data };
 }
 
+export async function resumeDocumentExtraction(tenantInput: string, documentInput: string) {
+  const { tenant, document } = validatedDocument(tenantInput, documentInput);
+  const { client } = await requireClinic(tenant, ["doctor"]);
+  const result = await client.rpc("resume_exam_extraction", {
+    target_tenant: tenant,
+    target_document: document,
+  });
+  if (result.error?.code === "40001") {
+    const creatorChanged = result.error.message?.includes("doctor who started");
+    throw new ExamExtractionError(creatorChanged
+      ? "A retomada precisa ser feita pelo médico que iniciou a organização."
+      : "Esta organização já foi concluída. Atualize o exame.", 409);
+  }
+  if (result.error?.code === "42501")
+    throw new ExamExtractionError("Seu acesso a este exame não está ativo.", 403);
+  if (result.error?.code === "P0002")
+    throw new ExamExtractionError("Não há uma organização para retomar neste exame.", 404);
+  const row = Array.isArray(result.data) ? result.data[0] : null;
+  if (result.error || !row || typeof row.job_id !== "string"
+    || !["pending", "processing"].includes(row.status)
+    || typeof row.resumed !== "boolean")
+    throw new ExamExtractionError("Não foi possível retomar a organização do exame.", 503);
+  return { jobId: row.job_id, status: row.status as "pending" | "processing", resumed: row.resumed };
+}
+
 export async function documentExtraction(tenantInput: string, documentInput: string) {
   const { tenant, document } = validatedDocument(tenantInput, documentInput);
   const { client } = await requireClinic(tenant, ["doctor", "nurse"]);

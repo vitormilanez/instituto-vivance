@@ -33,9 +33,10 @@ export async function patientExamResults(tenantInput: string, patientInput: stri
   if (!documents.length) return { documents: [] };
 
   const jobByDocument = new Map<string, "pending" | "processing" | "failed" | "completed">();
+  const resumableDocuments = new Set<string>();
   for (let offset = 0; ; offset += batchSize) {
     const page = await client.from("processing_jobs")
-      .select("idempotency_key,status")
+      .select("idempotency_key,status,created_by,lease_expires_at")
       .eq("tenant_id", tenant).eq("patient_id", patient)
       .eq("job_type", "exam_text_extraction")
       .order("created_at", { ascending: false }).order("id", { ascending: false })
@@ -43,8 +44,12 @@ export async function patientExamResults(tenantInput: string, patientInput: stri
     if (page.error) throw new ExamExtractionError("Não foi possível consultar o processamento dos exames.", 503);
     for (const job of page.data ?? []) {
       if (!jobByDocument.has(job.idempotency_key)
-        && ["pending", "processing", "failed", "completed"].includes(job.status))
+        && ["pending", "processing", "failed", "completed"].includes(job.status)) {
         jobByDocument.set(job.idempotency_key, job.status as "pending" | "processing" | "failed" | "completed");
+        const interrupted = job.status === "failed" || (job.status === "processing"
+          && typeof job.lease_expires_at === "string" && Date.parse(job.lease_expires_at) <= Date.now());
+        if (interrupted && job.created_by === user.id) resumableDocuments.add(job.idempotency_key);
+      }
     }
     if ((page.data?.length ?? 0) < batchSize) break;
   }
@@ -68,6 +73,7 @@ export async function patientExamResults(tenantInput: string, patientInput: stri
     id: document.id, title: document.display_title || document.original_filename,
     receivedAt: document.available_at ?? document.created_at, observedOn: null,
     processingStatus: jobByDocument.get(document.id) ?? null,
+    canResume: resumableDocuments.has(document.id),
     issuer: null, summary: [], qualityNotes: [], items: [],
   })) };
 
@@ -120,6 +126,7 @@ export async function patientExamResults(tenantInput: string, patientInput: stri
       title: info?.title && info.title !== "Exame ou documento" ? info.title : document.display_title || document.original_filename,
       receivedAt: document.available_at ?? document.created_at,
       processingStatus: jobByDocument.get(document.id) ?? null,
+      canResume: resumableDocuments.has(document.id),
       pageCount: run?.page_count,
       extractedPageCount: run?.extracted_page_count,
       observedOn: info?.observed_on ?? null,

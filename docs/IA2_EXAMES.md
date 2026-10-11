@@ -1,6 +1,32 @@
 # IA2 — exames sintéticos com origem verificável
 
-**Estado em 10/10/2026:** [PRs #114](https://github.com/vitormilanez/instituto-vivance/pull/114) e [#115](https://github.com/vitormilanez/instituto-vivance/pull/115) integrados e publicados tecnicamente no dev sintético; adapter `1.8.1+vivance-claude.6`, prompt `vivance-exams-20261010.4`. Texto por página, checkpoints e referência/unidade/data conferidos em fixtures e sessão médica autenticada. Retomada operacional é o próximo slice. Não houve aceite clínico. [Status](STATUS_ATUAL.md) registra SHA, CI, Edge e deployment.
+**Estado em 10/10/2026:** retomada operacional e destaque de referências implementados, com publicação/recuperação em andamento; 525 testes locais e lint/typecheck/build/Deno passaram. A aplicação ainda publicada é [#115](https://github.com/vitormilanez/instituto-vivance/pull/115), adapter `.6`. O novo adapter `.7` preserva prompt `vivance-exams-20261010.4`. Não houve aceite clínico. [Status](STATUS_ATUAL.md) registra SHA, CI, Edge e deployment.
+
+## Retomada e comparação de referências — slice de 10/10 em publicação
+
+Migration `20261011002635`: `resume_exam_extraction` é autenticada, exige médico
+responsável com sessão/vínculo ativos e documento elegível. Retoma o mesmo job
+falho ou lease expirada, conserva texto/runs/checkpoints e gera auditoria pela
+transição; jobs em fila/lease ativa não são alterados. Route POST
+`/api/v1/clinics/[tenantId]/documents/[documentId]/extraction/resume` é same-origin.
+Mudar médico responsável requer contrato próprio; este slice não transfere autoria.
+
+Adapter `.7` reserva orçamento de 170 s e margem de 15 s antes de chamadas de
+100/45 s. Ao chegar ao limite com progresso novo persistido, devolve a lease via
+`continue_exam_text_extraction_job` e desconta a claim das tentativas. Sem progresso,
+aplica falha limitada, evitando repetição ilimitada de transcrição visual.
+Texto/cache do mesmo hash/job e prompt `.4` continuam válidos. Finalização usa
+`persist_queued_exam_ai_extraction`, lock de job e token ativo; os quatro writers
+legados sem token perdem acesso service_role e tornam-se helpers internos.
+
+O painel usa `canResume` somente para o médico autor. Atualiza a cada 8 s por
+até 24 consultas e depois orienta atualização manual; abrir a ficha não chama IA.
+Resultado efetivo acima/abaixo recebe destaque âmbar, ícone e texto; dentro recebe
+verde discreto. Comparação exige faixa numérica fechada e unidade idêntica;
+referências por população, limites abertos e ausência de dados ficam indisponíveis.
+As cores descrevem o intervalo do laudo, sem avaliação clínica. Revisar continua
+distinto de aprovar/publicar ao paciente. [Checkpoints](CHECKPOINTS_ENTREGAS.md)
+e [status](STATUS_ATUAL.md) registram validação e publicação.
 
 ## Robustez de PDFs longos — #114/#115 publicados em 10/10
 
@@ -119,4 +145,4 @@ Desde o adapter .3, a extração recupera diferenças de espaço/grafia e coluna
 
 ## Próxima entrega
 
-Próximo slice: **continuação entre leases e retomada médica de jobs esgotados**, aproveitando texto/checkpoints e preservando a execução anterior. Depois, validar aprovação médica e publicação explícita de fatos aprovados ao paciente, com resumo curto e acesso ao original. Ampliar corpus por tipo e medir estabilidade antes de IA3/interpretação. [IA1 e plano de IA](PLANO_IA_CLINICA.md), produção separada e [Gate P](GATE_P.md) precedem dados reais ou uso clínico. CI, READY e teste sintético não são aceite médico.
+Após concluir a publicação/recuperação do slice acima: validar aprovação médica e publicação explícita de fatos aprovados ao paciente, com resumo curto e acesso ao original. Ampliar corpus por tipo e medir estabilidade antes de IA3/interpretação. [IA1 e plano de IA](PLANO_IA_CLINICA.md), produção separada e [Gate P](GATE_P.md) precedem dados reais ou uso clínico. CI, READY e teste sintético não são aceite médico.

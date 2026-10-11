@@ -21,6 +21,8 @@ import { staffShortcuts } from "@/modules/workspace/navigation";
 import { clinicDate } from "@/modules/agenda/validation";
 import { StaffPatientDocumentsPanel } from "@/components/documents-workspace";
 import type { StaffDocuments } from "@/modules/documents/service";
+import { ExamResultsPanel } from "@/components/exam-results-panel";
+import type { ExamResult, ExamResultsView } from "@/modules/exams/results";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +69,37 @@ export default async function RefinementsPreview({ searchParams }: {
       </div><div className="empty"><h3>Nenhum paciente cadastrado</h3><p>Prévia local com convites fictícios. Nenhum envio deve ser realizado aqui.</p></div></section>
       <aside className="dv-registration-aside"><section className="dv-registration-guide"><h2>Um convite, um novo começo</h2><p>A pessoa confirma seu acesso e preenche o perfil inicial. A ficha aparece aqui assim que ela aceita o convite.</p><ol><li>Informe nome e contato.</li><li>Compartilhe o link ou envie por e-mail.</li><li>Acompanhe o aceite nesta lista.</li></ol></section><details className="dv-disclosure"><summary>Cadastrar sem acesso ao app</summary><p>Para quem prefere começar com ajuda da equipe.</p></details></aside>
     </div></div></DoctorShell>;
+  if (tela === "resultados-exames") {
+    const failedId = "00000000-0000-4000-8000-000000000041";
+    const staleId = "00000000-0000-4000-8000-000000000042";
+    const result = (index: number, name: string, value: string | null, unit: string | null, reference: string | null, numeric: number | null, kind = "laboratory"): ExamResult => ({
+      id: `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
+      document_id: failedId, page_number: index + 1, item_index: index,
+      item_kind: kind, literal_name: `${name} · FICTÍCIO`, literal_value: kind === "narrative" ? null : value,
+      numeric_value: numeric, unit_text: unit, reference_text: reference, observed_on: "2026-10-09",
+      narrative_text: kind === "narrative" ? value : null,
+      source_excerpt: `${name}\nResultado: ${value ?? "não informado"}${unit && value && !value.includes(unit) ? ` ${unit}` : ""}\nReferência: ${reference ?? "não informada"}\nTrecho fictício usado apenas na prévia.`,
+      requires_review_reason: "ai_extraction", reviews: [],
+    });
+    const view: ExamResultsView = { documents: [
+      { id: failedId, title: "Painel laboratorial de 25 páginas · FICTÍCIO", receivedAt: instant(-120), processingStatus: "failed", canResume: true,
+        pageCount: 25, extractedPageCount: 25, observedOn: "2026-10-09", issuer: "Laboratório fictício", summary: [], qualityNotes: ["A organização ainda precisa de conferência médica."],
+        items: [
+          result(1, "Glicose", "108", "mg/dL", "70–99 mg/dL", 108),
+          result(2, "Hemoglobina", "10,9", "g/dL", "12,0–16,0 g/dL", 10.9),
+          result(3, "TSH", "2,4", "µUI/mL", "0,4–4,0 µUI/mL", 2.4),
+          result(4, "Colesterol total", "180 mg/dL", "mg/dL", "100–190 mg/dL", 180),
+          result(5, "Ferritina", "20", "ng/mL", null, 20),
+          result(6, "Observação do laudo", "Texto narrativo fictício, sem medida comparável.", null, null, null, "narrative"),
+        ] },
+      { id: staleId, title: "Arquivo com organização interrompida · FICTÍCIO", receivedAt: instant(-240), processingStatus: "processing", canResume: true,
+        pageCount: 3, extractedPageCount: 3, observedOn: null, issuer: null, summary: [], qualityNotes: [], items: [] },
+    ] };
+    return <DoctorShell clinic={{ id: tenant, name: "Clínica demonstrativa", role: "doctor", displayName: "Dra. Marina · FICTÍCIO" }} active="patients" notificationCount={0}>
+      <section className="notice" aria-label="Prévia local"><strong>Prévia local · dados inteiramente fictícios</strong><p>Exibição para conferir a interface. A retomada usa a rota real e requer acesso autorizado; esta prévia não cria registros.</p></section>
+      <ExamResultsPanel view={view} tenantId={tenant} />
+    </DoctorShell>;
+  }
   const context: PatientCareContext = {
     relationshipId: "synthetic-relationship", canReviewPreparation: true,
     encounter: { id: "synthetic-previous", finalized_at: instant(-1440), evolution: "Registro demonstrativo de acompanhamento." },
@@ -108,6 +141,7 @@ export default async function RefinementsPreview({ searchParams }: {
         <Link href="/refinamentos-preview?tela=onboarding">Onboarding</Link>
         <Link href="/refinamentos-preview?tela=mensagens">Mensagens</Link>
         <Link href="/refinamentos-preview?tela=documentos">Documentos</Link>
+        <Link href="/refinamentos-preview?tela=resultados-exames">Resultados de exames</Link>
       </nav>
     </section>
     {tela === "agenda" ? <Agenda tenantId={tenant} today={today} date={today} currentTime={now.toISOString()} canStart canManage truncated={false}

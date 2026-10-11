@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { displayedExamValue, displayedExamUnit, displayedExamReference, displayedExamObservedDate, examBriefTopics, examReferencePosition, latestExamReview, examProcessingMessage, type ExamResult } from "../modules/exams/results.ts";
+import { displayedExamValue, displayedExamValueWithUnit, displayedExamUnit, displayedExamReference, displayedExamObservedDate, examBriefTopics, examReferencePosition, latestExamReview, examProcessingMessage, type ExamResult } from "../modules/exams/results.ts";
 
 test("processing failure distinguishes available PDF text from unfinished result organization", () => {
   const document = { id: "d", title: "Fictício", receivedAt: "2026-10-10", observedOn: null, issuer: null,
@@ -29,6 +29,21 @@ test("comparison accepts only an unambiguous interval with matching unit", () =>
   assert.equal(examReferencePosition({ ...item, numeric_value: null }), null);
   assert.equal(examReferencePosition({ ...item, literal_value: "108?" }), null);
   assert.equal(examReferencePosition({ ...item, literal_value: "109" }), null);
+});
+
+test("literal values with their printed unit stay exact and are shown once", () => {
+  const embedded = { ...item, literal_value: "108 mg/dL" };
+  assert.equal(displayedExamValueWithUnit(embedded), "108 mg/dL");
+  assert.equal(examReferencePosition(embedded), "above");
+  assert.equal(displayedExamValueWithUnit({ ...embedded, literal_value: "108mg/dL" }), "108mg/dL");
+  assert.equal(examReferencePosition({ ...embedded, literal_value: "108mg/dL" }), "above");
+  assert.equal(displayedExamValueWithUnit({ ...item, literal_value: "108" }), "108 mg/dL");
+  assert.equal(examReferencePosition({ ...embedded, unit_text: "mmol/L" }), null);
+  assert.equal(examReferencePosition({ ...embedded, reference_text: "70–99 mg/dL, adultos" }), null);
+  const reviewed = { ...embedded, reviews: [{ id: "unit-review", version: 1, decision: "corrected",
+    corrected_data: { literal_value: "80 mg/dL", reference_text: "70–99 mg/dL" }, reviewed_at: "2026-10-10T10:00:00Z" }] };
+  assert.equal(displayedExamValueWithUnit(reviewed), "80 mg/dL");
+  assert.equal(examReferencePosition(reviewed), "within");
 });
 
 test("latest review governs display and simple corrected text is compared without conversion", () => {

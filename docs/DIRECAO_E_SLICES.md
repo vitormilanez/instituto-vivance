@@ -10,9 +10,11 @@ publicado tecnicamente: formatação literal de PDF, validação de payload e
 checkpoints por lote para evitar pagar novamente pelos concluídos. A verificação
 remota revelou referências descartadas e duplicatas; o [PR #115](https://github.com/vitormilanez/instituto-vivance/pull/115)
 corrigiu esses achados e também foi publicado. Haiku 5.5 inicial + Sonnet 5.5
-seletivo; sem interpretação clínica. Próximo slice: continuar entre leases e
-recuperar jobs que esgotaram tentativas, reaproveitando texto/lotes. O PDF
-anteriormente reportado ainda aguarda recuperação. Isso precede a publicação
+seletivo; sem interpretação clínica. Slice autorizado em execução: continuar
+entre leases e recuperar jobs que esgotaram tentativas, reaproveitando texto/lotes,
+com retomada médica e destaque de valores acima/abaixo/dentro da referência do
+próprio laudo. O PDF anteriormente reportado aguarda a publicação e recuperação.
+Isso precede a publicação
 ao paciente. Estado de publicação e evidência em [STATUS_ATUAL](STATUS_ATUAL.md);
 contrato, limites e política econômica em [IA2_EXAMES](IA2_EXAMES.md).
 
