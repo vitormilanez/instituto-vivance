@@ -41,7 +41,8 @@
 - [x] [#114](https://github.com/vitormilanez/instituto-vivance/pull/114) integrado/publicado: 512 testes CI/release; migration `20261010234104` (69), Edge v12/adapter `.5`, deployment `dpl_Fp46Tkhys3rTQT6BpNABqh48AY4S`, ambos os aliases conferidos.
 - [x] Retomada remota sintética: 25/25 páginas, mesma run, dois lotes preservados da primeira tentativa, segunda tentativa completa; nove checkpoints. DOM médico confirmou texto disponível no PDF esgotado, que não foi recuperado.
 - [x] Correção local dos achados remotos: referência não é próximo analito, unidade repetida deduplica e Resultado/Valor só fica coberto na mesma ocorrência do rótulo. 518 testes e Deno check; reaplicação offline do cache: 25 itens/25 páginas com referência/unidade/data, zero offsets inválidos/lacunas; nenhuma nova chamada Claude.
-- [ ] Publicar adapter `.6` e confirmar remotamente referência/unidade/data; histórico anterior de 29 itens imutável. Branch `codex/exames-referencia-literal-20261010`, prompt `.4`.
+- [x] [#115](https://github.com/vitormilanez/instituto-vivance/pull/115) integrado em `9fcda943`; CI `38096991481` e release `38097072816` passaram 518 testes. Edge v13/adapter `.6`, prompt `.4`; deployment `dpl_f6HaN9AF3ogADrmgMZG1tFRkovYC`, ambos os aliases conferidos. Sem migration nova; publicação manual após etapas automáticas skipped.
+- [x] Novo PDF fictício de três páginas completou na primeira tentativa: três medições com unidade/referência/data, nome multiline, dois checkpoints (Haiku + auditoria Sonnet). Médico autenticado abriu item, fonte na página 2 e conferência no domínio principal. Histórico anterior de 29 itens imutável; PDF esgotado continua sem reprocessamento. IDs em [CONTA_TESTE](CONTA_TESTE.md).
 - [ ] Próximo reforço operacional: continuação entre leases e retomada médica de job que esgotou tentativas; medir cobertura/estabilidade com gabarito médico.
 
 ## Próximos gates clínicos
