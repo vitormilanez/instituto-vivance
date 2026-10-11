@@ -2,6 +2,16 @@
 
 ## Limpeza e lista de convites — 11/10/2026, 17h
 
+**Publicado e conferido:** [PR129](https://github.com/vitormilanez/instituto-vivance/pull/129)
+integrado em `56b4ded`; deployment `dpl_DFyCXvM2WSPTGRPxBCvG3Jn87nPu`
+production/READY do mesmo SHA recebeu os domínios automaticamente. CI536testes
+e release verify passaram; migrate/promote automáticos skipped, migration
+aplicada via CLI antes do merge. Sessão médica real no domínio confirmou
+“Excluir da lista” → PATCH200 → lista vazia, paciente QA mantido. Fixture e
+seus audits removidos depois, sem envio de mensagens. Desktop1440/mobile390
+sem overflow/alvos44px; logs de erro limitados a10min zerados. Nenhuma Edge/SMTP
+nova; operação e limites no documento da raiz abaixo.
+
 Pedido explícito de manter só médico e QA executado no dev confirmado.
 Restam `guilhe.martins@gmail.com` e `paciente.teste@vivance.example`, um paciente
 QA com seus nove arquivos/exames e dois memberships. Quatro Auth/três
@@ -14,7 +24,7 @@ Opção médica “Excluir da lista” implementada com confirmação: cancela u
 pendente antes de ocultar; aceitos/cancelados ficam ocultos sem apagar paciente
 ou conta. Arquivamento auditável com sessão viva/tenant/papel/autor. Revisão
 independente aprovada; 536 testes, tipos, lint/build passaram no Node 24.21.0.
-Migration `20261011202934` aplicada e pareada; publicação ainda pendente neste checkpoint.
+Migration `20261011202934` aplicada e pareada; publicação conferida no bloco acima.
 Gate P/aceite clínico não alterados; exclusão não abrange logs/e-mails externos.
 
 ## Publicação automática do site — 11/10/2026

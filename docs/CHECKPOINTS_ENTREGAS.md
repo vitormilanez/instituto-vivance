@@ -5,7 +5,7 @@
 - [x] Reset autorizado: só médico/QA, um paciente, nove documentos/objetos, zero convites antigos; sessões revogadas, hashes preservados, 100 tabelas/173 FKs conferidas.
 - [x] Ação “Excluir da lista” com confirmação, arquivamento auditável e cancelamento atômico de pendente; não apaga paciente/conta; revisão independente aprovada.
 - [x] Migration `20261011202934` aplicada e pareada; 536 testes/tipos/lint/build Node24 passaram; Edge/SMTP não necessários.
-- [ ] Publicar/conferir UI no domínio.
+- [x] PR129/main56b4ded no domínio, deployment dpl_DFyCXvM2WSPTGRPxBCvG3Jn87nPu; CI/release verify passaram, automações de backend/promoção skipped. Browser médico→PATCH200→banco conferido, fixture final removida, lista0/QA mantido; desktop1440/mobile390 sem overflow.
 - [ ] Usuário gerar convites novos e validar ativação/aceite; Gate P separado.
 
 ## SMTP e convite médico — 11/10, 16h55
