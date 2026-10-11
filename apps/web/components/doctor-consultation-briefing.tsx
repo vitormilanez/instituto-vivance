@@ -124,7 +124,7 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
   return <article className="home-consultation doctor-consultation consultation-briefing" aria-labelledby={`consulta-${appointment.id}-titulo`}>
     <details className="brief-expandable" open>
       <summary className="brief-collapse-summary">
-        <div className="brief-identity"><span className="dv-avatar" aria-hidden="true">{name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span><div><h2 id={`consulta-${appointment.id}-titulo`}>{name}</h2><p><span>{eyebrow}</span> · <time dateTime={appointment.starts_at}>{appointmentClock(appointment.starts_at)}–{appointmentClock(appointment.ends_at)}</time></p><small>{appointment.kind === "return" ? "Retorno" : "Consulta"} · {appointment.doctor_display_name}</small></div></div>
+        <div className="brief-identity"><span className="dv-avatar" aria-hidden="true">{name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span><div><h2 id={`consulta-${appointment.id}-titulo`}>{name}</h2><div className="brief-appointment-meta"><p><span>{eyebrow}</span> · <time dateTime={appointment.starts_at}>{appointmentClock(appointment.starts_at)}–{appointmentClock(appointment.ends_at)}</time></p><p>{appointment.kind === "return" ? "Retorno" : "Consulta"} · {appointment.doctor_display_name}</p></div></div></div>
         <span className="brief-collapse-control"><span className="brief-minimize-label">Minimizar</span><span className="brief-expand-label">Expandir</span><ChevronRight size={18} aria-hidden="true" /></span>
       </summary>
     <div className="brief-expandable-body">
@@ -143,8 +143,7 @@ export function DoctorConsultationBriefing({ base, tenantId, appointment, eyebro
       <div className="brief-content">
         <div className="brief-narrative">
           <section className="brief-summary" aria-labelledby={`brief-${appointment.id}`}>
-            <div className="brief-section-heading"><h3 id={`brief-${appointment.id}`}>Para esta consulta</h3></div>
-            <p className="brief-mode">{brief?.mode === "ai" ? "Seleção assistida de trechos literais · conferir as fontes" : "Trechos literais e pendências · conferir as fontes"}</p>
+            <div className="brief-summary-heading"><h3 id={`brief-${appointment.id}`}>Para esta consulta</h3><p className="brief-mode">{brief?.mode === "ai" ? "Seleção assistida de trechos literais · conferir as fontes" : "Trechos literais e pendências · conferir as fontes"}</p></div>
             <div className="brief-summary-grid" data-has-context={Boolean(context.intake || showInitialGoal || pendingTopics.length)}>
             {(context.intake || showInitialGoal || pendingTopics.length > 0) && <div className="brief-summary-context">
             {context.intake && <div className="brief-summary-card"><DoctorCurrentGoal

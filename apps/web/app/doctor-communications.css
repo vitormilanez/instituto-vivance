@@ -184,7 +184,7 @@
   font-size: 11px;
 }
 .dv .conversation-workspace-staff .conversation-composer button:not(.secondary) {
-  min-height: 36px;
+  min-height: 44px;
   padding: 7px 13px;
   background: var(--dv-ink);
 }

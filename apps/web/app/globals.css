@@ -2288,13 +2288,13 @@ button {
 .agenda-view-controls {
   margin: 0 0 14px;
 }
-.agenda-view-controls button {
+.agenda-view-controls > button {
   min-height: 42px;
   padding: 8px 15px;
   color: var(--muted);
   font-size: 13px;
 }
-.agenda-view-controls button[aria-pressed="true"] {
+.agenda-view-controls > button[aria-pressed="true"] {
   border-color: var(--navy);
   background: var(--navy);
   color: white;
@@ -2812,7 +2812,7 @@ button.calendar-day[aria-pressed="true"] {
     overflow-x: auto;
     padding-bottom: 4px;
   }
-  .agenda-view-controls button {
+  .agenda-view-controls > button {
     flex: 0 0 auto;
   }
   .appointment-row {
@@ -3636,11 +3636,11 @@ a.more-tools-card:hover {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     overflow: visible;
   }
-  .agenda-view-controls button {
+  .agenda-view-controls > button {
     width: 100%;
     white-space: normal;
   }
-  .agenda-view-controls button:last-child {
+  .agenda-view-controls > button:last-child {
     grid-column: 1 / -1;
   }
   .workspace-main {
@@ -4634,7 +4634,7 @@ button.calendar-day[aria-current="date"]:not([aria-pressed="true"]) {
    ------------------------------------------------------------------ */
 @media (max-width: 650px) {
   .agenda-view-controls { gap: 8px; }
-  .agenda-view-controls button:last-child {
+  .agenda-view-controls > button:last-child {
     justify-self: start;
     width: auto;
     min-height: 44px;

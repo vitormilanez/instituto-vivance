@@ -23,6 +23,7 @@ export function MedicalSelector({ options, value, label, onChange, mode = "filte
   className?: string;
 }) {
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
+  const hasCounts = mode === "steps" || options.some((option) => option.count !== undefined);
   function navigate(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     if (mode !== "tabs") return;
     const enabled = options.map((option, position) => ({ option, position })).filter(({ option }) => !option.disabled);
@@ -35,12 +36,12 @@ export function MedicalSelector({ options, value, label, onChange, mode = "filte
     onChange?.(enabled[next].option.value);
     refs.current[enabled[next].position]?.focus();
   }
-  const contents = (option: MedicalSelectionOption, index: number) => <>
-    {mode === "steps" ? <strong className="medical-selector-count">{index + 1}</strong>
-      : option.count !== undefined && <strong className="medical-selector-count">{option.count === null ? "—" : option.count}</strong>}
-    <span>{option.label}</span>
+  const contents = (option: MedicalSelectionOption, index: number) => mode === "steps" ? <>
+    <strong className="medical-selector-count">{index + 1}</strong><span>{option.label}</span>
+  </> : <>
+    <span>{option.label}</span>{option.count !== undefined && <strong className="medical-selector-count">{option.count === null ? "—" : option.count}</strong>}
   </>;
-  return <div className={`medical-selector ${className}`} role={mode === "tabs" ? "tablist" : mode === "navigation" ? "navigation" : "group"} aria-label={label}>
+  return <div className={`medical-selector ${className}`} role={mode === "tabs" ? "tablist" : mode === "navigation" ? "navigation" : "group"} aria-label={label} data-mode={mode} data-has-counts={hasCounts}>
     {options.map((option, index) => option.href && mode === "navigation" && !option.disabled
       ? <Link key={option.value} href={option.href} className="medical-selector-option" data-tone={option.tone} aria-current={option.value === value ? "page" : undefined}>{contents(option, index)}</Link>
       : <button key={option.value} ref={(node) => { refs.current[index] = node; }} type="button" className="medical-selector-option" data-tone={option.tone}
