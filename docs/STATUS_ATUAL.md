@@ -1,6 +1,37 @@
 # Estado atual do Vivance
 
-**Atualizado em 10/10/2026 — #114/#115 integrados e publicados tecnicamente; retomada operacional é o próximo slice.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada: `9fcda9437ebe2786eaa4395c388fcaacecb6bdfc`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
+**Atualizado em 10/10/2026 — slice de retomada operacional e destaque de referências implementado; publicação e recuperação em andamento.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação ainda publicada: `9fcda9437ebe2786eaa4395c388fcaacecb6bdfc`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
+
+## IA2 — retomada operacional e referências (10/10)
+
+Branch `codex/exames-retomada-referencia-20261011`. Médico responsável pode
+retomar job falho/esgotado ou com lease expirado pelo botão **Retomar organização**.
+A RPC exige sessão viva, papel, vínculo e documento elegível; conserva o mesmo
+job, texto, runs e checkpoints, reinicia tentativas e audita a transição.
+Pedidos duplicados em fila/processamento ativo são idempotentes. A finalização
+agora exige o token da lease vigente sob lock; execução antiga não pode gravar
+resultados sob uma lease nova.
+
+Adapter `.7`, prompt `.4` preservado: antes de novas chamadas, o worker reserva
+tempo para persistir e devolver a lease. A pausa com progresso durável devolve
+exatamente a tentativa da claim; falha ou pausa sem progresso segue o limite
+existente. Haiku inicial e Sonnet seletivo permanecem. A interface acompanha o
+andamento por janela limitada e mantém atualização manual.
+
+Referências: verde discreto para **Dentro da referência do laudo**; âmbar com
+seta, rótulo, fundo e valor destacado para **Acima/Abaixo**; cinza quando a
+comparação é indisponível. Usa valor/unidade/referência efetivos da revisão e
+somente faixas fechadas inequívocas com unidade idêntica. Não converte unidades,
+não escolhe faixa por população e não classifica saúde/conduta. Filtros permitem
+ver exceções e resultados dentro da faixa. Interface local em 1440/390/320 px;
+fixtures explícitas, sem dados reais nas capturas.
+
+Publicação da migration `20261011002635`, Edge, aplicação e recuperação do
+documento `89d96ca4-f5e9-427e-acd4-1a0116b4f749` ainda pendentes neste registro.
+O PDF reportado tem 25/25 páginas de texto no job
+`fd1100d4-7000-4254-b1ee-6436d9256f92`, run
+`08779990-c35f-41b9-ae80-12493d5b5ba7`, sem checkpoints nem itens antes da retomada.
+Original e histórico serão preservados; não há publicação clínica ao paciente.
 
 ## IA2 — texto primeiro, checkpoints e qualidade literal (#114/#115)
 

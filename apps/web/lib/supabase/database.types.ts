@@ -1671,6 +1671,26 @@ export type Database = {
         Args: { target_tenant: string; target_document: string };
         Returns: string;
       };
+      resume_exam_extraction: {
+        Args: { target_tenant: string; target_document: string };
+        Returns: { job_id: string; status: string; resumed: boolean }[];
+      };
+      continue_exam_text_extraction_job: {
+        Args: { target_job: string; target_lease: string };
+        Returns: boolean;
+      };
+      persist_queued_exam_ai_extraction: {
+        Args: {
+          target_run: string;
+          target_job: string;
+          target_lease: string;
+          structured_extractor_name: string;
+          structured_extractor_version: string;
+          items: Json;
+          metadata: Json | null;
+        };
+        Returns: number;
+      };
       register_exam_ai_test_patient: {
         Args: { target_tenant: string; target_patient: string };
         Returns: boolean;

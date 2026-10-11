@@ -5071,12 +5071,14 @@ test("exam text persistence requires an explicitly registered synthetic document
       quality_notes: ["Nenhum item extraído com proveniência suficiente."],
       model: "claude-test", prompt_version: "1", input_tokens: 12, output_tokens: 8,
     };
-    const persistEmptyBundle = "select public.persist_exam_ai_extraction($1,'claude-test','1',$2::jsonb,$3::jsonb) count";
+    const persistEmptyBundle = "select public.persist_queued_exam_ai_extraction($1,$2,$3,'claude-test','1',$4::jsonb,$5::jsonb) count";
     await db.exec("set local role service_role");
     await db.query("select set_config('request.jwt.claims','{\"role\":\"service_role\"}',true)");
-    await denied(persistEmptyBundle, [queuedRun.rows[0].id, JSON.stringify({}), JSON.stringify(metadataOnly)]);
+    await denied(persistEmptyBundle, [queuedRun.rows[0].id, firstJob.rows[0].id,
+      claim.rows[0].lease_token, JSON.stringify({}), JSON.stringify(metadataOnly)]);
     assert.equal((await db.query<{ count: number }>(persistEmptyBundle,
-      [queuedRun.rows[0].id, JSON.stringify([]), JSON.stringify(metadataOnly)])).rows[0].count, 0);
+      [queuedRun.rows[0].id, firstJob.rows[0].id, claim.rows[0].lease_token,
+        JSON.stringify([]), JSON.stringify(metadataOnly)])).rows[0].count, 0);
     await db.exec("reset role");
     assert.equal((await db.query("select id from public.exam_result_items where extraction_run_id=$1",
       [queuedRun.rows[0].id])).rows.length, 0);
@@ -5113,6 +5115,11 @@ test("exam text persistence requires an explicitly registered synthetic document
     }];
     await db.exec("set local role service_role");
     await db.query("select set_config('request.jwt.claims','{\"role\":\"service_role\"}',true)");
+    // Legacy runs without a job remain testable by the SQL owner; the Data API
+    // service role cannot call these unfenced helpers after the new migration.
+    await denied("select public.persist_synthetic_exam_result_items($1,'synthetic-structure','1',$2::jsonb)",
+      [reviewed.rows[0].id, JSON.stringify(structuredItems)]);
+    await db.exec("reset role");
     assert.equal((await db.query<{ count: number }>(
       "select public.persist_synthetic_exam_result_items($1,'synthetic-structure','1',$2::jsonb) count",
       [reviewed.rows[0].id, JSON.stringify(structuredItems)],
@@ -5315,8 +5322,9 @@ test("exam text persistence requires an explicitly registered synthetic document
     const imageItems = [{ ...aiItems[0], source_page_id: imagePage.rows[0].id,
       source_excerpt: imageText, source_end: imageText.length, narrative_text: imageText }];
     const imageMetadata = { ...metadata, title: "Imagem sintética", summary: [imageText] };
-    const persistBundle = "select public.persist_exam_ai_extraction($1,'claude-test','1',$2::jsonb,$3::jsonb) count";
-    await denied(persistBundle, [imageRun.rows[0].id, JSON.stringify(imageItems),
+    const persistBundle = "select public.persist_queued_exam_ai_extraction($1,$2,$3,'claude-test','1',$4::jsonb,$5::jsonb) count";
+    await denied(persistBundle, [imageRun.rows[0].id, imageClaim.rows[0].job_id,
+      imageClaim.rows[0].lease_token, JSON.stringify(imageItems),
       JSON.stringify({ ...imageMetadata, title: "" })]);
     await db.exec("reset role");
     assert.equal((await db.query("select id from public.exam_result_items where extraction_run_id=$1",
@@ -5326,9 +5334,11 @@ test("exam text persistence requires an explicitly registered synthetic document
     await db.exec("set local role service_role");
     await db.query("select set_config('request.jwt.claims','{\"role\":\"service_role\"}',true)");
     assert.equal((await db.query<{ count: number }>(persistBundle,
-      [imageRun.rows[0].id, JSON.stringify(imageItems), JSON.stringify(imageMetadata)])).rows[0].count, 1);
+      [imageRun.rows[0].id, imageClaim.rows[0].job_id, imageClaim.rows[0].lease_token,
+        JSON.stringify(imageItems), JSON.stringify(imageMetadata)])).rows[0].count, 1);
     assert.equal((await db.query<{ count: number }>(persistBundle,
-      [imageRun.rows[0].id, JSON.stringify(imageItems), JSON.stringify(imageMetadata)])).rows[0].count, 0);
+      [imageRun.rows[0].id, imageClaim.rows[0].job_id, imageClaim.rows[0].lease_token,
+        JSON.stringify(imageItems), JSON.stringify(imageMetadata)])).rows[0].count, 0);
     await db.query("select public.complete_processing_job($1,$2)",
       [imageClaim.rows[0].job_id, imageClaim.rows[0].lease_token]);
     await db.exec("reset role");

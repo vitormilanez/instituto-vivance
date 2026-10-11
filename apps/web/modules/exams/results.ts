@@ -29,6 +29,7 @@ export type ExamDocumentResult = {
   title: string;
   receivedAt: string;
   processingStatus?: "pending" | "processing" | "failed" | "completed" | null;
+  canResume?: boolean;
   pageCount?: number;
   extractedPageCount?: number;
   observedOn: string | null;
@@ -86,6 +87,15 @@ export function displayedExamObservedDate(item: ExamResult) {
   return latestExamReview(item)?.decision === "rejected" ? null : effectiveText(item, "observed_on", item.observed_on);
 }
 
+export function displayedExamValueWithUnit(item: ExamResult) {
+  const value = displayedExamValue(item);
+  if (!value) return null;
+  const unit = item.item_kind === "laboratory" ? displayedExamUnit(item)?.trim() : null;
+  const trimmed = value.trimEnd();
+  const prefix = unit && trimmed.endsWith(unit) ? trimmed.slice(0, -unit.length) : "";
+  return unit && !/[\d\s]$/.test(prefix) ? `${value} ${unit}` : value;
+}
+
 // Compare only unambiguous literal numbers against a plain closed interval
 // explicitly written in the same unit. This does not convert units or infer
 // meaning from inequalities, population-specific ranges or grouped numbers.
@@ -101,7 +111,9 @@ export function examReferencePosition(item: ExamResult): "below" | "within" | "a
   const unit = displayedExamUnit(item)?.trim() ?? "";
   const ref = displayedExamReference(item)?.trim() ?? "";
   if (!unit || !ref) return null;
-  const numeric = plainExamNumber(literal);
+  const numericLiteral = literal.endsWith(unit) && plainExamNumber(literal.slice(0, -unit.length).trim()) !== null
+    ? literal.slice(0, -unit.length).trim() : literal;
+  const numeric = plainExamNumber(numericLiteral);
   if (numeric === null) return null;
   const corrections = effectiveExamCorrections(item);
   if (!corrections || !Object.prototype.hasOwnProperty.call(corrections, "literal_value")) {
@@ -125,7 +137,6 @@ export function examBriefTopics(view: ExamResultsView, tenantId: string, patient
     })
     .map((item) => ({ document, item })));
   const topics = reviewed.slice(0, 3).map(({ document, item }) => {
-    const unit = displayedExamUnit(item);
     const corrections = effectiveExamCorrections(item);
     const correctedDate = corrections && Object.prototype.hasOwnProperty.call(corrections, "observed_on");
     const observedDate = correctedDate ? displayedExamObservedDate(item) : displayedExamObservedDate(item) ?? document.observedOn;
@@ -133,7 +144,7 @@ export function examBriefTopics(view: ExamResultsView, tenantId: string, patient
       ? ` · ${new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${observedDate}T12:00:00Z`))}`
       : "";
     return {
-      text: `${item.literal_name}: ${displayedExamValue(item)}${unit ? ` ${unit}` : ""}${dateLabel}.`,
+      text: `${item.literal_name}: ${displayedExamValueWithUnit(item)}${dateLabel}.`,
       itemId: item.id,
       documentId: document.id,
       href: `${documentsHref}#resultado-${encodeURIComponent(item.id)}`,
