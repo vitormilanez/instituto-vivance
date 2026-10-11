@@ -1,13 +1,32 @@
 # Estado atual do Vivance
 
-Recomendação de 11/10: Resend Free para SMTP de convites. Conta do provedor,
-DNS do subdomínio de envio e credencial de envio ainda não configurados;
-Supabase Free permanece. O template médico continua preparado mas não ativo.
-[Passos e custos na raiz](../OPERACAO_SUPABASE_EMAIL.md).
+## Convite Auth por e-mail — 11/10/2026, 16h55 (São Paulo)
+
+Resend Free conectado ao Auth do `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`).
+O subdomínio `auth.institutovivance.app` está verificado no Resend: DKIM e
+os dois CNAMEs de envio publicados na zona Vercel e marcados `Verified`.
+SMTP próprio e assunto/corpo do template **Invite user** foram aplicados pela
+CLI Supabase com configuração isolada; leitura posterior mostrou zero diferenças.
+Remetente: `Vivance <convites@auth.institutovivance.app>`. Nenhuma chave entrou
+no Git ou nesta documentação. Supabase continua no Free, sem compra de Pro.
+
+Um único convite de teste para alias sintético do Gmail do responsável foi
+aceito pelo Auth, marcado **Delivered** pelo Resend e encontrado no Gmail às
+16h54. HTML em português exibiu Dr. Guilherme Martins, CRM-SP 182364 e CTA.
+**Caiu inicialmente em Spam**: Gmail indicou semelhança com mensagens já
+classificadas como spam, apesar de mostrar `mailed-by` e `signed-by` do
+subdomínio e TLS. O responsável foi marcado como “não é spam” apenas nessa
+caixa; isso não garante a caixa de entrada de terceiros. A identidade Auth
+sintética não confirmada criada para o teste foi apagada por ID guardado e sua
+ausência confirmada; o link recebido não deve ser usado. Não houve ativação
+ou aceite de convite de paciente neste teste. Monitorar entregabilidade antes
+de considerar esse fluxo aceito com destinatários reais.
+
+[Configuração e próximos cuidados na raiz](../OPERACAO_SUPABASE_EMAIL.md).
 
 ## Publicação técnica vigente — 11/10/2026, tarde
 
-Auditoria adicional a pedido do usuário: CLI confirmou acesso/vínculo ao projeto;
+Fotografia anterior, superada pelo bloco acima: CLI confirmou acesso/vínculo ao projeto;
 comparação explícita de SMTP desabilitado e campos vazios retornou zero diferenças.
 SMTP próprio não configurado; nenhuma variável de provedor nos dois arquivos
 locais consultados. Nenhuma alteração remota nesta auditoria. Índice sem segredos
@@ -40,9 +59,8 @@ Paciente QA entrou pela interface, abriu alimentação com as cinco escolhas
 e manteve sessão após recarga; sem novos registros nesta publicação. O percurso
 de persistência paciente → médico é evidência do Preview #121, não repetido aqui.
 
-**Pendente operacional:** CLI recusou template com HTTP 400 no free tier/provedor
-padrão: requer SMTP próprio ou plano diferente. HTML preparado, **não ativo**;
-sem contratação ou alteração de plano. E-mail de Alfredo permanece pendente de
+**Pendente naquela rodada, resolvido tecnicamente às 16h55:** CLI recusou template com HTTP 400 no free tier/provedor
+padrão; SMTP próprio foi configurado depois e o HTML está ativo. O e-mail de Alfredo permanece pendente de
 ativação; seu WhatsApp já estava revogado antes desta rodada. Usar o e-mail mais
 recente ou solicitar recuperação/reenvio, não insistir no link cancelado.
 
