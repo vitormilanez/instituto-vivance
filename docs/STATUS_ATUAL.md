@@ -1,8 +1,8 @@
 # Estado atual do Vivance
 
-**Atualizado em 10/10/2026 — #114 integrado e publicado tecnicamente; ajuste adicional de referência/deduplicação em validação.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada: `0d4619b808ee272f9721b0002b7036ea1a1855fe`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
+**Atualizado em 10/10/2026 — #114/#115 integrados e publicados tecnicamente; retomada operacional é o próximo slice.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada: `9fcda9437ebe2786eaa4395c388fcaacecb6bdfc`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
 
-## IA2 — texto primeiro e checkpoints publicados (#114)
+## IA2 — texto primeiro, checkpoints e qualidade literal (#114/#115)
 
 [PR #114](https://github.com/vitormilanez/instituto-vivance/pull/114) integrado
 em `0d4619b808ee272f9721b0002b7036ea1a1855fe`. CI `38096376336` e release
@@ -13,7 +13,7 @@ Checkpoints com RLS; SELECT apenas service_role e escrita pela RPC de lease.
 Advisor novo: INFO de RLS sem policy, intencional para tabela interna; nenhum WARN
 novo. [Contrato, custos e limites](IA2_EXAMES.md).
 
-Edge `exam-text-worker` v12 ACTIVE, hash
+Publicação inicial #114: Edge `exam-text-worker` v12 ACTIVE, hash
 `e089e6707e245155113ecb31fb15d8661c09670a45d408aa26158b8ddefb2e4f`,
 adapter `.5`, prompt `.4`. Haiku 5.5 inicial e Sonnet 5.5 seletivo disponíveis no
 inventário real. Deployment Git `dpl_Fp46Tkhys3rTQT6BpNABqh48AY4S`
@@ -31,14 +31,40 @@ tentativa guardou dois lotes e a segunda completou a mesma run. Nove checkpoints
 produziu 29 itens para 25 medições e perdeu referências no grounding**; é evidência
 de retomada, não de qualidade completa. Histórico imutável preservado.
 
-A validação revelou linha de referência confundida com próximo analito e unidade
-repetida impedindo deduplicação. Correção delimitada na branch
-`codex/exames-referencia-literal-20261010`, adapter `.6` com prompt `.4` preservado
-para reutilizar respostas pagas. Local: 518 testes, lint/typecheck/build e Deno check passaram. Reaplicação offline
+O [PR #115](https://github.com/vitormilanez/instituto-vivance/pull/115) corrigiu linha
+de referência confundida com próximo analito, unidade repetida impedindo
+deduplicação e auditoria de Resultado/Valor vinculada à ocorrência literal do
+nome. Integrado em `9fcda9437ebe2786eaa4395c388fcaacecb6bdfc`, adapter
+`1.8.1+vivance-claude.6`, prompt `.4` preservado para reutilizar respostas pagas.
+Local, CI `38096991481` e release `38097072816`: 518 testes,
+lint/typecheck/build passaram; Deno check local passou. Reaplicação offline
 às nove respostas QA salvas trouxe 25 itens/25 páginas, 25 referências, unidades e
 datas, zero offsets inválidos e zero lacunas detectadas, sem nova chamada Claude
-ou alteração do histórico. Ainda em validação remota; registrar publicação e
-resultado efetivo antes de afirmar qualidade corrigida no ambiente.
+ou alteração do histórico. Os 29 itens da primeira run permanecem como histórico;
+não foram substituídos pelo resultado offline.
+
+Publicação vigente #115: Edge `exam-text-worker` v13 ACTIVE, hash
+`e154b52c4d1b2750f60abd28c854c14e3d3e9e0ea525fd4337f63af93cfc0ac3`.
+Sem nova migration; 69 no dev. Etapas automáticas de banco/Edge/promoção/domínio
+ficaram skipped por configuração; Edge e aliases publicados pela CLI e conferidos.
+Deployment Git `dpl_f6HaN9AF3ogADrmgMZG1tFRkovYC`
+([URL técnica](https://instituto-vivance-2brkxghbe-vtr-consulting.vercel.app))
+READY/production no SHA #115. Conta `vtrconsulting`, equipe `vtr-consulting`,
+projeto `instituto-vivance`/`prj_ligeZuFRycRXA21u5rRzaLAORTrI` conferidos.
+Ambos os aliases inspecionados no mesmo ID: principal três HTTP 200 (TTFB
+0,388–1,648 s); secundário três 307 para o principal (0,114–0,159 s).
+Rollback conhecido: `dpl_Fp46Tkhys3rTQT6BpNABqh48AY4S` (#114).
+
+Confirmação remota #115: novo PDF **inteiramente fictício** de três páginas,
+documento `976f638e-7235-4fd1-84ce-767c89a997f7`, run
+`2be8f60d-1e11-4b92-b775-9b725b4a1fd2`, completou na primeira tentativa.
+Três páginas/medições com unidade `mg/dL`, referência `70 a 120 mg/dL` e data
+`2026-10-09`; nome com quebra de linha preservado. Dois checkpoints: Haiku inicial
+e auditoria Sonnet de uma página. A sessão médica autenticada no domínio principal
+mostrou três resultados desse documento, origem na página 2, referência/data e
+formulário de conferência. Total da ficha: 77 resultados/76 pendentes/oito arquivos,
+incluindo histórico; contagem não comprova completude clínica. Não houve decisão
+médica, publicação ao paciente, novo teste de isolamento ou Preview separado.
 
 Médico autenticado confirmou no domínio a mensagem **Organização não concluída**
 do PDF anteriormente reportado: texto das 25 páginas disponível e original
@@ -84,13 +110,13 @@ não foi executado. Tarefa Asana `1219378497566919` registra a entrega técnica;
 aceite de usabilidade do médico permanece pendente. O contrato IA2 e os gates
 abaixo não mudaram.
 
-## IA2 — estado vigente
+## IA2 — histórico das correções #109/#110
 
 O [PR #109](https://github.com/vitormilanez/instituto-vivance/pull/109) foi integrado. CI `38091031080` e release `38091148065` passaram com **499 testes**. A migration `20261010220240` foi aplicada ao `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), totalizando 68; `exam-text-worker` v10 executava extractor .3 nessa publicação anterior. O deployment `dpl_RA2tuX9j5juaihWkbskxgA4cWvQd` foi conferido production/READY no SHA `8be017c` do #109; é histórico e não o frontend vigente. Publicação técnica não constitui aceite médico.
 
 Na interface médica autenticada, foram corrigidos unidade `mg/dl` e referência `70 a 99 mg/dl` na revisão v2, data de 9 de outubro na v3 e confirmação sem recarga na v4. Após recarga, a revisão e o briefing conservaram data e unidade; em 390 px não houve overflow. A fixture original foi restaurada pela interface na v5. O item sintético de Glicose é `c56ba11a-9fa3-4a5e-aab0-67c8c5da228a`; a conta QA permanente permaneceu intacta. Essas revisões verificam correção e persistência do item, sem publicar resultados ao paciente.
 
-O reprocessamento com extractor .3 revelou **10 itens para cinco resultados** quando número e unidade apareciam ora juntos, ora separados. O [PR #110](https://github.com/vitormilanez/instituto-vivance/pull/110) integrou a deduplicação em `91970c09f35469673674adc32a661d8d174d9820`. CI `38091972763` e release `38092076115` passaram com **504 testes**, lint, typecheck e build; 16 testes focados finais também passaram. Etapas automáticas de migration, Edge, promoção e confirmação de domínio foram ignoradas por configuração; a execução manual foi conferida. Não houve nova migration: `20261010220240` permanece a última, 68 no total. Edge `exam-text-worker` v11 ACTIVE tem hash `ea9ade65a514e0c02b6a6210dbe9d1f740d28382650e6bee44eeb31127f83a85`, extractor 1.8.1, adapter `vivance-claude.4` e prompt `vivance-exams-20261010.3`. A versão completa do extractor é `1.8.1+vivance-claude.4`.
+O reprocessamento com extractor .3 revelou **10 itens para cinco resultados** quando número e unidade apareciam ora juntos, ora separados. O [PR #110](https://github.com/vitormilanez/instituto-vivance/pull/110) integrou a deduplicação em `91970c09f35469673674adc32a661d8d174d9820`. CI `38091972763` e release `38092076115` passaram com **504 testes**, lint, typecheck e build; 16 testes focados finais também passaram. Etapas automáticas de migration, Edge, promoção e confirmação de domínio foram ignoradas por configuração; a execução manual foi conferida. Não houve nova migration nessa rodada: `20261010220240` era a última, 68 no total. Edge `exam-text-worker` v11 ACTIVE tem hash `ea9ade65a514e0c02b6a6210dbe9d1f740d28382650e6bee44eeb31127f83a85`, extractor 1.8.1, adapter `vivance-claude.4` e prompt `vivance-exams-20261010.3`. A versão completa do extractor é `1.8.1+vivance-claude.4`.
 
 Deployment Git nativo `dpl_DH5etxpExwKTLPDU5d6qj6LttkwU` ([URL](https://instituto-vivance-bvmo5vtts-vtr-consulting.vercel.app)) está READY/production no SHA #110. Os dois aliases foram apontados manualmente e inspecionados no mesmo deployment. Domínio principal: três HTTP 200 com TTFB 0,132–0,269 s; secundário: três 307 (0,076–0,105 s) para o principal; `x-vercel-id` em `gru1`. Isso confirma publicação técnica, não aceite clínico.
 
