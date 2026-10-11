@@ -1,8 +1,8 @@
 # IA2 — exames sintéticos com origem verificável
 
-**Estado em 10/10/2026:** retomada operacional e destaque de referências implementados, com publicação/recuperação em andamento; 525 testes locais e lint/typecheck/build/Deno passaram. A aplicação ainda publicada é [#115](https://github.com/vitormilanez/instituto-vivance/pull/115), adapter `.6`. O novo adapter `.7` preserva prompt `vivance-exams-20261010.4`. Não houve aceite clínico. [Status](STATUS_ATUAL.md) registra SHA, CI, Edge e deployment.
+**Estado em 10/10/2026 (São Paulo):** [#117](https://github.com/vitormilanez/instituto-vivance/pull/117) integrado e publicado tecnicamente no dev sintético, com adapter `.7` e prompt `vivance-exams-20261010.4`; CI/main/release passaram 525 testes, lint/typecheck/build e Deno local. A sessão médica retomou o PDF reportado e o mesmo job/run concluiu a recuperação técnica; qualidade clínica e fonte por item seguem em conferência. Não houve aceite clínico. [Status](STATUS_ATUAL.md) registra SHA, banco, Edge, deployment e evidência.
 
-## Retomada e comparação de referências — slice de 10/10 em publicação
+## Retomada e comparação de referências — #117 publicado em 10/10
 
 Migration `20261011002635`: `resume_exam_extraction` é autenticada, exige médico
 responsável com sessão/vínculo ativos e documento elegível. Retoma o mesmo job
@@ -26,7 +26,19 @@ verde discreto. Comparação exige faixa numérica fechada e unidade idêntica;
 referências por população, limites abertos e ausência de dados ficam indisponíveis.
 As cores descrevem o intervalo do laudo, sem avaliação clínica. Revisar continua
 distinto de aprovar/publicar ao paciente. [Checkpoints](CHECKPOINTS_ENTREGAS.md)
-e [status](STATUS_ATUAL.md) registram validação e publicação.
+e [status](STATUS_ATUAL.md) registram validação e publicação técnica. Migration
+`20261011002635` aplicada (70 no dev), Edge v14 ACTIVE e aplicação no SHA
+`2454345626b56d259a71aa59c34d23a688e13850`; os quatro achados do advisor
+não incluem novos e a revogação dos writers legados foi conferida. O PDF
+reportado voltou a `pending` pela interface médica e terminou `completed`
+em `2026-10-11T00:43:31.835663Z`: mesmo job/run/hash, original e texto 25/25
+preservados, 13 checkpoints e 65 itens em 24 páginas, zero offsets inválidos.
+A UI publicada mostrou os 65 resultados para conferência. O filtro **Fora da
+referência** destacou quatro itens do PDF; a fonte de Eritrócitos abriu a página
+1 com valor, unidade, referência, data e formulário de conferência, sem gravação.
+Notas de qualidade apontam possíveis ausências em sete páginas, com auditoria
+seletiva de até quatro páginas; isso não prova completude nem equivale a revisão
+médica.
 
 ## Robustez de PDFs longos — #114/#115 publicados em 10/10
 
@@ -87,12 +99,11 @@ podem ter consumo não refletido nos contadores do resultado. Abrir a ficha não
 chama IA. [Preços](https://platform.claude.com/docs/en/about-claude/pricing) e
 [modelos](https://platform.claude.com/docs/en/models/overview).
 
-Limites vigentes: 50 páginas/500 mil caracteres por documento, auditoria seletiva
-até quatro páginas, lease único de cinco minutos e orçamento de tentativas já
-existente. Checkpoints reduzem retrabalho, mas ainda não dividem o job em leases
-de continuação. Documento que esgota tentativas requer recuperação operacional;
-retomada médica por botão e continuação de jobs são slices posteriores. Não
-prometer completude universal. A rodada local passou 512 testes, build, typecheck,
+Limites da rodada histórica #114/#115: 50 páginas/500 mil caracteres por documento,
+auditoria seletiva até quatro páginas, lease único de cinco minutos e orçamento de
+tentativas. Naquela rodada, checkpoints ainda não dividiam o job entre leases;
+o #117 acrescentou essa continuação e a retomada médica descritas acima. Não
+prometer completude universal. A rodada #114 passou 512 testes, build, typecheck,
 lint (um aviso anterior) e `deno check`; CI e release passaram também. Banco/Edge
 e frontend publicados manualmente após etapas skipped. A rodada fictícia de 25
 páginas confirmou retomada com checkpoints, mas gerou 29 itens/25 medições e
@@ -107,7 +118,9 @@ Confirmação remota posterior: PDF fictício novo de três páginas completou n
 primeira tentativa com três itens, todos com unidade/referência/data, dois
 checkpoints (Haiku inicial + auditoria Sonnet de uma página). Página de origem e
 formulário abertos na sessão médica do domínio principal. O histórico inicial de
-29 itens não foi alterado; o PDF previamente esgotado ainda requer recuperação.
+29 itens não foi alterado; o PDF previamente esgotado permaneceu sem recuperação
+na rodada #115. O #117 concluiu a recuperação técnica; avaliação médica permanece
+pendente.
 Conferir identificadores e publicação vigente no status.
 
 ## Contrato vigente
@@ -117,7 +130,7 @@ Conferir identificadores e publicação vigente no status.
 ### Evidência histórica #109/#110
 
 Os identificadores e contagens abaixo pertencem às versões anteriores. O ambiente
-vigente é #115/Edge v13, registrado no início deste documento e no status.
+vigente é #117/Edge v14, registrado no início deste documento e no status.
 
 - CI `38091031080` e release `38091148065` passaram com 499 testes. Migration `20261010220240` foi aplicada (68 no total), na publicação #109, Edge v10 com extractor .3 estava ativa e o deployment `dpl_RA2tuX9j5juaihWkbskxgA4cWvQd` estava production/READY no SHA `8be017cfaa5185d8b2f63ba73c655c4cace7e6d4`. Na UI médica autenticada, Glicose recebeu unidade `mg/dl` e referência `70 a 99 mg/dl` (v2), data de 9 de outubro (v3), confirmação sem recarga (v4) e recarga persistente no briefing. A fixture original foi restaurada pela UI (v5); 390 px sem overflow. Conta QA permanente intacta.
 - Reprocessamento .3 expôs duplicatas quando número e unidade aparecem juntos e separados: 10 itens para cinco resultados. O #110 integrou adapter `vivance-claude.4`, extractor 1.8.1 e prompt .3. CI `38091972763` e release `38092076115` passaram **504 testes**, lint, typecheck e build; 16 testes focados finais passaram. Não houve migration nova. Etapas automáticas de migration, Edge, promoção e domínio foram skipped por configuração; execução manual foi conferida.
@@ -145,4 +158,4 @@ Desde o adapter .3, a extração recupera diferenças de espaço/grafia e coluna
 
 ## Próxima entrega
 
-Após concluir a publicação/recuperação do slice acima: validar aprovação médica e publicação explícita de fatos aprovados ao paciente, com resumo curto e acesso ao original. Ampliar corpus por tipo e medir estabilidade antes de IA3/interpretação. [IA1 e plano de IA](PLANO_IA_CLINICA.md), produção separada e [Gate P](GATE_P.md) precedem dados reais ou uso clínico. CI, READY e teste sintético não são aceite médico.
+Após a recuperação técnica do PDF: conferir qualidade e fontes com médico, validar aprovação médica e publicação explícita de fatos aprovados ao paciente, com resumo curto e acesso ao original. Ampliar corpus por tipo e medir estabilidade com gabarito médico antes de IA3/interpretação. [IA1 e plano de IA](PLANO_IA_CLINICA.md), produção separada e [Gate P](GATE_P.md) precedem dados reais ou uso clínico. CI, READY e teste sintético não são aceite médico.

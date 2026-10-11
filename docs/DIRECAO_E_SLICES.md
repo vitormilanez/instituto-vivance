@@ -2,20 +2,25 @@
 
 **Decisão vigente em 10/10/2026:** cuidado longitudinal supervisionado: convite → contexto inicial → preparação → consulta → registro médico → acompanhamento → retorno. O médico interpreta e decide. Relato literal, dado extraído, cálculo, revisão, aprovação e publicação têm origem e estados separados. O [status](STATUS_ATUAL.md) distingue implementação, teste e publicação.
 
-## Prioridade atual — robustez da ingestão (10/10)
+## Prioridade atual — validar qualidade e publicação médica (10/10)
 
 Pedido vigente: exames extensos no formato PDF/foto devem preservar o texto por
 página antes da extração. [PR #114](https://github.com/vitormilanez/instituto-vivance/pull/114)
 publicado tecnicamente: formatação literal de PDF, validação de payload e
 checkpoints por lote para evitar pagar novamente pelos concluídos. A verificação
 remota revelou referências descartadas e duplicatas; o [PR #115](https://github.com/vitormilanez/instituto-vivance/pull/115)
-corrigiu esses achados e também foi publicado. Haiku 5.5 inicial + Sonnet 5.5
-seletivo; sem interpretação clínica. Slice autorizado em execução: continuar
-entre leases e recuperar jobs que esgotaram tentativas, reaproveitando texto/lotes,
-com retomada médica e destaque de valores acima/abaixo/dentro da referência do
-próprio laudo. O PDF anteriormente reportado aguarda a publicação e recuperação.
-Isso precede a publicação
-ao paciente. Estado de publicação e evidência em [STATUS_ATUAL](STATUS_ATUAL.md);
+corrigiu esses achados e também foi publicado. O [PR #117](https://github.com/vitormilanez/instituto-vivance/pull/117)
+integrou e publicou tecnicamente a continuação entre leases, a retomada médica
+de job esgotado e o destaque de valores acima/abaixo/dentro da referência do
+próprio laudo. Haiku 5.5 inicial + Sonnet 5.5 seletivo; sem interpretação clínica.
+A retomada do PDF reportado foi acionada pela sessão médica no domínio publicado;
+o mesmo job/run concluiu a recuperação técnica com texto/original preservados,
+65 itens e 13 checkpoints. A interface publicada mostrou 65 resultados para
+conferir, sem estado de falha; a fonte de Eritrócitos abriu na página 1 com
+valor/unidade/referência/data. **Qualidade e completude ainda exigem avaliação
+médica**; as notas de qualidade sinalizam possíveis ausências.
+Próxima entrega separada: aprovação médica e publicação explícita ao paciente.
+Estado de publicação e evidência em [STATUS_ATUAL](STATUS_ATUAL.md);
 contrato, limites e política econômica em [IA2_EXAMES](IA2_EXAMES.md).
 
 ## IA2 sintética publicada — próxima entrega separada
@@ -24,7 +29,7 @@ Os [PRs #106/#107](https://github.com/vitormilanez/instituto-vivance/pull/107) e
 
 A deduplicação .4 resolveu no piloto a representação de número/unidade juntos ou separados: a run .3 tinha dez itens de cinco resultados, enquanto a run .4 trouxe cinco itens em primeira tentativa do Cron. CI e release #110 passaram 504 testes; a verificação autenticada no domínio principal confirmou 25 resultados, 24 pendentes. A avaliação privada offline final fundamentou 81 itens com zero offsets inválidos, sem comprovar completude clínica. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação.
 
-Após a retomada operacional: publicação explícita ao paciente de resultados aprovados pelo médico, com resumo enxuto e acesso ao original. Revisão de transcrição não equivale a aprovação/publicação. Ampliar o corpus de qualidade por tipo e medir estabilidade antes de IA3/interpretação; a avaliação privada não é gabarito clínico.
+Após a recuperação operacional, validar com médico os resultados e fontes; então publicar explicitamente ao paciente somente fatos aprovados, com resumo enxuto e acesso ao original. Revisão de transcrição não equivale a aprovação/publicação. Ampliar o corpus de qualidade por tipo e medir estabilidade com gabarito médico antes de IA3/interpretação; a avaliação privada não é gabarito clínico.
 
 ## Sequência e dependências
 
@@ -33,7 +38,7 @@ Após a retomada operacional: publicação explícita ao paciente de resultados 
 | Onboarding/convites | [PRs #103/#104](STATUS_ATUAL.md) publicados tecnicamente e jornada real testada; Vitor repetirá manualmente com convite novo. Usabilidade dele permanece pendente. QR coletivo exige contrato de aprovação médica; Google Sign-In exige OAuth real. |
 | C2/C3 operacional | Validar continuidade paciente → pedido/resposta → revisão → recibo → consulta/retorno, inclusive outros papéis/vínculos e persistência. Código do PR #95 não fecha aceite operacional. Não forjar assinatura/conduta médica. |
 | IA1 — governança | Decidir finalidade, fornecedor, dados permitidos, privacidade, rastreabilidade e revisão antes de ampliar além do piloto sintético. [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) é rascunho, sem aprovação inferida. |
-| IA2 — extração | #114/#115 publicados tecnicamente no dev sintético: texto/páginas primeiro, checkpoints e correção literal. Próximo slice: continuação e retomada de jobs esgotados; depois publicação explícita ao paciente de fatos aprovados pelo médico. Estabilidade geral e aceite médico seguem pendentes. |
+| IA2 — extração | #114/#115 estabeleceram texto/páginas, checkpoints e correção literal; #117 publicou tecnicamente continuação, retomada e referências no dev sintético. Recuperação técnica do PDF concluída; conferir qualidade/fontes com médico, depois entregar aprovação e publicação explícita ao paciente. Estabilidade geral e aceite médico seguem pendentes. |
 | IA3–IA6 | Biblioteca aprovada/versionada, interpretação com evidência, verificação, validação médica e operação somente após gates do [plano de IA](PLANO_IA_CLINICA.md). |
 | C1/Gate P | `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`) é destino temporário único para testes sintéticos. Separar produção e cumprir [Gate P](GATE_P.md) antes de dados reais; preservar registros de origem incerta. |
 

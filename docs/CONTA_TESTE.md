@@ -40,7 +40,42 @@ foi reprocessado nesta rodada.
 Após a última recarga, a ficha acumulava 77 resultados/76 pendentes/oito arquivos,
 incluindo execuções anteriores. Não usar o total como gabarito de completude.
 Glicose v5 permanece como evidência anterior de edição; não houve nova revisão
-clínica nem publicação ao paciente. A retomada do PDF esgotado reportado pelo
-usuário continua pendente, com original/texto preservados.
+clínica nem publicação ao paciente. Na rodada #115, o PDF esgotado reportado pelo
+usuário permaneceu sem retomada, com original/texto preservados.
+
+## Recuperação técnica no #117 (10/10/2026, São Paulo)
+
+O [#117](https://github.com/vitormilanez/instituto-vivance/pull/117) foi publicado
+tecnicamente: migration `20261011002635` aplicada (70 no dev), Edge v14/adapter
+`.7` ACTIVE e deployment `dpl_692H3GxaZpMVK7tCczcnBD9FT31N` no SHA
+`2454345626b56d259a71aa59c34d23a688e13850`. CI/main/release passaram 525
+testes; detalhes de publicação no [status](STATUS_ATUAL.md).
+
+Pelo login médico real no domínio publicado via Playwright CLI, foi acionado
+**Retomar organização** do documento `89d96ca4-f5e9-427e-acd4-1a0116b4f749`.
+O job `fd1100d4-7000-4254-b1ee-6436d9256f92` manteve a run
+`08779990-c35f-41b9-ae80-12493d5b5ba7`: antes da retomada, havia texto em
+25/25 páginas, sem checkpoints ou itens nessa run. Após a ação, o job ficou
+`pending`, `attempt_count=0`, `available_at=11/10/2026 00:41:34 UTC`; a auditoria
+registrou o médico `5fa1330b-a7d3-4843-8e4a-57ef3533062e` como autor. O
+claim ocorreu às 00:42 UTC de 11/10 e o mesmo job/run/hash terminou `completed`,
+`attempt_count=1`, `completed_at=2026-10-11T00:43:31.835663Z`.
+
+Original, texto das 25/25 páginas e histórico foram preservados. A run tem
+13 checkpoints (cinco iniciais, oito auditorias) e 65 itens em 24 páginas:
+50 com unidade, 47 com referência, 60 com data 13/08/2026, nenhum offset inválido.
+Após recarga no domínio publicado, a ficha mostrou **Exames sangue .pdf**, data
+13/08/2026, 65 resultados/65 para conferir, sem estado de falha; total da ficha
+142 resultados/141 pendentes. Os filtros globais mostraram 4 acima/0 abaixo/30
+dentro da faixa. No filtro **Fora da referência**, quatro itens desse PDF
+apareceram em âmbar; a fonte de **Eritrócitos** abriu na página 1 com valor,
+unidade, referência, data 13/08/2026 e formulário de conferência, sem gravação.
+O botão de retomada sumiu, sem alerta de erro. Captura publicada em
+`output/playwright/20261011-exams-resume/published-outside-reference.png`.
+`quality_notes` apontam possíveis itens ausentes nas páginas
+3, 5, 7, 8, 13, 16 e 17; a auditoria seletiva é limitada a quatro páginas.
+**Recuperação técnica concluída, fonte amostral conferida; qualidade ainda pendente.** As
+contagens não são gabarito clínico. Não houve revisão/aprovação médica nem
+publicação ao paciente.
 
 A conta de QA não substitui o teste manual de Vitor com convite novo. Sua existência não fecha C2/C3, aceite clínico ou [Gate P](GATE_P.md).

@@ -1,8 +1,8 @@
 # Estado atual do Vivance
 
-**Atualizado em 10/10/2026 — slice de retomada operacional e destaque de referências implementado; publicação e recuperação em andamento.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação ainda publicada: `9fcda9437ebe2786eaa4395c388fcaacecb6bdfc`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
+**Atualizado em 10/10/2026 (São Paulo) — #117 integrado/publicado; recuperação técnica do PDF concluída.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada: `2454345626b56d259a71aa59c34d23a688e13850`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
 
-## IA2 — retomada operacional e referências (10/10)
+## IA2 — retomada operacional e referências (#117, 10/10)
 
 Branch `codex/exames-retomada-referencia-20261011`. Médico responsável pode
 retomar job falho/esgotado ou com lease expirado pelo botão **Retomar organização**.
@@ -26,12 +26,61 @@ não escolhe faixa por população e não classifica saúde/conduta. Filtros per
 ver exceções e resultados dentro da faixa. Interface local em 1440/390/320 px;
 fixtures explícitas, sem dados reais nas capturas.
 
-Publicação da migration `20261011002635`, Edge, aplicação e recuperação do
-documento `89d96ca4-f5e9-427e-acd4-1a0116b4f749` ainda pendentes neste registro.
-O PDF reportado tem 25/25 páginas de texto no job
+O [PR #117](https://github.com/vitormilanez/instituto-vivance/pull/117)
+foi integrado no SHA acima. CI do PR `38099060369`, verificação da main
+`38099138337` e release `38099138340` passaram com 525 testes,
+lint/typecheck/build; `deno check` local passou. Persiste um aviso anterior de
+lint no onboarding. Etapas automáticas de banco, Edge e aliases ficaram skipped
+por configuração; a publicação manual pela CLI foi confirmada.
+
+No dev sintético `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`), a migration
+`20261011002635` foi aplicada (70 no total). Quatro achados do advisor foram
+conferidos, sem achados novos; a revogação de EXECUTE dos writers legados sem
+token ao service_role foi confirmada. Edge `exam-text-worker` v14 ACTIVE, hash
+`59373719ea1302d7982dfeaa197be58db84ca9a32f6d0b828b71f3abdfd1300c`,
+adapter `.7` e prompt `.4`. Conta `vtrconsulting`, equipe `vtr-consulting` e
+projeto Vercel `instituto-vivance`/`prj_ligeZuFRycRXA21u5rRzaLAORTrI`
+foram conferidos. Deployment Git `dpl_692H3GxaZpMVK7tCczcnBD9FT31N`
+([URL técnica](https://instituto-vivance-9obmzhxtf-vtr-consulting.vercel.app))
+está READY/production no SHA integrado. Ambos os aliases apontam ao mesmo ID:
+principal, três HTTP 200 (TTFB 0,278–1,272 s); secundário, três HTTP 307
+(0,068–0,206 s), região `gru1`. Rollback conhecido:
+`dpl_f6HaN9AF3ogADrmgMZG1tFRkovYC` (#115).
+
+Visual local em 1440/390/320 px: sem overflow, alvos de pelo menos 44 px,
+filtros com dois resultados fora e dois dentro da faixa, e retomada simulada.
+Revisão independente sem impeditivos. O login médico real no domínio publicado
+foi conferido pela interface via Playwright CLI, sem simular autenticação.
+
+**Recuperação técnica concluída:** a sessão médica autenticada acionou **Retomar
+organização** no domínio publicado para o PDF reportado, documento
+`89d96ca4-f5e9-427e-acd4-1a0116b4f749`, job
 `fd1100d4-7000-4254-b1ee-6436d9256f92`, run
-`08779990-c35f-41b9-ae80-12493d5b5ba7`, sem checkpoints nem itens antes da retomada.
-Original e histórico serão preservados; não há publicação clínica ao paciente.
+`08779990-c35f-41b9-ae80-12493d5b5ba7`. Antes da retomada, o texto estava
+salvo em 25/25 páginas e a run não tinha checkpoints nem itens. A ação deixou
+o mesmo job `pending`, `attempt_count=0`, `available_at=11/10/2026 00:41:34 UTC`;
+a auditoria registrou o médico `5fa1330b-a7d3-4843-8e4a-57ef3533062e` como
+autor. O claim ocorreu às 00:42 UTC de 11/10 e o job terminou `completed`,
+`attempt_count=1`, `completed_at=2026-10-11T00:43:31.835663Z`. Mesmo job/run/hash
+do original, texto 25/25 preservado e 13 checkpoints (cinco iniciais, oito
+auditorias). Foram persistidos 65 itens em 24 páginas, 50 com unidade, 47 com
+referência e 60 com data `2026-08-13`; nenhum offset inválido. As `quality_notes`
+apontam possíveis itens ausentes nas páginas 3, 5, 7, 8, 13, 16 e 17; a auditoria
+é limitada a quatro páginas por execução. Essas contagens não comprovam
+completude clínica. Após recarga, a UI publicada mostrou **Exames sangue .pdf**,
+data de exame 13/08/2026, 65 resultados/65 para conferir, sem estado de falha.
+A ficha totalizava 142 resultados/141 pendentes; os filtros globais mostravam
+quatro acima, zero abaixo e 30 dentro da faixa. O filtro **Fora da referência**
+mostrou quatro itens desse PDF em âmbar com seta, texto, fundo e valor destacado.
+A fonte de **Eritrócitos** abriu na página 1 com valor, unidade, referência e
+data 13/08/2026, além do formulário de conferência; não houve gravação médica.
+O botão **Retomar organização** desapareceu e não havia estado ou alerta de erro.
+Evidência visual publicada em
+`output/playwright/20261011-exams-resume/published-outside-reference.png`.
+Essa amostra confirma o caminho de fonte na UI, mas não a completude dos 65 itens.
+Não houve revisão/aprovação médica nem publicação ao paciente.
+Tarefa Asana `1219002739975041` atualizada com esta entrega e mantida aberta
+para qualidade, aprovação/publicação ao paciente e IA3.
 
 ## IA2 — texto primeiro, checkpoints e qualidade literal (#114/#115)
 
@@ -74,7 +123,7 @@ datas, zero offsets inválidos e zero lacunas detectadas, sem nova chamada Claud
 ou alteração do histórico. Os 29 itens da primeira run permanecem como histórico;
 não foram substituídos pelo resultado offline.
 
-Publicação vigente #115: Edge `exam-text-worker` v13 ACTIVE, hash
+Publicação histórica #115: Edge `exam-text-worker` v13 ACTIVE, hash
 `e154b52c4d1b2750f60abd28c854c14e3d3e9e0ea525fd4337f63af93cfc0ac3`.
 Sem nova migration; 69 no dev. Etapas automáticas de banco/Edge/promoção/domínio
 ficaram skipped por configuração; Edge e aliases publicados pela CLI e conferidos.
@@ -100,8 +149,10 @@ médica, publicação ao paciente, novo teste de isolamento ou Preview separado.
 Médico autenticado confirmou no domínio a mensagem **Organização não concluída**
 do PDF anteriormente reportado: texto das 25 páginas disponível e original
 acessível. Esse PDF esgotou tentativas e não foi reprocessado nesta rodada;
-recuperação operacional permanece pendente. Continuação entre leases e retomada
-médica de job esgotado são próximos reforços; publicação ao paciente segue separada.
+essa é a evidência histórica do #115, anterior ao início da retomada pelo #117.
+A recuperação técnica foi concluída no #117. Uma fonte foi aberta na UI
+publicada; completude, gabarito e qualidade clínica permanecem pendentes.
+Publicação ao paciente continua separada.
 
 ## UX do briefing — publicação e conferência de 10/10
 

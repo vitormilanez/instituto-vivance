@@ -43,18 +43,22 @@
 - [x] Correção local dos achados remotos: referência não é próximo analito, unidade repetida deduplica e Resultado/Valor só fica coberto na mesma ocorrência do rótulo. 518 testes e Deno check; reaplicação offline do cache: 25 itens/25 páginas com referência/unidade/data, zero offsets inválidos/lacunas; nenhuma nova chamada Claude.
 - [x] [#115](https://github.com/vitormilanez/instituto-vivance/pull/115) integrado em `9fcda943`; CI `38096991481` e release `38097072816` passaram 518 testes. Edge v13/adapter `.6`, prompt `.4`; deployment `dpl_f6HaN9AF3ogADrmgMZG1tFRkovYC`, ambos os aliases conferidos. Sem migration nova; publicação manual após etapas automáticas skipped.
 - [x] Novo PDF fictício de três páginas completou na primeira tentativa: três medições com unidade/referência/data, nome multiline, dois checkpoints (Haiku + auditoria Sonnet). Médico autenticado abriu item, fonte na página 2 e conferência no domínio principal. Histórico anterior de 29 itens imutável; PDF esgotado continua sem reprocessamento. IDs em [CONTA_TESTE](CONTA_TESTE.md).
-- [ ] Próximo reforço operacional: continuação entre leases e retomada médica de job que esgotou tentativas; medir cobertura/estabilidade com gabarito médico.
+- [x] A lacuna operacional observada no #115 foi encaminhada ao #117 abaixo. Medir cobertura/estabilidade com gabarito médico continua pendente.
 
-## IA2 — retomada operacional e referências (10/10)
+## IA2 — retomada operacional e referências (#117, 10/10)
 
 - [x] Retomada pelo médico responsável de job falho/esgotado ou lease expirada; sessão, papel, vínculo, elegibilidade e autoria exigidos; mesmo job, histórico e texto preservados; duplicatas idempotentes e auditadas.
 - [x] Continuação com checkpoints e margem de runtime; tentativa devolvida somente com novo progresso durável. Falhas reais mantêm limite de tentativas. Finalização protegida pelo token da lease vigente; writers antigos sem token ficam internos.
 - [x] Dentro da faixa em verde discreto; acima/abaixo com ícone, texto, âmbar e valor destacado; comparação indisponível em cinza. Filtros e correções efetivas preservados; sem conversão ou conclusão clínica.
 - [x] Conferência visual local com fixtures em desktop e celular, retomada simulada e filtros. Artefatos em `output/playwright/20261011-exams-resume/`; Preview remoto separado não executado.
 - [x] Local: 525 testes, lint/typecheck/build e Deno check passaram; revisão independente da retomada/lease sem impeditivos. Um aviso lint anterior no onboarding. Celular 320/390 e desktop 1440 sem overflow, filtros 2 fora/2 dentro e alvos de resultado ≥44 px.
-- [ ] CI e release do commit integrado.
-- [ ] Migration `20261011002635`, Edge e aplicação publicados; aliases e ambiente confirmados.
-- [ ] Recuperar o PDF reportado pela sessão médica e confirmar resultados/fontes, mesmo job/run e preservação do original. Atualizar Asana e IDs no status.
+- [x] [#117](https://github.com/vitormilanez/instituto-vivance/pull/117) integrado em `2454345626b56d259a71aa59c34d23a688e13850`. CI do PR `38099060369`, verificação da main `38099138337` e release `38099138340`: 525 testes, lint/typecheck/build; Deno local passou. Aviso anterior de lint no onboarding.
+- [x] Publicação manual confirmada após etapas automáticas skipped: migration `20261011002635` (70 no dev `oxuwrdjojsmgxoljqkuk`), Edge v14 ACTIVE/adapter `.7`/prompt `.4`, hash `59373719ea1302d7982dfeaa197be58db84ca9a32f6d0b828b71f3abdfd1300c`; quatro achados de advisor sem novos e revogação dos writers legados conferida. Deployment `dpl_692H3GxaZpMVK7tCczcnBD9FT31N` READY/production no SHA integrado; ambos os aliases no mesmo ID, principal 3×200 e secundário 3×307, região `gru1`. Conta/equipe/projeto confirmados no [status](STATUS_ATUAL.md); rollback `dpl_f6HaN9AF3ogADrmgMZG1tFRkovYC`.
+- [x] Médico fez login real pela interface via Playwright CLI no domínio publicado e acionou **Retomar organização** do documento `89d96ca4-f5e9-427e-acd4-1a0116b4f749`. Mesmo job `fd1100d4-7000-4254-b1ee-6436d9256f92` e run `08779990-c35f-41b9-ae80-12493d5b5ba7`; original/hash/texto 25/25 preservados. Auditoria: médico autor às 00:41:34 UTC de 11/10, claim às 00:42 UTC.
+- [x] Recuperação técnica concluída em `2026-10-11T00:43:31.835663Z`: mesmo job/run/hash, `completed`, tentativa 1, 13 checkpoints (cinco iniciais, oito auditorias), 65 itens em 24 páginas, 50 com unidade, 47 com referência, 60 com data 13/08/2026 e nenhum offset inválido. UI publicada após recarga: **Exames sangue .pdf**, 65/65 para conferir, sem falha; ficha 142 resultados/141 pendentes e filtros globais 4 acima/0 abaixo/30 dentro. Contagens não comprovam completude clínica.
+- [x] UI publicada: filtro **Fora da referência** mostrou quatro itens do PDF recuperado com destaque âmbar; fonte de **Eritrócitos** abriu na página 1 com valor, unidade, referência, data 13/08/2026 e formulário de conferência. **Retomar organização** sumiu, sem alerta de erro. Captura: `output/playwright/20261011-exams-resume/published-outside-reference.png`. Nenhuma gravação médica.
+- [x] Tarefa Asana `1219002739975041` atualizada com publicação, recuperação e verificação; permanece aberta para qualidade, aprovação/publicação ao paciente e IA3.
+- [ ] Conferir completude e qualidade dos 65 itens com gabarito médico; `quality_notes` sinalizam possíveis ausências nas páginas 3, 5, 7, 8, 13, 16 e 17. Auditoria seletiva limitada a quatro páginas; nenhuma revisão/aprovação/publicação ao paciente ocorreu.
 
 ## Próximos gates clínicos
 
