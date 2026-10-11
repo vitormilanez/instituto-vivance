@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { LandingMealDemo } from "./landing-daily-demos";
 
 export function LandingFutureFeatures() {
   return (
@@ -10,56 +11,20 @@ export function LandingFutureFeatures() {
       >
         <div className="container future-feature-grid">
           <div className="future-feature-copy">
-            <p className="eyebrow future-eyebrow">A CAMINHO • EM BREVE</p>
-            <h2 id="future-meal-title">Seu prato, conectado ao seu plano.</h2>
+            <p className="eyebrow">ALIMENTAÇÃO E ROTINA</p>
+            <h2 id="future-meal-title">Seu prato também conta sua história.</h2>
             <p className="section-lead">
-              Você poderá fotografar seu prato e conferir como os alimentos e as
-              porções se relacionam com o seu plano alimentar.
+              Registre uma refeição com uma foto ou poucas palavras. Escolha o
+              horário e compartilhe com a sua equipe de cuidado.
             </p>
             <p className="future-feature-detail">
-              Você confirmará ingredientes e quantidades antes de uma análise
-              aproximada que complementará o plano e a orientação do
-              profissional.
+              Café, almoço, jantar ou um lanche: sem formulário comprido.
+              Você confere antes de salvar e encontra o relato no seu diário.
             </p>
+            <p className="future-feature-detail">Em breve: comparação aproximada com o plano alimentar, após você confirmar ingredientes e quantidades. Essa análise ainda não está disponível.</p>
           </div>
 
-          <div
-            className="meal-preview"
-            aria-label="Exemplo ilustrativo de comparação de refeição"
-          >
-            <div className="meal-photo-frame">
-              <Image
-                src="/brand/meal-preview.png"
-                alt="Prato com alimentos variados, em imagem ilustrativa"
-                fill
-                sizes="(max-width: 760px) calc(100vw - 48px), 480px"
-              />
-              <span className="meal-photo-label meal-label-vegetais">
-                Vegetais
-              </span>
-              <span className="meal-photo-label meal-label-proteina">
-                Proteína
-              </span>
-              <span className="meal-photo-label meal-label-carboidrato">
-                Carboidrato
-              </span>
-            </div>
-            <div className="meal-compare-card">
-              <div className="meal-compare-heading">
-                <span>PLANO ILUSTRATIVO</span>
-                <strong>Proteína + cereal + vegetais</strong>
-              </div>
-              <div className="meal-compare-row">
-                <span>Composição do prato</span>
-                <strong>Compatível no exemplo</strong>
-              </div>
-              <div className="meal-compare-row">
-                <span>Porções</span>
-                <strong>Confirmar quantidades</strong>
-              </div>
-              <p>Você revisará as informações antes de compartilhar.</p>
-            </div>
-          </div>
+          <div className="checkin-demo"><LandingMealDemo /></div>
         </div>
       </section>
 

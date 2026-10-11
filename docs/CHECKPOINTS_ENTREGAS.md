@@ -1,5 +1,15 @@
 # Checkpoints das entregas
 
+## Check-in e alimentação — 11/10/2026
+
+- [x] Direção aprovada: Energia/Sono/Fome/Banheiro, recado opcional, poucos toques e figuras expressivas; aplicar também à alimentação. Product Design e revisão GPT-6 Astra, sem Impeccable.
+- [x] Implementação: escolhas explícitas, edição pelo resumo, dados adicionais preservados/recolhidos, aplicação condicionada; foto/texto ou ambos em alimentação e Diário, exemplos públicos sem persistência.
+- [x] 526 testes, build e tipos passaram; lint zero erros/um aviso anterior. Desktop/tablet/celular até 320 px sem overflow, teclado e opções ≥44 px.
+- [x] Login real paciente/médico no local; check-in e refeições sintéticos persistidos e relidos nos dois percursos, foto privada 200; recuperação após 503 simulada e idempotência real.
+- [x] Dois P2 dos campos adicionais corrigidos: motivo oculto e peso inválido. Revisão independente final sem achado restante nessas correções.
+- [x] [PR #121](https://github.com/vitormilanez/instituto-vivance/pull/121), [Preview](https://instituto-vivance-lm6t8xa62-vtr-consulting.vercel.app) READY/preview do código `5249e56`; login real paciente/médico, sessão após recarga, quatro larguras sem overflow e médico lendo originais/foto 200. Asana C3 atualizado e aberto.
+- [ ] Publicação técnica desta rodada e aceite de usabilidade; aceite clínico/Gate P separados. [Registro](UX_CHECKIN_ALIMENTACAO_2026-10-11.md).
+
 **IA2 sintética, 10/10/2026.** Código, banco/Edge, Preview, integração, publicação e aceite exigem evidências próprias. [Status](STATUS_ATUAL.md) contém os identificadores confirmados.
 
 ## UX — padronização médica publicada tecnicamente (10/10)

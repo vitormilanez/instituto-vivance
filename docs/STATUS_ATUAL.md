@@ -56,7 +56,32 @@ revisão independente com GPT-5.6 Sol medium aprovados para o fluxo inicial. Pub
 continuam pendentes; não há migration neste lote. O usuário repetirá o
 convite novo com o endereço limpo. Tarefa C2 `1219002465981599`.
 
-**Atualizado em 10/10/2026 (São Paulo) — UX médica #119 integrada e publicada tecnicamente.** Checkout Git principal: `/Users/vitormilanez/Desktop/Codes/vivance`. Aplicação publicada: `e05cb4cafa20c3a5b43899fdfae1b7bf4310a17c`; deployment `dpl_4ckHiqrEM1NdXqaf6cUFTigvHt2X`. O #117 e o PR documental #118 são históricos. Aceite médico e [Gate P](GATE_P.md) permanecem separados da publicação técnica. Confira o estado vivo antes de reutilizar estes identificadores.
+**Atualizado em 11/10/2026 (São Paulo) — check-in/alimentação em PR/Preview; UX médica #119 publicada anteriormente.** Checkout Git principal: `/Users/vitormilanez/Desktop/Codes/vivance`. Aplicação publicada anteriormente: `e05cb4cafa20c3a5b43899fdfae1b7bf4310a17c`; deployment `dpl_4ckHiqrEM1NdXqaf6cUFTigvHt2X`. Aceite médico e [Gate P](GATE_P.md) permanecem separados da publicação técnica. Confira o estado vivo antes de reutilizar estes identificadores.
+
+## Check-in e alimentação — 11/10
+
+Branch `codex/checkin-alimentacao-intuitivos-20261011`, código `5249e56`.
+Quatro perguntas diretas, recado opcional, resumo editável, mascotes originais e
+dados adicionais recolhidos. Aplicação habilitada conserva etapa explícita.
+Alimentação na landing, formulário rápido e Diário: cinco escolhas, foto/texto
+ou ambos, horário editável e envio único. Escalas 1–5, histórico, fonte,
+armazenamento privado, outbox e permissões preservados. Revisão independente
+GPT-6 Astra encontrou dois P2 anteriores, corrigidos e conferidos.
+
+526 testes, tipos e build passaram; lint zero erros e um aviso anterior.
+Landing/check-in/refeição em 1440/900/390/320 px sem overflow. Paciente entrou
+pela interface, enviou check-in, refeição textual e refeição somente foto,
+releu após recarga; repetição idempotente conservou o registro. Falha 503
+simulada preservou respostas. Guilherme entrou pela interface e abriu os
+originais e a foto privada, sem revisão clínica. Projeto sintético confirmado
+`oxuwrdjojsmgxoljqkuk`; sem SQL/Edge/extração novos.
+[PR #121](https://github.com/vitormilanez/instituto-vivance/pull/121),
+[Preview](https://instituto-vivance-lm6t8xa62-vtr-consulting.vercel.app)
+`dpl_7MXE7ShG2QRd5NvCoV9hhiQpzVK1`, READY/preview, código `5249e56`.
+Conta/equipe/projeto conferidos; logins reais paciente/médico e recarga passaram
+no Preview, assim como visual em quatro larguras e leitura médica dos originais.
+Asana C3 atualizado, aberto; publicação e aceite de usabilidade ainda separados.
+[Registro e capturas](UX_CHECKIN_ALIMENTACAO_2026-10-11.md).
 
 ## Publicação técnica da UX médica — #119 (10/10)
 

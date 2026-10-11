@@ -7,8 +7,10 @@ import type { PatientMeals } from "@/modules/meals/service";
 import { mealTypeLabels } from "@/modules/meals/validation";
 import { uploadDocument } from "@/lib/document-upload";
 import { clinicalTime } from "./encounter-editor";
+import { Camera } from "lucide-react";
+import { MealKinds } from "./patient/meal-kinds";
+import { MomentArtwork } from "./patient/moment-choices";
 
-const choices = Object.entries(mealTypeLabels);
 const acceptedPhotoTypes = ["image/jpeg", "image/png"];
 const maxPhotoBytes = 5 * 1024 * 1024;
 const currentLocalDateTime = () => {
@@ -30,6 +32,7 @@ export function PatientMealLogs({ initial }: { initial: PatientMeals }) {
   const [error, setError] = useState("");
   const [photoError, setPhotoError] = useState("");
   const [success, setSuccess] = useState("");
+  const [eatenAt, setEatenAt] = useState(currentLocalDateTime);
 
   // O objeto de URL da prévia é revogado quando a prévia muda ou a tela sai.
   useEffect(() => {
@@ -73,21 +76,28 @@ export function PatientMealLogs({ initial }: { initial: PatientMeals }) {
     options: { withoutPhoto?: boolean } = {},
   ) {
     if (busy.current) return;
+    const form = new FormData(formElement);
+    const chosen = options.withoutPhoto ? null : file;
+    const description = String(form.get("description") ?? "");
+    if (!description.trim() && !chosen) {
+      setError("Adicione uma foto ou conte em poucas palavras o que comeu.");
+      formElement.querySelector<HTMLTextAreaElement>("textarea")?.focus();
+      return;
+    }
+    const localDateTime = String(form.get("eaten_at") ?? "");
+    if (!localDateTime || Number.isNaN(new Date(localDateTime).getTime())) {
+      setError("Confira a data e o horário da refeição.");
+      return;
+    }
     busy.current = true;
     setError("");
     setPhotoError("");
     setSuccess("");
-    const form = new FormData(formElement);
-    const localDateTime = form.get("eaten_at");
     const payload = {
       meal_type: form.get("meal_type"),
-      eaten_at:
-        typeof localDateTime === "string"
-          ? new Date(localDateTime).toISOString()
-          : localDateTime,
-      description: form.get("description"),
+      eaten_at: new Date(localDateTime).toISOString(),
+      description: description.trim() ? description : null,
     };
-    const chosen = options.withoutPhoto ? null : file;
     // The key follows the selected file, not the upload result, so retrying the
     // same content keeps the same request_key.
     const photoFingerprint = chosen
@@ -140,6 +150,7 @@ export function PatientMealLogs({ initial }: { initial: PatientMeals }) {
       if (!response.ok)
         throw new Error(result.error ?? "Não foi possível registrar a refeição.");
       formElement.reset();
+      setEatenAt(currentLocalDateTime());
       request.current = null;
       clearPhoto();
       setSuccess("Refeição registrada no seu diário.");
@@ -158,31 +169,28 @@ export function PatientMealLogs({ initial }: { initial: PatientMeals }) {
 
   return (
     <section id="registrar-refeicao" className="meal-log-workspace" aria-labelledby="meal-log-title">
-      <article className="panel meal-log-entry">
-        <div className="section-heading">
+      <article className="panel meal-log-entry moment-meal">
+        <div className="section-heading moment-meal-heading">
           <div>
             <h2 id="meal-log-title">Registrar refeição</h2>
-            <p>Registre o que comeu para que a equipe tenha contexto na próxima conversa.</p>
+            <p>Uma foto, uma descrição ou os dois.</p>
           </div>
+          <MomentArtwork name="meal" />
         </div>
         <form
+          noValidate
           aria-busy={pending !== ""}
           onSubmit={(event: FormEvent<HTMLFormElement>) => {
             event.preventDefault();
             void send(event.currentTarget);
           }}
         >
-          <div className="meal-log-fields">
-            <label className="field">
-              Tipo de refeição
-              <select name="meal_type" defaultValue="lunch" disabled={pending !== ""}>
-                {choices.map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <fieldset className="pv-fieldset">
+            <legend className="pv-scale-label">Qual refeição?</legend>
+            <MealKinds defaultValue="lunch" disabled={pending !== ""} />
+          </fieldset>
+          <details className="moment-more">
+            <summary>Data e horário <span>{eatenAt ? `${eatenAt.slice(0, 10).split("-").reverse().join("/")}, ${eatenAt.slice(11, 16)} · toque para alterar` : "Informe quando foi"}</span></summary>
             <label className="field">
               Data e horário
               <input
@@ -190,16 +198,17 @@ export function PatientMealLogs({ initial }: { initial: PatientMeals }) {
                 type="datetime-local"
                 required
                 disabled={pending !== ""}
-                defaultValue={currentLocalDateTime()}
+                value={eatenAt}
+                onChange={(event) => setEatenAt(event.target.value)}
               />
             </label>
-          </div>
+          </details>
           <label className="field">
-            O que você comeu?
+            {file ? "Quer acrescentar algo?" : "O que você comeu?"}
             <textarea
               name="description"
-              rows={4}
-              required
+              rows={3}
+              required={file === null}
               maxLength={2000}
               disabled={pending !== ""}
               aria-describedby="meal-log-note"
@@ -207,13 +216,17 @@ export function PatientMealLogs({ initial }: { initial: PatientMeals }) {
             />
           </label>
           <div className="meal-log-photo-field">
-            <label className="field" htmlFor="meal-photo">
+            <div className="moment-photo-actions">
+              <button type="button" disabled={pending !== ""} onClick={() => photoInput.current?.click()}><Camera size={22} aria-hidden="true" />Adicionar foto</button>
+            </div>
+            <label className="field" htmlFor="meal-photo" hidden>
               Foto da refeição (opcional)
               <input
                 id="meal-photo"
                 ref={photoInput}
                 name="photo"
                 type="file"
+                hidden
                 accept="image/jpeg,image/png"
                 disabled={pending !== ""}
                 onChange={pickPhoto}

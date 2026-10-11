@@ -1,0 +1,108 @@
+/* Shared patient and public-demo presentation. No score is a health judgement. */
+.moment-flow, .moment-demo, .moment-meal {
+  --moment-ink: #0a1a33;
+  --moment-muted: #4b5567;
+  --moment-line: #e6e1d8;
+  --moment-soft: #f7f4ef;
+  --moment-gold: #f6eedc;
+  color: var(--moment-ink);
+  min-width: 0;
+}
+.moment-flow { width: 100%; max-width: 680px; margin-inline: auto; gap: 20px; }
+.moment-art { display: block; width: 100%; height: auto; object-fit: contain; }
+.moment-steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.moment-steps:has(> :nth-child(6)) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.moment-steps button {
+  position: relative; display: grid; justify-items: center; align-content: center;
+  gap: 6px; min-width: 0; min-height: 60px; padding: 8px 2px;
+  border: 0; border-radius: 10px; background: var(--moment-soft);
+  color: var(--moment-muted); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.moment-steps button[aria-current="step"] { background: var(--moment-ink); color: #fff; }
+.moment-step-check { position: absolute; top: 4px; right: 4px; }
+.moment-question-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.moment-question-heading > div { min-width: 0; }
+.moment-question-heading > .moment-art { width: 108px; height: 108px; flex: none; }
+.moment-kicker { margin: 0 0 8px; color: var(--moment-muted); font-size: 13px; font-weight: 600; }
+.moment-scale { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.moment-scale button {
+  position: relative; display: grid; grid-template-rows: 68px auto 1fr;
+  justify-items: center; align-items: start; gap: 8px;
+  min-width: 0; min-height: 156px; padding: 12px 6px;
+  border: 1.5px solid var(--moment-line); border-radius: 16px; background: #fff;
+  color: var(--moment-ink); font: inherit; cursor: pointer;
+}
+.moment-scale button:hover { background: var(--moment-soft); border-color: #9d8b69; }
+.moment-scale button[aria-pressed="true"] { border-color: #7a5a1e; background: var(--moment-gold); box-shadow: inset 0 0 0 1px #7a5a1e; }
+.moment-scale button > strong { font-size: 22px; line-height: 1; }
+.moment-choice-picture { display: grid; place-items: center; width: 100%; height: 68px; }
+.moment-choice-picture .moment-art { width: 76px; height: 76px; max-width: none; }
+.moment-choice-picture > svg { color: #6a624f; }
+.moment-choice-label { font-size: 13px; line-height: 1.3; font-weight: 600; text-align: center; overflow-wrap: normal; }
+.moment-choice-check { position: absolute; top: 5px; right: 5px; }
+.moment-bowel-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.moment-bowel-options button {
+  display: grid; justify-items: center; gap: 10px; min-height: 132px; min-width: 0; padding: 16px 8px;
+  border: 1.5px solid var(--moment-line); border-radius: 16px; background: #fff; color: var(--moment-ink); font: inherit; cursor: pointer;
+}
+.moment-bowel-options button:hover, .moment-bowel-options button[aria-pressed="true"] { background: var(--moment-gold); border-color: #7a5a1e; }
+.moment-bowel-options button > span { color: var(--moment-muted); font-size: 13px; }
+.moment-review { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.moment-review button { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; text-align: left; min-height: 60px; padding: 12px; border: 1px solid var(--moment-line); border-radius: 12px; background: var(--moment-soft); color: var(--moment-ink); font: inherit; cursor: pointer; }
+.moment-review button > span { font-size: 13px; color: var(--moment-muted); }
+.moment-review button > strong { font-size: 14px; font-weight: 600; grid-column: 1; }
+.moment-review button > svg { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+.moment-more { border-block: 1px solid var(--moment-line); }
+.moment-more > summary { min-height: 64px; padding-block: 14px; cursor: pointer; font-weight: 600; }
+.moment-more > summary > span { display: block; margin-top: 4px; color: var(--moment-muted); font-size: 13px; font-weight: 400; }
+.moment-extra-fields { display: grid; gap: 24px; min-width: 0; margin: 0; padding: 8px 0 20px; border: 0; }
+.moment-extra-section { display: grid; min-width: 0; gap: 12px; }
+.moment-extra-section > h3 { margin: 0; font-size: 17px; }
+.moment-meal-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.moment-meal-heading > .moment-art { width: 100px; height: 100px; flex: none; }
+.moment-meal-heading h2, .moment-meal-heading h3 { margin: 0; font-size: 24px; line-height: 1.2; }
+.moment-meal-heading p { margin: 8px 0 0; color: var(--moment-muted); font-size: 16px; line-height: 1.45; }
+.moment-meal-kinds { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.moment-meal-kinds label { display: grid; position: relative; min-width: 0; margin: 0; cursor: pointer; }
+.moment-meal-kinds input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.moment-meal-kinds label > span { display: grid; justify-items: center; align-content: center; gap: 6px; min-height: 72px; padding: 8px 2px; border: 1.5px solid var(--moment-line); border-radius: 12px; background: #fff; color: var(--moment-ink); font-size: 13px; font-weight: 600; }
+.moment-meal-kinds input:checked + span { border-color: #7a5a1e; background: var(--moment-gold); }
+.moment-meal-kinds input:focus-visible + span { outline: 3px solid #7a5a1e; outline-offset: 3px; }
+.moment-photo-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.moment-photo-actions button { display: flex; gap: 8px; align-items: center; justify-content: center; min-height: 52px; padding: 10px; border: 1.5px solid var(--moment-line); border-radius: 12px; background: #fff; color: var(--moment-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.moment-photo-actions button:hover { background: var(--moment-soft); }
+.moment-photo-actions button:disabled { opacity: .6; cursor: wait; }
+.moment-flow :is(button, summary, input, textarea):focus-visible, .moment-demo :is(button, summary, input, textarea):focus-visible, .moment-meal :is(button, summary, input, textarea):focus-visible { outline: 3px solid #7a5a1e; outline-offset: 3px; }
+.moment-flow :is(button, input, textarea):disabled { cursor: wait; opacity: .65; }
+.moment-demo { display: grid; gap: 20px; padding: 24px; }
+.moment-demo h3 { margin: 0; font-size: 26px; line-height: 1.2; }
+.moment-question-heading :is(h2, h3):focus-visible { outline: none; }
+.moment-demo fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.moment-demo legend { margin-bottom: 8px; padding: 0; font-size: 14px; font-weight: 600; }
+.vivance-landing .moment-steps button { font-size: 13px; font-weight: 600; }
+.vivance-landing .moment-scale button { font-size: 16px; }
+.moment-demo p { margin: 0; color: var(--moment-muted); font-size: 14px; line-height: 1.5; }
+.moment-demo .moment-question-heading { min-height: 120px; }
+.moment-demo label { display: grid; gap: 8px; margin: 0; color: var(--moment-ink); font-size: 15px; font-weight: 600; }
+.moment-demo textarea { width: 100%; border: 1.5px solid var(--moment-line); border-radius: 12px; padding: 12px; color: var(--moment-ink); background: #fff; font: inherit; font-weight: 400; resize: vertical; }
+.moment-demo-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.moment-demo-actions button { min-height: 44px; padding: 10px 16px; border: 1px solid var(--moment-line); border-radius: 12px; color: var(--moment-ink); background: #fff; font: inherit; font-size: 14px; cursor: pointer; }
+.moment-demo-actions button.moment-primary { background: var(--moment-ink); border-color: var(--moment-ink); color: #fff; font-weight: 600; }
+.moment-demo-photo { display: grid; gap: 12px; }
+.moment-demo-photo > img { width: 100%; max-height: 180px; object-fit: contain; border-radius: 12px; background: var(--moment-soft); }
+@media (max-width: 480px) {
+  .moment-scale { gap: 5px; }
+  .moment-scale button { grid-template-rows: 52px auto 1fr; min-height: 136px; gap: 6px; padding: 10px 3px; border-radius: 12px; }
+  .moment-choice-picture { height: 52px; }
+  .moment-choice-picture .moment-art { width: 60px; height: 60px; }
+  .moment-choice-label { font-size: 12px; }
+  .moment-question-heading > .moment-art { width: 84px; height: 84px; }
+  .moment-meal-heading > .moment-art { width: 76px; height: 76px; }
+  .moment-meal-heading h2, .moment-meal-heading h3 { font-size: 22px; }
+  .moment-steps button, .moment-meal-kinds label > span { font-size: 12px; }
+  .moment-steps:has(> :nth-child(6)) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .moment-bowel-options button > span { font-size: 12px; text-align: center; }
+  .moment-demo { padding: 16px; }
+  .moment-demo h3 { font-size: 23px; }
+  .vivance-landing .moment-steps button { font-size: 12px; }
+}
