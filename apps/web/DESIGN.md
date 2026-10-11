@@ -178,13 +178,24 @@ atribuir autoria nova. A hierarquia interna usa título do card em 18 px,
 rótulos em 14 px, conteúdo em 16 px e fontes em 13 px; espaçamentos recorrentes
 de 16, 20 e 24 px mantêm a leitura entre elementos, cards e seções.
 
+Enquadramento: o Hoje tem largura máxima de 1440 px, contexto da consulta
+compacto e seletores com rótulo e contagem na mesma linha. A faixa usa 56 px
+sem contagem e mínimo de 60 px com contagem; textos extensos podem aumentar
+a altura uniforme da faixa. Etapas continuam numeradas antes do rótulo.
+Cabeçalho e ações não acumulam margens. Em telas estreitas, o controle de
+expansão tem ícone e alvo de 44 px; o nome e os metadados usam toda a largura
+disponível, sem avatar decorativo. Seletores ímpares completam a última linha.
+Na composição sintética de 1330×625, os cards começam em 262 px a partir do
+topo do briefing. Corpo e fontes preservam a hierarquia acima.
+
 Agenda, ficha, convites, revisão dos envios, teleconsulta, atendimento e receitas
 usam o mesmo vocabulário de seleção, respeitando papel, vínculo, URL, paginação
 e rascunhos existentes. Filtros da lista de pacientes atuam **nesta página**,
 sem sugerir contagem global. O padrão é uma mudança local de interface, sem
 novos contratos de banco ou funções clínicas. [PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119)
-em draft e Preview estão disponíveis, com testes/CI aprovados. Login médico,
-publicação e aceite médico não foram estabelecidos por esta implementação;
+em draft e Preview estão disponíveis, com testes/CI aprovados. Login médico
+real com Guilherme passou localmente e no Preview. Publicação em produção e
+aceite médico continuam separados;
 detalhes nas [evidências](../../docs/UX_MEDICA_PADRAO_2026-10-10.md).
 A direção desta rodada foi Product Design, sem Impeccable.
 

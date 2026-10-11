@@ -22,27 +22,40 @@ desktop; fatos ficam em grid e o celular usa uma coluna. Rótulos derivam da
 fonte, com hierarquia 18 px (card), 14 px (rótulo), 16 px (conteúdo), 13 px
 (fonte) e espaços de 16/20/24 px.
 
+Enquadramento refinado: largura máxima do Hoje de 1440 px, identidade/contexto
+e ações compactos; rótulos e contagens na mesma linha dos seletores, mantendo
+etapas numeradas. Altura mínima da faixa 56/60 px, conforme contagem; alvos
+≥44 px. Na composição sintética 1330×625, primeiro card em 262 px do topo do
+briefing; em 390/320 px, 482/528 px, sem overflow. No celular, o controle de
+expansão ocupa 44 px e o contexto usa a largura disponível. Revisão independente
+das capturas sem impedimento; os relatos ainda exigem rolagem no celular.
+
 Estado desta frente: **[PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119)
 em draft, pronto para revisão**. 525 testes, typecheck, lint e build final
 passaram; lint teve zero erros e um aviso anterior. O
-[CI 38102475713](https://github.com/vitormilanez/instituto-vivance/actions/runs/38102475713)
-passou no SHA `528c0e0d728b8856b9f24f00cd070b24540a0b6d`.
+[CI 38105274475](https://github.com/vitormilanez/instituto-vivance/actions/runs/38105274475)
+passou no SHA `5445083c4205a3e7b7ef6061399620b61ab4237c`.
 Browser local em Hoje, exames, Agenda, convites, documentos e mensagens a
 1440/900/390/320 px sem overflow; controles de exames e Agenda com altura de
 pelo menos 44 px. Teclado Home/End e edição preservada ao alternar aba,
 resultado e filtro foram conferidos. Resposta de API **simulada** testou 99
 no limite máximo: verde, fonte 108 e histórico preservados, sem mutação remota.
 
-[Preview](https://instituto-vivance-6i59r1ue9-vtr-consulting.vercel.app)
-`dpl_FD84t5t97712Pk9TcHsJq1yrKwsC`, READY após build, solicitado explicitamente
-com `--target preview` no SHA `63bcc2f3d21bb81f29cf3b3ad2621128dd6b5bd4`.
+[Preview](https://instituto-vivance-pq76f1h6n-vtr-consulting.vercel.app)
+`dpl_5jWLNZWFSXczYnfadtbUoGha9jkV`, READY após build, solicitado explicitamente
+com `--target preview` no SHA `5445083c4205a3e7b7ef6061399620b61ab4237c`.
 Conta `vtrconsulting`, equipe `vtr-consulting`, projeto `instituto-vivance` /
 `prj_ligeZuFRycRXA21u5rRzaLAORTrI` conferidos; `/login` HTTP 200 usando proteção
-Vercel existente. Commits posteriores alteram somente testes/documentação.
-Paciente sintético fez login real pela interface local e no Preview, manteve
-sessão após recarga e recebeu 404 na ficha médica. Login médico desta UX segue
-pendente da sessão solicitada. Não houve integração, publicação em produção ou
-aceite médico desta UX. Banco/Edge abaixo pertencem à entrega anterior #117 e
+Vercel existente. Commits posteriores alteram somente documentação.
+Paciente sintético fez login real pela interface local e no novo Preview,
+manteve sessão após recarga, recebeu 404 na ficha médica e 403 na extração.
+Guilherme fez login real localmente e neste Preview, mantendo sessão após
+recarga: ficha, API de extração
+e original HTTP 200, Glicose 92 mg/dL, histórico de cinco revisões, link direto,
+URL Evolução/voltar Documentos e correção em edição preservados. Filtros com
+todos os documentos/itens expandidos mostraram 4 fora, 30 dentro e 108 sem
+comparação, total 142. Nenhuma correção foi enviada. Não houve integração,
+publicação em produção ou aceite médico desta UX. Banco/Edge abaixo pertencem à entrega anterior #117 e
 ao registro #118. Detalhes em [evidências](UX_MEDICA_PADRAO_2026-10-10.md).
 
 ## IA2 — retomada operacional e referências (#117, 10/10)

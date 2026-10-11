@@ -29,8 +29,8 @@ Vivance, menu, oito ações rápidas e contratos clínicos.
 
 Node 24.19.0; 525 testes passaram. Lint sem erros, com um aviso anterior em
 `onboarding-workspace.tsx`; typecheck e build final passaram. O
-[CI 38102475713](https://github.com/vitormilanez/instituto-vivance/actions/runs/38102475713)
-passou no commit `528c0e0d728b8856b9f24f00cd070b24540a0b6d`. As verificações
+[CI 38105274475](https://github.com/vitormilanez/instituto-vivance/actions/runs/38105274475)
+passou no commit `5445083c4205a3e7b7ef6061399620b61ab4237c`. As verificações
 existentes de Agenda e etapas foram ajustadas para conferir o padrão aprovado.
 
 Playwright verificou componentes reais na composição exclusiva de desenvolvimento
@@ -48,22 +48,59 @@ o resultado passou a verde, mantendo o trecho de origem 108 e a revisão no
 histórico. Esse cenário não comprova uma nova gravação remota. Limites e revisões
 são cobertos pelos testes existentes do classificador, que não foi alterado.
 
-O paciente permanente de QA entrou pela interface local e pelo Preview, manteve
-sessão após recarga e recebeu 404 ao tentar abrir a ficha médica. No Preview,
-o login abriu a rota de cuidado do paciente. Credenciais ficaram no arquivo
+O paciente permanente de QA entrou pela interface local e pelo novo Preview,
+manteve sessão após recarga e recebeu 404 ao tentar abrir a ficha médica. No
+novo Preview, a API de extração retornou 403 com essa sessão de paciente.
+O login abriu a rota de cuidado do paciente. Credenciais ficaram no arquivo
 local ignorado, sem publicação em logs ou Git. A proteção Vercel foi acessada
-com autenticação existente, sem alterar a configuração. A verificação médica
-autenticada permanece pendente da sessão na janela de teste.
+com autenticação existente, sem alterar a configuração.
+
+Guilherme, conta médica de teste autorizada, entrou pela interface local e pelo
+novo Preview, manteve sessão após recarga e abriu ficha, extração e original
+com HTTP 200. O link direto da Glicose abriu fonte e histórico de cinco
+revisões, mantendo 92 mg/dL. Todos os itens foram expandidos por controles da
+interface: filtros mostraram 4 fora, 30 dentro e 108 sem comparação, total 142.
+O formulário manteve o valor 99 em edição ao alternar filtros; nenhuma
+correção foi enviada e recarregar manteve 92. Navegação Documentos → Evolução
+e voltar preservou a seção na URL. Captura e JSON locais ignorados:
+`doctor-preview-documents.png` e `doctor-auth-preview-result.json`.
+
+## Refinamento de enquadramento
+
+A captura do usuário mostrou contexto/ações e faixa ocupando altura excessiva.
+O contexto agora combina os metadados, sem margens cumulativas, e a faixa
+mostra rótulo/contagem horizontal. Etapas continuam numeradas. O Hoje limita
+a largura a 1440 px. Seletor tem mínimo de 56 px sem contagem e 60 px com
+contagem, podendo crescer uniformemente para texto extenso. Título/modo do
+Resumo compartilham linha quando cabe; gutters de 24 px e cards de 16 px.
+
+Composição sintética real dos componentes, sem autenticação: em 1330×625,
+cabeçalho e ações ocupam 144 px, faixa 62 px com bordas e cards começam em
+262 px a partir do briefing (cerca de 386 px na captura recebida). Em
+390/320 px, cards começam em 482/528 px, sem corte horizontal. No celular,
+nome/metadados usam a largura disponível, avatar decorativo oculto, controle
+de expansão 44×44 px e ações preservadas. A tela ainda exige rolagem para os
+relatos, ponto residual de densidade registrado pela revisão independente.
+Essas medidas são da composição de QA, não da conta médica autenticada.
+
+Revisão independente final sem impedimento nas capturas desktop e 320 px.
+Agenda, convites, documentos, mensagens e exames foram novamente conferidos
+em 320 px sem overflow; seletores têm alturas uniformes e rótulos alinhados.
+Agenda usa toda a linha na terceira opção (56 px alto); envio de mensagem
+44 px alto. Corrigida regra legada da Agenda que atingia botões aninhados.
+Home/End continuam movendo foco e seleção no Hoje. Evidências locais ignoradas:
+`framing-today-{1330,390,320}.png`, `framing-measures.json` e
+`framing-final-agenda-320.png` em `output/playwright/medical-standardization/`.
 
 ## Entrega para revisão
 
 [PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119), em draft.
-[Preview](https://instituto-vivance-6i59r1ue9-vtr-consulting.vercel.app), deployment
-`dpl_FD84t5t97712Pk9TcHsJq1yrKwsC`, READY após build. Conta `vtrconsulting`,
+[Preview](https://instituto-vivance-pq76f1h6n-vtr-consulting.vercel.app), deployment
+`dpl_5jWLNZWFSXczYnfadtbUoGha9jkV`, READY após build. Conta `vtrconsulting`,
 equipe `vtr-consulting`, projeto `instituto-vivance` /
 `prj_ligeZuFRycRXA21u5rRzaLAORTrI` conferidos. O deploy foi solicitado com
-`--target preview`; seu SHA é `63bcc2f3d21bb81f29cf3b3ad2621128dd6b5bd4`.
-Os commits posteriores alteram testes/documentação, sem diferença no código
+`--target preview`; seu SHA é `5445083c4205a3e7b7ef6061399620b61ab4237c`.
+Os commits posteriores alteram documentação, sem diferença no código
 da aplicação. `/login` respondeu HTTP 200 com autenticação Vercel.
 
 Asana: tarefas `1219378497566919` (UX) e `1219002739975041` (IA2–IA3)

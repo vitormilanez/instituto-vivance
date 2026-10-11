@@ -63,8 +63,13 @@ objetivo e pendências em um terço e relatos em dois terços no desktop, com
 fatos em grid; uma coluna no celular. Rótulos derivam da fonte. Tipos de
 18/14/16/13 px para card/rótulo/conteúdo/fonte e espaços de 16/20/24 px.
 Responsividade, teclado, preservação de edição e build final foram conferidos;
-login real do paciente sintético passou localmente e no Preview. Login médico
-e aceite de usabilidade desta UX permanecem pendentes. Links e SHA no
+login real do paciente sintético passou localmente e no novo Preview.
+Login médico real com Guilherme passou localmente e no novo Preview: sessão,
+fonte/histórico, filtros, links diretos, voltar e edição preservados. O
+enquadramento limita o Hoje a 1440 px, compacta contexto e faixas, e mantém
+conteúdo em 16 px e alvos de 44 px. Cards começam em 262 px na composição
+desktop de 1330×625; mobile 320 px sem corte horizontal. Aceite de usabilidade
+desta UX permanece pendente. Links e SHA no
 [status](STATUS_ATUAL.md) e [evidências](UX_MEDICA_PADRAO_2026-10-10.md).
 Uma resposta API **simulada** para o valor 99 no limite
 superior validou cor verde e preservação da fonte/histórico, sem mutação remota.
