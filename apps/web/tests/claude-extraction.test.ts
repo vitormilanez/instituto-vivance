@@ -152,6 +152,44 @@ test("value and unit cannot be borrowed from reference or another exam", () => {
     [["Glicose", "90", null, null], ["TSH", "2", null, "0,4 a 4,0 mUI/L"]]);
 });
 
+test("fixture reference line stays with its result and split versus joined unit deduplicates", () => {
+  const text = "Marcador QA 01: 91 mg/dL\nUnidade: mg/dL\nReferencia informada pelo emissor: 70 a 120 mg/dL\nColeta: 09/10/2026";
+  const page = [{ id: "qa-page-1", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const attempt = (literal_value: string) => ({ pages: [{ page_number: 1, source_text: null,
+    items: [{ item_kind: "laboratory", literal_name: "Marcador QA 01", literal_value,
+      unit_text: "mg/dL", reference_text: "70 a 120 mg/dL", source_excerpt: text }] }], metadata: {} });
+  for (const attempts of [[attempt("91 mg/dL"), attempt("91")], [attempt("91"), attempt("91 mg/dL")]]) {
+    const merged = mergeGroundedAttempts(page, attempts);
+    assert.equal(merged.discarded, 0);
+    assert.equal(merged.items.length, 1);
+    assert.deepEqual([merged.items[0].literal_value, merged.items[0].unit_text, merged.items[0].reference_text],
+      ["91", "mg/dL", "70 a 120 mg/dL"]);
+    assert.equal(merged.items[0].source_excerpt, text);
+  }
+});
+
+test("a true next analyte blocks borrowing its reference", () => {
+  const text = "Glicose: 90 mg/dL\nTSH: 2 mUI/L\nReferencia informada pelo emissor: 0,4 a 4,0 mUI/L";
+  const page = [{ id: "two-analytes", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const grounded = groundedItems(page, { pages: [{ page_number: 1, source_text: null, items: [
+    { item_kind: "laboratory", literal_name: "Glicose", literal_value: "90", unit_text: "mg/dL",
+      reference_text: "0,4 a 4,0 mUI/L", source_excerpt: text },
+  ] }], metadata: {} });
+  assert.equal(grounded.items.length, 1);
+  assert.equal(grounded.items[0].reference_text, null);
+});
+
+test("joined and split measurements with conflicting literal units remain separate", () => {
+  const text = "Marcador QA 01: 91 mg/dL\nUnidade: mg/dL\nUnidade alternativa: g/L";
+  const page = [{ id: "unit-conflict", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const attempt = (literal_value: string, unit_text: string) => ({ pages: [{ page_number: 1, source_text: null,
+    items: [{ item_kind: "laboratory", literal_name: "Marcador QA 01", literal_value,
+      unit_text, source_excerpt: text }] }], metadata: {} });
+  const merged = mergeGroundedAttempts(page, [attempt("91 mg/dL", "mg/dL"), attempt("91", "g/L")]);
+  assert.deepEqual(merged.items.map((item) => [item.literal_value, item.unit_text]),
+    [["91 mg/dL", "mg/dL"], ["91", "g/L"]]);
+});
+
 test("retry merge retains repeated identical results at different source positions", () => {
   const text = "Glicose 90 mg/dL\nNota de repetição\nGlicose 90 mg/dL";
   const page = [{ id: "p", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
@@ -313,6 +351,34 @@ test("line-separated literal lab result triggers audit even if a model returns n
     { page_number: 8, candidates: 1, missing: 0 },
   ]);
   assert.equal(unresolvedPageNotes(page, [7], []).length, 1);
+});
+
+test("generic result heading covers only its adjacent grounded analyte, including a broken label", () => {
+  const text = "Marcador QA\nBifásico 01\nResultado:91 mg/dL";
+  const page = [{ id: "qa-generic", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const grounded = groundedItems(page, { pages: [{ page_number: 1, source_text: null, items: [
+    { item_kind: "laboratory", literal_name: "Marcador QA\nBifásico 01", literal_value: "91",
+      unit_text: "mg/dL", source_excerpt: text },
+  ] }], metadata: {} });
+  assert.equal(grounded.discarded, 0);
+  assert.deepEqual(coverageGaps(page, grounded.items), [{ page_number: 1, candidates: 1, missing: 0 }]);
+});
+
+test("generic result heading remains an audit gap when its item is missing", () => {
+  const page = [{ id: "qa-missing", page_number: 1, extracted_text: "Marcador QA 01\nResultado:91 mg/dL",
+    possible_duplicate_of_page: null }];
+  assert.deepEqual(coverageGaps(page, []), [{ page_number: 1, candidates: 1, missing: 1 }]);
+});
+
+test("equal values on two generic result lines cannot cover an omitted analyte", () => {
+  const text = "Marcador QA 01\nResultado:91 mg/dL\nMarcador QA 02\nResultado:91 mg/dL";
+  const page = [{ id: "qa-repeated", page_number: 1, extracted_text: text, possible_duplicate_of_page: null }];
+  const grounded = groundedItems(page, { pages: [{ page_number: 1, source_text: null, items: [
+    { item_kind: "laboratory", literal_name: "Marcador QA 01", literal_value: "91",
+      source_excerpt: "Marcador QA 01\nResultado:91 mg/dL" },
+  ] }], metadata: {} });
+  assert.equal(grounded.discarded, 0);
+  assert.deepEqual(coverageGaps(page, grounded.items), [{ page_number: 1, candidates: 2, missing: 1 }]);
 });
 
 test("Truncated provider output cannot produce a completed result", async () => {

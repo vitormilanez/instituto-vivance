@@ -2,9 +2,9 @@
 
 **Estado em 10/10/2026:** [PRs #109](https://github.com/vitormilanez/instituto-vivance/pull/109) e [#110](https://github.com/vitormilanez/instituto-vivance/pull/110) integrados e publicados tecnicamente no dev sintético. A deduplicação .4 foi verificada em reprocessamento QA e interface médica autenticada. Não houve aceite clínico. [Status](STATUS_ATUAL.md) registra SHA, CI, Edge e deployment.
 
-## Robustez de PDFs longos — slice de 10/10 em validação
+## Robustez de PDFs longos — #114 publicado em 10/10
 
-Branch `codex/exames-checkpoints-lotes-20261010`. A falha observada em um PDF de
+[PR #114](https://github.com/vitormilanez/instituto-vivance/pull/114) integrado e publicado tecnicamente. A falha observada em um PDF de
 25 páginas ocorreu após o texto ser salvo: um nome literal com controle de
 formatação violou o CHECK de `exam_result_items`. As três tentativas repetiram
 Claude e a RPC final reverteu os resultados. Leitura de texto, organização e
@@ -67,8 +67,17 @@ existente. Checkpoints reduzem retrabalho, mas ainda não dividem o job em lease
 de continuação. Documento que esgota tentativas requer recuperação operacional;
 retomada médica por botão e continuação de jobs são slices posteriores. Não
 prometer completude universal. A rodada local passou 512 testes, build, typecheck,
-lint (um aviso anterior) e `deno check`; publicação e validação remota serão
-registradas no status/checkpoints quando efetivamente verificadas.
+lint (um aviso anterior) e `deno check`; CI e release passaram também. Banco/Edge
+e frontend publicados manualmente após etapas skipped. A rodada fictícia de 25
+páginas confirmou retomada com checkpoints, mas gerou 29 itens/25 medições e
+perdeu referências no grounding. Correção delimitada em validação: linha de
+referência não é próximo analito e unidade repetida não cria outra medição.
+Adapter `.6` mantém prompt `.4` para reusar respostas pagas. Auditoria de
+Resultado/Valor usa a ocorrência literal do nome anterior, evitando falsa lacuna
+ou cobertura emprestada de outro analito. Local: 518 testes e reaplicação offline
+das nove respostas QA: 25 itens/25 páginas com referência, unidade e data, zero
+offsets inválidos e lacunas; sem novas chamadas Claude nem mutar histórico.
+Conferir publicação/verificação remota no status.
 
 ## Contrato vigente e evidência
 

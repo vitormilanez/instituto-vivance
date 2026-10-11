@@ -5,16 +5,18 @@
 ## Prioridade atual — robustez da ingestão (10/10)
 
 Pedido vigente: exames extensos no formato PDF/foto devem preservar o texto por
-página antes da extração. Slice `codex/exames-checkpoints-lotes-20261010` em
-validação: aceitar formatação literal de PDF, validar payload antes de gravar e
-salvar checkpoints por lote para evitar pagar novamente pelos concluídos. Haiku
+página antes da extração. [PR #114](https://github.com/vitormilanez/instituto-vivance/pull/114)
+publicado tecnicamente: formatação literal de PDF, validação de payload e
+checkpoints por lote para evitar pagar novamente pelos concluídos. A verificação
+remota revelou referências descartadas e duplicatas; correção delimitada em
+validação na branch `codex/exames-referencia-literal-20261010`. Haiku
 5.5 inicial + Sonnet 5.5 seletivo; sem interpretação clínica. Esta correção precede
 a publicação ao paciente. Estado de publicação e evidência em [STATUS_ATUAL](STATUS_ATUAL.md);
 contrato, limites e política econômica em [IA2_EXAMES](IA2_EXAMES.md).
 
 ## IA2 sintética publicada — próxima entrega separada
 
-Os [PRs #106/#107](https://github.com/vitormilanez/instituto-vivance/pull/107) estabeleceram extração sintética com fonte e revisão por item; o [#109](https://github.com/vitormilanez/instituto-vivance/pull/109) integrou correções de unidade, referência e data. O [#110](https://github.com/vitormilanez/instituto-vivance/pull/110) integrou a deduplicação e foi publicado tecnicamente na aplicação `91970c0`, Edge v11 e deployment `dpl_DH5etxpExwKTLPDU5d6qj6LttkwU`, anteriores ao refinamento de UX #112. Consulte o [status](STATUS_ATUAL.md) para o frontend vigente. A migration `20261010220240` permanece a última (68 no dev). A interface médica autenticada confirmou cinco medidas na run atual, histórico preservado e Glicose v5 após recarga. O isolamento do paciente foi testado em rodada anterior, sem novo teste no #110; não há aceite clínico.
+Os [PRs #106/#107](https://github.com/vitormilanez/instituto-vivance/pull/107) estabeleceram extração sintética com fonte e revisão por item; o [#109](https://github.com/vitormilanez/instituto-vivance/pull/109) integrou correções de unidade, referência e data. O [#110](https://github.com/vitormilanez/instituto-vivance/pull/110) integrou a deduplicação e foi publicado tecnicamente na aplicação `91970c0`, Edge v11 e deployment `dpl_DH5etxpExwKTLPDU5d6qj6LttkwU`, anteriores ao refinamento de UX #112. Consulte o [status](STATUS_ATUAL.md) para o frontend vigente. A migration `20261010220240` era a última nessa rodada histórica (68 no dev); o #114 aplicou `20261010234104` (69 no dev). A interface médica autenticada confirmou cinco medidas na run atual, histórico preservado e Glicose v5 após recarga. O isolamento do paciente foi testado em rodada anterior, sem novo teste no #110; não há aceite clínico.
 
 A deduplicação .4 resolveu no piloto a representação de número/unidade juntos ou separados: a run .3 tinha dez itens de cinco resultados, enquanto a run .4 trouxe cinco itens em primeira tentativa do Cron. CI e release #110 passaram 504 testes; a verificação autenticada no domínio principal confirmou 25 resultados, 24 pendentes. A avaliação privada offline final fundamentou 81 itens com zero offsets inválidos, sem comprovar completude clínica. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação.
 

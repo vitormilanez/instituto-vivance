@@ -1,18 +1,50 @@
 # Estado atual do Vivance
 
-**Atualizado em 10/10/2026 — #112 integrado e publicado tecnicamente; UX conferida com médico autenticado e paciente sintético.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada: `7e3b849e3e068509ac35f619999ee54fa1efc45e`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
+**Atualizado em 10/10/2026 — #114 integrado e publicado tecnicamente; ajuste adicional de referência/deduplicação em validação.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada: `0d4619b808ee272f9721b0002b7036ea1a1855fe`. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
 
-## IA2 — robustez por lote, em validação (10/10)
+## IA2 — texto primeiro e checkpoints publicados (#114)
 
-Branch `codex/exames-checkpoints-lotes-20261010`, base `7d985d2`. Correção de
-TAB/LF/CR nos nomes/valores literais do PDF, validação completa pós-grounding,
-checkpoint privado por lote inicial/auditoria e reutilização do texto do mesmo
-job/arquivo. Adapter `.5`, prompt `.4`, Haiku 5.5 com fallback seletivo Sonnet 5.5;
-ambos disponíveis no inventário real da conta. [Contrato e custos](IA2_EXAMES.md).
-Migration nova `20261010234104` preparada, ainda não aplicada neste registro.
-Local: 512 testes, lint/typecheck/build e Deno check passaram; um aviso anterior
-no onboarding. Mensagem médica distingue texto disponível de organização não
-concluída. Ainda não marcar este slice como publicado nem o PDF como recuperado.
+[PR #114](https://github.com/vitormilanez/instituto-vivance/pull/114) integrado
+em `0d4619b808ee272f9721b0002b7036ea1a1855fe`. CI `38096376336` e release
+`38096478634` passaram 512 testes, lint/typecheck/build; Deno check local passou.
+Etapas de migration, Edge, promoção e domínio ficaram skipped por configuração.
+Migration `20261010234104` aplicada manualmente: 69 no dev `oxuwrdjojsmgxoljqkuk`.
+Checkpoints com RLS; SELECT apenas service_role e escrita pela RPC de lease.
+Advisor novo: INFO de RLS sem policy, intencional para tabela interna; nenhum WARN
+novo. [Contrato, custos e limites](IA2_EXAMES.md).
+
+Edge `exam-text-worker` v12 ACTIVE, hash
+`e089e6707e245155113ecb31fb15d8661c09670a45d408aa26158b8ddefb2e4f`,
+adapter `.5`, prompt `.4`. Haiku 5.5 inicial e Sonnet 5.5 seletivo disponíveis no
+inventário real. Deployment Git `dpl_Fp46Tkhys3rTQT6BpNABqh48AY4S`
+([URL técnica](https://instituto-vivance-jl769y7x6-vtr-consulting.vercel.app))
+READY/production no SHA integrado. Ambos os aliases apontados pela CLI e
+inspecionados no mesmo ID: principal três HTTP 200 (TTFB 0,383–0,901 s), secundário
+três 307 (0,228–0,590 s). Rollback anterior: `dpl_14N5Hy9FG2sZs8EjrMKBJgzhPArY`.
+
+Upload pela sessão QA: PDF inteiramente fictício de 25 páginas, documento
+`42c0f0a4-9d38-490a-815d-3f976b161a5a`, run
+`5a8fa8a9-0dc5-4a3b-b217-8e3434fd0f10`, job
+`48895349-5ceb-42c1-87c1-2a8724ce659c`. Cron salvou 25/25 páginas; primeira
+tentativa guardou dois lotes e a segunda completou a mesma run. Nove checkpoints
+(cinco iniciais + quatro auditorias), nome multiline preservado. **Esta execução
+produziu 29 itens para 25 medições e perdeu referências no grounding**; é evidência
+de retomada, não de qualidade completa. Histórico imutável preservado.
+
+A validação revelou linha de referência confundida com próximo analito e unidade
+repetida impedindo deduplicação. Correção delimitada na branch
+`codex/exames-referencia-literal-20261010`, adapter `.6` com prompt `.4` preservado
+para reutilizar respostas pagas. Local: 518 testes, lint/typecheck/build e Deno check passaram. Reaplicação offline
+às nove respostas QA salvas trouxe 25 itens/25 páginas, 25 referências, unidades e
+datas, zero offsets inválidos e zero lacunas detectadas, sem nova chamada Claude
+ou alteração do histórico. Ainda em validação remota; registrar publicação e
+resultado efetivo antes de afirmar qualidade corrigida no ambiente.
+
+Médico autenticado confirmou no domínio a mensagem **Organização não concluída**
+do PDF anteriormente reportado: texto das 25 páginas disponível e original
+acessível. Esse PDF esgotou tentativas e não foi reprocessado nesta rodada;
+recuperação operacional permanece pendente. Continuação entre leases e retomada
+médica de job esgotado são próximos reforços; publicação ao paciente segue separada.
 
 ## UX do briefing — publicação e conferência de 10/10
 
