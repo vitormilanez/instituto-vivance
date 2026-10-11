@@ -1,5 +1,61 @@
 # Estado atual do Vivance
 
+## Convites — cadastro não ativado e reset específico (11/10/2026)
+
+Rodada de 11/10 à tarde: logs confirmaram colisão `23505` entre convite por
+WhatsApp e e-mail já pendente. Claim agora retorna 409 com orientação explícita
+de usar o e-mail, spam, recuperação ou reenvio pela clínica, sem consumir token;
+410 orienta sobre link cancelado. O link reportado já estava revogado na leitura
+remota; seu convite por e-mail permanece pendente, sem confirmação/login. Não
+alteradas essas identidades/convites. 30 testes correlatos passaram.
+
+CLI Supabase 2.117.0 autenticada confirmou o destino. `config diff` isolado
+mostrou só assunto/corpo declarados para escrita. `config push` foi recusado
+com HTTP 400: template customizado indisponível no free tier com o provedor
+padrão; requer SMTP próprio ou plano diferente. Nenhuma configuração Auth foi
+aplicada nessa tentativa, sem contratação/mudança de plano. Template segue
+preparado, mas não ativo. Usuário autorizou publicação das entregas pendentes.
+
+A pedido do usuário, removidos no dev sintético confirmado
+`oxuwrdjojsmgxoljqkuk` a conta antiga de `vtrconsultingbr@gmail.com` e o
+convite pendente criado em 11/10 às 09h47 (São Paulo). A conta de 03/10 não
+tinha confirmação, login, sessão, membership, vínculo de paciente, onboarding
+ou documento. Transação com guards de identidade/estado; leitura posterior
+confirmou zero contas e zero convites pendentes para esse endereço. Exclusão
+definitiva; nenhum novo cadastro/convite foi criado pelo agente. O reset de
+10/10 abrangia outros dois e-mails de Vitor, não este terceiro endereço.
+
+Correção preparada na branch `codex/convite-ativacao-pendente-20261011`:
+`invite-patient` e claim por WhatsApp só dispensam e-mail quando
+`email_confirmed_at` existe. Identidade não confirmada recebe novo pedido de
+Invite via Auth, preservando o usuário; UI médica informa **Cadastro pendente
+de ativação**, pedido de novo e-mail e uso do link mais recente. Conta ativa
+continua aceitando em Minhas clínicas sem novo e-mail. Resposta pública do
+claim permanece genérica; falhas de envio revogam convite direto ou devolvem
+o link WhatsApp para retry. Lookup incompleto falha sem envio.
+
+Pedido adicional de 11/10: substituir o convite Auth padrão em inglês por
+HTML institucional em português, com foto e CRM-SP 182364 fornecido do
+Dr. Guilherme Martins, contexto de acompanhamento e CTA de ativação. Template
+e [guia de aplicação](../supabase/templates/README.md) preparados; prévia local
+desktop/mobile e fallback institucional sem médico conferidos. Metadados de
+apresentação usam o médico verificado do convite e não concedem acesso.
+`invite-staff` marca o envio como equipe para evitar atribuição médica indevida.
+O painel Supabase solicitou login: template hospedado e recebimento em clientes
+de e-mail não foram verificados. Remetente institucional exige SMTP separado;
+HTML sozinho não substitui o remetente Supabase Auth. Não enviado novo e-mail.
+Go `html/template` real validou Guilherme, equipe, ausência de metadados e outro
+médico. Os reenvios atualizam apenas os campos de apresentação antes do Invite,
+preservam metadados anteriores e interrompem o envio se essa atualização falhar.
+16 testes focados (incluindo autoria antiga/forjada e falha de atualização) e
+Deno check das três funções passaram; evidências locais em `output/email-invite/`.
+
+530 testes passaram em Node 24.21.0 antes da inclusão do template; typecheck, lint completo (zero erros,
+um aviso anterior) e build Webpack passaram. Deno check das duas funções e
+revisão independente com GPT-5.6 Sol medium aprovados para o fluxo inicial. Publicação de frontend/Edge Functions, template e recebimento de e-mail real
+continuam pendentes; não há migration neste lote. O usuário repetirá o
+convite novo com o endereço limpo. Tarefa C2 `1219002465981599`.
+
 **Atualizado em 11/10/2026 (São Paulo) — check-in/alimentação em PR/Preview; UX médica #119 publicada anteriormente.** Checkout Git principal: `/Users/vitormilanez/Desktop/Codes/vivance`. Aplicação publicada anteriormente: `e05cb4cafa20c3a5b43899fdfae1b7bf4310a17c`; deployment `dpl_4ckHiqrEM1NdXqaf6cUFTigvHt2X`. Aceite médico e [Gate P](GATE_P.md) permanecem separados da publicação técnica. Confira o estado vivo antes de reutilizar estes identificadores.
 
 ## Check-in e alimentação — 11/10

@@ -168,7 +168,7 @@ Deno.serve(async (request: Request) => {
     if (!invitedUser) {
       const invited = await adminClient.auth.admin.inviteUserByEmail(
         values.email,
-        { redirectTo },
+        { redirectTo, data: { vivance_invite_kind: "staff", vivance_doctor_id: "" } },
       );
       if (invited.error || !invited.data.user)
         return response(

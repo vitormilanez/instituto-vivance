@@ -25,6 +25,18 @@ const invitationClaim = readFileSync(
   new URL("../components/patient-invitation-claim.tsx", import.meta.url),
   "utf8",
 );
+const forgotPassword = readFileSync(
+  new URL("../components/forgot-password.tsx", import.meta.url),
+  "utf8",
+);
+const onboardingService = readFileSync(
+  new URL("../modules/onboarding/service.ts", import.meta.url),
+  "utf8",
+);
+const claimRoute = readFileSync(
+  new URL("../app/api/patient-invitations/claim/route.ts", import.meta.url),
+  "utf8",
+);
 
 test("JWT-free Edge Functions are limited to explicit token and cron-secret gates", () => {
   assert.match(
@@ -67,7 +79,15 @@ test("a recoverable claim failure restores the opaque token", () => {
     /if \(invitation\.error\) \{[\s\S]*await releaseClaim\(\)/,
   );
   assert.match(claimFunction, /"email_exists", "user_already_exists"/);
+  assert.match(claimFunction, /claimed\.error\?\.code === "23505"/);
+  assert.match(claimFunction, /"email_invitation_pending"/);
   assert.match(invitationClaim, /Peça um novo convite/);
+  assert.match(invitationClaim, /Use o convite enviado por e-mail/);
+  assert.match(invitationClaim, /\/esqueci-minha-senha/);
+  assert.match(forgotPassword, /resetPasswordForEmail/);
+  assert.match(forgotPassword, /"\/primeiro-acesso"/);
+  assert.match(onboardingService, /body\.code === "email_invitation_pending"/);
+  assert.match(claimRoute, /code: error\.code/);
 
   assert.match(invitationClaim, /Confirmar e continuar/);
 });
