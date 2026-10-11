@@ -1,8 +1,8 @@
 # Estado atual do Vivance
 
-**Atualizado em 10/10/2026 (São Paulo) — padronização UX local em andamento; #117 integrado/publicado e recuperação técnica do PDF concluída anteriormente.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada anteriormente: `2454345626b56d259a71aa59c34d23a688e13850`. O PR #118 documentou esse histórico; seu merge não comprova publicação da UX atual. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
+**Atualizado em 10/10/2026 (São Paulo) — padronização UX em PR/Preview para revisão; #117 integrado/publicado e recuperação técnica do PDF concluída anteriormente.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada anteriormente: `2454345626b56d259a71aa59c34d23a688e13850`. O PR #118 documentou esse histórico; seu merge não comprova publicação da UX atual. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
 
-## Padronização da experiência médica — implementação local (10/10)
+## Padronização da experiência médica — PR #119 / Preview (10/10)
 
 Na branch `codex/padronizacao-experiencia-medica-20261010`, componentes
 compartilhados de cabeçalho e seleção organizam contexto → retângulos →
@@ -22,18 +22,28 @@ desktop; fatos ficam em grid e o celular usa uma coluna. Rótulos derivam da
 fonte, com hierarquia 18 px (card), 14 px (rótulo), 16 px (conteúdo), 13 px
 (fonte) e espaços de 16/20/24 px.
 
-Estado desta frente: **código local em validação; PR e Preview em andamento**.
-Na rodada local, 525 testes, typecheck e lint passaram; lint teve zero erros e
-um aviso anterior. O build passou **antes dos últimos ajustes** e será refeito.
-Browser local em Hoje/exames a 1440/900/390/320 px sem overflow; alvos dos
-exames com pelo menos 44 px. Teclado Home/End e edição preservada ao alternar
-aba, resultado e filtro foram conferidos localmente. Uma resposta de API
-**simulada** testou 99 no limite máximo: cor verde, fonte 108 e histórico
-preservados. Não houve mutação remota nessa verificação. Login médico real,
-PR e Preview desta UX ainda faltam. Não há evidência de integração, publicação,
-verificação autenticada ou aceite médico desta UX. A evidência de domínio, banco e Edge
-abaixo pertence à entrega anterior #117 e ao registro documental #118; não
-deve ser atribuída à padronização atual. Links serão registrados após os checks.
+Estado desta frente: **[PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119)
+em draft, pronto para revisão**. 525 testes, typecheck, lint e build final
+passaram; lint teve zero erros e um aviso anterior. O
+[CI 38102475713](https://github.com/vitormilanez/instituto-vivance/actions/runs/38102475713)
+passou no SHA `528c0e0d728b8856b9f24f00cd070b24540a0b6d`.
+Browser local em Hoje, exames, Agenda, convites, documentos e mensagens a
+1440/900/390/320 px sem overflow; controles de exames e Agenda com altura de
+pelo menos 44 px. Teclado Home/End e edição preservada ao alternar aba,
+resultado e filtro foram conferidos. Resposta de API **simulada** testou 99
+no limite máximo: verde, fonte 108 e histórico preservados, sem mutação remota.
+
+[Preview](https://instituto-vivance-6i59r1ue9-vtr-consulting.vercel.app)
+`dpl_FD84t5t97712Pk9TcHsJq1yrKwsC`, READY após build, solicitado explicitamente
+com `--target preview` no SHA `63bcc2f3d21bb81f29cf3b3ad2621128dd6b5bd4`.
+Conta `vtrconsulting`, equipe `vtr-consulting`, projeto `instituto-vivance` /
+`prj_ligeZuFRycRXA21u5rRzaLAORTrI` conferidos; `/login` HTTP 200 usando proteção
+Vercel existente. Commits posteriores alteram somente testes/documentação.
+Paciente sintético fez login real pela interface local e no Preview, manteve
+sessão após recarga e recebeu 404 na ficha médica. Login médico desta UX segue
+pendente da sessão solicitada. Não houve integração, publicação em produção ou
+aceite médico desta UX. Banco/Edge abaixo pertencem à entrega anterior #117 e
+ao registro #118. Detalhes em [evidências](UX_MEDICA_PADRAO_2026-10-10.md).
 
 ## IA2 — retomada operacional e referências (#117, 10/10)
 

@@ -2,7 +2,7 @@
 
 **IA2 sintética, 10/10/2026.** Código, banco/Edge, Preview, integração, publicação e aceite exigem evidências próprias. [Status](STATUS_ATUAL.md) contém os identificadores confirmados.
 
-## UX — padronização médica local (10/10)
+## UX — padronização médica em PR/Preview (10/10)
 
 - [x] Direção Product Design, sem Impeccable: cabeçalho de contexto → seletores retangulares → conteúdo; sem banco ou funções clínicas novas.
 - [x] Código local: Hoje com Resumo, Exames e documentos, Evolução e Solicitações, sem “Preparar”; exames com quatro filtros de comparação e quatro de revisão independentes, refinamento acima/abaixo e revisão abaixo da linha factual.
@@ -11,8 +11,10 @@
 - [x] Validação local: 525 testes, typecheck, lint com zero erros e um aviso anterior. Browser Hoje/exames em 1440/900/390/320 px sem overflow; exames com alvos ≥44 px, teclado Home/End e edição preservada ao trocar aba, resultado e filtro.
 - [x] Resposta API **simulada** para 99 no limite máximo: verde, fonte 108 e histórico preservados; sem mutação remota.
 - [x] Build final aprovado após os ajustes; login real do paciente de QA, sessão após recarga e bloqueio 404 à ficha médica.
-- [ ] Conferir login médico real e Preview desta UX.
-- [ ] Registrar PR, CI e Preview desta UX após conferência. Nenhum item acima equivale a integração ou publicação.
+- [x] [PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119) draft; [CI 38102475713](https://github.com/vitormilanez/instituto-vivance/actions/runs/38102475713) aprovado no SHA `528c0e0`; [Preview](https://instituto-vivance-6i59r1ue9-vtr-consulting.vercel.app) READY/build no SHA `63bcc2f`, sem diferença de aplicação após esse commit. Deployment e conta/equipe/projeto no [status](STATUS_ATUAL.md).
+- [x] Login real do paciente QA no Preview, sessão preservada após recarga e ficha médica bloqueada com 404; proteção Vercel preservada.
+- [x] Tarefas Asana `1219378497566919` (UX) e `1219002739975041` (IA2–IA3) atualizadas com direção, PR/Preview e evidências; histórico preservado e tarefas abertas para os aceites pendentes.
+- [ ] Conferir login médico real desta UX, pendente da sessão solicitada. Nenhum item acima equivale a integração ou publicação em produção.
 - [ ] Aceite de usabilidade e, separadamente, aceite clínico quando aplicável. O histórico publicado #117 e o PR documental #118 não os substituem.
 
 ## Base e jornada

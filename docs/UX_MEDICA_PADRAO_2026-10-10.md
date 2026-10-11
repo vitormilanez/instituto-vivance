@@ -28,8 +28,10 @@ Vivance, menu, oito ações rápidas e contratos clínicos.
 ## Evidência local
 
 Node 24.19.0; 525 testes passaram. Lint sem erros, com um aviso anterior em
-`onboarding-workspace.tsx`; typecheck e build final passaram. Evidência de PR/Preview
-será registrada no status antes da entrega.
+`onboarding-workspace.tsx`; typecheck e build final passaram. O
+[CI 38102475713](https://github.com/vitormilanez/instituto-vivance/actions/runs/38102475713)
+passou no commit `528c0e0d728b8856b9f24f00cd070b24540a0b6d`. As verificações
+existentes de Agenda e etapas foram ajustadas para conferir o padrão aprovado.
 
 Playwright verificou componentes reais na composição exclusiva de desenvolvimento
 `/refinamentos-preview`, com fixtures explícitas. Hoje, exames, Agenda, convites,
@@ -46,10 +48,27 @@ o resultado passou a verde, mantendo o trecho de origem 108 e a revisão no
 histórico. Esse cenário não comprova uma nova gravação remota. Limites e revisões
 são cobertos pelos testes existentes do classificador, que não foi alterado.
 
-O paciente permanente de QA entrou pela interface local, manteve sessão após
-recarga e recebeu 404 ao tentar abrir a ficha médica. Credenciais ficaram no
-arquivo local ignorado, sem publicação em logs ou Git. A verificação médica
+O paciente permanente de QA entrou pela interface local e pelo Preview, manteve
+sessão após recarga e recebeu 404 ao tentar abrir a ficha médica. No Preview,
+o login abriu a rota de cuidado do paciente. Credenciais ficaram no arquivo
+local ignorado, sem publicação em logs ou Git. A proteção Vercel foi acessada
+com autenticação existente, sem alterar a configuração. A verificação médica
 autenticada permanece pendente da sessão na janela de teste.
+
+## Entrega para revisão
+
+[PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119), em draft.
+[Preview](https://instituto-vivance-6i59r1ue9-vtr-consulting.vercel.app), deployment
+`dpl_FD84t5t97712Pk9TcHsJq1yrKwsC`, READY após build. Conta `vtrconsulting`,
+equipe `vtr-consulting`, projeto `instituto-vivance` /
+`prj_ligeZuFRycRXA21u5rRzaLAORTrI` conferidos. O deploy foi solicitado com
+`--target preview`; seu SHA é `63bcc2f3d21bb81f29cf3b3ad2621128dd6b5bd4`.
+Os commits posteriores alteram testes/documentação, sem diferença no código
+da aplicação. `/login` respondeu HTTP 200 com autenticação Vercel.
+
+Asana: tarefas `1219378497566919` (UX) e `1219002739975041` (IA2–IA3)
+atualizadas com a direção aprovada, PR/Preview e evidências, preservando o
+histórico. Ambas permanecem abertas para os aceites pendentes.
 
 Não houve migration, mudança de extração, reprocessamento ou gravação clínica.
 Supabase temporário: `instituto-vivance-dev` / `oxuwrdjojsmgxoljqkuk`, apenas

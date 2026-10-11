@@ -147,7 +147,7 @@ Continuam conectados os fluxos existentes de autenticação, cadastro e consulta
 
 ## Briefing médico — 10/10/2026
 
-### Padrão de leitura médica — implementação local de 10/10/2026
+### Padrão de leitura médica — PR/Preview de 10/10/2026
 
 Nas superfícies médicas, mostrar primeiro o cabeçalho com identidade e contexto,
 depois os seletores retangulares e, por fim, o conteúdo da seleção. Os seletores
@@ -182,9 +182,11 @@ Agenda, ficha, convites, revisão dos envios, teleconsulta, atendimento e receit
 usam o mesmo vocabulário de seleção, respeitando papel, vínculo, URL, paginação
 e rascunhos existentes. Filtros da lista de pacientes atuam **nesta página**,
 sem sugerir contagem global. O padrão é uma mudança local de interface, sem
-novos contratos de banco ou funções clínicas. Validação, PR e Preview ainda
-estão em andamento; publicação e aceite médico não foram estabelecidos por
-esta implementação. A direção desta rodada foi Product Design, sem Impeccable.
+novos contratos de banco ou funções clínicas. [PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119)
+em draft e Preview estão disponíveis, com testes/CI aprovados. Login médico,
+publicação e aceite médico não foram estabelecidos por esta implementação;
+detalhes nas [evidências](../../docs/UX_MEDICA_PADRAO_2026-10-10.md).
+A direção desta rodada foi Product Design, sem Impeccable.
 
 A base anterior do briefing (#112) usa um painel de leitura com cabeçalho compacto,
 objetivo em destaque, relatos literais e uma seção única de exames/documentos.
