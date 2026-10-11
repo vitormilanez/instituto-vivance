@@ -2,6 +2,12 @@
 
 ## Publicação técnica vigente — 11/10/2026, tarde
 
+Auditoria adicional a pedido do usuário: CLI confirmou acesso/vínculo ao projeto;
+comparação explícita de SMTP desabilitado e campos vazios retornou zero diferenças.
+SMTP próprio não configurado; nenhuma variável de provedor nos dois arquivos
+locais consultados. Nenhuma alteração remota nesta auditoria. Índice sem segredos
+na raiz: [OPERACAO_SUPABASE_EMAIL](../OPERACAO_SUPABASE_EMAIL.md).
+
 PRs #121 (check-in/alimentação) e #122 (ativação/convites) integrados à main
 `18a6a1881870d8ea60b0a4caa982c4ac39bb4a48`. 534 testes passaram localmente;
 CI do #122 `38167067903` e release `38167223687` aprovados em testes, lint,

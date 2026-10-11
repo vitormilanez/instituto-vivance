@@ -1,5 +1,10 @@
 # Direção do Vivance e próximos slices
 
+**Pedido adicional de 11/10:** conferir SMTP pelo CLI e registrar informações
+operacionais na raiz, sem credenciais. Acesso confirmado, SMTP próprio ausente;
+configuração/contratação ainda requer provedor e remetente autorizados. Índice:
+[OPERACAO_SUPABASE_EMAIL](../OPERACAO_SUPABASE_EMAIL.md).
+
 **Publicação autorizada e conferida em 11/10, tarde:** #121 e #122 estão no
 domínio principal. Colisão email/WhatsApp não deve consumir token nem apresentar
 retry genérico; link revogado orienta recuperação pelo e-mail/novo convite.
