@@ -46,8 +46,28 @@ médico criador. Bloqueio de linha serializa aceite/cancelamento/arquivamento.
 API exige mesma origem e JSON estrito. Migration aditiva:
 `20261011202934_archive_patient_invitation_history.sql`.
 
-Estado antes da publicação: 536 testes, tipos, lint (um aviso anterior) e build
-passaram no Node 24.21.0; revisão independente aprovada. Migration aplicada
-pela CLI e história local/remota pareada; conferência do domínio ainda pendente.
-Backend deve ser compatível antes de integrar a main, que publica o site
-automaticamente. Nenhuma Edge Function ou SMTP precisa de alteração.
+Publicação técnica concluída: [PR129](https://github.com/vitormilanez/instituto-vivance/pull/129)
+integrado no SHA `56b4dedec5dd7aeca6a8e911de075c6d1c0b14d2`. 536 testes, tipos,
+lint (um aviso anterior) e build passaram no Node 24.21.0 localmente e no CI
+`38173117222`; release `38173229148` aprovado em verify. As etapas automáticas
+de banco/Edge/promoção ficaram skipped por secrets ausentes: migration foi
+aplicada manualmente antes do merge; Vercel nativa fez a publicação automática.
+Nenhuma Edge Function ou SMTP foi alterada.
+
+Deployment `dpl_DFyCXvM2WSPTGRPxBCvG3Jn87nPu`, production/READY do mesmo SHA,
+confirmado nos dois domínios oficiais; principal `/convite`200, secundário307.
+Médico entrou realmente pela interface. No domínio publicado a confirmação
+“Excluir da lista” retornou PATCH200, ocultou o convite sintético e conservou
+o único paciente QA. Banco confirmou revoked/arquivado/autor médico/token nulo.
+Fixture temporária e seus eventos de auditoria foram depois removidos por ID
+guardado; nenhum e-mail/WhatsApp enviado. Lista final zerada.
+
+Desktop1440/celular390 conferidos em uma rodada agrupada e uma confirmação após
+correção do alinhamento das colunas/texto pequeno: sem overflow, alvos44px,
+confirmação14px desktop/16px mobile. Evidências locais em
+`output/release-20261011/invite-delete-{1440,390}.png`.
+Detector Impeccable apontou advisories de estilo já presentes na folha; sem
+novo bloqueio nos controles. Advisors Supabase: zero ERROR; warning da RPC
+SECURITY DEFINER autenticada esperado, guardas de sessão/papel/tenant revistas.
+Consulta limitada aos logs de erro deste deployment nos dez minutos da entrega
+retornou zero registros. Isso não garante monitoramento contínuo.
