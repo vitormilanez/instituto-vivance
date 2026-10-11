@@ -4,6 +4,10 @@ Verificado em 11/10/2026 (São Paulo). Este arquivo é um índice operacional se
 
 ## Estado vigente — 16h55 de 11/10/2026
 
+Organização posterior de 11/10: a credencial Resend e as demais chaves locais
+foram centralizadas em `.env.vivance.local`; `.env.smtp.local` é agora um
+atalho para ela. Ver [inventário e pendências](CREDENCIAIS.md).
+
 - Resend Free configurado sob a conta `vtrconsultingbr`; domínio de envio `auth.institutovivance.app` **Verified** em São Paulo. DNS Vercel: DKIM TXT `resend._domainkey.auth`, CNAMEs `rsend.auth` e `send.auth`, todos verificados pelo Resend. DMARC opcional ainda não publicado; recebimento no subdomínio não habilitado.
 - Supabase Auth do projeto sintético confirmado `oxuwrdjojsmgxoljqkuk` recebeu SMTP `smtp.resend.com:465`, usuário SMTP `resend`, remetente `Vivance <convites@auth.institutovivance.app>`, assunto **Seu convite para a Vivance** e `supabase/templates/invite.html`. Push isolado de nove propriedades; `config diff` de retorno sem alterações pendentes. A senha foi lida de arquivo local `.env.smtp.local` ignorado pelo Git e modo `600`; **não** registrá-la neste documento, em terminal ou commit.
 - Um convite Auth sintético enviado a alias do próprio Gmail foi marcado **Delivered** no Resend e encontrado no Gmail às 16h54. Layout, foto, Dr. Guilherme Martins/CRM-SP 182364 e CTA foram renderizados. Gmail exibiu `mailed-by: rsend.auth.institutovivance.app`, `signed-by: auth.institutovivance.app` e TLS.

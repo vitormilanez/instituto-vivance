@@ -1,5 +1,12 @@
 # Direção do Vivance e próximos slices
 
+**Decisão de 11/10 — credenciais:** centralizar as disponíveis na raiz em
+`.env.vivance.local`, ignorado e modo `0600`, com atalhos dos quatro caminhos
+anteriores. Inventário sem segredos em [CREDENCIAIS](../CREDENCIAIS.md).
+Tokens/senha para CI ainda faltam; não criar nem configurar automação de
+publicação como consequência desta organização. O WhatsApp manual já inicia
+o convite por link; o layout médico é entregue no e-mail de ativação.
+
 **Envio de convites — 11/10, 16h55:** Resend Free configurado como SMTP do Auth
 no projeto sintético, com `auth.institutovivance.app` verificado. Template
 médico ativo e recebido em teste Gmail; o Resend marcou Delivered, mas o Gmail

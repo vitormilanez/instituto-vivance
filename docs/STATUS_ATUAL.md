@@ -1,5 +1,21 @@
 # Estado atual do Vivance
 
+## Credenciais centralizadas e publicação reconferida — 11/10/2026
+
+Credenciais locais disponíveis reunidas em `.env.vivance.local`, modo `0600`,
+ignorado pelo Git. Quatro caminhos anteriores agora são atalhos para o mesmo
+arquivo; valores preservados. Supabase, Resend, Anthropic, segredo do Cron e
+contas QA estão disponíveis; faltam cópias locais de senha do banco e tokens
+Supabase/Vercel para CI. GitHub não tem secrets/variables configurados no repo
+ou environment production, portanto publicação automática continua pendente.
+[Inventário sem valores na raiz](../CREDENCIAIS.md).
+
+Reconferidos: domínio oficial no deployment `dpl_7k8WpipTjZuJKRYrhjkNn7u3xCfx`
+/ código `18a6a188`, `/login` e `/convite` HTTP200, três Edge de convite ACTIVE,
+config SMTP/template sem diferenças. WhatsApp manual usa link e requer envio
+pela equipe; o HTML médico aparece no e-mail de ativação após confirmar o
+endereço. Não há integração de envio automático WhatsApp nesta entrega.
+
 ## Convite Auth por e-mail — 11/10/2026, 16h55 (São Paulo)
 
 Resend Free conectado ao Auth do `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`).
