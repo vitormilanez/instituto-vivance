@@ -1,8 +1,40 @@
 # Estado atual do Vivance
 
-**Atualizado em 10/10/2026 (São Paulo) — padronização UX em PR/Preview para revisão; #117 integrado/publicado e recuperação técnica do PDF concluída anteriormente.** Checkout Git único: `/Users/vitormilanez/Desktop/Codes/vivance`. SHA da aplicação publicada anteriormente: `2454345626b56d259a71aa59c34d23a688e13850`. O PR #118 documentou esse histórico; seu merge não comprova publicação da UX atual. Confirmar Git, Supabase e Vercel antes de reutilizar este registro. Preview, aceite clínico e [Gate P](GATE_P.md) são marcos separados.
+**Atualizado em 10/10/2026 (São Paulo) — UX médica #119 integrada e publicada tecnicamente.** Checkout Git principal: `/Users/vitormilanez/Desktop/Codes/vivance`. Aplicação publicada: `e05cb4cafa20c3a5b43899fdfae1b7bf4310a17c`; deployment `dpl_4ckHiqrEM1NdXqaf6cUFTigvHt2X`. O #117 e o PR documental #118 são históricos. Aceite médico e [Gate P](GATE_P.md) permanecem separados da publicação técnica. Confira o estado vivo antes de reutilizar estes identificadores.
 
-## Padronização da experiência médica — PR #119 / Preview (10/10)
+## Publicação técnica da UX médica — #119 (10/10)
+
+O [PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119) foi
+integrado à `main` no SHA `e05cb4cafa20c3a5b43899fdfae1b7bf4310a17c`.
+O [release 38105844754](https://github.com/vitormilanez/instituto-vivance/actions/runs/38105844754)
+aprovou `verify`. As etapas automáticas de migração, Edge Functions e promoção
+foram ignoradas por falta de configuração; este PR não alterou `supabase/`.
+Não houve migration, alteração de Edge Function ou reprocessamento neste lote.
+
+Vercel: conta `vtrconsulting`, equipe `vtr-consulting`, projeto
+`instituto-vivance` / `prj_ligeZuFRycRXA21u5rRzaLAORTrI`. O deployment
+[`dpl_4ckHiqrEM1NdXqaf6cUFTigvHt2X`](https://instituto-vivance-ihi2psj0e-vtr-consulting.vercel.app)
+está `READY`, alvo `production`, build do SHA integrado. A promoção manual pela
+CLI atualizou `targets.production`. Tanto [institutovivance.app](https://institutovivance.app)
+quanto [instituto-vivance.vercel.app](https://instituto-vivance.vercel.app)
+resolveram para o mesmo ID. No principal, `/login` deu três HTTP 200, TTFB
+0,102–0,155 s e `x-vercel-id` em `gru1`. O secundário deu HTTP 307 para o
+principal. Artefato anterior para reversão: `dpl_692H3GxaZpMVK7tCczcnBD9FT31N`,
+SHA `2454345626b56d259a71aa59c34d23a688e13850`.
+
+No domínio principal, Guilherme entrou pela interface e manteve sessão após
+recarga. Home, ficha, extração e original responderam HTTP 200. O link direto
+da Glicose abriu valor 92 mg/dL e cinco revisões. Filtros com todos os itens
+expandidos mostraram 142 resultados: quatro fora, 30 dentro e 108 sem
+comparação. O valor 99 ficou só no formulário em edição, preservado ao trocar
+filtros; após recarga o valor salvo seguiu 92. Documentos → Evolução → voltar
+conservou a seção na URL. A conta paciente de QA chegou a Meu cuidado, manteve
+sessão após recarga e recebeu 404 na ficha médica e 403 na extração. Esses
+testes usaram apenas contas e dados sintéticos; nenhuma revisão foi enviada.
+O ambiente publicado aponta ao projeto temporário `instituto-vivance-dev`
+(`oxuwrdjojsmgxoljqkuk`). Aceite de usabilidade e clínico continuam pendentes.
+
+## Padronização da experiência médica — implementação e Preview anteriores (10/10)
 
 Na branch `codex/padronizacao-experiencia-medica-20261010`, componentes
 compartilhados de cabeçalho e seleção organizam contexto → retângulos →
@@ -30,8 +62,8 @@ briefing; em 390/320 px, 482/528 px, sem overflow. No celular, o controle de
 expansão ocupa 44 px e o contexto usa a largura disponível. Revisão independente
 das capturas sem impedimento; os relatos ainda exigem rolagem no celular.
 
-Estado desta frente: **[PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119)
-em draft, pronto para revisão**. 525 testes, typecheck, lint e build final
+Na etapa de Preview, o [PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119)
+estava em draft. 525 testes, typecheck, lint e build final
 passaram; lint teve zero erros e um aviso anterior. O
 [CI 38105274475](https://github.com/vitormilanez/instituto-vivance/actions/runs/38105274475)
 passou no SHA `5445083c4205a3e7b7ef6061399620b61ab4237c`.
@@ -54,9 +86,10 @@ recarga: ficha, API de extração
 e original HTTP 200, Glicose 92 mg/dL, histórico de cinco revisões, link direto,
 URL Evolução/voltar Documentos e correção em edição preservados. Filtros com
 todos os documentos/itens expandidos mostraram 4 fora, 30 dentro e 108 sem
-comparação, total 142. Nenhuma correção foi enviada. Não houve integração,
-publicação em produção ou aceite médico desta UX. Banco/Edge abaixo pertencem à entrega anterior #117 e
-ao registro #118. Detalhes em [evidências](UX_MEDICA_PADRAO_2026-10-10.md).
+comparação, total 142. Nenhuma correção foi enviada nessa etapa. A integração
+e publicação técnica atuais estão registradas acima; não há aceite médico
+desta UX. Banco/Edge abaixo pertencem à entrega anterior #117 e ao registro
+#118. Detalhes em [evidências](UX_MEDICA_PADRAO_2026-10-10.md).
 
 ## IA2 — retomada operacional e referências (#117, 10/10)
 

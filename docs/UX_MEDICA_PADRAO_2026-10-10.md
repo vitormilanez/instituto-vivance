@@ -92,22 +92,47 @@ Home/End continuam movendo foco e seleção no Hoje. Evidências locais ignorada
 `framing-today-{1330,390,320}.png`, `framing-measures.json` e
 `framing-final-agenda-320.png` em `output/playwright/medical-standardization/`.
 
-## Entrega para revisão
+## Preview e publicação técnica
 
-[PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119), em draft.
+[PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119), integrado à
+`main` no commit `e05cb4cafa20c3a5b43899fdfae1b7bf4310a17c`.
 [Preview](https://instituto-vivance-pq76f1h6n-vtr-consulting.vercel.app), deployment
 `dpl_5jWLNZWFSXczYnfadtbUoGha9jkV`, READY após build. Conta `vtrconsulting`,
 equipe `vtr-consulting`, projeto `instituto-vivance` /
 `prj_ligeZuFRycRXA21u5rRzaLAORTrI` conferidos. O deploy foi solicitado com
 `--target preview`; seu SHA é `5445083c4205a3e7b7ef6061399620b61ab4237c`.
-Os commits posteriores alteram documentação, sem diferença no código
+Os commits posteriores no PR alteraram documentação, sem diferença no código
 da aplicação. `/login` respondeu HTTP 200 com autenticação Vercel.
 
+O [release da main](https://github.com/vitormilanez/instituto-vivance/actions/runs/38105844754)
+aprovou `verify`; migração, Edge e promoção automáticas foram ignoradas por
+configuração. O PR não alterou `supabase/`. Vercel criou o deployment
+[`dpl_4ckHiqrEM1NdXqaf6cUFTigvHt2X`](https://instituto-vivance-ihi2psj0e-vtr-consulting.vercel.app),
+`READY`/`production`, do SHA integrado. A promoção manual atualizou
+`targets.production`. O [domínio principal](https://institutovivance.app) e
+o [secundário](https://instituto-vivance.vercel.app) resolveram para esse
+mesmo ID. O principal respondeu `/login` três vezes com HTTP 200 e TTFB
+0,102–0,155 s; o secundário retornou 307 para o principal. Deployment
+anterior conhecido: `dpl_692H3GxaZpMVK7tCczcnBD9FT31N`, SHA `2454345`.
+
+No domínio público, Guilherme entrou pela interface, manteve sessão após
+recarga e abriu Home, ficha, extração e original com HTTP 200. Link direto
+Glicose abriu 92 mg/dL e cinco revisões; com todos os itens expandidos,
+142 = 4 fora + 30 dentro + 108 sem comparação. Edição 99 sobreviveu à troca
+de filtros sem envio; recarga manteve 92. Documentos → Evolução → voltar
+preservou a URL. Paciente QA percorreu `/clinicas` e chegou a Meu cuidado,
+manteve sessão, recebeu 404 na ficha médica e 403 na API de extração.
+Credenciais e estados de navegador permanecem em arquivos locais ignorados.
+Evidências sintéticas locais: `doctor-auth-production-public-result.json`,
+`patient-auth-production-public-result.json` e
+`doctor-production-public-documents.png` em
+`output/playwright/medical-standardization/`.
+
 Asana: tarefas `1219378497566919` (UX) e `1219002739975041` (IA2–IA3)
-atualizadas com a direção aprovada, PR/Preview e evidências, preservando o
+atualizadas com a direção aprovada, Preview, publicação técnica e evidências, preservando o
 histórico. Ambas permanecem abertas para os aceites pendentes.
 
 Não houve migration, mudança de extração, reprocessamento ou gravação clínica.
 Supabase temporário: `instituto-vivance-dev` / `oxuwrdjojsmgxoljqkuk`, apenas
 testes sintéticos. PR/Preview, publicação técnica e aceite médico são marcos
-separados; a publicação anterior #117 não valida esta interface.
+separados; #117 é histórico e #119 é a interface publicada nesta rodada.
