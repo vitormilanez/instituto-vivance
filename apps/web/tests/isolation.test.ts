@@ -51,6 +51,18 @@ before(async () => {
     .filter((n) => n.endsWith(".sql"))
     .sort())
     await db.exec(readFileSync(new URL(name, migrations), "utf8"));
+  // Legacy journey fixtures model bytes already checked by Edge. Keep this
+  // adapter test-only: the production unhashed completion RPC stays blocked.
+  await db.exec(`create function public.complete_fixture_document(t uuid,d uuid,a uuid) returns uuid language plpgsql security invoker as $$
+    declare old_claims text := current_setting('request.jwt.claims',true); result jsonb;
+    begin
+      perform set_config('request.jwt.claims','{"role":"service_role"}',true);
+      result:=public.complete_verified_patient_document(t,d,a,repeat(md5(d::text),2));
+      perform set_config('request.jwt.claims',old_claims,true);
+      return (result->>'id')::uuid;
+    end; $$;
+    revoke all on function public.complete_fixture_document(uuid,uuid,uuid) from public,anon,authenticated;
+    grant execute on function public.complete_fixture_document(uuid,uuid,uuid) to service_role;`);
   for (const u of Object.values(users)) {
     await db.query("insert into auth.users(id) values ($1)", [u.id]);
     await db.query("insert into auth.sessions(id,user_id) values ($1,$2)", [
@@ -2918,9 +2930,9 @@ test("a foto da refeição é vinculada, validada e exclusiva", async () => {
     await db.query(
       `insert into public.patient_documents(
          id,tenant_id,patient_id,uploaded_by,original_filename,storage_path,content_type,
-         byte_size,category,visibility,status,available_at)
+         byte_size,category,visibility,status,available_at,attached_to)
        values($1,$2,$3,$4,'foto.png',$5,$6,1024,'clinical_document','shared',$7,
-         case when $7 = 'available' then clock_timestamp() else null end)`,
+         case when $7 = 'available' then clock_timestamp() else null end,'meal_log')`,
       [
         id,
         values.tenant,
@@ -3190,7 +3202,7 @@ async function completePrivateDocument(documentId: string) {
 async function completePrivateDocumentAs(actor: string, documentId: string) {
   await db.exec("set local role service_role");
   try {
-    await db.query("select public.complete_patient_document($1,$2,$3)", [
+await db.query("select public.complete_fixture_document($1,$2,$3)", [
       a,
       documentId,
       users[actor].id,
@@ -3756,7 +3768,7 @@ test("report replacement preserves the old publication until explicit replacemen
 test("document completion rejects missing files and audit failure leaves no reservation", async () => {
   await asUser("doctor", async () => {
     const document = await privateDocumentFixture();
-    await denied("select public.complete_patient_document($1,$2,$3)", [
+    await denied("select public.complete_fixture_document($1,$2,$3)", [
       a,
       document.document_id,
       users.doctor.id,
@@ -4942,7 +4954,7 @@ test("onboarding draft is patient-private, versioned and exposes immutable conse
     await db.exec("reset role");
     await db.query("insert into storage.objects(bucket_id,name) values('vivance-documents',$1)", [document.rows[0].storage_path]);
     await db.exec("set local role service_role");
-    await db.query("select public.complete_patient_document($1,$2,$3)", [a, document.rows[0].document_id, users.outsider.id]);
+    await db.query("select public.complete_fixture_document($1,$2,$3)", [a, document.rows[0].document_id, users.outsider.id]);
     await switchActor("doctor");
     assert.equal((await db.query("select id from public.patient_onboarding_submissions where patient_id=$1", [patient])).rows.length, 0);
     assert.equal((await db.query("select id from public.patient_documents where id=$1", [document.rows[0].document_id])).rows.length, 0);
@@ -5001,7 +5013,7 @@ test("exam text persistence requires an explicitly registered synthetic document
       [reservation.rows[0].storage_path],
     );
     await db.exec("set local role service_role");
-    await db.query("select public.complete_patient_document($1,$2,$3)", [a, document, users.doctor.id]);
+    await db.query("select public.complete_fixture_document($1,$2,$3)", [a, document, users.doctor.id]);
     await switchActor("doctor");
     const extraction = "select public.persist_document_text_extraction($1,$2,$3,$4,$5,$6::jsonb,$7) as id";
     const values = [a, document, "a".repeat(64), "synthetic-test", "1", "[]", "invalid_pdf"];
@@ -5015,6 +5027,7 @@ test("exam text persistence requires an explicitly registered synthetic document
       "insert into private.synthetic_exam_pilot_documents(tenant_id,document_id,patient_id) values($1,$2,$3)",
       [a, document, patient],
     );
+    await db.query("insert into public.exam_processing_authorizations(tenant_id,patient_id,document_id,authorized_by) values($1,$2,$3,$4)", [a,patient,document,users.doctor.id]);
     await switchActor("doctor");
     const saved = await db.query<{ id: string }>(extraction, values);
     assert.equal(saved.rows.length, 1);
@@ -5245,12 +5258,13 @@ test("exam text persistence requires an explicitly registered synthetic document
     await db.exec("reset role");
     await db.query("insert into storage.objects(bucket_id,name) values('vivance-documents',$1)", [retryReservation.rows[0].storage_path]);
     await db.exec("set local role service_role");
-    await db.query("select public.complete_patient_document($1,$2,$3)", [a, retryDocument, users.doctor.id]);
+    await db.query("select public.complete_fixture_document($1,$2,$3)", [a, retryDocument, users.doctor.id]);
     await db.exec("reset role");
     await db.query(
       "insert into private.synthetic_exam_pilot_documents(tenant_id,document_id,patient_id) values($1,$2,$3)",
       [a, retryDocument, patient],
     );
+    await db.query("insert into public.exam_processing_authorizations(tenant_id,patient_id,document_id,authorized_by) values($1,$2,$3,$4)", [a,patient,retryDocument,users.doctor.id]);
     await switchActor("doctor");
     const retryJob = await db.query<{ id: string }>(enqueue, [a, retryDocument]);
     await db.exec("set local role service_role");
@@ -5279,6 +5293,9 @@ test("exam text persistence requires an explicitly registered synthetic document
       retryJob.rows[0].id, serviceRetry.rows[0].lease_token,
     ]);
     await db.query("select public.register_exam_ai_test_patient($1,$2)", [a, patient]);
+    await db.exec("reset role");
+    await db.query("update public.exam_upload_cycles set granted_by=$3 where tenant_id=$1 and patient_id=$2 and closed_at is null", [a,patient,users.doctor.id]);
+    await db.exec("set local role service_role");
     const imageReservation = await db.query<{ document_id: string; storage_path: string }>(
       "select * from public.reserve_patient_document($1,$2,$3,'synthetic-image.png','image/png',6,'exam','shared')",
       [a, patient, users.doctor.id],
@@ -5288,7 +5305,7 @@ test("exam text persistence requires an explicitly registered synthetic document
     await db.query("insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
       [imageReservation.rows[0].storage_path]);
     await db.exec("set local role service_role");
-    await db.query("select public.complete_patient_document($1,$2,$3)",
+    await db.query("select public.complete_fixture_document($1,$2,$3)",
       [a, imageDocument, users.doctor.id]);
     await db.exec("reset role");
     const automaticJob = await db.query<{ id: string; created_by: string }>(
@@ -5351,7 +5368,7 @@ test("exam text persistence requires an explicitly registered synthetic document
     await db.query("insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
       [privateReservation.rows[0].storage_path]);
     await db.exec("set local role service_role");
-    await db.query("select public.complete_patient_document($1,$2,$3)",
+    await db.query("select public.complete_fixture_document($1,$2,$3)",
       [a, privateReservation.rows[0].document_id, users.patient.id]);
     await db.exec("reset role");
     assert.equal((await db.query("select id from public.processing_jobs where idempotency_key=$1",
@@ -5373,7 +5390,7 @@ test("exam text persistence requires an explicitly registered synthetic document
     await db.query("insert into storage.objects(bucket_id,name) values('vivance-documents',$1)",
       [photoReservation.rows[0].storage_path]);
     await db.exec("set local role service_role");
-    await db.query("select public.complete_patient_document($1,$2,$3)",
+    await db.query("select public.complete_fixture_document($1,$2,$3)",
       [a, photoReservation.rows[0].document_id, users.patient.id]);
     await db.exec("reset role");
     await db.query(
@@ -6821,8 +6838,8 @@ test("refeição só com foto: sem texto exige foto; texto vazio continua recusa
     await db.query(
       `insert into public.patient_documents(
          id,tenant_id,patient_id,uploaded_by,original_filename,storage_path,content_type,
-         byte_size,category,visibility,status,available_at)
-       values($1,$2,$3,$4,'prato.jpg',$5,'image/jpeg',1024,'clinical_document','shared','available',clock_timestamp())`,
+         byte_size,category,visibility,status,available_at,attached_to)
+       values($1,$2,$3,$4,'prato.jpg',$5,'image/jpeg',1024,'clinical_document','shared','available',clock_timestamp(),'meal_log')`,
       [photo, a, pa, users.patient.id, `synthetic/${photo}.jpg`],
     );
     await switchActor("patient");
@@ -6988,7 +7005,7 @@ test("profile context keeps health snapshot and nutrition draft private until ex
       await db.exec("reset role");
       await db.query("insert into storage.objects(bucket_id,name) values('vivance-documents',$1)", [reserved.rows[0].storage_path]);
       await db.exec("set local role service_role");
-      await db.query("select public.complete_patient_document($1,$2,$3)", [a, reserved.rows[0].document_id, users.outsider.id]);
+      await db.query("select public.complete_fixture_document($1,$2,$3)", [a, reserved.rows[0].document_id, users.outsider.id]);
       await db.exec("reset role");
       photoIds.push(reserved.rows[0].document_id);
     }

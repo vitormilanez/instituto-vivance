@@ -21,6 +21,8 @@ export type ExamResult = {
   narrative_text: string | null;
   source_excerpt: string;
   requires_review_reason: string;
+  method_text?: string | null;
+  specimen_text?: string | null;
   reviews: ExamReview[];
 };
 
@@ -47,6 +49,16 @@ export function examProcessingMessage(document: ExamDocumentResult) {
   return allPagesRead
     ? `O texto das ${document.pageCount} páginas está disponível. Não foi possível concluir a organização dos resultados. Confira o laudo original.`
     : "Não foi possível concluir o processamento automático. Confira o laudo original.";
+}
+
+export function previousReviewedExam(item:ExamResult, view:ExamResultsView):ExamResult|null {
+  const observed=displayedExamObservedDate(item);
+  if(!observed||!item.method_text||!item.specimen_text||!displayedExamUnit(item))return null;
+  return view.documents.flatMap(d=>d.items).filter(candidate=>{
+    const decision=latestExamReview(candidate)?.decision;
+    const previousDate=displayedExamObservedDate(candidate);
+    return candidate.id!==item.id&&(decision==="confirmed"||decision==="corrected")&&candidate.literal_name===item.literal_name&&displayedExamUnit(candidate)===displayedExamUnit(item)&&candidate.method_text===item.method_text&&candidate.specimen_text===item.specimen_text&&Boolean(previousDate&&previousDate<observed);
+  }).sort((a,b)=>(displayedExamObservedDate(b)??"").localeCompare(displayedExamObservedDate(a)??""))[0]??null;
 }
 
 export function latestExamReview(item: ExamResult) {

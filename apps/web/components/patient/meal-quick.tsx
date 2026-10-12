@@ -123,6 +123,7 @@ export function PatientMealQuick({
               patientId,
               file,
               category: "clinical_document",
+              purpose: "meal_log",
               visibility: "shared",
             });
             documentId = sent.documentId;

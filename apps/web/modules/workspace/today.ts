@@ -424,6 +424,7 @@ export async function patientCareContext(
       .eq("status", "available")
       // Foto de refeição é parte do relato, não exame: fica fora.
       .eq("attached_to", "documents")
+      .is("duplicate_of", null)
       .or("category.eq.exam,visibility.eq.shared")
       .order("created_at", { ascending: false })
       .order("id")

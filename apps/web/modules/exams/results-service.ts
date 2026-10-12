@@ -23,7 +23,7 @@ export async function patientExamResults(tenantInput: string, patientInput: stri
     const page = await client.from("patient_documents")
       .select("id,display_title,original_filename,created_at,available_at,category,visibility")
       .eq("tenant_id", tenant).eq("patient_id", patient)
-      .in("category", ["exam", "clinical_document"]).eq("status", "available").eq("attached_to", "documents")
+      .in("category", ["exam", "clinical_document"]).eq("status", "available").eq("attached_to", "documents").is("duplicate_of", null)
       .order("created_at", { ascending: false }).order("id", { ascending: false })
       .range(offset, offset + batchSize - 1);
     if (page.error) throw new ExamExtractionError("Não foi possível consultar os exames.", 503);
@@ -80,7 +80,7 @@ export async function patientExamResults(tenantInput: string, patientInput: stri
   const itemRows: ExamResult[] = [];
   for (let offset = 0; ; offset += batchSize) {
     const page = await client.from("exam_result_items")
-      .select("id,document_id,extraction_run_id,page_number,item_index,item_kind,literal_name,literal_value,numeric_value,unit_text,reference_text,observed_on,narrative_text,source_excerpt,requires_review_reason")
+      .select("id,document_id,extraction_run_id,page_number,item_index,item_kind,literal_name,literal_value,numeric_value,unit_text,reference_text,observed_on,narrative_text,source_excerpt,requires_review_reason,method_text,specimen_text")
       .eq("tenant_id", tenant).eq("patient_id", patient)
       .in("extraction_run_id", runIds)
       .order("created_at", { ascending: false }).order("id", { ascending: false })

@@ -121,6 +121,7 @@ export function PatientMealLogs({ initial }: { initial: PatientMeals }) {
               patientId: initial.patientId ?? "",
               file: chosen,
               category: "clinical_document",
+              purpose: "meal_log",
               visibility: "shared",
             });
             documentId = sent.documentId;

@@ -1,5 +1,19 @@
 # Estado atual do Vivance
 
+## Exames — fase técnica em validação final, 11/10/2026
+
+Pedido de implementação/publicação do [plano](FLUXO_EXAMES_E_ANALISE_LONGITUDINAL.md)
+autorizado, incluindo os PDFs existentes da conta de teste. Cota de 15/liberação
+médica/deduplicação, conferência documental, histórico e resumo com cache
+implementados. 555 testes, tipos/build e Deno passaram; Astra revisou os contratos
+críticos e os achados foram corrigidos. Quatro originais processados, 117 itens,
+28 páginas; revisão/conferência de QA e um rascunho real com 30 fatos/cachê
+verificados no local. Aprovação/publicação de QA e leitura pelo paciente após
+recarga conferidas pela interface. Biblioteca implementada, sem fontes automaticamente
+autorizadas; possibilidades dependem de curadoria. Backend sintético alinhado;
+integração Git, domínio publicado e aceite clínico têm registros próprios.
+[Evidência e estado da publicação](ENTREGA_EXAMES_2026-10-11.md).
+
 ## Pacientes com foco na lista — refinamento de 11/10/2026
 
 Pedido posterior à publicação dos widgets: separar convites de pacientes.

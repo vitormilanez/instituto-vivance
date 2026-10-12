@@ -1,0 +1,23 @@
+.exam-upload-quota { background:#fff; border:1px solid #dbe4f0; border-radius:16px; padding:20px; margin-bottom:24px; color:#071a3a; }
+.exam-upload-quota > p { margin:0 0 10px; font-size:14px; line-height:1.5; }
+.exam-upload-quota > details > summary { cursor:pointer; min-height:44px; font-weight:650; display:flex; align-items:center; }
+.exam-upload-quota form { margin:16px 0; }
+.exam-upload-quota fieldset { border:0; padding:0; margin:0; display:grid; gap:12px; min-width:0; }
+.exam-upload-quota legend { font-weight:650; font-size:15px; margin-bottom:12px; }
+.exam-upload-quota .publication-confirm { display:flex; align-items:center; gap:12px; margin:0; padding:8px 0; min-height:44px; font-size:14px; line-height:1.4; overflow-wrap:anywhere; }
+.exam-upload-quota .publication-confirm input { flex:0 0 18px; width:18px; height:18px; margin:0; }
+.exam-upload-quota .field { display:grid; gap:8px; max-width:640px; }
+.exam-upload-quota textarea { width:100%; padding:12px; min-height:80px; font:inherit; border:1px solid #98a9bf; border-radius:10px; }
+.exam-upload-quota form + form { border-top:1px solid #dbe4f0; padding-top:20px; }
+.exam-summary { margin-bottom:24px; }
+.exam-summary h3 { margin:0 0 8px; font-size:20px; }
+.exam-summary h4 { margin:20px 0 10px; font-size:16px; }
+.exam-summary > p { font-size:14px; color:#405675; }
+.exam-summary ul { padding-left:20px; margin:0; }
+.exam-summary li { margin-bottom:14px; overflow-wrap:anywhere; }
+.exam-summary li p { margin:0 0 6px; line-height:1.5; }
+.exam-summary li a { font-size:13px; }
+.exam-summary details { margin-top:14px; }
+.exam-summary summary { cursor:pointer; min-height:44px; display:flex; align-items:center; font-weight:600; }
+.exam-summary textarea { padding:12px; border:1px solid #98a9bf; border-radius:10px; font:inherit; margin:8px 0 12px; min-height:80px; }
+@media(max-width:760px) { .exam-upload-quota,.exam-summary { padding:16px!important; } }

@@ -4,9 +4,10 @@ import { Fragment, useEffect, useRef, useState, useTransition, type FormEvent } 
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Check, Minus } from "lucide-react";
 import type { ExamDocumentResult, ExamResult, ExamResultsView, ExamReview } from "@/modules/exams/results";
-import { displayedExamValue, displayedExamValueWithUnit, displayedExamUnit, displayedExamReference, displayedExamObservedDate, examReferencePosition, latestExamReview, examProcessingMessage } from "@/modules/exams/results";
+import { displayedExamValue, displayedExamValueWithUnit, displayedExamUnit, displayedExamReference, displayedExamObservedDate, examReferencePosition, latestExamReview, examProcessingMessage, previousReviewedExam } from "@/modules/exams/results";
 import { MedicalSelector } from "./medical-selector";
 import "./exam-results-panel.css";
+import { ExamDocumentValidation } from "./exam-document-validation";
 
 type ComparisonFilter = "all" | "outside" | "within" | "unavailable";
 type ReviewFilter = "all" | "pending" | "reviewed" | "rejected";
@@ -25,7 +26,7 @@ const matchesFilter = (item: ExamResult, comparison: ComparisonFilter, review: R
 const positionLabel = { above: "Acima da referência do laudo", below: "Abaixo da referência do laudo", within: "Dentro da referência do laudo" } as const;
 const positionIcon = { above: ArrowUp, below: ArrowDown, within: Check } as const;
 const date = (value: string | null) => value ? new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit", month: "short", year: "numeric", timeZone: "UTC",
+  day: "2-digit", month: "short", year: "numeric", timeZone: value?.length === 10 ? "UTC" : "America/Sao_Paulo",
 }).format(new Date(value.length === 10 ? `${value}T12:00:00Z` : value)) : null;
 const documentDate = (document: ExamDocumentResult) => document.observedOn
   ? `Exame de ${date(document.observedOn)}` : `Enviado em ${date(document.receivedAt)}`;
@@ -120,7 +121,7 @@ function ResultReview({ item, tenantId, documentId, onReviewed, onBusyChange }: 
   </form>;
 }
 
-function ResultDocument({ document, tenantId, comparison, review, outside, onReviewed, onBusyChange, reviewBusy }: { document: ExamDocumentResult; tenantId: string; comparison: ComparisonFilter; review: ReviewFilter; outside: OutsideFilter; onReviewed: (documentId: string, itemId: string, review: ExamReview) => void; onBusyChange: (itemId: string, busy: boolean) => void; reviewBusy: boolean }) {
+function ResultDocument({ document, tenantId, comparison, review, outside, onReviewed, onBusyChange, reviewBusy, history }: { document: ExamDocumentResult; tenantId: string; comparison: ComparisonFilter; review: ReviewFilter; outside: OutsideFilter; onReviewed: (documentId: string, itemId: string, review: ExamReview) => void; onBusyChange: (itemId: string, busy: boolean) => void; reviewBusy: boolean;history:ExamResultsView }) {
   const router = useRouter();
   const [selected, setSelected] = useState<string | null>(null);
   const [opened, setOpened] = useState<Set<string>>(() => new Set());
@@ -204,6 +205,7 @@ function ResultDocument({ document, tenantId, comparison, review, outside, onRev
   return <details ref={disclosure} className="exam-results-document" id={`exam-documento-${document.id}`}>
     <summary><span className="exam-results-document-title"><strong>{document.title}</strong><small>{documentDate(document)}{document.issuer ? ` · ${document.issuer}` : ""}</small></span><span className="exam-results-document-count">{document.items.length} {document.items.length === 1 ? "resultado" : "resultados"}{pending ? ` · ${pending} para conferir` : ""}{processingLabel ? ` · ${processingLabel}` : ""}</span></summary>
     <div className="exam-results-document-body">
+      {document.pageCount !== undefined && <p>Leitura: {document.extractedPageCount ?? 0} de {document.pageCount} páginas · {document.qualityNotes.length} notas para conferir. Leitura completa não substitui revisão médica.</p>}
       {processingLabel && <p className="exam-results-processing" role="status">{processingStatus === "failed" ? examProcessingMessage(document) : canResume && !awaitingServer && processingStatus === "processing" ? "A organização parou antes de concluir. Você pode retomá-la." : `${processingLabel}.`}{document.items.length > 0 ? " Os resultados exibidos pertencem à última leitura disponível." : ""}</p>}
       {canResume && !awaitingServer && <div className="exam-results-resume"><button type="button" disabled={resuming || reviewBusy} onClick={() => void resume()}>{resuming ? "Solicitando retomada…" : "Retomar organização"}</button><span>O laudo original e as leituras anteriores permanecem disponíveis.</span></div>}
       {pollStopped && (processingStatus === "pending" || processingStatus === "processing") && !canResume && <p className="exam-results-processing" role="status">A atualização automática foi pausada. Use “Atualizar resultados” para verificar o andamento.</p>}
@@ -212,17 +214,19 @@ function ResultDocument({ document, tenantId, comparison, review, outside, onRev
       {document.qualityNotes.length > 0 && <details className="exam-results-quality"><summary>Notas da leitura · {document.qualityNotes.length} {document.qualityNotes.length === 1 ? "observação" : "observações"}</summary><ul>{document.qualityNotes.map((note, index) => <li key={index}>{note}</li>)}</ul></details>}
       {document.items.length > 0 && <div className="exam-results-table-wrap"><table><thead><tr><th scope="col">Resultado</th><th scope="col">Valor/unidade</th><th scope="col">Referência</th><th scope="col">Comparação</th><th scope="col">Revisão</th></tr></thead><tbody>{document.items.map((item) => {
         const position = examReferencePosition(item);
+        const previous=previousReviewedExam(item,history);
         const visible = visibleIds.has(item.id);
         return <Fragment key={item.id}><tr id={`resultado-${item.id}`} hidden={!visible} data-selected={selected === item.id} data-reference-position={position ?? "unavailable"}>
           <th scope="row"><button type="button" aria-expanded={selected === item.id} aria-controls={`resultado-detalhe-${item.id}`} onClick={() => { setOpened((current) => new Set(current).add(item.id)); setSelected(selected === item.id ? null : item.id); }}>{item.literal_name}</button></th>
-          <td data-label="Valor/unidade">{displayedExamValueWithUnit(item) ?? "—"}{displayedExamObservedDate(item) && displayedExamObservedDate(item) !== document.observedOn && <small>Exame de {date(displayedExamObservedDate(item))}</small>}</td>
+          <td data-label="Valor/unidade">{displayedExamValueWithUnit(item) ?? "—"}<small>{displayedExamObservedDate(item)?`Coleta: ${date(displayedExamObservedDate(item))}`:"Data de coleta não identificada"}</small><small>{previous?<>Anterior: <a href={`#resultado-${previous.id}`}>{displayedExamValueWithUnit(previous)} · {date(displayedExamObservedDate(previous))}</a></>:"Sem histórico comparável"}</small></td>
           <td data-label="Referência">{displayedExamReference(item) ?? "—"}</td>
           <td data-label="Comparação"><span className="exam-results-reference-status" data-position={position ?? "unavailable"}>{position ? (() => { const Icon = positionIcon[position]; return <><Icon size={14} aria-hidden="true" />{positionLabel[position]}</>; })() : <><Minus size={14} aria-hidden="true" />Comparação indisponível</>}</span></td>
-          <td data-label="Revisão"><span className="exam-results-review" data-pending={!latestExamReview(item)}>{rowStatus(item)}</span></td>
+          <td data-label="Revisão"><span className="exam-results-review" data-pending={!latestExamReview(item)}>{rowStatus(item)}</span><button type="button" aria-expanded={selected===item.id} onClick={()=>{setOpened(current=>new Set(current).add(item.id));setSelected(selected===item.id?null:item.id);}}>Conferir fonte e revisar</button></td>
         </tr>{opened.has(item.id) && <tr ref={selected === item.id ? sourcePanel : undefined} id={`resultado-detalhe-${item.id}`} className="exam-results-detail-row" hidden={!visible || selected !== item.id}><td colSpan={5}><div className="exam-results-detail-content"><div className="exam-results-source"><h4>{item.literal_name}</h4><p>Página {item.page_number} · {rowStatus(item)}{displayedExamObservedDate(item) ? ` · Exame de ${date(displayedExamObservedDate(item))}` : ""}</p><p><strong>Trecho de origem</strong></p><blockquote>{item.source_excerpt}</blockquote><a href={`${original}#page=${item.page_number}`} target="_blank" rel="noreferrer">Abrir página original</a></div><ResultReview key={`${item.id}:${latestExamReview(item)?.version ?? 0}`} item={item} tenantId={tenantId} documentId={document.id} onReviewed={(itemId, savedReview) => onReviewed(document.id, itemId, savedReview)} onBusyChange={onBusyChange} /></div></td></tr>}</Fragment>;
       })}</tbody></table>{rows.length > 6 && <button type="button" className="exam-results-show-all" disabled={reviewBusy} aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>{showAll ? "Mostrar menos resultados" : `Mostrar todos os ${rows.length} resultados`}</button>}</div>}
       {!rows.length && <p className="exam-results-no-match">{document.items.length ? "Nenhum resultado neste filtro." : processingStatus === "pending" ? "Na fila para organizar os resultados." : processingStatus === "processing" ? canResume && !awaitingServer ? "A organização precisa ser retomada." : "Organizando resultados…" : processingStatus === "failed" ? "Confira o laudo original enquanto a organização não é concluída." : processingStatus === "completed" ? "Leitura concluída sem itens organizados. Confira o original." : "Este arquivo ainda não tem resultados organizados. Abra o original para conferir."}</p>}
       <a className="exam-results-original" href={original} target="_blank" rel="noreferrer">Abrir laudo original</a>
+      <ExamDocumentValidation tenantId={tenantId} documentId={document.id} refreshKey={`${document.processingStatus}:${document.items.map(item => `${item.id}:${latestExamReview(item)?.version ?? 0}`).join(",")}`} />
     </div>
   </details>;
 }
@@ -294,6 +298,6 @@ export function ExamResultsPanel({ view, tenantId }: { view: ExamResultsView; te
       <label className="exam-results-review-filter">Revisão<select value={review} disabled={reviewing.size > 0} onChange={(event) => updateReview(event.target.value)}>
         <option value="all">Todas ({total})</option><option value="pending">Para conferir ({pending})</option><option value="reviewed">Conferidas ({reviewed})</option><option value="rejected">Descartadas ({rejected})</option>
       </select></label></div><p className="exam-results-filter-help">“Sem comparação” reúne resultados sem posição numérica confiável frente à referência do laudo, inclusive texto narrativo, faixa não comparável ou dados ausentes.</p></div>
-    <div className="exam-results-documents">{!visible.length && <p className="exam-results-no-match">Nenhum resultado neste filtro.</p>}{documents.map((document) => <div key={document.id} hidden={!visible.some((candidate) => candidate.id === document.id)}><ResultDocument document={document} tenantId={tenantId} comparison={comparison} review={review} outside={outside} onReviewed={onReviewed} onBusyChange={onBusyChange} reviewBusy={reviewing.size > 0} /></div>)}</div>
+    <div className="exam-results-documents">{!visible.length && <p className="exam-results-no-match">Nenhum resultado neste filtro.</p>}{documents.map((document) => <div key={document.id} hidden={!visible.some((candidate) => candidate.id === document.id)}><ResultDocument document={document} tenantId={tenantId} comparison={comparison} review={review} outside={outside} onReviewed={onReviewed} onBusyChange={onBusyChange} reviewBusy={reviewing.size > 0} history={{documents}} /></div>)}</div>
   </section>;
 }

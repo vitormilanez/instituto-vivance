@@ -1228,6 +1228,11 @@ export type Database = {
       };
       patient_documents: {
         Row: {
+          duplicate_of?: string | null;
+          content_sha256?: string | null;
+          upload_cycle_id?: string | null;
+          reservation_expires_at?: string | null;
+          verification_only?: boolean;
           care_request_id: string | null;
           attached_to: string;
           available_at: string | null;
@@ -1651,6 +1656,23 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      get_exam_upload_quota: { Args: { target_tenant: string; target_patient: string }; Returns: Json };
+      reserve_context_photo: { Args: { target_tenant: string; target_patient: string; target_uploader: string; input_filename: string; input_content_type: string; input_byte_size: number; input_visibility: string; input_purpose: string }; Returns: string };
+      request_exam_upload_capacity: { Args: { target_tenant: string; target_patient: string }; Returns: string };
+      grant_exam_upload_cycle: { Args: { target_tenant: string; target_patient: string; expected_cycle: string; input_reason: string; input_idempotency_key: string }; Returns: string };
+      authorize_exam_documents: { Args: { target_tenant: string; target_patient: string; document_ids: string[] }; Returns: Json };
+      complete_verified_patient_document: { Args: { target_tenant: string; target_document: string; target_actor: string; verified_sha256: string }; Returns: Json };
+      attest_existing_exam_document: { Args: { target_tenant: string; target_document: string; target_actor: string; verified_sha256: string }; Returns: string };
+      get_exam_summary: { Args: { target_tenant: string; target_patient: string }; Returns: Json };
+      get_exam_document_validation: { Args: { target_tenant: string; target_document: string }; Returns: Json };
+      review_exam_document_validation: { Args: { target_tenant: string; target_document: string; target_request: string; expected_version: number; validation_decision: string; validation_note: string | null; excluded_page_numbers: number[] }; Returns: string };
+      begin_exam_summary: { Args: { target_tenant: string; target_patient: string }; Returns: Json };
+      finish_exam_summary: { Args: { target_summary: string; target_lease: string; verified_claims: Json; verified_comparisons: Json; verified_possibilities: Json; provider_model: string; usage_input: number; usage_output: number; removed: number }; Returns: boolean };
+      review_exam_summary: { Args: { target_tenant: string; target_patient: string; target_summary: string; action: string; review_note?: string | null }; Returns: boolean };
+      get_exam_clinical_library: { Args: { target_tenant: string }; Returns: Json };
+      get_published_exam_summaries: { Args: { target_tenant: string; target_patient: string }; Returns: Json };
+      create_exam_clinical_source: { Args: { target_tenant: string; target_request: string; source_data: Json }; Returns: string };
+      review_exam_clinical_source: { Args: { target_tenant: string; target_source: string; target_status: string; review_note: string }; Returns: boolean };
       persist_document_text_extraction: {
         Args: {
           target_tenant: string;

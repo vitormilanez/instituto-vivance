@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { MedicalPageHeader } from "./medical-page-header";
+import { ExamUploadQuota } from "./exam-upload-quota";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
@@ -77,6 +78,7 @@ export function DocumentUploadForm({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [quotaPatient, setQuotaPatient] = useState(ownPatientId ?? patients?.[0]?.id ?? "");
   const patientUpload = Boolean(ownPatientId);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -130,12 +132,13 @@ export function DocumentUploadForm({
 
   return (
     <form className="document-upload-form" onSubmit={submit}>
+      {quotaPatient && <ExamUploadQuota tenantId={tenant} patientId={quotaPatient} />}
       {error && <p role="alert">{error}</p>}
       {notice && <p role="status">{notice}</p>}
       {!patientUpload && (
         <label className="field">
           Paciente
-          <select name="patient_id" required disabled={pending}>
+          <select name="patient_id" required disabled={pending} onChange={event => setQuotaPatient(event.target.value)}>
             {patients?.map((patient) => (
               <option key={patient.id} value={patient.id}>
                 {patient.display_name}
@@ -210,9 +213,9 @@ function PatientMultiDocumentUpload({ tenant, patientId, category, careRequestId
     try {
       for (const item of items) dispatch({ type: "sending", key: item.key });
       const sent = await uploadPatientDocumentBatch({ tenantId: tenant, patientId, category: chosenCategory, careRequestId, files: items },
-        ({ key, documentId, error: reason }) => {
+        ({ key, documentId, error: reason, duplicate }) => {
           if (documentId) {
-            dispatch({ type: "uploaded", key, documentId });
+            dispatch({ type: "uploaded", key, documentId, duplicate });
             dispatch({ type: "sent", key });
           } else {
             const message = reason instanceof Error && reason.name !== "TimeoutError"
@@ -234,6 +237,7 @@ function PatientMultiDocumentUpload({ tenant, patientId, category, careRequestId
     if (!consented) { setError("Confirme os arquivos que deseja compartilhar."); return; }
     void send(ready);
   }}>
+    <ExamUploadQuota tenantId={tenant} patientId={patientId} refreshKey={sentCount} />
     {!category && !careRequestId && <label className="field">Tipo para todos os arquivos
       <select value={chosenCategory} onChange={(event) => setChosenCategory(event.target.value as "exam" | "clinical_document")} disabled={sending}>
         <option value="exam">Exame</option>
@@ -272,7 +276,7 @@ function PatientMultiDocumentUpload({ tenant, patientId, category, careRequestId
     {selection.items.length > 0 && <ul className="exam-selection">
       {selection.items.map((item) => <li key={item.key} data-state={item.state}>
         <div className="exam-file"><strong>{item.file.name}</strong><span>{examFileLabel(item)}</span></div>
-        <span className="exam-file-state">{examStateLabel(item.state)}</span>
+        <span className="exam-file-state">{item.duplicate ? "Já recebido · não usa outra vaga" : examStateLabel(item.state)}</span>
         {item.error && <p className="exam-file-error" role="alert">{item.error}</p>}
         {(item.state === "ready" || item.state === "failed") && <div className="exam-file-actions">
           {item.state === "failed" && <button type="button" className="secondary" disabled={sending}
@@ -337,6 +341,7 @@ function DocumentList({
           <article className="document-row" id={`documento-${document.id}`} key={document.id}>
             <div className="document-summary">
               <h3>{title}</h3>
+              {document.duplicate_of && <p className="document-meta">Reenvio idêntico · original já recebido · não usa outra vaga</p>}
               <p className="document-meta">
                 {categoryLabels[document.category] ?? "Documento"}
                 {showPatient && staffDocument.patients

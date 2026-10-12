@@ -1,5 +1,18 @@
 # Direção do Vivance e próximos slices
 
+## Exames: direção executada em 11/10
+
+Usuário autorizou implementação integral e publicação do [plano de exames](FLUXO_EXAMES_E_ANALISE_LONGITUDINAL.md),
+com GPT-6.1 na execução/Astra nos contratos críticos, usando as contas e PDFs
+explicitamente declarados de teste. Adotados 15 arquivos distintos por
+paciente/clínica/ciclo, liberação médica auditada e deduplicação. Extração,
+conferência documental, fatos revisados, resumo com snapshot/cache, aprovação
+e publicação são ações rastreáveis. Fontes clínicas têm cadastro/curadoria e
+retirada explícitos; possibilidades só com fontes aplicáveis autorizadas.
+O [registro da fase](ENTREGA_EXAMES_2026-10-11.md) distingue QA/publicação técnica
+de aceite clínico. Após a entrega técnica, prioridade é curadoria e avaliação
+médica de qualidade/utilidade, mantendo IA1/IA6 e Gate P antes de dados reais.
+
 **Refinamento de 11/10 — foco em Pacientes:** a lista, busca e fichas devem
 abrir primeiro. Convite e histórico são tarefas separadas, acessíveis por
 “Convidar paciente” e “Ver convites” junto à lista. Envio permanece junto aos

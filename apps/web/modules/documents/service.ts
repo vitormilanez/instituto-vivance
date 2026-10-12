@@ -86,6 +86,7 @@ export async function reserveDocument(id: string, input: unknown) {
     category: values.category,
     visibility: values.visibility,
     care_request_id: values.careRequestId,
+    ...(values.purpose ? { purpose: values.purpose } : {}),
   });
   if (
     typeof response.documentId !== "string" ||
@@ -111,7 +112,17 @@ export async function completeDocument(id: string, document: string) {
   });
   if (typeof response.id !== "string")
     throw new Error("Document completion returned an invalid response");
-  return { id: response.id };
+  return { id: response.id, duplicate: response.duplicate === true, ...(typeof response.canonicalId === "string" ? { canonicalId: response.canonicalId } : {}) };
+}
+
+export async function authorizeExamDocuments(id: string, patient: string, ids: string[], confirmedSynthetic: boolean) {
+  const tenant = tenantId(id);
+  const patientUuid = tenantId(patient);
+  const { client } = await requireClinic(tenant, ["doctor"]);
+  return documentFunction(client, await sessionToken(client), {
+    action: "authorize", tenant_id: tenant, patient_id: patientUuid,
+    document_ids: ids.map(documentId), confirmed_synthetic: confirmedSynthetic,
+  });
 }
 
 export async function staffDocuments(
