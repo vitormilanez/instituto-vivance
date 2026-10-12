@@ -115,13 +115,26 @@ API integrada no domínio negou resumo interno/biblioteca ao paciente (403).
 Nenhuma extração repetida ou original removido. Biblioteca continua vazia.
 
 Resumo médico foi conferido em 1440/320 px sem overflow horizontal; documentos
-e leitura pelo paciente foram conferidos no desktop.
+e leitura pelo paciente foram conferidos no desktop e em 320 px.
 Foi ajustado espaçamento dos botões estreitos e horário das publicações para
 diferenciar versões do mesmo dia. Evidências locais não versionadas:
 `output/exames-20261011/resumo-medico-desktop.jpg`, `resumo-medico-mobile.jpg`
 e `fonte-exame-desktop.jpg`. Esses testes não auditam todo o produto e não são
-aceite clínico. O complemento de observabilidade/legibilidade segue em registro
-de integração, sem outra migration ou chamada de extração.
+aceite clínico.
+
+Complemento [PR #135](https://github.com/vitormilanez/instituto-vivance/pull/135)
+integrado em `832f227f1a2ac78cd97f2f8817bacd8ab988083a`,
+[CI 38194479559](https://github.com/vitormilanez/instituto-vivance/actions/runs/38194479559)
+e [release 38194645570](https://github.com/vitormilanez/instituto-vivance/actions/runs/38194645570)
+aprovados; backend/promoção automáticos skipped, sem nova migration.
+Deployment final `dpl_C9kZ36GzYJuXAYxUGt6N2tvGyV9m`,
+[`instituto-vivance-7dq3q3p9o-vtr-consulting.vercel.app`](https://instituto-vivance-7dq3q3p9o-vtr-consulting.vercel.app),
+READY/production no SHA integrado. API confirmou `targets.production` e
+dois aliases; recarga do paciente exibiu horários 23:01/22:44 e cota 4/15.
+Script HTTP somente leitura confirmou versão aprovada/28 fatos e isolamento.
+Screenshot final: `output/exames-20261011/paciente-publicado.jpg`, local e
+não versionado. Checkout canônico atualizado na main; arquivos locais
+anteriores preservados. Nenhuma nova extração ou aprovação clínica real.
 
 Artefato anterior confirmado pelo CLI:
 `dpl_Ar7MvGp1czFYCZkUXJpU4exeJpFV`,
