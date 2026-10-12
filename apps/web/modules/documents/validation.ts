@@ -55,6 +55,7 @@ export function documentIntent(value: unknown) {
           "category",
           "visibility",
           "care_request_id",
+          "purpose",
         ].includes(key),
     ) ||
     typeof body.patient_id !== "string" ||
@@ -68,6 +69,7 @@ export function documentIntent(value: unknown) {
   )
     throw new InputError("Confira o paciente, o formato e a visibilidade do documento.");
   const contentType = body.content_type as DocumentContentType;
+  if (body.purpose !== undefined && (!["meal_log", "profile_photo"].includes(String(body.purpose)) || body.category !== "clinical_document" || !contentType.startsWith("image/") || body.care_request_id)) throw new InputError("Foto de contexto inválida.");
   if (
     body.care_request_id !== undefined &&
     body.care_request_id !== null &&
@@ -93,6 +95,7 @@ export function documentIntent(value: unknown) {
     category: body.category as DocumentCategory,
     visibility: body.visibility as DocumentVisibility,
     careRequestId,
+    ...(body.purpose ? { purpose: body.purpose as "meal_log" | "profile_photo" } : {}),
   };
 }
 

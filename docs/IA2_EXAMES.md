@@ -1,5 +1,16 @@
 # IA2 — exames sintéticos com origem verificável
 
+## Extensão de 11/10 — implementação em validação final
+
+Cota de 15/liberação médica/deduplicação, habilitação auditada dos originais,
+conferência documental e resumo com fontes/cache foram implementados conforme
+[plano](FLUXO_EXAMES_E_ANALISE_LONGITUDINAL.md). Quatro PDFs de teste do usuário
+geraram 117 itens/28 páginas; comparação fiel exige unidade/método/contexto,
+e a conferência registra páginas incertas/exclusões sem apagar o original.
+As revisões exercidas nessa rodada são de QA e têm essa nota explícita.
+Biblioteca começa sem fontes aprovadas; resumo factual e curadoria têm contrato
+próprio. [Evidência/publicação/limites](ENTREGA_EXAMES_2026-10-11.md).
+
 **Estado em 10/10/2026 (São Paulo):** [#117](https://github.com/vitormilanez/instituto-vivance/pull/117) integrado e publicado tecnicamente no dev sintético, com adapter `.7` e prompt `vivance-exams-20261010.4`; CI/main/release passaram 525 testes, lint/typecheck/build e Deno local. A sessão médica retomou o PDF reportado e o mesmo job/run concluiu a recuperação técnica; qualidade clínica e fonte por item seguem em conferência. Não houve aceite clínico. [Status](STATUS_ATUAL.md) registra SHA, banco, Edge, deployment e evidência.
 
 ## Retomada e comparação de referências — #117 publicado em 10/10

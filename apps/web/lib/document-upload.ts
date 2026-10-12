@@ -52,10 +52,11 @@ export async function uploadDocument(input: {
   category: string;
   visibility: string;
   careRequestId?: string;
+  purpose?: "meal_log" | "profile_photo";
   // Injected by tests; production always uses the signed Supabase upload.
   upload?: SignedUploader;
   fetchImpl?: typeof fetch;
-}): Promise<{ documentId: string }> {
+}): Promise<{ documentId: string; duplicate?: boolean }> {
   const call = input.fetchImpl ?? fetch;
   const upload = input.upload ?? signedUpload;
   const intent = await call(`/api/v1/clinics/${input.tenantId}/documents`, {
@@ -72,6 +73,7 @@ export async function uploadDocument(input: {
       ...(input.careRequestId
         ? { care_request_id: input.careRequestId }
         : {}),
+      ...(input.purpose ? { purpose: input.purpose } : {}),
     }),
   });
   const prepared = (await intent.json()) as {
@@ -110,12 +112,12 @@ export async function uploadDocument(input: {
       body: JSON.stringify({ confirmed: true }),
     },
   );
-  const completed = (await complete.json()) as { error?: string };
+  const completed = (await complete.json()) as { id?: string; duplicate?: boolean; error?: string };
   if (!complete.ok)
     throw new DocumentUploadError(
       "complete",
       completed.error ?? "Não foi possível conferir o arquivo.",
       completed.error,
     );
-  return { documentId: prepared.documentId };
+  return { documentId: completed.id ?? prepared.documentId, ...(completed.duplicate ? { duplicate: true } : {}) };
 }

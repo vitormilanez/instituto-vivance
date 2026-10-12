@@ -1,5 +1,14 @@
 # Conta permanente de QA — paciente sintético
 
+## Contas adicionais autorizadas em 11/10 para a fase de exames
+
+Usuário confirmou `vtrconsultingbr@gmail.com` (paciente) e
+`guilhe.martins@gmail.com` (médico), com os PDFs existentes, como testes
+autorizados. O [registro da fase](ENTREGA_EXAMES_2026-10-11.md) preserva evidência
+de autenticação, processamento, revisões de QA e limites clínicos. Senhas e
+sessões permanecem apenas no cofre/arquivos ignorados, sem publicação no Git.
+Essas contas não substituem nem excluem a fixture permanente descrita abaixo.
+
 **Reset geral de 11/10:** conta QA e Guilherme preservados. Restam um paciente
 QA, nove documentos/objetos e dois memberships; zero convites antigos.
 Dados/exames/revisões atuais mantidos com hashes iguais; nenhum dado novo

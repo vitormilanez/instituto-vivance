@@ -4,6 +4,13 @@ Direção clínica de 28/09/2026 apresentada por Dr. Guilherme Martins; estado t
 
 ## Estado da implementação
 
+**11/10 — fase técnica implementada:** [fluxo de exames e resumo longitudinal](FLUXO_EXAMES_E_ANALISE_LONGITUDINAL.md)
+com cota/liberação, revisão/conferência, seleção IA de fatos/trechos autorizados,
+verificação por origem, cache e publicação factual. Biblioteca tem cadastro e
+aprovação médica por versão, sem diretrizes aprovadas automaticamente.
+Esta fase não habilita hipóteses livres; curadoria, avaliação clínica e gates
+permanecem próprios. [Registro da entrega](ENTREGA_EXAMES_2026-10-11.md).
+
 O [piloto IA2](IA2_EXAMES.md) de texto por página, fila/Cron e itens revisáveis
 foi integrado à main pelo PR #95 e validado com PDF inteiramente fictício no
 dev sintético. Extração estruturada com Claude Haiku 5.5 e fallback Sonnet 5.5
@@ -43,7 +50,7 @@ Cada conceito tem população, critério, exclusões, fonte principal, trecho/p�
 
 ## Encaixe na arquitetura atual
 
-**Reutilizar:** `patient_documents` e Storage privado, revisão documental humana, `processing_jobs`, papéis/vínculos/RLS e relatórios manuais com versões, aprovação e publicação. **Construir:** observações com proveniência por página, worker operacional, catálogo clínico aprovado, índice de trechos versionados, regras/cálculos, verificador independente, trilha de geração e revisão por afirmação. A existência de `processing_jobs` não comprova processamento ativo.
+**Reutilizar:** `patient_documents` e Storage privado, revisão documental humana, `processing_jobs`, papéis/vínculos/RLS e relatórios manuais com versões, aprovação e publicação. A entrega de 11/10 operacionalizou extração por página/checkpoint, conferência documental, cota, catálogo versionado e resumo factual verificado com aprovação/publicação separadas. Os quatro PDFs sintéticos indicados pelo usuário concluíram processamento; essa evidência não é aceite clínico. **Ainda pendente:** curadoria médica das diretrizes, conjunto de referência e avaliação de precisão/omissões/utilidade, finalidade clínica e Gate P. Não reconstruir os contratos já entregues; ampliar pela validação dos slices abaixo.
 
 Dados brutos, correções humanas e derivados ficam em registros distintos. Cada referência aponta para versões imutáveis da fonte e do documento. Retirar uma diretriz impede novas análises com ela, preservando a proveniência histórica. Mudanças de modelo, prompt, regra ou fonte são versionadas e avaliadas.
 

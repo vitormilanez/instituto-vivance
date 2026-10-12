@@ -63,6 +63,7 @@ before(async () => {
     "insert into public.processing_jobs(tenant_id,patient_id,job_type,idempotency_key,created_by) values($1,$2,'exam_text_extraction',$3,$4) returning id",
     [tenant, patient, document, doctor],
   )).rows[0].id;
+  await db.query("insert into public.exam_processing_authorizations(tenant_id,patient_id,document_id,authorized_by) values($1,$2,$3,$4)",[tenant,patient,document,doctor]);
   run = (await db.query<{ id: string }>(`insert into public.document_extraction_runs(
     tenant_id,patient_id,document_id,processing_job_id,source_content_sha256,
     extractor_name,extractor_version,status,page_count,extracted_page_count,
@@ -80,6 +81,7 @@ before(async () => {
   [run, "c".repeat(64)]);
 });
 after(async () => db.close());
+
 
 test("resume and voluntary continuation retain one job/run, refund attempt, and invalidate lease", async () => {
   await db.exec("begin");

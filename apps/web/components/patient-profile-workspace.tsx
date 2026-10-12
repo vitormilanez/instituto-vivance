@@ -65,7 +65,7 @@ export function PatientProfileWorkspace({tenantId, initial, section}:{tenantId:s
   async function addPhoto(key:keyof ProfilePhotos,file:File|null) {
     if(!file) return;
     await action(async()=>{
-      const uploaded=await uploadDocument({tenantId,patientId:profileRef.current.patientId,file,category:'clinical_document',visibility:'internal'});
+      const uploaded=await uploadDocument({tenantId,patientId:profileRef.current.patientId,file,category:'clinical_document',visibility:'internal',purpose:'profile_photo'});
       update({photos:{...profileRef.current.photos,[key]:uploaded.documentId}});
       try {await save();} catch {throw new Error('A foto chegou, mas falta salvar a associação. Use “Salvar e sair” para tentar novamente sem reenviar.');}
     });

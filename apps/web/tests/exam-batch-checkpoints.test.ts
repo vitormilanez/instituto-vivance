@@ -42,6 +42,8 @@ before(async () => {
   ) values($1,$2,$3,$4,'synthetic.pdf',$5,'application/pdf',1000,'exam','shared','available',clock_timestamp())`,
   [document, tenant, patient, doctor, `patient-documents/${document}`]);
   await db.query("insert into private.exam_ai_test_patients(tenant_id,patient_id) values($1,$2)", [tenant, patient]);
+  await db.query("insert into public.care_relationships(tenant_id,patient_id,professional_id,status,created_by) values($1,$2,$3,'active',$3) on conflict do nothing", [tenant, patient, doctor]);
+  await db.query("insert into public.exam_processing_authorizations(tenant_id,patient_id,document_id,authorized_by) values($1,$2,$3,$4)", [tenant,patient,document,doctor]);
   job = (await db.query<{ id: string }>(
     "insert into public.processing_jobs(tenant_id,patient_id,job_type,idempotency_key,created_by) values($1,$2,'exam_text_extraction',$3,$4) returning id",
     [tenant, patient, document, doctor],

@@ -1,5 +1,16 @@
 # Checkpoints das entregas
 
+## Exames — implementação de 11/10/2026
+
+- [x] Plano aprovado para implementar/publicar; contas e PDFs confirmados como testes pelo usuário. [Contrato](FLUXO_EXAMES_E_ANALISE_LONGITUDINAL.md).
+- [x] Cota de 15, liberação/pedido, SHA/deduplicação/recibos próprios e fotos independentes; permissões e concorrência testadas.
+- [x] Resultados/fontes/referência/histórico e conferência documental versionada, notas/páginas excluídas persistentes.
+- [x] Resumo sob solicitação, snapshot/lease/cache/stale, verificação, biblioteca com revisão e publicação factual separada.
+- [x] 555 testes, tipos/build, lint sem erros e Deno; achados críticos do Astra corrigidos e revisados.
+- [x] Backend no dev sintético alinhado; quatro PDFs/117 itens/28 páginas, revisões explícitas de QA, resumo real com 30 fatos e cache, endpoints internos negados ao paciente.
+- [ ] Fechar verificação pela interface, CI/integração e domínio publicado; [registro da fase](ENTREGA_EXAMES_2026-10-11.md).
+- [ ] Curadoria e avaliação médica reais/IA1–IA6/Gate P antes de ampliar além dos testes.
+
 ## 11/10/2026 — Pacientes como foco da página
 
 - Lista/busca/fichas primeiro; convite e histórico em áreas separadas, abertas

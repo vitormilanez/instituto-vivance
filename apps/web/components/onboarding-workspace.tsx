@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { uploadDocument, DocumentUploadError } from "@/lib/document-upload";
+import { ExamUploadQuota } from "./exam-upload-quota";
 import { examByteLimit, examFileLabel, examSelectionConsented, examSelectionPhrase,
   examSelectionReady, examSelectionReducer, examSentPhrase, examStateLabel,
-  initialExamSelection, maxExamFiles, type ExamSelectionItem } from "@/modules/onboarding/exam-selection";
+  initialExamSelection, type ExamSelectionItem } from "@/modules/onboarding/exam-selection";
 import type { OnboardingRecord } from "@/modules/onboarding/types";
 import { formatMeasure, parseMeasure, type MeasureKey } from "@/modules/onboarding/measure-input";
 import { onboardingMeasurements } from "@/modules/onboarding/display";
@@ -292,7 +293,7 @@ export function OnboardingExamUpload({
               visibility: "internal",
             });
             documentId = uploaded.documentId;
-            dispatch({ type: "uploaded", key: item.key, documentId });
+            dispatch({ type: "uploaded", key: item.key, documentId, duplicate: uploaded.duplicate });
           }
           await onComplete([documentId]);
           dispatch({ type: "sent", key: item.key });
@@ -323,6 +324,7 @@ export function OnboardingExamUpload({
 
   return (
     <form className="onboarding-upload" onSubmit={submit}>
+      <ExamUploadQuota tenantId={tenantId} patientId={patientId} refreshKey={selection.sent.length} />
       <p className="exam-state" role="status">
         {examSelectionPhrase(selection)}
       </p>
@@ -338,8 +340,7 @@ export function OnboardingExamUpload({
         disabled={sending}
       />
       <p className="exam-hint">
-        PDF, JPG ou PNG, até {examByteLimit()} cada. Limite de {maxExamFiles}{" "}
-        exames nesta etapa.
+        PDF, JPG ou PNG, até {examByteLimit()} cada. Até 15 arquivos distintos por ciclo; arquivos já recebidos não usam outra vaga.
       </p>
       {selection.rejected.length ? (
         <div className="exam-rejected" role="alert">
@@ -369,7 +370,7 @@ export function OnboardingExamUpload({
                 <strong>{item.file.name}</strong>
                 <span>{examFileLabel(item)}</span>
               </div>
-              <span className="exam-file-state">{examStateLabel(item.state)}</span>
+              <span className="exam-file-state">{item.duplicate ? "Já recebido · não usa outra vaga" : examStateLabel(item.state)}</span>
               {item.error ? (
                 <p className="exam-file-error" role="alert">
                   {item.error}

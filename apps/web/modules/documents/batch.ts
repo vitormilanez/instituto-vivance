@@ -2,7 +2,7 @@ import { uploadDocument } from "../../lib/document-upload.ts";
 
 type BatchFile = { key: string; file: File };
 type Upload = typeof uploadDocument;
-type Result = { key: string; documentId: string | null; error: unknown };
+type Result = { key: string; documentId: string | null; error: unknown; duplicate?: boolean };
 
 // Each document has its own reserve/upload/complete transaction. A failure in
 // one file never prevents the remaining selected files from being attempted.
@@ -20,7 +20,7 @@ export async function uploadPatientDocumentBatch(
   let sent = 0;
   for (const item of input.files) {
     try {
-      const { documentId } = await upload({
+      const { documentId, duplicate } = await upload({
         tenantId: input.tenantId,
         patientId: input.patientId,
         file: item.file,
@@ -29,7 +29,7 @@ export async function uploadPatientDocumentBatch(
         careRequestId: input.careRequestId,
       });
       sent++;
-      onResult({ key: item.key, documentId, error: null });
+      onResult({ key: item.key, documentId, error: null, ...(duplicate ? { duplicate: true } : {}) });
     } catch (error) {
       onResult({ key: item.key, documentId: null, error });
     }

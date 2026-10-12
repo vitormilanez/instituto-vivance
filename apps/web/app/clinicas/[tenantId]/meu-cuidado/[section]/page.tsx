@@ -53,6 +53,8 @@ import { patientReportPublications } from "@/modules/reports/publication-service
 import { PublishedReports } from "@/components/published-reports";
 import { patientPreparationPending, patientPreparationRequirement, patientReturnPreparations } from "@/modules/return-preparation/service";
 import { myPendingCareRequests } from "@/modules/care-requests/service";
+import { patientExamSummaries } from "@/modules/exam-summary/publication-service";
+import { PublishedExamSummaries } from "@/components/published-exam-summaries";
 export const dynamic = "force-dynamic";
 
 export default async function PatientAreaPage({
@@ -100,6 +102,7 @@ export default async function PatientAreaPage({
     reminder,
     clinicInfo,
     profileContext,
+    examSummaries,
   ] = await Promise.all([
     // onboarding
     patient && slug === "hoje"
@@ -196,6 +199,7 @@ export default async function PatientAreaPage({
       ? clinicPatientInfo(tenantId).catch(() => noClinicInfo)
       : noClinicInfo,
     patient && slug === "hoje" ? getPatientProfileContext(tenantId) : null,
+    patient && slug === "documentos" ? patientExamSummaries(tenantId,patient.id) : [],
   ]);
   // Pré-consulta: a pedida pelo link ou a primeira que ainda espera a pessoa.
   const preparationItem =
@@ -315,7 +319,10 @@ export default async function PatientAreaPage({
       ) : slug === "conversas" && messages ? (
         <PatientMessagesWorkspace initial={messages} />
       ) : slug === "documentos" && documents ? (
-        <PatientDocumentsWorkspace initial={documents} pendingExamRequests={careRequests.filter((request) => request.kind === "exams")} selectedRequestId={query.pedido ?? null} />
+        <>
+          <PublishedExamSummaries summaries={examSummaries} />
+          <PatientDocumentsWorkspace initial={documents} pendingExamRequests={careRequests.filter((request) => request.kind === "exams")} selectedRequestId={query.pedido ?? null} />
+        </>
       ) : slug === "evolucao" && longitudinal ? (
         <PatientEvolution data={longitudinal} base={base} period={evolution.key} checkIn={checkIn} />
       ) : slug === "diario" && checkIns && meals ? (

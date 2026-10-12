@@ -32,6 +32,9 @@ import { PatientIntakePanel } from "@/components/patient-intake-panel";
 import { PatientInvitationForm } from "@/components/patient-invitation-form";
 import { PrescriptionsPanel } from "@/components/prescriptions-panel";
 import { DoctorCurrentGoal } from "@/components/doctor-current-goal";
+import { ExamLongitudinalSummary } from "@/components/exam-longitudinal-summary";
+import { ExamUploadQuota } from "@/components/exam-upload-quota";
+import { ExamClinicalLibrary } from "@/components/exam-clinical-library";
 export const dynamic = "force-dynamic";
 
 export default async function Patient({
@@ -212,6 +215,7 @@ export default async function Patient({
           <div className={doctorView ? "dv-record-overview" : undefined}>
             <div className={doctorView ? "dv-record-main" : undefined}>
             {doctorView && careOverview}
+            {doctorView && <ExamLongitudinalSummary tenantId={tenantId} patientId={patientId} />}
             {intake &&
               (doctorView ? (
                 <details
@@ -338,7 +342,9 @@ export default async function Patient({
           <PrescriptionsPanel tenantId={tenantId} patientId={patientId} />
         ) : active === "Documentos" && documents ? (
           <>
+          {doctorView && <ExamUploadQuota tenantId={tenantId} patientId={patientId} canManage documents={documents.documents} />}
           {examResults && <ExamResultsPanel view={examResults} tenantId={tenantId} />}
+          {doctorView && <ExamClinicalLibrary tenantId={tenantId} />}
           {doctorView && examResults?.documents.length ? <details className="panel dv-record-disclosure">
             <summary>Arquivos e revisões dos envios · {documents.documents.length}</summary>
             <StaffPatientDocumentsPanel initial={documents} base={`${recordBase}?aba=Documentos`} />

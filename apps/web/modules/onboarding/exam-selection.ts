@@ -32,6 +32,7 @@ export type ExamSelectionItem = {
   // Id do documento que o servidor já recebeu. Existe para reenviar só a
   // associação ao cadastro, sem subir os mesmos bytes duas vezes.
   documentId: string | null;
+  duplicate?: boolean;
 };
 
 export type ExamRejection = {
@@ -57,7 +58,7 @@ export type ExamSelectionAction =
   | { type: "retry"; key: string }
   | { type: "consent"; consented: boolean }
   | { type: "sending"; key: string }
-  | { type: "uploaded"; key: string; documentId: string }
+  | { type: "uploaded"; key: string; documentId: string; duplicate?: boolean }
   | { type: "sent"; key: string }
   | { type: "failed"; key: string; error: string }
   | { type: "dismissRejections" };
@@ -224,7 +225,7 @@ export function examSelectionReducer(
         ...state,
         items: state.items.map((item) =>
           item.key === action.key
-            ? { ...item, documentId: action.documentId, error: null }
+            ? { ...item, documentId: action.documentId, error: null, ...(action.duplicate ? { duplicate: true } : {}) }
             : item,
         ),
       };
