@@ -1,6 +1,6 @@
 # Estado atual do Vivance
 
-## Exames — fase técnica em validação final, 11/10/2026
+## Exames — fase técnica publicada e conferida, 11/10/2026
 
 Pedido de implementação/publicação do [plano](FLUXO_EXAMES_E_ANALISE_LONGITUDINAL.md)
 autorizado, incluindo os PDFs existentes da conta de teste. Cota de 15/liberação
@@ -11,7 +11,12 @@ críticos e os achados foram corrigidos. Quatro originais processados, 117 itens
 verificados no local. Aprovação/publicação de QA e leitura pelo paciente após
 recarga conferidas pela interface. Biblioteca implementada, sem fontes automaticamente
 autorizadas; possibilidades dependem de curadoria. Backend sintético alinhado;
-integração Git, domínio publicado e aceite clínico têm registros próprios.
+PR #134 integrado à main `14c732b`; deployment `dpl_ETgPVm4QZiEmkBvcexfAf32jUvus`
+no domínio, SHA e dois aliases conferidos. Login real médico/paciente,
+aprovação/publicação de QA, recarga, cota e 403 internos passaram. Versão final
+de QA selecionou 28 fatos após uma falha técnica recuperada por retry manual;
+diagnóstico seguro adicionado, causa inicial não capturada. Sem fonte clínica
+automaticamente aprovada. Aceite clínico permanece separado e pendente.
 [Evidência e estado da publicação](ENTREGA_EXAMES_2026-10-11.md).
 
 ## Pacientes com foco na lista — refinamento de 11/10/2026
@@ -23,8 +28,8 @@ montados para conservar rascunhos e resultados na troca. Atalhos por fragmento,
 recarregamento, Voltar e fechamento do menu móvel conferidos localmente com
 sessão médica existente. Layout em 320 px sem overflow; formulário preenchido
 e recuperado sem enviar. Convites existentes não foram modificados.
-538 testes e tipos passaram; revisão independente aprovada. Código preparado
-sobre main d06e3d6, publicação deste refinamento ainda em andamento. Sem banco,
+538 testes e tipos passaram; revisão independente aprovada. Código integrado
+no PR #133/main `2f93b70`, artefato confirmado como anterior nesta rodada. Sem banco,
 Edge ou alteração clínica; regras de admin/enfermagem preservadas no código.
 
 ## Widgets e fluidez publicados — 11/10/2026, 19h (São Paulo)

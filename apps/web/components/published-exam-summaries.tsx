@@ -5,7 +5,7 @@ export function PublishedExamSummaries({ summaries }: { summaries: PublishedExam
     <h2>Resultados conferidos pelo médico</h2>
     <p>Informações revisadas e compartilhadas pelo seu médico.</p>
     {summaries.map(summary=><details key={summary.id}>
-      <summary>Publicado em {new Date(summary.published_at).toLocaleDateString("pt-BR",{timeZone:"America/Sao_Paulo"})}</summary>
+      <summary>Publicado em {new Date(summary.published_at).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"short",timeStyle:"short"})}</summary>
       <ul>{summary.factual_claims.map((claim,index)=><li key={index}>{claim.text}</li>)}</ul>
     </details>)}
   </section>;

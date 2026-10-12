@@ -58,7 +58,7 @@ Migrations aplicadas: `20261012010143`, `20261012010144`, `20261012010545` e
 `20261012012245` e `20261012014429`. A migration `20261012012128` foi capturada vazia pelo CLI
 enquanto o arquivo novo era preparado em paralelo: preservada com zero bytes
 no histórico e contrato entregue na versão posterior, sem reescrever aplicada.
-`private-documents` v10 ACTIVE/JWT true; `exam-summary-worker` ACTIVE,
+`private-documents` v10 ACTIVE/JWT true; `exam-summary-worker` v4 ACTIVE,
 JWT de gateway desativado com autenticação médica e sessão/vínculo explícitos
 validados no banco. `exam-text-worker` existente preservado.
 
@@ -90,8 +90,40 @@ após recarga. Nenhum desses cliques representa aceite clínico real.
 
 ## Publicação e verificação final
 
-Em andamento; acrescentar PR, SHA, checks, deployment, domínios e resultado
-autenticado depois da publicação. Artefato anterior confirmado pelo CLI:
+O [PR #134](https://github.com/vitormilanez/instituto-vivance/pull/134)
+integrou o código `32f4db8` na main `14c732ba9ba33b82f1b7f4ee425aa9c102005e0d`.
+[CI 38193717961](https://github.com/vitormilanez/instituto-vivance/actions/runs/38193717961)
+e [release 38193861593](https://github.com/vitormilanez/instituto-vivance/actions/runs/38193861593)
+aprovaram verify. Banco/Edge/promoção do release foram **skipped** por configuração;
+backend foi aplicado/conferido manualmente antes da integração. O deploy nativo
+do Git `dpl_ETgPVm4QZiEmkBvcexfAf32jUvus`,
+[`instituto-vivance-mcy6e7g9c-vtr-consulting.vercel.app`](https://instituto-vivance-mcy6e7g9c-vtr-consulting.vercel.app),
+ficou READY/production no SHA integrado; API confirmou projeto, main,
+`targets.production` e aliases dos dois domínios nesse ID. Principal: três HTTP200,
+TTFB 0,102–0,350 s/gru1. Secundário: três HTTP307 para o principal.
+
+Login **real pela interface** no domínio: médico abriu os 117 itens/4 originais,
+resumo atual, fontes locais e conferência documental. A primeira tentativa de
+gerar a versão do novo contrato retornou 503 e registrou falha recuperável;
+causa específica não foi capturada no worker original. Foi acrescentado
+diagnóstico por estágio/status/código/lista fechada, sem dados ou tokens;
+Astra revisou esse diff. Uma nova tentativa manual concluiu **28 fatos**;
+repetição recuperou cache, sem outra geração. Aprovação/publicação de QA e
+recarga médica passaram. O paciente autenticou, abriu essa versão factual,
+viu cota 4/15, recibos idênticos sem outra vaga e manteve sessão após recarga.
+API integrada no domínio negou resumo interno/biblioteca ao paciente (403).
+Nenhuma extração repetida ou original removido. Biblioteca continua vazia.
+
+Resumo médico foi conferido em 1440/320 px sem overflow horizontal; documentos
+e leitura pelo paciente foram conferidos no desktop.
+Foi ajustado espaçamento dos botões estreitos e horário das publicações para
+diferenciar versões do mesmo dia. Evidências locais não versionadas:
+`output/exames-20261011/resumo-medico-desktop.jpg`, `resumo-medico-mobile.jpg`
+e `fonte-exame-desktop.jpg`. Esses testes não auditam todo o produto e não são
+aceite clínico. O complemento de observabilidade/legibilidade segue em registro
+de integração, sem outra migration ou chamada de extração.
+
+Artefato anterior confirmado pelo CLI:
 `dpl_Ar7MvGp1czFYCZkUXJpU4exeJpFV`,
 `https://instituto-vivance-duko2knv9-vtr-consulting.vercel.app` (#133).
 

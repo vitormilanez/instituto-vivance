@@ -8,7 +8,7 @@
 - [x] Resumo sob solicitação, snapshot/lease/cache/stale, verificação, biblioteca com revisão e publicação factual separada.
 - [x] 555 testes, tipos/build, lint sem erros e Deno; achados críticos do Astra corrigidos e revisados.
 - [x] Backend no dev sintético alinhado; quatro PDFs/117 itens/28 páginas, revisões explícitas de QA, resumo real com 30 fatos e cache, endpoints internos negados ao paciente.
-- [ ] Fechar verificação pela interface, CI/integração e domínio publicado; [registro da fase](ENTREGA_EXAMES_2026-10-11.md).
+- [x] PR #134/main14c732b e CI/release verify; domínio dpl_ETgPVm4QZiEmkBvcexfAf32jUvus no SHA, dois aliases conferidos. Login real médico/paciente, nova versão factual 28, cache/aprovação/publicação/recarga, fontes e cota; retry manual recuperou 503, diagnóstico seguro adicionado. [Registro da fase](ENTREGA_EXAMES_2026-10-11.md).
 - [ ] Curadoria e avaliação médica reais/IA1–IA6/Gate P antes de ampliar além dos testes.
 
 ## 11/10/2026 — Pacientes como foco da página
@@ -17,7 +17,7 @@
   por botões locais. Formulário, resultado e filtros mantidos na troca de área.
 - Links diretos, recarga, Voltar, menu móvel e 320 px conferidos localmente;
   nenhum convite enviado, cancelado ou excluído. 538 testes e tipos passaram.
-- Refinamento preparado sobre d06e3d6; publicação em andamento, sem banco/Edge.
+- Refinamento integrado no PR #133/main2f93b70; artefato anterior confirmado na rodada dos exames, sem banco/Edge.
 
 ## Limpeza e histórico de convites — 11/10, 17h
 

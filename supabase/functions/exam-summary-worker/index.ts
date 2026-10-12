@@ -45,7 +45,10 @@ Deno.serve(async (request) => {
         messages: [{ role: "user", content: JSON.stringify({facts:manifest.facts.map(({ itemId, name, value, unit, observedOn, reference }) => ({ itemId, name, value, unit, observedOn, reference })),sources:applicableClinicalSources(manifest).map(({source})=>source)}) }],
       }),
     });
-    if (!response.ok) throw new Error("provider_unavailable");
+    if (!response.ok) {
+      console.warn(JSON.stringify({ event: "exam_summary_failure", stage: "provider", status: response.status }));
+      throw new Error("provider_unavailable");
+    }
     const result = await response.json();
     if (result.stop_reason === "max_tokens") throw new Error("provider_incomplete");
     const selected = result.content?.find((entry: { type: string; name: string }) => entry.type === "tool_use" && entry.name === "select_reviewed_facts")?.input;
@@ -53,9 +56,15 @@ Deno.serve(async (request) => {
     const finish = await service.rpc("finish_exam_summary", { target_summary: summaryId, target_lease: leaseToken,
       verified_claims: verified.claims, verified_comparisons: longitudinalComparisons(manifest.facts),verified_possibilities:verifyPossibilitySelection(selected,manifest),
       provider_model: model, usage_input: result.usage?.input_tokens ?? null, usage_output: result.usage?.output_tokens ?? null, removed: verified.removed });
-    if (finish.error) throw new Error("sources_or_access_changed");
+    if (finish.error) {
+      console.warn(JSON.stringify({ event: "exam_summary_failure", stage: "persistence", code: finish.error.code }));
+      throw new Error("sources_or_access_changed");
+    }
     return json({ summaryId, cached: false, status: "draft" });
-  } catch {
+  } catch (error) {
+    const safeReasons = new Set(["generation_contract_mismatch", "snapshot_budget", "provider_unavailable", "provider_incomplete", "invalid_summary_contract", "no_supported_claims", "sources_or_access_changed"]);
+    const reason = error instanceof Error && safeReasons.has(error.message) ? error.message : "request_failed";
+    console.warn(JSON.stringify({ event: "exam_summary_failure", reason }));
     if (summaryId && leaseToken) await service.rpc("finish_exam_summary", { target_summary: summaryId, target_lease: leaseToken,
       verified_claims: null, verified_comparisons: null,verified_possibilities:null, provider_model: null, usage_input: null, usage_output: null, removed: 0 });
     // Never return/log provider payloads, tokens, source text or health data.
