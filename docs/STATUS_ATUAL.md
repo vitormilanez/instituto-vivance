@@ -11,8 +11,9 @@ críticos e os achados foram corrigidos. Quatro originais processados, 117 itens
 verificados no local. Aprovação/publicação de QA e leitura pelo paciente após
 recarga conferidas pela interface. Biblioteca implementada, sem fontes automaticamente
 autorizadas; possibilidades dependem de curadoria. Backend sintético alinhado;
-PR #134 integrado à main `14c732b`; deployment `dpl_ETgPVm4QZiEmkBvcexfAf32jUvus`
-no domínio, SHA e dois aliases conferidos. Login real médico/paciente,
+PRs #134/#135 integrados; código final main `832f227`, deployment
+`dpl_C9kZ36GzYJuXAYxUGt6N2tvGyV9m` no domínio, SHA e dois aliases conferidos.
+CI e release verify aprovados; backend manual alinhado. Login real médico/paciente,
 aprovação/publicação de QA, recarga, cota e 403 internos passaram. Versão final
 de QA selecionou 28 fatos após uma falha técnica recuperada por retry manual;
 diagnóstico seguro adicionado, causa inicial não capturada. Sem fonte clínica

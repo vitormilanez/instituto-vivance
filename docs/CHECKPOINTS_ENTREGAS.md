@@ -9,6 +9,7 @@
 - [x] 555 testes, tipos/build, lint sem erros e Deno; achados críticos do Astra corrigidos e revisados.
 - [x] Backend no dev sintético alinhado; quatro PDFs/117 itens/28 páginas, revisões explícitas de QA, resumo real com 30 fatos e cache, endpoints internos negados ao paciente.
 - [x] PR #134/main14c732b e CI/release verify; domínio dpl_ETgPVm4QZiEmkBvcexfAf32jUvus no SHA, dois aliases conferidos. Login real médico/paciente, nova versão factual 28, cache/aprovação/publicação/recarga, fontes e cota; retry manual recuperou 503, diagnóstico seguro adicionado. [Registro da fase](ENTREGA_EXAMES_2026-10-11.md).
+- [x] Complemento #135/main832f227: CI/release verify, backend v4 e domínio dpl_C9kZ36GzYJuXAYxUGt6N2tvGyV9m no SHA. Horários de versões e cota após recarga; paciente/resumo médico em 320 px sem overflow. Checkout canônico na main e alterações anteriores preservadas.
 - [ ] Curadoria e avaliação médica reais/IA1–IA6/Gate P antes de ampliar além dos testes.
 
 ## 11/10/2026 — Pacientes como foco da página
