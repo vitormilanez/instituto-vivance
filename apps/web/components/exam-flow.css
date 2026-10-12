@@ -13,6 +13,7 @@
 .exam-summary h3 { margin:0 0 8px; font-size:20px; }
 .exam-summary h4 { margin:20px 0 10px; font-size:16px; }
 .exam-summary > p { font-size:14px; color:#405675; }
+.exam-summary > button { margin-top:4px; margin-bottom:8px; }
 .exam-summary ul { padding-left:20px; margin:0; }
 .exam-summary li { margin-bottom:14px; overflow-wrap:anywhere; }
 .exam-summary li p { margin:0 0 6px; line-height:1.5; }
