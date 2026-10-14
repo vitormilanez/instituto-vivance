@@ -1,4 +1,30 @@
-# QA — continuidade em Agenda, Pacientes e Mensagens (14/10/2026)
+# QA — fechamento publicado e transcrição gratuita (14/10/2026)
+
+Final result: **passed** para a entrega técnica sintética publicada no PR137,
+aplicação `a1d2153`, deployment `dpl_5g2yuAvA3yMAH2S8yzY4CFk9JDHD`.
+O gate remoto de outreach foi resolvido: migration aplicada e uma mensagem QA
+enviada/recebida com replay sem duplicar, só para o destinatário autorizado.
+Não representa aceite clínico ou teste de áudio real.
+
+- Navegação publicada médico: Hoje → Pacientes → ficha → Agenda → Mensagens →
+  Teleconsulta, com recarga/original/revisão. Todas as áreas conferidas em mobile;
+  Pacientes/ficha/Agenda/Mensagens/Teleconsulta `innerWidth=scrollWidth=320`.
+- Impeccable orientou toque/legibilidade e revisão final: rótulos do dock abaixo
+  de400px usam Vídeo/Chat sem perder nomes acessíveis; formulário/original não
+  estouram a tela. Revisão independente confirmou o fix e disposição `ship`.
+- 591 testes/CI, lint, tipos/build; Astra confirmou cinco correções de captura/
+  retry/permissões/limites. Nativa do Meet continua OFF e OAuth não configurado.
+- Capturas locais do domínio, fora do Git:
+  `output/teleconsulta-meet-20261014/release/*-publicado.png`.
+- Nenhuma nova supressão; os dois acentos laterais do hook anterior em
+  `doctor-home.css` já haviam sido removidos. Divisórias neutras de1px mantidas.
+- Áudio do fornecedor, aparelho físico e chamada real com dois participantes
+  não validados; testes determinísticos não comprovam precisão da transcrição.
+  [Registro final](docs/ENTREGA_WORKSPACE_E_TRANSCRICAO_2026-10-14.md).
+
+---
+
+# Histórico local — continuidade em Agenda, Pacientes e Mensagens (14/10/2026)
 
 Final result: **passed** para o slice visual local. Não publicado; aceite do
 usuário separado. O gate remoto de envio coletivo da entrega anterior continua

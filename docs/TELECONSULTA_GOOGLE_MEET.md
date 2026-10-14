@@ -36,9 +36,11 @@ Controller testado com reconhecimento determinístico; qualidade/disponibilidade
 do serviço real de voz não é comprovada por esses testes.
 
 Mobile 320 px efetivos conferido (controle compensado pelo zoom da janela),
-sem overflow horizontal; formulário e transcrição visíveis. A checagem anterior
-sem viewport válido abaixo é histórica. Publicação final e evidências remotas
-serão registradas no documento de entrega desta rodada.
+sem overflow horizontal; formulário e transcrição visíveis. No domínio publicado,
+salvar/replay/revisão/recarga deram200, conteúdo alterado409, paciente403 e nativa409.
+Original/revisão também conferidos na interface após recarga. A checagem anterior
+sem viewport válido abaixo é histórica.
+[Publicação final, correção de configuração e evidências](ENTREGA_WORKSPACE_E_TRANSCRICAO_2026-10-14.md).
 
 Referências: [API de reconhecimento](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition),
 [entrada de áudio e compatibilidade](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition/start),
@@ -77,8 +79,8 @@ identidade, nem atribuição automática de fala ao médico/paciente.
 
 - Confirmar primeiro o projeto/conta/ambiente vivo. Ambiente único temporário
   autorizado: dev sintético `oxuwrdjojsmgxoljqkuk`; Gate P antes de dados reais.
-- Revisar/aplicar `20261014202953_google_meet_doctor_oauth_transcripts.sql`
-  pelo processo de release. Não aplicada nesta rodada.
+- Schema `20261014202953_google_meet_doctor_oauth_transcripts.sql` já aplicado
+  no dev sintético na publicação final de14/10; não reaplicar nem editar histórico.
 - Habilitar Google Meet REST API no projeto Google autorizado e configurar
   consent screen/client OAuth web com usuários de teste ou verificação exigida.
 - Registrar redirect URI exata do ambiente, terminando em
@@ -136,11 +138,11 @@ exclusão, consentimento, fornecedores e responsabilidades ainda integra Gate P.
 - Navegador local autenticado: configuração ausente explicada, agendamentos
   existentes visíveis, formulário com foco e fallback manual; sem criar sala,
   consulta, enviar mensagem ou abrir consentimento Google.
-- Responsividade via CSS implementada; evidência móvel desta aba ainda pendente
+- Na preparação inicial, responsividade via CSS implementada; evidência móvel ainda pendente
   por limitação do controle de viewport. Estados conectados/importados tiveram
   validação de contratos, não aceite visual integrado com Google.
 - Busca Asana por “Teleconsulta” não encontrou tarefa; nenhuma criada nesta rodada.
-- Pendente antes de declarar integração operacional: configuração + migration,
+- Pendente antes de declarar integração nativa operacional: configuração Google,
   uma consulta sintética com conta elegível, permissão, importação, revisão,
   recarga, negação por outro usuário e desconexão. Publicação e aceite separados.
 
