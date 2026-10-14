@@ -10,13 +10,18 @@ ser parcial e não interpreta/prescreve/preenche prontuário. Esta decisão auto
 áudio apenas durante o reconhecimento do navegador; não armazenamento de áudio
 ou IA clínica. [Contrato e evidências](TELECONSULTA_GOOGLE_MEET.md).
 
+Publicação técnica concluída no PR137: 591 testes/CI, três migrations aplicadas
+no dev sintético e dois domínios no deployment final conferido. Reconhecimento
+real de voz e aceite clínico não decorrem desses testes.
+[Registro final](ENTREGA_WORKSPACE_E_TRANSCRICAO_2026-10-14.md).
+
 ## Teleconsulta nativa do Meet — decisão de 14/10/2026
 
 Implementar conexão individual do médico e importar a transcrição nativa,
 com autorização específica registrada, original imutável e revisão sem
 publicação automática. Sem gravador próprio ou IA de síntese neste slice.
 Usuário desconhece a assinatura Google e autorizou **deixar preparada**;
-ativação/migration/jornada sintética permanecem pendentes. UI segue branco/azul,
+schema publicado; OAuth, licença e jornada nativa permanecem pendentes. UI segue branco/azul,
 navegação inferior e ações junto à consulta. [Contrato](TELECONSULTA_GOOGLE_MEET.md).
 
 ## Decisão de interface — 14/10/2026

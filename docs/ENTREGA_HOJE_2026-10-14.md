@@ -1,6 +1,17 @@
 # Hoje, paciente e mensagens de incentivo — 14/10/2026
 
-## Escopo implementado localmente
+## Fechamento técnico publicado
+
+PR137/application SHA `a1d2153`: Hoje, ficha, Agenda, Pacientes e Mensagens
+publicados junto à Teleconsulta; 591 testes/CI e conferência móvel no domínio.
+Migration de outreach aplicada no dev sintético antes do frontend. Preview,
+envio e replay deram200; uma única mensagem fictícia legível pela conta
+`vtrconsultingbr@gmail.com`, sem duplicar e sem enviar a outros pacientes.
+Teste de recebimento com sessão real/RLS via API, não disparo integral pela UI.
+Aceite do usuário e Gate P permanecem separados.
+[Evidências, limites e recuperação](ENTREGA_WORKSPACE_E_TRANSCRICAO_2026-10-14.md).
+
+## Histórico — escopo implementado localmente
 
 Branch `codex/hoje-paciente-navegacao`, base `95b69ba`. Não publicado.
 Preservadas as alterações anteriores do onboarding técnico para Alfredo.
@@ -56,7 +67,8 @@ lista completa e confirma antes de enviar. Destinatários: seus próprios pacien
 com vínculo ativo, conta confirmada e acesso ativo na mesma clínica. Sem acesso
 ativo, não há envio silencioso por outro canal.
 
-Migração nova: `20261014192700_doctor_supportive_outreach.sql` **somente local**.
+Migração `20261014192700_doctor_supportive_outreach.sql` aplicada no dev sintético
+na publicação final de14/10 (na preparação inicial abaixo era somente local).
 RPCs validam sessão, papel médico, vínculo e destinatário a cada envio. Lotes de
 cinco; limite de 60 mensagens/minuto; chaves idempotentes por destinatário.
 Falhas parciais mantêm os sucessos e permitem tentar apenas o restante. O
@@ -64,7 +76,8 @@ andamento fica na sessão desta aba, separado por clínica e médico; não persi
 credenciais. Navegação/saída protege rascunho e envio em andamento.
 
 Sem o contrato remoto, a interface informa indisponibilidade e não libera envio.
-Nenhuma mensagem coletiva foi disparada para contas conectadas nesta entrega.
+Na preparação inicial não houve disparo. No fechamento remoto houve somente
+o envio QA dirigido documentado acima; não disparo para a lista completa.
 
 ## Evidências e limites
 
@@ -85,7 +98,7 @@ Nenhuma mensagem coletiva foi disparada para contas conectadas nesta entrega.
 - Comparação visual com protótipos aprovados e telas em desktop/320 px;
   detalhes em [design-qa](../design-qa.md). Não é aceite clínico.
 
-## Gate de publicação
+## Histórico — gate antes da publicação
 
 Antes de liberar: confirmar projeto/ambiente vivos, aplicar a migração no dev
 sintético autorizado, validar envio e recebimento com destinatários sintéticos

@@ -6,7 +6,8 @@
 - [x] 7 testes de contrato + 5 de captura; Astra confirmou os cinco fixes.
 - [x] Fonte salva/revisada com replay seguro; paciente403 e nativa409 no local.
 - [x] Mobile320 efetivos/formulário; migrations aplicadas no dev confirmado.
-- [ ] Commit/PR/CI/main/deployment e percurso final no domínio.
+- [x] PR137/main a1d2153, 591 testes/CI/release verify; deployment final e dois domínios conferidos.
+- [x] Percurso publicado/recarga/revisão e 320px; alinhamento privado recuperou503.
 - [ ] Reconhecimento real de voz/qualidade, aceite clínico e Gate P separados.
 
 ## Teleconsulta / Meet — 14/10/2026
@@ -15,8 +16,8 @@
 - [x] Texto original imutável, lote atômico e testes de autorização/concorrência.
 - [x] 21 testes focados, lint e build/tipos; fixes críticos Astra confirmados.
 - [x] UI local desktop, estado não configurado e formulário manual conferidos.
-- [ ] Aceite móvel e estados conectados/importados no navegador.
-- [ ] Configuração Google, migration remota, jornada sintética e publicação.
+- [x] Tela publicada/320px e migration remota; nativa permanece desativada.
+- [ ] Configuração Google e estados conectados/importados em uma chamada nativa.
 - [ ] Gate P e aceite clínico antes de dados reais. [Detalhes](TELECONSULTA_GOOGLE_MEET.md).
 
 ## Extensão visual às áreas médicas — 14/10/2026
@@ -24,7 +25,8 @@
 - [x] Agenda, lista de pacientes, abas da ficha e Mensagens com o conceito da Hoje.
 - [x] Busca local de destinatários; convites separados e contexto recolhível.
 - [x] 27 testes focados, lint, tipos/build e verificação visual responsiva.
-- [ ] Publicação e aceite do usuário. Nenhuma alteração de contrato neste slice.
+- [x] Publicação técnica PR137, navegação/320px no domínio.
+- [ ] Aceite do usuário. Nenhuma alteração de contrato neste slice visual.
 
 ## Hoje, ficha e incentivo — 14/10/2026
 
@@ -32,7 +34,7 @@
 - [x] Dia vazio com Agendar consulta e carrossel manual; revisão antes do envio.
 - [x] Contrato de envio testado localmente e revisão crítica Astra corrigida.
 - [x] Suite limpa 567/567; jornada local autenticada e responsividade conferidas.
-- [ ] Migração remota, envio/recebimento sintético e publicação técnica.
+- [x] Migração remota, envio/replay/recebimento de uma mensagem QA ao destinatário autorizado, sem duplicar; publicação PR137.
 - [ ] Aceite do usuário; aceite clínico/Gate P separados. [Detalhes](ENTREGA_HOJE_2026-10-14.md).
 
 ## Exames — implementação de 11/10/2026

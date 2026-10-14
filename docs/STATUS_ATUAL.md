@@ -1,15 +1,21 @@
 # Estado atual do Vivance
 
-## Publicação das melhorias e transcrição gratuita — 14/10/2026, em execução
+## Workspace médico e transcrição gratuita — publicados em 14/10/2026
 
-Free browser transcription implementada, Astra/contratos e mobile320 conferidos.
-Três migrations de 14/10 aplicadas no dev sintético antes do frontend. Salvamento,
-replay, revisão/recarga e negação ao paciente passaram; captura real de áudio
-não executada (controller usa testes determinísticos). Nativa do Meet desativada;
-OAuth não configurado. Commit/CI/domínio em preparação, sem afirmar publicação
-antes da evidência final. [Detalhes](TELECONSULTA_GOOGLE_MEET.md).
+Hoje, ficha, Agenda, Pacientes, Mensagens e Teleconsulta publicados pelo PR137,
+aplicação `a1d2153`; 591 testes, lint, tipos/build e CI/release verify passaram.
+Migrations `20261014192700/20261014202953/20261014205608` aplicadas manualmente
+no dev sintético confirmado. Automação de banco/Edge/promoção ficou skipped.
+Deployment final `dpl_5g2yuAvA3yMAH2S8yzY4CFk9JDHD` READY/production, SHA e
+dois domínios conferidos; configuração privada alinhada após503 pós-deploy.
+Mobile320/navegação autenticada e persistência/revisão/original imutável passaram;
+paciente403/nativa409. Incentivo enviado/repetido sem duplicar para uma única
+conta QA autorizada, com recebimento confirmado. Nativa do Meet preparada/OFF;
+OAuth não configurado. Áudio real/precisão do fornecedor, assinatura Google,
+aceites do usuário/clínico e Gate P continuam separados.
+[Registro completo e recuperação](ENTREGA_WORKSPACE_E_TRANSCRICAO_2026-10-14.md).
 
-## Teleconsulta + Google Meet preparada — 14/10/2026
+## Histórico local — Teleconsulta + Google Meet preparada, 14/10/2026
 
 UI branca/azul e integração local por médico: OAuth, sala de agendamento,
 importação manual de transcrição autorizada e revisão separada do original.
@@ -19,7 +25,7 @@ Usuário pediu deixar preparada por desconhecer a assinatura Google. Sem
 migration remota, OAuth real, chamada ou publicação. Mobile e jornada integrada
 permanecem gates de aceite. [Configuração e limites](TELECONSULTA_GOOGLE_MEET.md).
 
-## Continuidade visual — Agenda, Pacientes e Mensagens, 14/10/2026
+## Histórico local — Agenda, Pacientes e Mensagens, 14/10/2026
 
 Conceito da Hoje estendido localmente às três áreas médicas: filtros leves,
 ações contextuais, busca de destinatário e contexto recolhível na conversa.
@@ -28,7 +34,7 @@ tipos e build Webpack passaram em espelho limpo. Desktop/320px e Agenda900px
 conferidos; sem envio, convite ou agendamento criado. Sem publicação nesta
 rodada. [Evidências e limites](ENTREGA_HOJE_2026-10-14.md).
 
-## Hoje e ficha médica — implementação local em 14/10/2026
+## Histórico local — Hoje e ficha médica, 14/10/2026
 
 Nova Hoje com consultas do dia, indicadores, navegação inferior única e acesso
 à ficha organizada. Dia vazio inclui agendamento e carrossel de incentivo com
