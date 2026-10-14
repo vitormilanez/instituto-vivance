@@ -15,6 +15,12 @@ function sources(path: string): string[] {
 }
 test("native runtime does not import the Cloudflare prototype or demonstration providers", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
+  // These two reviewed RPC adapters handle private transcript/OAuth tables.
+  // The credential is server-only; every call rechecks the live doctor session.
+  const privateRpcAdapters = new Set([
+    join(root, "modules/google-meet/service.ts"),
+    join(root, "modules/browser-transcripts/service.ts"),
+  ]);
   for (const dir of ["app", "lib", "modules", "components"])
     for (const path of sources(join(root, dir))) {
       const code = readFileSync(path, "utf8");
@@ -23,10 +29,15 @@ test("native runtime does not import the Cloudflare prototype or demonstration p
         /cloudflare:workers|CareDemoProvider|ensureDemoAccounts|DEMO_USERS|care-demo-store|patient-mvp-data|demo-routes|demoPatients/,
       );
       assert.doesNotMatch(code, /(?:from\s*|import\s*)['"]\.\.\/\.\.\/\.\.\//);
-      assert.doesNotMatch(
-        code,
-        /SUPABASE_SECRET_KEYS|SUPABASE_SERVICE_ROLE_KEY|sb_secret_/,
-      );
+      if (privateRpcAdapters.has(path)) {
+        assert.match(code, /^import "server-only";/);
+        assert.doesNotMatch(code, /["']use client["']/);
+        assert.match(code, /requireClinic\([^\n]+\["doctor"\]/);
+        assert.match(code, /auth\.getClaims\(\)/);
+        assert.doesNotMatch(code, /NEXT_PUBLIC_[A-Z_]*(?:SERVICE_ROLE|SECRET)/);
+      } else {
+        assert.doesNotMatch(code, /SUPABASE_SECRET_KEYS|SUPABASE_SERVICE_ROLE_KEY|sb_secret_/);
+      }
     }
   const dependencies = JSON.parse(
     readFileSync(join(root, "package.json"), "utf8"),

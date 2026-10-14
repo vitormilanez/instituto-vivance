@@ -1,5 +1,42 @@
 # Estado atual do Vivance
 
+## Publicação das melhorias e transcrição gratuita — 14/10/2026, em execução
+
+Free browser transcription implementada, Astra/contratos e mobile320 conferidos.
+Três migrations de 14/10 aplicadas no dev sintético antes do frontend. Salvamento,
+replay, revisão/recarga e negação ao paciente passaram; captura real de áudio
+não executada (controller usa testes determinísticos). Nativa do Meet desativada;
+OAuth não configurado. Commit/CI/domínio em preparação, sem afirmar publicação
+antes da evidência final. [Detalhes](TELECONSULTA_GOOGLE_MEET.md).
+
+## Teleconsulta + Google Meet preparada — 14/10/2026
+
+UI branca/azul e integração local por médico: OAuth, sala de agendamento,
+importação manual de transcrição autorizada e revisão separada do original.
+12 testes backend + 9 de Teleconsulta passaram, lint e build/tipos em espelho
+limpo. Astra confirmou correções de concorrência OAuth e atomicidade do lote.
+Usuário pediu deixar preparada por desconhecer a assinatura Google. Sem
+migration remota, OAuth real, chamada ou publicação. Mobile e jornada integrada
+permanecem gates de aceite. [Configuração e limites](TELECONSULTA_GOOGLE_MEET.md).
+
+## Continuidade visual — Agenda, Pacientes e Mensagens, 14/10/2026
+
+Conceito da Hoje estendido localmente às três áreas médicas: filtros leves,
+ações contextuais, busca de destinatário e contexto recolhível na conversa.
+Abas da ficha também simplificadas. 27 testes focados, lint dos quatro TSX,
+tipos e build Webpack passaram em espelho limpo. Desktop/320px e Agenda900px
+conferidos; sem envio, convite ou agendamento criado. Sem publicação nesta
+rodada. [Evidências e limites](ENTREGA_HOJE_2026-10-14.md).
+
+## Hoje e ficha médica — implementação local em 14/10/2026
+
+Nova Hoje com consultas do dia, indicadores, navegação inferior única e acesso
+à ficha organizada. Dia vazio inclui agendamento e carrossel de incentivo com
+revisão/confirmação de destinatários. [Entrega e evidências](ENTREGA_HOJE_2026-10-14.md).
+Branch `codex/hoje-paciente-navegacao`; nenhuma publicação/migração remota nesta
+rodada. Envio coletivo depende do contrato novo no ambiente e de validação
+sintética de recebimento. Testes locais não equivalem a aceite clínico.
+
 ## Exames — fase técnica publicada e conferida, 11/10/2026
 
 Pedido de implementação/publicação do [plano](FLUXO_EXAMES_E_ANALISE_LONGITUDINAL.md)

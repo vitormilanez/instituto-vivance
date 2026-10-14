@@ -1,4 +1,104 @@
-# QA — widgets médicos e fluidez (11/10/2026)
+# QA — continuidade em Agenda, Pacientes e Mensagens (14/10/2026)
+
+Final result: **passed** para o slice visual local. Não publicado; aceite do
+usuário separado. O gate remoto de envio coletivo da entrega anterior continua
+**blocked**, sem alteração neste slice.
+
+## Comparação e evidência
+
+Fonte: [Hoje aprovada implementada](output/hoje-redesign/hoje-auth-desktop.jpg).
+Comparada às capturas renderizadas, não a um protótipo inexistente das três áreas.
+Adaptação funcional intencional: calendário, lista e conversa mantêm suas tarefas.
+
+- [Agenda desktop](output/hoje-redesign/agenda-modern-desktop.png),
+  [mobile](output/hoje-redesign/agenda-modern-mobile.png),
+  [semana tablet](output/hoje-redesign/agenda-modern-tablet.png).
+- [Pacientes desktop](output/hoje-redesign/pacientes-modern-desktop.png),
+  [mobile](output/hoje-redesign/pacientes-modern-mobile.png).
+- [Mensagens desktop](output/hoje-redesign/mensagens-modern-desktop.png),
+  [mobile](output/hoje-redesign/mensagens-modern-mobile.png).
+
+## Rodada agrupada e confirmação
+
+- Tipografia Figtree, azul existente, branco e ícones Lucide preservados; títulos
+  equivalentes, filtros leves e separadores de1px. Nenhum ativo novo necessário.
+- Hierarquia: calendário/horário na Agenda, lista em Pacientes, conversa em
+  Mensagens. Contexto secundário recolhível; convites fora da lista principal.
+- CSS aferido1440/320 nas três páginas, semana900; scrollWidth=innerWidth nas
+  medições móveis e tablet. Capturas respeitam o zoom existente do navegador.
+- Corrigidos na rodada: orientação enganosa no filtro vazio e botão Hoje que
+  quebrava a navegação de data em três linhas no celular. Confirmação dos controles
+  móveis: Anterior/Hoje/Próximo no mesmo eixo, sem overflow global.
+- Ações: filtro vazio e retorno, abrir convite e voltar, Semana/Dia, formulário
+  abrir/fechar sem salvar, Agenda→ficha, busca local sem resultados/limpar,
+  contexto expandido e recolhido. Nenhum envio nem agendamento criado.
+- Labels/semântica existentes, foco, contraste dos estados selecionados e redução
+  de movimento preservados. Não realizada auditoria completa de leitor de tela.
+- Guardas de rascunho preservadas; teste do diálogo inconclusivo na automação.
+  Console observado sem erros. 27 testes, lint, tipos e build passaram.
+- Nenhuma regra suprimida. Bordas divisórias finas são intencionais, não acentos
+  laterais decorativos. Diferenças de conteúdo são dados existentes, não mocks.
+
+---
+
+# QA — Hoje, ficha médica e incentivo (14/10/2026)
+
+Final result: **blocked** para liberação completa do disparo coletivo: a migração
+está apenas local e não houve envio/recebimento no ambiente conectado. A revisão
+visual e navegação local descritas abaixo passaram. Publicação não realizada.
+
+## Referências e comparação
+
+- Hoje aprovada: `/Users/vitormilanez/.codex/generated_images/01a12ce7-3b52-7400-9d4f-7a71bf83f09f/exec-673acdf0-7a12-4288-bc71-34fb0c958d04.png`.
+- Paciente aprovado: `/Users/vitormilanez/.codex/generated_images/01a12ce7-3b52-7400-9d4f-7a71bf83f09f/exec-8543a08a-162e-44d9-9812-2cfc6f829351.png`.
+- Fonte e captura renderizada inspecionadas juntas. Avaliação de composição,
+  hierarquia, identidade e estados; não comparação pixel a pixel. Referências
+  1536×1024, desktop CSS aferido em 1535×1024; navegador preserva zoom existente
+  (DPR 0,9), capturas raster podem conter margem. Captura final em largura CSS1422.
+- Evidências: [Hoje autenticado](output/hoje-redesign/hoje-auth-desktop.jpg),
+  [paciente desktop](output/hoje-redesign/paciente-auth-desktop.jpg),
+  [paciente 320px](output/hoje-redesign/paciente-320.jpg),
+  [dia vazio completo](output/hoje-redesign/hoje-vazio-final.jpg),
+  [carrossel 320px](output/hoje-redesign/hoje-vazio-320.jpg).
+
+## Resultado da rodada agrupada
+
+- Hierarquia: consultas do dia e acesso à ficha substituem o briefing grande na
+  Hoje; três indicadores compactos e pendências secundárias. Navegação principal
+  apenas inferior; Mais preserva os destinos adicionais.
+- Paciente: objetivo e origem, documentos, evolução real e solicitações. Abas
+  internas mantidas para preservar funcionalidades, sem duplicar navegação global.
+- Adaptações intencionais: Figtree/ícones existentes; não reproduzir números,
+  tendências ou resultados fictícios da imagem. Um único peso real não produz
+  curva. Pacientes ativos têm barra da situação atual, sem falso histórico.
+- Dia vazio: CTA Agenda e três mensagens manuais, sem autoplay, texto editável,
+  revisão e confirmação explícita. Movimento180ms, reduzido conforme preferência.
+- Corrigidos: pesquisa oculta no celular por estilo herdado; overflow de elemento
+  acessível dentro da tabela (contêiner relativo); nomes UUID; duplicatas no total
+  de revisão; estados de falha desconhecidos versus ausência; objetivo antigo
+  aguardando resposta; proteção de saída durante preparo/envio.
+- Após recarga, paciente e dia vazio em320px: scrollWidth=innerWidth=320. Tabela
+  de documentos conserva rolagem interna. Desktop:1535=1535 sem overflow global.
+- Login real local médico, Hoje→paciente→Conferir fonte abriu Documentos com117
+  resultados existentes. Agenda e Mensagens abriram; carrossel mudou de1/3para2/3;
+  Mais abre/fecha por navegação, clique externo e Escape. Console observado sem
+  erros. Nenhuma mensagem, consulta ou aprovação clínica criada neste teste.
+- Revisão independente Astra: quatro achados delimitados corrigidos. Nenhuma
+  supressão nova de regra. Separadores de1px mantidos como divisão de áreas,
+  não bordas decorativas espessas em cards.
+
+## Validação técnica e gate restante
+
+Suite limpa567/567, tipos/build finais passaram e lint zero erros/um aviso anterior;
+testes SQL de outreach locais. Duplicados anteriores ` 2.sql`
+quebram o bootstrap do checkout; cópia limpa evita duplicação sem apagar arquivos.
+Ver [registro da entrega](docs/ENTREGA_HOJE_2026-10-14.md) para escopo e limitações.
+Falta aplicar contrato no ambiente confirmado e verificar entrega/recebimento
+sintéticos antes da publicação. Aceite do usuário e Gate P continuam separados.
+
+---
+
+# Histórico — widgets médicos e fluidez (11/10/2026)
 
 Final result: **passed** para implementação e verificação técnica delimitadas,
 incluindo o domínio publicado. Aceite do usuário e aceite clínico são separados.
@@ -88,3 +188,17 @@ Estado na rodada inicial: somente local na branch `codex/checkin-alimentacao-int
 sobre HEAD `9f9866b`. Sem PR/deploy novo. Publicação, aceite visual do usuário,
 fluxos com outros papéis e aceite clínico exigem evidência separada. Não houve
 migration, Edge Function, ampliação de permissão ou mudança em IA clínica.
+# Teleconsulta / Meet — 14/10/2026
+
+- Disposition independente: `ship`, somente desktop local preparado.
+- Hierarquia branca/azul, navegação inferior única, ações junto ao agendamento,
+  formulário com foco e captura desativada sem configuração; fallback preservado.
+- Hook sem achados determinísticos nos alvos editados; nenhuma supressão nova.
+- Astra: lote parcial e callback antigo corrigidos; fixes confirmados.
+- 21 testes focados, lint, build Webpack e TypeScript passaram. Nenhuma sala,
+  consulta ou mensagem criada no navegador; sem OAuth/migration/publicação.
+- Mobile e estados conectado/importado não aceitos visualmente nesta rodada.
+  Controle de viewport não alterou a aba isolada; captura foi corretamente
+  identificada como desktop, sem alegação de teste móvel.
+- Evidência: `output/teleconsulta-meet-20261014/teleconsulta-desktop.png`.
+- [Ativação e limites](docs/TELECONSULTA_GOOGLE_MEET.md).

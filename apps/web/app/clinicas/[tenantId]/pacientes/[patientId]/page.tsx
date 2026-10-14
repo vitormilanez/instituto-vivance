@@ -16,7 +16,7 @@ import { StaffLongitudinalWorkspace } from "@/components/longitudinal-workspace"
 import { StaffCheckInsPanel } from "@/components/staff-check-ins";
 import { staffCheckIns } from "@/modules/daily-check-ins/service";
 import { CheckInError } from "@/modules/check-ins/service";
-import { staffLongitudinal } from "@/modules/longitudinal/service";
+import { staffLongitudinal, staffRecentWeight } from "@/modules/longitudinal/service";
 import { DocumentError, staffDocuments } from "@/modules/documents/service";
 import { StaffPatientDocumentsPanel } from "@/components/documents-workspace";
 import { syntheticPilotDocumentIds } from "@/modules/exams/pilot";
@@ -35,6 +35,8 @@ import { DoctorCurrentGoal } from "@/components/doctor-current-goal";
 import { ExamLongitudinalSummary } from "@/components/exam-longitudinal-summary";
 import { ExamUploadQuota } from "@/components/exam-upload-quota";
 import { ExamClinicalLibrary } from "@/components/exam-clinical-library";
+import { DoctorPatientHeader, DoctorPatientOverview } from "@/components/doctor-patient-overview";
+import { ModuleTabs } from "@/components/module-ui";
 export const dynamic = "force-dynamic";
 
 export default async function Patient({
@@ -49,6 +51,7 @@ export default async function Patient({
     fim?: string;
     cursor?: string;
     acolhimento?: string;
+    contexto?: string;
   }>;
 }) {
   const { tenantId, patientId } = await params;
@@ -85,6 +88,12 @@ export default async function Patient({
       : false;
   const headerFacts = patientHeaderFacts(care, tenantId);
   const doctorView = context.clinic.role === "doctor";
+  const [overviewDocuments, recentWeight] = doctorView && care && active === "Visão geral"
+    ? await Promise.all([
+        staffDocuments(tenantId, undefined, patientId).catch(() => null),
+        staffRecentWeight(tenantId, patientId).catch(() => null),
+      ])
+    : [null, null];
   const careOverview = care ? (
     <section className="panel patient-record-care">
       <div className="section-heading patient-record-section-heading">
@@ -198,7 +207,10 @@ export default async function Patient({
         <Link className="back-link" href={`/clinicas/${tenantId}/pacientes`}>
           Voltar aos pacientes
         </Link>
-        <PatientRecordHeader
+        {doctorView ? <>
+          <DoctorPatientHeader name={p.display_name} birthDate={p.birth_date ?? onboarding?.profile.birthDate ?? null} reportedBirthDate={!p.birth_date && Boolean(onboarding?.profile.birthDate)} tenantId={tenantId} patientId={patientId} facts={headerFacts} />
+          <ModuleTabs tabs={tabs} active={active} base={recordBase} />
+        </> : <PatientRecordHeader
           patient={p}
           reportedBirthDate={onboarding?.profile.birthDate}
           clinicName={context.clinic.name}
@@ -210,12 +222,13 @@ export default async function Patient({
           activeTab={active}
           recordBase={recordBase}
           patientId={patientId}
-        />
+        />}
         {active === "Visão geral" ? (
-          <div className={doctorView ? "dv-record-overview" : undefined}>
-            <div className={doctorView ? "dv-record-main" : undefined}>
-            {doctorView && careOverview}
-            {doctorView && <ExamLongitudinalSummary tenantId={tenantId} patientId={patientId} />}
+          <div>
+            {doctorView && care && <DoctorPatientOverview care={care} documents={overviewDocuments} weight={recentWeight} recordBase={recordBase} tenantId={tenantId} awaitingPatient={intake?.awaitingPatient ?? false} summary={<ExamLongitudinalSummary tenantId={tenantId} patientId={patientId} />} />}
+            <div>
+            {doctorView && careOverview && <details className="panel dv-record-disclosure" id="patient-context-details" open={query.contexto === "ver"}><summary>Contexto do cuidado e solicitações</summary>{careOverview}</details>}
+            {doctorView && !care && <ExamLongitudinalSummary tenantId={tenantId} patientId={patientId} />}
             {intake &&
               (doctorView ? (
                 <details
@@ -294,7 +307,14 @@ export default async function Patient({
                 />
               ))}
             {!doctorView && careOverview}
-            <section className="panel">
+            {doctorView ? <details className="panel dv-record-disclosure"><summary>Dados do paciente</summary>
+              <dl className="patient-facts">
+                <div><dt>Nome completo</dt><dd>{p.display_name}</dd></div>
+                <div><dt>Data de nascimento no cadastro da clínica</dt><dd>{p.birth_date ? p.birth_date.split("-").reverse().join("/") : "Não informada"}</dd></div>
+                <div><dt>Cadastrado em</dt><dd>{new Date(p.created_at).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}</dd></div>
+                <div><dt>Última atualização</dt><dd>{new Date(p.updated_at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</dd></div>
+              </dl>
+            </details> : <section className="panel">
               <h2>Dados do paciente</h2>
               <dl className="patient-facts">
                 <div>
@@ -326,9 +346,9 @@ export default async function Patient({
                   </dd>
                 </div>
               </dl>
-            </section>
+            </section>}
             </div>
-            {doctorView && recordSecondary}
+            {doctorView && <details className="panel dv-record-disclosure"><summary>Equipe e continuidade do cuidado</summary>{recordSecondary}</details>}
           </div>
         ) : !clinicalArea ? (
           <section className="panel">

@@ -1,0 +1,54 @@
+/* Directory follows the approved Hoje: a clear heading, tools, then people. */
+.dv-modern .dv-directory { max-width: none; }
+.dv-modern .dv-patients-toolbar { align-items: center; margin: 0 0 28px; padding: 0 0 24px; border-bottom: 1px solid var(--dv-line); gap: 20px; }
+.dv-modern .dv-directory-title h1 { margin: 0; color: var(--dv-ink); font-size: 32px; line-height: 1.2; letter-spacing: -.03em; }
+.dv-modern .dv-directory-title p { margin-top: 8px; font-size: 15px; }
+.dv-modern .dv-patients-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; padding: 10px 16px; }
+.dv-modern .dv-directory-back { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 4px 0; border: 0; background: transparent; color: var(--blue); }
+.dv-modern .dv-patients-workspace .dv-directory-panel { border: 0; border-radius: 0; padding: 0; overflow: visible; background: #fff; box-shadow: none; }
+.dv-modern .dv-directory-panel > :not(.dv-directory-columns):not(.dv-patient-list):not(.dv-directory-table-wrap) { margin-inline: 0 !important; }
+.dv-modern .dv-directory-panel .dv-section-heading { margin: 0 0 20px; align-items: center; flex-direction: row; }
+.dv-modern .dv-section-heading h2 { font-size: 20px; }
+.dv-modern .dv-section-heading p { font-size: 14px; }
+.dv-modern .dv-directory-panel .dv-count { color: var(--dv-muted) !important; font-size: 14px !important; font-weight: 500; }
+.dv-modern .dv-search-form { width: min(560px, 100%); max-width: none; gap: 12px; align-items: end; margin-bottom: 20px; }
+.dv-modern .dv-search-form > div { flex: 1; min-width: 0; }
+.dv-modern .dv-search-form label { display: block; font-size: 13px; margin-bottom: 6px; }
+.dv-modern .dv-search-form input { margin: 0; min-height: 46px; border-color: var(--dv-line); background: #f8fafc; border-radius: 10px; }
+.dv-modern .dv-search-form button { min-height: 46px; padding-inline: 24px; }
+.dv-modern .dv-directory-selection { display: flex; flex-wrap: wrap; gap: 6px; border: 0; margin-bottom: 12px; background: transparent; }
+.dv-modern .dv-directory-selection .medical-selector-option { display: flex; align-items: center; min-height: 44px; padding: 10px 16px; border: 0; box-shadow: none; border-radius: 8px; background: #fff; color: var(--dv-muted); font-size: 14px; }
+.dv-modern .dv-directory-selection .medical-selector-option:hover { background: #f4f7fb; }
+.dv-modern .dv-directory-selection .medical-selector-option[aria-current="page"] { background: var(--blue-soft); color: var(--blue); }
+.dv-modern .dv-results-count { margin-block: 12px 16px; font-size: 13px; }
+.dv-modern .dv-directory-columns { background: #f5f8fc; border-top: 0; font-size: 13px; font-weight: 500; padding: 12px 16px; }
+.dv-modern .dv-patient-list li > a { padding: 20px 16px; min-height: 88px; }
+.dv-modern .dv-patient-list li > a:hover { background: #f4f8fd; }
+.dv-modern .dv-patient-list .patient-avatar { width: 44px; height: 44px; flex-shrink: 0; background: #eaf1fa; color: #244973; }
+.dv-modern .dv-patient-list strong { font-size: 16px; font-weight: 600; }
+.dv-modern .dv-patient-list .dv-patient-identity small { font-size: 13px; line-height: 1.5; }
+.dv-modern .dv-patient-list .row-action { color: var(--blue); font-size: 14px; }
+.dv-modern .dv-directory-panel .pagination { margin-top: 16px; border-top: 0; }
+.dv-modern .dv-patients-workspace :is(.patient-invitation-form,.dv-invitation-tracker,.dv-patients-registration) { border-radius: 12px; }
+.dv-modern .dv-invitation-columns { background: #f5f8fc; }
+.dv-modern .dv-invitation-filters button { background: #fff; }
+.dv-modern .dv-invitation-filters button[aria-pressed="true"] { background: var(--blue-soft); color: var(--blue); }
+.dv-modern .dv-invitation-filters button:hover { box-shadow: none; background: #f4f7fb; }
+.dv-modern .dv-patients-workspace input { caret-color: var(--blue); }
+@media (max-width: 700px) {
+  .dv-modern .dv-patients-toolbar { align-items: flex-start; margin-bottom: 24px; padding-bottom: 20px; }
+  .dv-modern .dv-directory-title h1 { font-size: 28px; }
+  .dv-modern .dv-patients-actions { gap: 8px; }
+  .dv-modern .dv-patients-actions button { flex: 1 1 120px; padding-inline: 10px; font-size: 13px; }
+  .dv-modern .dv-directory-panel .dv-section-heading { align-items: flex-start; gap: 12px; }
+  .dv-modern .dv-directory-panel .dv-count { white-space: nowrap; }
+  .dv-modern .dv-section-heading h2 { font-size: 18px; }
+  .dv-modern .dv-section-heading p { display: none; }
+  .dv-modern .dv-search-form { flex-direction: row; gap: 8px; }
+  .dv-modern .dv-search-form button { width: auto; padding-inline: 16px; }
+  .dv-modern .dv-directory-selection { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 4px; }
+  .dv-modern .dv-directory-selection .medical-selector-option { padding: 10px; font-size: 13px; }
+  .dv-modern .dv-patient-list li > a { padding: 18px 0; gap: 10px; }
+  .dv-modern .dv-patient-list .row-action { font-size: 13px; }
+  .dv-modern .dv-patient-list .dv-status-cell { display: block; }
+}

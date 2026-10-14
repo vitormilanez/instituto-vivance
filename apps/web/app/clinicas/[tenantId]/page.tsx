@@ -7,8 +7,7 @@ import { ClinicShell } from "@/components/clinic-shell";
 import { TodayWorkspace } from "@/components/today-workspace";
 import { todayWorkspace } from "@/modules/workspace/today";
 import { staffActions, staffShortcuts } from "@/modules/workspace/navigation";
-import { DoctorQuickActions } from "@/components/doctor-quick-actions";
-import { dayCounts, dayCountsLine } from "@/modules/workspace/home-day";
+import { doctorDashboardMetrics } from "@/modules/workspace/doctor-dashboard-service";
 export const dynamic = "force-dynamic";
 
 // Ícones de traço 1.6 em 20x20, a mesma família da barra do celular.
@@ -77,10 +76,12 @@ export default async function Dashboard({
           count: 0,
           patients: [] as Awaited<ReturnType<typeof listPatients>>["patients"],
         };
-  const today =
+  const [today, metrics] = await Promise.all([
     context.clinic.role !== "admin"
-      ? await todayWorkspace(tenantId, focus)
-      : null;
+      ? todayWorkspace(tenantId, focus)
+      : Promise.resolve(null),
+    context.clinic.role === "doctor" ? doctorDashboardMetrics(tenantId).catch(() => null) : Promise.resolve(null),
+  ]);
 
   // Na Home do médico, as oito portas de entrada continuam disponíveis depois
   // da visão do dia. Enfermagem mantém o conjunto reduzido que já tinha.
@@ -102,9 +103,7 @@ export default async function Dashboard({
     </ul>
   );
   const shortcuts =
-    context.clinic.role === "doctor" && today ? (
-      <DoctorQuickActions base={base} today={today.today} agendaSummary={`${dayCountsLine(dayCounts(today.appointments.map(item => ({ id: item.id, patientId: item.patient_id, patientName: item.patients?.display_name ?? "Paciente", startsAt: item.starts_at, endsAt: item.ends_at, status: item.status }))))}${today.truncated ? " · lista limitada" : ""}`} />
-    ) : (
+    context.clinic.role === "doctor" ? null : (
       <section className="shortcuts-section" aria-labelledby="quick-actions">
         <h2 id="quick-actions">Ações rápidas</h2>
         {shortcutList}
@@ -116,6 +115,7 @@ export default async function Dashboard({
         <TodayWorkspace
           base={base}
           data={today}
+          metrics={metrics}
           doctorView={context.clinic.role === "doctor"}
           shortcuts={shortcuts}
         />

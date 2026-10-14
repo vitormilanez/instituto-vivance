@@ -7,6 +7,7 @@ com data e material de protótipos ficam identificados como histórico.
 
 | Documento | Pergunta que responde |
 | --- | --- |
+| [Workspace e transcrição gratuita](ENTREGA_WORKSPACE_E_TRANSCRICAO_2026-10-14.md) | O que foi validado/publicado e quais são os limites da transcrição? |
 | [Direção e slices](DIRECAO_E_SLICES.md) | O que estamos construindo e em que ordem? |
 | [Estado atual](STATUS_ATUAL.md) | O que existe, qual evidência o sustenta e o que falta? |
 | [Checkpoints das entregas](CHECKPOINTS_ENTREGAS.md) | Qual item executar agora e o que falta para marcar cada slice? |

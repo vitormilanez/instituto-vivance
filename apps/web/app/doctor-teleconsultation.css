@@ -1,0 +1,116 @@
+/* Teleconsulta extends the approved medical workspace: consultation first,
+   account setup once, original transcript beside the clinician's own record. */
+.dv-modern .tele-modern { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+.dv-modern .tele-modern > .page-heading { margin: 0; padding: 0 0 24px; border-bottom: 1px solid var(--dv-line); align-items: center; }
+.dv-modern .tele-modern > .page-heading h1 { font-size: 32px; line-height: 1.2; letter-spacing: -.03em; }
+.dv-modern .tele-modern .medical-page-description { font-size: 15px; line-height: 1.5; margin-top: 8px; }
+.dv-modern .tele-modern :is(button,.button) { min-height: 44px; border-radius: 10px; font-size: 14px; }
+.meet-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.meet-actions :is(button,.button), .meet-connection-action button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.meet-connection { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px 24px; align-items: center; background: #f3f7fc; padding: 20px 24px; border-radius: 12px; }
+.meet-connection-intro { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.meet-connection-icon { display: grid; place-items: center; color: #244973; flex: 0 0 40px; height: 40px; }
+.meet-connection h2 { margin: 0 0 4px; font-size: 17px; letter-spacing: -.02em; }
+.meet-connection p { margin: 0; color: #405675; font-size: 14px; overflow-wrap: anywhere; }
+.meet-connection .meet-connection-note { grid-column: 1 / -1; font-size: 13px; display: flex; align-items: start; gap: 8px; }
+.meet-connection-note svg { flex-shrink: 0; }
+.meet-inline-confirm,.meet-connection > .feedback { grid-column: 1 / -1; }
+.meet-inline-confirm { padding-top: 12px; border-top: 1px solid #dbe4f0; }
+.meet-inline-confirm p { margin-bottom: 12px; }
+.dv-modern .tele-modern > .panel, .dv-modern .tele-recent { border: 0; border-radius: 0; box-shadow: none; padding: 0; margin: 0; background: #fff; }
+.dv-modern .tele-modern > .panel > h2, .tele-section-heading h2 { margin: 0 0 8px; font-size: 22px; letter-spacing: -.025em; }
+.dv-modern .tele-modern .tele-hub-hint, .tele-section-heading p { margin: 0 0 16px; color: var(--dv-muted); font-size: 14px; max-width: 75ch; }
+.dv-modern .tele-modern .tele-hub-list { border: 0; margin: 0; }
+.dv-modern .tele-modern .tele-hub-list > li { padding: 20px 0; border: 0; border-bottom: 1px solid var(--dv-line); border-radius: 0; background: #fff; }
+.dv-modern .tele-modern .tele-hub-today .tele-hub-list > li { padding: 20px 24px; background: #eef4fb; border: 0; border-radius: 12px; margin-top: 12px; }
+.dv-modern .tele-modern .tele-hub-item { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.dv-modern .tele-modern .tele-hub-item > div { min-width: 0; }
+.dv-modern .tele-modern .tele-hub-item strong { display: block; font-size: 18px; letter-spacing: -.015em; overflow-wrap: anywhere; }
+.dv-modern .tele-modern .tele-hub-item small { display: block; margin-top: 6px; font-size: 13px; color: var(--dv-muted); }
+.dv-modern .tele-modern .tele-hub-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.dv-modern .tele-modern .tele-hub-actions .quiet, .dv-modern .tele-modern .tele-patient-link { font-size: 13px; background: transparent; }
+.dv-modern .tele-modern .tele-patient-link { display: inline-flex; align-items: center; min-height: 44px; padding-right: 12px; color: var(--blue); }
+.dv-modern .tele-modern .appointment-status { font-size: 12px; flex-shrink: 0; border-radius: 6px; padding: 5px 8px; }
+.dv-modern .tele-modern .tele-hub-confirm { margin-top: 16px; padding: 16px; background: #fff; border-radius: 10px; }
+.tele-empty-today { display: flex; align-items: center; gap: 20px; padding-block: 12px 28px; border-bottom: 1px solid var(--dv-line); }
+.tele-empty-today > svg { flex: 0 0 24px; color: var(--blue); }
+.tele-empty-today > div { flex: 1; }
+.tele-empty-today h2 { margin: 0 0 6px; font-size: 20px; }
+.tele-empty-today p, .tele-empty-inline { margin: 0; font-size: 14px; color: var(--dv-muted); }
+.dv-modern .tele-modern .tele-hub-pending { padding-top: 4px; }
+.dv-modern .tele-modern .tele-hub-form { padding: 24px; border: 1px solid var(--dv-line); border-radius: 12px; }
+.tele-hub-form h2 { scroll-margin-top: 100px; }
+.dv-modern .tele-modern .tele-hub-form[hidden] { display: none; }
+.dv-modern .tele-modern .tele-hub-form > .medical-selector { display: flex; max-width: 360px; gap: 4px; background: #f3f6fa; border: 0; border-radius: 10px; padding: 4px; margin-block: 16px 24px; }
+.dv-modern .tele-modern .tele-hub-form .medical-selector-option { flex: 1; min-height: 44px; padding: 10px 14px; border: 0; border-radius: 8px; background: transparent; color: var(--dv-muted); justify-content: center; }
+.dv-modern .tele-modern .tele-hub-form .medical-selector-option[aria-pressed="true"] { background: #fff; color: var(--blue); }
+.dv-modern .tele-modern .tele-hub-step { grid-template-columns: minmax(0,1fr); padding-block: 20px; border-bottom: 1px solid var(--dv-line); }
+.dv-modern .tele-modern .tele-hub-step-number { display: none; }
+.dv-modern .tele-modern .tele-hub-step h3 { margin: 0 0 12px; font-size: 17px; }
+.dv-modern .tele-modern .tele-hub-row { gap: 16px; }
+.dv-modern .tele-modern .tele-hub-row input, .dv-modern .tele-modern .tele-hub-row select { min-height: 44px; font-size: 16px; }
+.dv-modern .tele-modern .tele-hub-prepare { margin-top: 16px; padding: 20px; background: #f5f8fc; border-radius: 10px; }
+.tele-section-heading { display: flex; justify-content: space-between; gap: 20px; align-items: start; }
+.tele-section-heading > svg { flex-shrink: 0; color: var(--blue); }
+.tele-empty-inline { padding: 20px 0; border-block: 1px solid var(--dv-line); }
+.meet-transcripts { margin-top: 20px; padding: 24px; border: 1px solid #dbe4f0; border-radius: 12px; background: #fff; color: #0b1c36; }
+.meet-transcript-heading { display: flex; align-items: center; gap: 10px; }
+.meet-transcript-heading h3 { margin: 0; font-size: 18px; }
+.meet-transcripts .meet-helper, .meet-empty-copy { font-size: 13px; color: #405675; line-height: 1.6; max-width: 75ch; }
+.meet-transcripts .meet-helper { margin: 8px 0 16px; }
+.meet-transcripts h4 { font-size: 15px; margin: 0 0 10px; }
+.meet-transcripts p { line-height: 1.6; }
+.meet-transcript-empty { padding-top: 16px; }
+.meet-transcript-empty p, .meet-consent p { font-size: 14px; color: #405675; max-width: 75ch; }
+.meet-consent { margin-top: 20px; padding-top: 20px; border-top: 1px solid #dbe4f0; }
+.meet-consent h4 { display: flex; gap: 8px; align-items: center; }
+.meet-consent label, .meet-transcript-review label { display: block; font-size: 14px; margin: 12px 0 8px; }
+.meet-consent label.meet-consent-check { display: flex; align-items: start; gap: 10px; min-height: 44px; line-height: 1.5; }
+.meet-consent-check input { flex: 0 0 20px; width: 20px; height: 20px; margin-top: 2px; }
+.meet-consent > input { max-width: 640px; }
+.meet-transcripts :is(button,.button) { min-height: 44px; border-radius: 10px; }
+.meet-import-controls { padding-top: 8px; }
+.meet-import-controls > p:first-child { display: flex; gap: 8px; align-items: start; font-size: 13px; }
+.meet-import-controls > p > svg { flex-shrink: 0; }
+.meet-import-controls > button { display: inline-flex; align-items: center; gap: 8px; }
+.meet-transcript-document { padding-block: 24px; border-top: 1px solid #dbe4f0; }
+.meet-transcript-document-heading { display: flex; align-items: baseline; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.meet-review-state { font-size: 12px; color: #405675; }
+.meet-transcript-document summary { min-height: 44px; padding-block: 12px; cursor: pointer; color: #244973; font-size: 14px; }
+.meet-transcript-text { max-height: 420px; overflow-y: auto; background: #f8fafc; padding: 20px; scrollbar-width: thin; scrollbar-color: #bac9dc #f8fafc; }
+.meet-transcript-text p { max-width: 75ch; margin: 0 0 20px; font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.meet-transcript-text p > span { display: block; font-size: 12px; color: #405675; margin-bottom: 5px; font-variant-numeric: tabular-nums; }
+.meet-transcript-review textarea { min-height: 80px; font-size: 16px; }
+.meet-encounter-transcript { margin-bottom: 20px; }
+.meet-encounter-transcript > summary { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 12px 16px; background: #eef4fb; color: #244973; border-radius: 10px; cursor: pointer; }
+.meet-encounter-transcript > .meet-transcripts { margin-top: 12px; }
+.browser-transcript > label { display: block; font-size: 14px; margin-block: 16px 8px; }
+.browser-transcript > select { max-width: 480px; min-height: 44px; font-size: 16px; }
+.browser-capture-actions { margin-block: 20px; }
+.browser-capture-status { font-size: 13px; color: #405675; }
+.browser-transcript-draft { margin-top: 24px; }
+.browser-transcript .meet-transcript-text { margin-block: 12px; }
+.browser-transcript .meet-consent { margin-top: 16px; }
+@media (prefers-reduced-motion: no-preference) {
+  .meet-transcripts { animation: meet-reveal 180ms ease-out; }
+  @keyframes meet-reveal { from { opacity: .6; } to { opacity: 1; } }
+}
+@media (max-width: 760px) {
+  .dv-modern .tele-modern { gap: 24px; }
+  .dv-modern .tele-modern > .page-heading h1 { font-size: 28px; }
+  .meet-connection { grid-template-columns: minmax(0,1fr); padding: 20px 16px; }
+  .meet-connection-action button { width: 100%; }
+  .meet-connection-intro { align-items: start; gap: 8px; }
+  .meet-connection-icon { flex-basis: 24px; }
+  .tele-empty-today { flex-wrap: wrap; gap: 14px; }
+  .tele-empty-today > div { flex-basis: calc(100% - 44px); }
+  .tele-empty-today > .button { margin-left: 38px; }
+  .dv-modern .tele-modern .tele-hub-item { align-items: start; flex-wrap: wrap; gap: 10px; }
+  .dv-modern .tele-modern .tele-hub-item strong { font-size: 17px; }
+  .dv-modern .tele-modern .tele-hub-today .tele-hub-list > li { padding: 20px 16px; }
+  .dv-modern .tele-modern .tele-hub-form { padding: 20px 16px; }
+  .dv-modern .tele-modern .tele-hub-prepare { padding: 16px; }
+  .meet-transcripts { padding: 20px 14px; }
+  .meet-transcript-text { padding: 16px 12px; }
+  .meet-transcript-document-heading { gap: 4px; margin-bottom: 12px; }
+}

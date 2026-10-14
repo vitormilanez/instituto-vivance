@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
+import { ArrowLeft, UserPlus } from "lucide-react";
+import "@/app/doctor-directory-modern.css";
 
 const views = {
   patients: "",
@@ -65,14 +67,16 @@ export function PatientDirectoryWorkspace({ enabled, children, invitation, invit
   if (!enabled) return children;
 
   return <div className="dv-patients-workspace" ref={root}>
-    <div className="dv-patients-toolbar">
-      {view === "patients" ? <p>Busque um paciente e abra sua ficha.</p> :
-        <button type="button" className="secondary" onClick={() => open("patients")}>Voltar para pacientes</button>}
+    <header className="dv-patients-toolbar">
+      <div className="dv-directory-title"><h1>{view === "patients" ? "Pacientes" : view === "invitations" ? "Convites" : view === "register" ? "Novo cadastro" : "Convidar paciente"}</h1>
+        {view === "patients" ? <p>Encontre a pessoa, acompanhe o cadastro e abra sua ficha.</p> :
+          <button type="button" className="secondary dv-directory-back" onClick={() => open("patients")}><ArrowLeft size={17} aria-hidden="true" />Voltar para pacientes</button>}
+      </div>
       <div className="dv-patients-actions">
         {view !== "invitations" && <button type="button" className="secondary" onClick={() => open("invitations")}>Ver convites</button>}
-        {view !== "invite" && <button type="button" onClick={() => open("invite")}>Convidar paciente</button>}
+        {view !== "invite" && <button type="button" onClick={() => open("invite")}><UserPlus size={18} aria-hidden="true" />Convidar paciente</button>}
       </div>
-    </div>
+    </header>
     <div data-directory-view="patients" tabIndex={-1} hidden={view !== "patients"} aria-label="Lista de pacientes">{children}</div>
     <div id="convidar-paciente" data-directory-view="invite" tabIndex={-1} hidden={view !== "invite"} aria-label="Convidar paciente">
       <div className="dv-invite-workspace">{invitation}</div>

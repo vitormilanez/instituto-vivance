@@ -1,12 +1,15 @@
 "use client";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ClipboardPaste, Copy, ExternalLink, MessageCircle, Search, Video } from "lucide-react";
+import { CalendarDays, ClipboardPaste, Copy, ExternalLink, FileText, MessageCircle, Plus, Search, Video, X } from "lucide-react";
 import type { Appointment, AgendaOptions } from "@/modules/agenda/service";
 import { localToInstant } from "@/modules/agenda/validation";
-import { MEET_ACCOUNT, meetNewRoomUrl } from "@/modules/teleconsultations/meet-account";
+import { meetNewRoomUrl } from "@/modules/teleconsultations/meet-account";
+import { GoogleMeetConnection, type MeetConnectionState } from "./google-meet-connection";
+import { BrowserTranscriptPanel } from "./browser-transcript-panel";
+import "@/app/doctor-teleconsultation.css";
 import { normalizeMeetUrl } from "@/modules/teleconsultations/validation";
 import { whatsappShareUrl } from "@/modules/teleconsultations/share";
 import { MedicalSelector } from "@/components/medical-selector";
@@ -42,6 +45,8 @@ export function TeleconsultationHub({
   options,
   appointments,
   initialPatientId = null,
+  recentAppointments = [],
+  truncated = false,
 }: {
   tenantId: string;
   today: string;
@@ -50,9 +55,20 @@ export function TeleconsultationHub({
   appointments: Appointment[];
   /** Vindo da ficha ou da Agenda (?paciente=): já chega escolhido. */
   initialPatientId?: string | null;
+  recentAppointments?: Appointment[];
+  truncated?: boolean;
 }) {
   const router = useRouter();
   const isDoctor = role === "doctor";
+  const [connection, setConnection] = useState<MeetConnectionState | null>(null);
+  const [showForm, setShowForm] = useState(Boolean(initialPatientId));
+  const formHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (!showForm) return;
+    formHeading.current?.focus({ preventScroll: true });
+    formHeading.current?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+  }, [showForm]);
+  const [transcriptAppointment, setTranscriptAppointment] = useState<string | null>(null);
   const [mode, setMode] = useState<"now" | "scheduled">(
     isDoctor ? "now" : "scheduled",
   );
@@ -100,6 +116,20 @@ export function TeleconsultationHub({
   const [copied, setCopied] = useState("");
   const [preparing, setPreparing] = useState<string | null>(null);
   const noDoctor = !options.doctors.length;
+
+  async function createRoom(appointment: Appointment) {
+    if (pending) return;
+    setPending(true); setListError("");
+    try {
+      const response = await fetch(`/api/v1/clinics/${tenantId}/google-meet/appointments/${appointment.id}/room`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: "{}", signal: AbortSignal.timeout(30000),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Não foi possível criar a sala. O agendamento está preservado.");
+      setPreparing(null); router.refresh();
+    } catch (e) { setListError(e instanceof Error ? e.message : "Não foi possível criar a sala."); }
+    finally { setPending(false); }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -298,6 +328,7 @@ export function TeleconsultationHub({
                   </span>
                 </div>
                 <div className="tele-hub-actions">
+                  <Link className="tele-patient-link" href={`/clinicas/${tenantId}/pacientes/${a.patient_id}`}>Abrir paciente</Link>
                   {a.teleconsultation?.join_url && (
                     <>
                       <a
@@ -367,7 +398,9 @@ export function TeleconsultationHub({
                       Ver na agenda
                     </Link>
                   )}
+                  {isDoctor && <button data-transcript-toggle className="secondary quiet" type="button" aria-expanded={transcriptAppointment === a.id} onClick={() => setTranscriptAppointment(transcriptAppointment === a.id ? null : a.id)}><FileText size={16} aria-hidden="true" />Transcrição gratuita</button>}
                 </div>
+                {isDoctor && transcriptAppointment === a.id && <BrowserTranscriptPanel tenantId={tenantId} appointmentId={a.id} />}
                 {opening === a.id && (
                   <div className="tele-hub-confirm">
                     <label className="care-accept">
@@ -401,8 +434,12 @@ export function TeleconsultationHub({
   );
 
   return (
-    <div className="teleconsultation-hub">
-      <MedicalPageHeader className="page-heading" title="Teleconsulta" description="Consultas por vídeo pelo Google Meet. A chamada abre em outra aba; o registro clínico continua aqui." />
+    <div className={`teleconsultation-hub${isDoctor ? " tele-modern" : ""}`}>
+      <MedicalPageHeader className="page-heading" title="Teleconsulta" description="Sua chamada no Meet. O cuidado e o registro, aqui." actions={<div className="meet-actions"><Link className="button secondary" href={`/clinicas/${tenantId}/agenda`}><CalendarDays size={17} aria-hidden="true" />Ver agenda</Link><button type="button" aria-expanded={showForm} aria-controls="tele-create-panel" onClick={() => setShowForm(!showForm)}>{showForm ? <X size={17} aria-hidden="true" /> : <Plus size={17} aria-hidden="true" />}{showForm ? "Recolher formulário" : "Nova teleconsulta"}</button></div>} />
+      {isDoctor && <GoogleMeetConnection key={tenantId} tenantId={tenantId} onChange={setConnection} />}
+      {truncated && <p className="notice" role="status">Há mais consultas neste período. Use a Agenda para consultar a lista completa.</p>}
+
+      {!todays.length && <section className="tele-empty-today" aria-labelledby="tele-today-empty"><Video size={24} aria-hidden="true" /><div><h2 id="tele-today-empty">Nenhuma teleconsulta pronta para hoje</h2><p>Prepare a sala de um horário já agendado ou marque uma nova consulta.</p></div><Link className="button secondary" href={`/clinicas/${tenantId}/agenda`}>Agendar consulta</Link></section>}
 
       {todays.length > 0 && (
         <section className="panel tele-hub-today" aria-labelledby="tele-today">
@@ -496,6 +533,7 @@ export function TeleconsultationHub({
                   </form>
                 ) : (
                   <div className="tele-hub-actions">
+                    {isDoctor && connection?.connected && <button type="button" disabled={pending} onClick={() => void createRoom(appointment)}><Video size={16} aria-hidden="true" />{pending ? "Preparando…" : "Criar sala automaticamente"}</button>}
                     <button
                       type="button"
                       className="secondary"
@@ -505,7 +543,7 @@ export function TeleconsultationHub({
                         setListError("");
                       }}
                     >
-                      Preparar teleconsulta
+                      {isDoctor && connection?.connected ? "Usar link existente" : "Preparar teleconsulta"}
                     </button>
                     <Link
                       href={`/clinicas/${tenantId}/agenda?data=${new Date(
@@ -516,16 +554,18 @@ export function TeleconsultationHub({
                     >
                       Ver na agenda
                     </Link>
+                    {isDoctor && <button data-transcript-toggle type="button" className="secondary" aria-expanded={transcriptAppointment === appointment.id} onClick={() => setTranscriptAppointment(transcriptAppointment === appointment.id ? null : appointment.id)}>Transcrição gratuita</button>}
                   </div>
                 )}
+                {isDoctor && transcriptAppointment === appointment.id && <BrowserTranscriptPanel tenantId={tenantId} appointmentId={appointment.id} />}
               </li>
             ))}
           </ul>
         </section>
       )}
 
-      <section className="panel tele-hub-form" aria-labelledby="tele-new">
-        <h2 id="tele-new">Nova teleconsulta</h2>
+      <section id="tele-create-panel" hidden={!showForm} className="panel tele-hub-form" aria-labelledby="tele-new">
+        <h2 id="tele-new" ref={formHeading} tabIndex={-1}>Nova teleconsulta</h2>
         <MedicalSelector label="Quando" options={[...(isDoctor ? [{ value: "now", label: "Iniciar agora" }] : []), { value: "scheduled", label: "Agendar" }]} value={mode} onChange={(value) => setMode(value as "now" | "scheduled")} />
         {!isDoctor && (
           <p className="tele-hub-hint">
@@ -742,8 +782,9 @@ export function TeleconsultationHub({
               <div>
                 <h3>Sala do Google Meet</h3>
                 <p className="tele-hub-hint">
-                  Abre uma sala nova na conta {MEET_ACCOUNT}. Copie o link da
-                  sala e cole aqui. Use uma sala para cada consulta.
+                  No fluxo manual, confira sua conta no Google, crie uma sala e
+                  cole o link. Use uma sala exclusiva por consulta. Para criar
+                  automaticamente, conecte o Google e prepare um horário da Agenda.
                 </p>
                 <a
                   className="button secondary tele-hub-meet"
@@ -846,7 +887,11 @@ export function TeleconsultationHub({
         )}
       </section>
 
-      <section className="panel" aria-labelledby="tele-next">
+      {isDoctor && <section className="tele-recent" aria-labelledby="tele-recent-title"><div className="tele-section-heading"><div><h2 id="tele-recent-title">Transcrições de consultas recentes</h2><p>Últimos 30 dias · confira os textos captados pelo navegador na consulta correspondente.</p></div><FileText size={22} aria-hidden="true" /></div>
+        {recentAppointments.length ? <ul className="list tele-hub-list">{recentAppointments.map(a => <li key={a.id}><div className="tele-hub-item"><div><strong>{a.patients?.display_name ?? "Paciente"}</strong><small>{when(a.starts_at)}</small></div><button data-transcript-toggle type="button" className="secondary" aria-expanded={transcriptAppointment === a.id} onClick={() => setTranscriptAppointment(transcriptAppointment === a.id ? null : a.id)}>Consultar transcrição</button></div>{transcriptAppointment === a.id && <BrowserTranscriptPanel tenantId={tenantId} appointmentId={a.id} />}</li>)}</ul> : <p className="tele-empty-inline">Nenhuma teleconsulta anterior neste período. Quando houver uma consulta, você poderá conferir a transcrição aqui.</p>}
+      </section>}
+
+      {later.length > 0 && <section className="panel" aria-labelledby="tele-next">
         <h2 id="tele-next">Teleconsultas prontas</h2>
         {!todays.length && listError && (
           <p className="feedback" role="alert">
@@ -870,7 +915,7 @@ export function TeleconsultationHub({
             {later.map(renderItem)}
           </ul>
         )}
-      </section>
+      </section>}
     </div>
   );
 }

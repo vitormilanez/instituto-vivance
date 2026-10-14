@@ -65,6 +65,8 @@ export async function openWork(
           .select("id,patient_id,available_at,created_at")
           .eq("tenant_id", tenant)
           .eq("status", "available")
+          // The same uploaded file is reviewed once, matching the patient record.
+          .is("duplicate_of", null)
           // Foto de refeição é parte do relato, não exame: fica fora.
           .eq("attached_to", "documents")
           // Fotos do perfil são documentos internos, mas não são exames para revisão.

@@ -156,8 +156,9 @@ test("hub: selected mode is styled, link can be pasted, today comes first", () =
     new URL("../app/clinicas/[tenantId]/teleconsulta/page.tsx", import.meta.url),
     "utf8",
   );
+  // Upcoming appointments without a room must remain visible to prepare them.
   assert.doesNotMatch(
-    page,
+    page.slice(page.indexOf("appointments: result.appointments"), page.indexOf("recentAppointments:")),
     /appointment\.teleconsultation\?\.delivery_mode === "video"/,
   );
   const workspace = readFileSync(
