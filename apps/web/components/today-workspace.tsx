@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import type { todayWorkspace } from "@/modules/workspace/today";
 import { HomeDay } from "@/components/home-day";
+import { DoctorToday } from "@/components/doctor-today";
+import type { DoctorDashboardMetrics } from "@/modules/workspace/doctor-dashboard";
 
 // Os cards de contexto vivem em context-card-list; a ficha do paciente importa
 // daqui por compatibilidade.
@@ -17,12 +19,15 @@ export function TodayWorkspace({
   data,
   shortcuts,
   doctorView = false,
+  metrics,
 }: {
   base: string;
   data: Awaited<ReturnType<typeof todayWorkspace>>;
   shortcuts?: ReactNode;
   doctorView?: boolean;
+  metrics?: DoctorDashboardMetrics | null;
 }) {
+  if (doctorView) return <DoctorToday base={base} data={data} metrics={metrics} />;
   return (
     <HomeDay
       base={base}

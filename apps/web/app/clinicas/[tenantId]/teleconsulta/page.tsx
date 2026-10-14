@@ -27,9 +27,11 @@ export default async function TeleconsultationPage({
   const context = await (async () => {
     // Hoje e os próximos 30 dias: o suficiente para a fila de chamadas.
     const until = clinicDate(new Date(now.getTime() + 31 * 86_400_000));
-    const [options, result] = await Promise.all([
+    const since = clinicDate(new Date(now.getTime() - 30 * 86_400_000));
+    const [options, result, history] = await Promise.all([
       agendaOptions(tenantId),
       listAppointments(tenantId, today, until),
+      listAppointments(tenantId, since, today),
     ]);
     return {
       options,
@@ -38,6 +40,8 @@ export default async function TeleconsultationPage({
         (appointment) =>
           ["scheduled", "in_progress"].includes(appointment.status),
       ),
+      recentAppointments: [...history.appointments, ...result.appointments.filter(appointment => appointment.status === "completed")].filter(appointment => !["cancelled", "missed"].includes(appointment.status)).reverse(),
+      truncated: result.truncated || history.truncated,
     };
   })().catch((e) => {
     if (e instanceof AccessError && e.status === 401) redirect("/login");
@@ -54,6 +58,8 @@ export default async function TeleconsultationPage({
         options={context.options}
         appointments={context.appointments}
         initialPatientId={initialPatientId}
+        recentAppointments={context.recentAppointments}
+        truncated={context.truncated}
       />
     </ClinicShell>
   );

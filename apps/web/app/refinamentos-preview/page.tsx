@@ -24,6 +24,7 @@ import type { StaffDocuments } from "@/modules/documents/service";
 import { ExamResultsPanel } from "@/components/exam-results-panel";
 import { HomeDay } from "@/components/home-day";
 import { DoctorQuickActions } from "@/components/doctor-quick-actions";
+import { DoctorToday } from "@/components/doctor-today";
 import type { ExamResult, ExamResultsView } from "@/modules/exams/results";
 
 export const dynamic = "force-dynamic";
@@ -56,6 +57,14 @@ export default async function RefinementsPreview({ searchParams }: {
     healthContext: emptyHealthContext(),
     examDocumentIds: [], shareConsent: false, submittedAt: null, updatedAt: now.toISOString(),
   };
+  if (tela === "hoje" || tela === "hoje-vazio") {
+    const clinic = { id: tenant, name: "Clínica demonstrativa", role: "doctor" as const, displayName: "Dra. Marina · FICTÍCIO" };
+    const populated = tela === "hoje";
+    return <DoctorShell clinic={clinic} active="home" notificationCount={0}>
+      <DoctorToday base={base} data={{ clinic, appointments: populated ? [appointment, { ...appointment, id: "00000000-0000-4000-8000-000000000005", starts_at: instant(75), ends_at: instant(105), patients: { display_name: "Carlos Lima · FICTÍCIO" } }] : [], truncated: false, next: populated ? appointment : null, nextToday: populated ? appointment.id : null, open: null, nextDate: populated ? today : null, context: null, contexts: new Map(), briefs: new Map(), weights: new Map(), work: [], drafts: [], links: new Map([[patient, { relationshipId: "synthetic", patientId: patient, status: "active", version: 1, name: "Ana Souza · FICTÍCIO" }]]), cutoffs: new Map(), received: new Map(), failed: [], between: [], now: now.toISOString(), today }} metrics={{ active: 2, assigned: 1, messages: [2, 0, 1, 4, 0, 3, 1].map((value, index) => ({ label: String(index + 8), value })), overdue: [{ label: "1–2 dias", value: 2 }, { label: "3–7 dias", value: 1 }, { label: "> 7 dias", value: 0 }] }} />
+      <p className="dv-muted">Prévia local · dados fictícios · não realiza envios sem autenticação.</p>
+    </DoctorShell>;
+  }
   if (tela === "widgets") {
     const previewToday = "2026-10-11";
     const clinic = { id: tenant, name: "Clínica demonstrativa", role: "doctor" as const, displayName: "Dra. Marina · FICTÍCIO" };

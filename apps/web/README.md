@@ -42,6 +42,7 @@ um build que dependa de migration ainda não aplicada no ambiente de destino.
 - [Gate P](../../docs/GATE_P.md)
 - [Sistema visual](DESIGN.md)
 
-Segredos e dados clínicos nunca devem ser gravados no repositório. Áudio,
-transcrição e IA clínica permanecem inativos; qualquer ativação futura exige
-autorização específica e revisão humana explícita.
+Segredos e dados clínicos nunca devem ser gravados no repositório. A transcrição
+gratuita pelo navegador exige início/autorização e revisão médica explícitos;
+não grava áudio. Nativa do Meet preparada e desativada.
+[Entrega e limites](../../docs/ENTREGA_WORKSPACE_E_TRANSCRICAO_2026-10-14.md).

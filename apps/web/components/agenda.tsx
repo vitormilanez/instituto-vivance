@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
-import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, MoreHorizontal, RefreshCw, Video } from "lucide-react";
 import type { Appointment, AgendaOptions } from "@/modules/agenda/service";
 import { clinicDate, localToInstant } from "@/modules/agenda/validation";
 import { focusedAppointment } from "@/modules/agenda/focus";
@@ -15,6 +15,7 @@ import { appointmentPresentation, needsAppointmentOutcome } from "@/modules/agen
 import { useAgendaClock } from "./use-agenda-clock";
 import { MedicalSelector } from "@/components/medical-selector";
 import { MedicalPageHeader } from "@/components/medical-page-header";
+import "@/app/doctor-agenda.css";
 
 export function AppointmentList({
   showDate = true,
@@ -451,7 +452,7 @@ export function Agenda({
     }
   }
   return (
-    <>
+    <div className="doctor-agenda">
       {preparing && <PreparationRequestEditor key={preparing.id} tenantId={tenantId} appointmentId={preparing.id} patientName={preparing.patients?.display_name ?? "paciente"} onClose={() => setPreparing(null)} />}
       <MedicalPageHeader className="page-heading" title="Agenda" description="Consultas e retornos no horário de Brasília (UTC−3)." actions={canManage && (
           <div className="agenda-heading-actions">
@@ -459,9 +460,9 @@ export function Agenda({
               className="button secondary"
               href={`/clinicas/${tenantId}/teleconsulta`}
             >
-              Nova teleconsulta
+              <Video size={18} aria-hidden="true" />Nova teleconsulta
             </Link>
-            <button onClick={() => open("new")}>Novo agendamento</button>
+            <button onClick={() => open("new")}><CalendarPlus size={18} aria-hidden="true" />Novo agendamento</button>
           </div>
         )} />
       {nextAppointment && !returns && !isDoctorView && (
@@ -812,11 +813,11 @@ export function Agenda({
           Próximos retornos do mês
         </button>}
         <button
-          className="secondary"
+          className="secondary agenda-refresh"
           disabled={navigating}
           onClick={() => startTransition(() => router.refresh())}
         >
-          Atualizar agenda
+          <RefreshCw size={16} aria-hidden="true" />Atualizar agenda
         </button>
       </div>
       <div className="calendar-workspace" aria-busy={navigating}>
@@ -828,7 +829,7 @@ export function Agenda({
               disabled={navigating || month <= "2020-01"}
               onClick={() => move(-1)}
             >
-              ‹
+              <ChevronLeft size={18} aria-hidden="true" />
             </button>
             <h2>
               {sentenceCase(
@@ -845,7 +846,7 @@ export function Agenda({
               disabled={navigating || month >= "2100-12"}
               onClick={() => move(1)}
             >
-              ›
+              <ChevronRight size={18} aria-hidden="true" />
             </button>
           </div>
           <div className="calendar-grid">
@@ -979,6 +980,6 @@ export function Agenda({
           )}
         </section>
       </div>
-    </>
+    </div>
   );
 }

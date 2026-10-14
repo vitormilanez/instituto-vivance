@@ -132,6 +132,7 @@ export default async function EncounterPage({
           audit={call?.teleconsultation ?? null}
           editable={detail.canEdit && call?.appointment?.status === "in_progress"}
           unavailable={call?.unavailable}
+          canTranscribe={detail.clinic.role === "doctor"}
           context={
             <>
               <details className="panel"><summary>Receitas anteriores</summary><PrescriptionsPanel tenantId={tenantId} patientId={detail.encounter.patient_id} /></details>

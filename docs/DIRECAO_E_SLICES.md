@@ -1,5 +1,38 @@
 # Direção do Vivance e próximos slices
 
+## Transcrição gratuita/publicação — atualização de 14/10/2026
+
+Usuário autorizou validação mobile e publicação e esclareceu que deseja a
+transcrição gratuita iniciada pelo médico no navegador. Implementada com
+microfone ou aba+microfone compatível, autorização, original privado e revisão.
+Nativa do Meet continua preparada/desativada por flag server-side. Captura pode
+ser parcial e não interpreta/prescreve/preenche prontuário. Esta decisão autoriza
+áudio apenas durante o reconhecimento do navegador; não armazenamento de áudio
+ou IA clínica. [Contrato e evidências](TELECONSULTA_GOOGLE_MEET.md).
+
+## Teleconsulta nativa do Meet — decisão de 14/10/2026
+
+Implementar conexão individual do médico e importar a transcrição nativa,
+com autorização específica registrada, original imutável e revisão sem
+publicação automática. Sem gravador próprio ou IA de síntese neste slice.
+Usuário desconhece a assinatura Google e autorizou **deixar preparada**;
+ativação/migration/jornada sintética permanecem pendentes. UI segue branco/azul,
+navegação inferior e ações junto à consulta. [Contrato](TELECONSULTA_GOOGLE_MEET.md).
+
+## Decisão de interface — 14/10/2026
+
+Extensão aprovada para Agenda, Pacientes e Mensagens: mesma base branca/azul e
+navegação inferior única. Agenda preserva calendário e modos existentes; lista
+de pacientes é o foco, com convites separados; conversa prioriza mensagens e
+mantém contexto clínico sob expansão. Sem novas regras de banco ou envio.
+
+Hoje é uma visão operacional de consultas do dia e pendências; contexto clínico
+detalhado fica no paciente. Manter branco/azul existente e apenas uma navegação
+principal inferior, preservando oito destinos no menu. Sem consultas, oferecer
+Agendar consulta e mensagens de incentivo em carrossel manual. Disparo interno
+somente após revisão do texto e confirmação dos destinatários elegíveis do
+médico; nunca automático. [Implementação local e gate remoto](ENTREGA_HOJE_2026-10-14.md).
+
 ## Exames: direção executada em 11/10
 
 Usuário autorizou implementação integral e publicação do [plano de exames](FLUXO_EXAMES_E_ANALISE_LONGITUDINAL.md),

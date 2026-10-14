@@ -80,14 +80,14 @@ export default async function Patients({
   return (
     <ClinicShell clinic={context.clinic} active="patients">
       <div className={doctorView ? "dv-directory" : undefined}>
-        <MedicalPageHeader className={doctorView ? "dv-directory-heading" : "page-heading"} title="Pacientes" description={doctorView ? "Acompanhe os cadastros e abra a ficha certa para a próxima conversa." : "Encontre um cadastro ou adicione uma pessoa à clínica."} actions={!doctorView && (
+        {!doctorView && <MedicalPageHeader className="page-heading" title="Pacientes" description="Encontre um cadastro ou adicione uma pessoa à clínica." actions={(
             <Link
               className="button page-heading-jump"
               href={canInvite ? "#convidar-paciente" : "#novo-paciente"}
             >
               {canInvite ? "Adicionar paciente" : "Cadastrar paciente"}
             </Link>
-          )} />
+          )} />}
         <PatientDirectoryWorkspace enabled={doctorView}
           invitation={doctorView && canInvite && <PatientInvitationForm tenantId={tenantId} role="doctor" />}
           invitations={doctorView && canInvite && <PatientInvitationList tenantId={tenantId} invitations={invitationContext.invitations} />}
@@ -110,7 +110,7 @@ export default async function Patients({
               <div>
                 <h2 id="patients-title">Pacientes da clínica</h2>
                 {doctorView && (
-                  <p>Abra a ficha para consultar o contexto disponível.</p>
+                  <p>Cadastro e acolhimento de cada pessoa.</p>
                 )}
               </div>
               {doctorView && (
@@ -143,7 +143,7 @@ export default async function Patients({
               <button type="submit">Buscar</button>
             </form>
             {doctorView && (
-              <MedicalSelector mode="navigation" scroll={false} label="Filtrar pacientes nesta página" options={[
+              <MedicalSelector className="dv-directory-selection" mode="navigation" scroll={false} label="Filtrar pacientes nesta página" options={[
                 { value: "todos", label: "Todos nesta página", href: filterHref("todos") },
                 { value: "cadastro", label: "Cadastro enviado", href: filterHref("cadastro") },
                 { value: "acolhimento-pendente", label: "Acolhimento pendente", href: filterHref("acolhimento-pendente") },
@@ -180,6 +180,8 @@ export default async function Patients({
                 <p>
                   {context.term
                     ? "Confira o nome ou tente buscar apenas parte dele."
+                    : doctorView && context.filtro !== "todos"
+                      ? "Selecione Todos nesta página para voltar à lista de pacientes."
                     : context.page > 1
                       ? "Volte para a página anterior."
                       : doctorView && canInvite ? "Os pacientes aparecem aqui após aceitar o convite. Use Convidar paciente para começar." : "Ajuste os filtros ou registre o primeiro paciente."}

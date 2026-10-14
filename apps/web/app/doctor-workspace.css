@@ -1,0 +1,66 @@
+/* Approved white/navy workspace: one persistent navigation, no duplicate sidebar. */
+.dv.dv-modern { --dv-canvas: #fff; --dv-line: #dfe7f0; --blue-soft: #edf4fb; --gold: #9a6a25; display: block; background: #fff; }
+.dv-modern .dv-topbar { height: auto; min-height: 78px; padding: 14px clamp(20px, 3vw, 48px); gap: 24px; }
+.dv-modern .dv-brand { padding: 0; margin-right: auto; flex-shrink: 0; }
+.dv-modern .dv-brand strong { font-size: 22px; letter-spacing: -.035em; }
+.dv-modern .dv-brand small { font-size: 12px; color: var(--dv-muted); }
+.dv-modern .dv-mark { height: 40px; width: 40px; }
+.dv-modern .dv-global-search { display: flex; width: min(380px, 36vw); background: #f8fafc; }
+.dv-modern .dv-global-search input, .dv-modern .dv-global-search button { font-size: 13px; }
+.dv-modern .dv-profile { display: flex; align-items: center; gap: 10px; border-left: 1px solid var(--dv-line); padding-left: 24px; }
+.dv-modern .dv-profile strong { display: block; font-size: 13px; max-width: 180px; }
+.dv-modern .dv-profile small { display: block; color: var(--dv-muted); font-size: 12px; }
+.dv-modern .dv-focus-label { color: var(--dv-muted); font-size: 12px; }
+.dv-modern .dv-main { max-width: 1600px; padding: 28px clamp(20px, 3vw, 48px) calc(118px + env(safe-area-inset-bottom)); }
+.dv-modern .dv-bottom-dock { display: flex; align-items: stretch; justify-content: center; position: fixed; z-index: 45; bottom: calc(18px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: min(880px, calc(100% - 40px)); padding: 8px; gap: 4px; border: 1px solid var(--dv-line); border-radius: 40px; background: #fff; box-shadow: 0 6px 28px #0a1a3314; }
+.dv-modern .dv-bottom-dock > a, .dv-modern .dv-dock-more > summary { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 52px; padding: 10px 12px; border-radius: 28px; color: var(--dv-ink); text-decoration: none; font-size: 13px; font-weight: 550; white-space: nowrap; cursor: pointer; transition: background-color 160ms ease-out, color 160ms ease-out; }
+.dv-modern .dv-bottom-dock > a { flex: 1; position: relative; }
+.dv-modern .dv-bottom-dock .dv-dock-label-short { display: none; }
+.dv-modern .dv-bottom-dock > a[aria-current="page"], .dv-modern .dv-dock-more[data-active] > summary { background: var(--dv-ink); color: #fff; }
+.dv-modern .dv-bottom-dock > a:not([aria-current]):hover, .dv-modern .dv-dock-more > summary:hover { background: var(--blue-soft); color: var(--blue); }
+.dv-modern .dv-bottom-dock .dv-nav-pending { position: absolute; bottom: 4px; left: calc(50% - 3px); width: 5px; height: 5px; }
+.dv-modern .dv-dock-more { flex: .7; min-width: 62px; }
+.dv-modern .dv-dock-more > summary { list-style: none; height: 100%; }
+.dv-modern .dv-dock-more > summary::-webkit-details-marker { display: none; }
+.dv-modern .dv-dock-popover { position: absolute; right: 0; bottom: calc(100% + 12px); width: min(420px, calc(100vw - 32px)); max-height: min(560px, calc(100dvh - 130px)); overflow: auto; overscroll-behavior: contain; padding: 20px; border: 1px solid var(--dv-line); border-radius: 20px; background: #fff; box-shadow: 0 12px 40px #0a1a331f; animation: dv-menu-arrive 180ms ease-out; }
+.dv-modern .dv-dock-popover > strong { display: block; margin-bottom: 10px; font-size: 15px; }
+.dv-modern .dv-dock-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.dv-modern .dv-dock-links a { display: flex; align-items: center; padding: 10px; min-height: 44px; text-decoration: none; border-radius: 8px; font-size: 13px; }
+.dv-modern .dv-dock-links a:hover, .dv-modern .dv-dock-links a[aria-current] { background: var(--blue-soft); }
+.dv-modern .dv-dock-account { grid-column: 1 / -1; display: flex; justify-content: space-between; border-top: 1px solid var(--dv-line); margin-top: 8px; padding-top: 8px; }
+.dv-modern .dv-dock-account button { background: transparent; color: var(--dv-muted); }
+.dv-modern :is(a, button, summary):focus-visible { outline: 3px solid #547da8; outline-offset: 3px; }
+.dv-modern :is(button, .button) { transition: background-color 140ms ease-out, border-color 140ms ease-out; }
+.dv-modern [id] { scroll-margin-block: 24px 110px; }
+/* Record sections are secondary navigation, not another dark primary menu. */
+.dv-modern .dv-record > .medical-selector { display: flex; flex-wrap: wrap; gap: 4px; border: 0; padding: 4px; background: #f4f7fb; border-radius: 10px; }
+.dv-modern .dv-record > .medical-selector .medical-selector-option { display: flex; align-items: center; justify-content: center; flex: 1 1 auto; min-height: 44px; padding: 10px 16px; border: 0; border-radius: 8px; box-shadow: none; font-size: 14px; background: transparent; color: var(--dv-muted); }
+.dv-modern .dv-record > .medical-selector .medical-selector-option[aria-current="page"] { background: #fff; color: var(--blue); }
+.dv-modern .dv-record > .medical-selector .medical-selector-option:hover { background: var(--blue-soft); }
+@keyframes dv-menu-arrive { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 900px) {
+  .dv-modern .dv-topbar { gap: 16px; }
+  .dv-modern .dv-profile { padding-left: 16px; }
+  .dv-modern .dv-profile > span:last-child { display: none; }
+  .dv-modern .dv-notifications > span { display: none; }
+}
+@media (max-width: 600px) {
+  .dv-modern .dv-topbar { padding: 12px 18px; flex-wrap: wrap; gap: 12px; }
+  .dv-modern .dv-brand { flex: 1; }
+  .dv-modern .dv-brand strong { font-size: 19px; }
+  .dv-modern .dv-global-search { order: 4; width: 100%; }
+  .dv-modern .dv-main { padding: 24px 18px calc(100px + env(safe-area-inset-bottom)); }
+  .dv-modern .dv-bottom-dock { width: 100%; bottom: 0; padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); border-radius: 18px 18px 0 0; gap: 0; border-bottom: 0; }
+  .dv-modern .dv-bottom-dock > a, .dv-modern .dv-dock-more > summary { flex-direction: column; gap: 4px; padding: 8px 2px; font-size: 10px; min-height: 56px; border-radius: 12px; }
+  .dv-modern .dv-dock-more { flex: 1; min-width: 0; }
+  .dv-modern .dv-bottom-dock > a { min-width: 0; }
+  .dv-modern .dv-bottom-dock svg { width: 20px; height: 20px; }
+  .dv-modern .dv-dock-popover { right: 8px; }
+}
+@media (max-width: 400px) {
+  .dv-modern .dv-bottom-dock .dv-dock-label-full { display: none; }
+  .dv-modern .dv-bottom-dock .dv-dock-label-short { display: inline; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dv-modern *, .dv-modern *::before, .dv-modern *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

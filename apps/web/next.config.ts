@@ -21,7 +21,9 @@ const config: NextConfig = {
           { key: "Referrer-Policy", value: "no-referrer" },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            // Next navigation keeps the initial document policy. Capture is
+            // still click/permission gated; only this origin may request it.
+            value: "camera=(), microphone=(self), display-capture=(self), geolocation=()",
           },
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],

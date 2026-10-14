@@ -13,6 +13,7 @@ import type {
 } from "@/modules/messages/service";
 import { clinicalTime } from "./encounter-editor";
 import { PrescriptionsPanel } from "@/components/prescriptions-panel";
+import "@/app/doctor-messages-modern.css";
 
 type ConversationInitial = {
   clinic: StaffMessages["clinic"];
@@ -220,6 +221,7 @@ function ConversationWorkspace({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [sendUncertain, setSendUncertain] = useState(false);
+  const [recipientSearch, setRecipientSearch] = useState("");
   const selected = initial.selected;
   const selectedKey = selected
     ? `${selected.patientId}:${selected.doctorId}`
@@ -235,6 +237,11 @@ function ConversationWorkspace({
   );
   const hasDraft = draft.trim().length > 0 || activeReferences.length > 0;
   const isStaffConversation = recipientParam === "paciente";
+  const isDoctorConversation = isStaffConversation && initial.clinic.role === "doctor";
+  const searchName = (name: string) => name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+  const visibleRecipients = isDoctorConversation && recipientSearch.trim()
+    ? initial.recipients.filter(recipient => searchName(recipient.displayName).includes(searchName(recipientSearch.trim())))
+    : initial.recipients;
 
   useEffect(() => {
     if (!hasDraft) return;
@@ -620,9 +627,10 @@ function ConversationWorkspace({
       <section className="conversation-directory" aria-label={directoryTitle}>
         <h2>{directoryTitle}</h2>
         <p>Somente vínculos ativos aparecem aqui.</p>
+        {isDoctorConversation && <div className="conversation-search"><label htmlFor="conversation-search">Buscar nesta lista</label><input id="conversation-search" type="search" value={recipientSearch} onChange={event => setRecipientSearch(event.target.value)} placeholder="Nome do paciente" maxLength={80} /></div>}
         {initial.recipients.length ? (
           <nav className="conversation-recipient-list" aria-label={directoryTitle}>
-            {initial.recipients.map((recipient) => (
+            {visibleRecipients.map((recipient) => (
               <Link
                 key={recipient.id}
                 className="conversation-recipient"
@@ -655,6 +663,7 @@ function ConversationWorkspace({
         ) : (
           <p className="conversation-directory-empty">{emptyDirectory}</p>
         )}
+        {isDoctorConversation && initial.recipients.length > 0 && !visibleRecipients.length && <p className="conversation-search-empty" role="status">Nenhum nome encontrado. <button className="secondary" type="button" onClick={() => setRecipientSearch("")}>Limpar busca</button></p>}
       </section>
       <section className="conversation-detail" aria-label="Conteúdo da conversa">
         {selected ? (
@@ -666,7 +675,7 @@ function ConversationWorkspace({
                     className="conversation-return-link"
                     href={`/clinicas/${initial.clinic.id}/pacientes/${selected.patientId}`}
                   >
-                    Voltar à ficha de {selected.displayName}
+                    {isDoctorConversation ? "Abrir ficha do paciente" : `Voltar à ficha de ${selected.displayName}`}
                   </Link>
                 ) : (
                   <Link
@@ -676,13 +685,16 @@ function ConversationWorkspace({
                     Voltar ao meu cuidado
                   </Link>
                 )}
-                <h2>Conversa entre você e {selected.displayName}</h2>
+                <h2>{isDoctorConversation ? selected.displayName : `Conversa entre você e ${selected.displayName}`}</h2>
                 <p>Destinatário: {selected.displayName} · mensagens diretas e assíncronas.</p>
               </div>
               <span className="quiet-label">Canal não emergencial</span>
             </header>
             {isStaffConversation && initial.context ? (
-              <SelectedPatientContextCards
+              isDoctorConversation ? <details className="conversation-patient-summary" key={selected.patientId}>
+                <summary>Contexto do paciente <span>Documentos, exames e evolução</span></summary>
+                <SelectedPatientContextCards tenantId={initial.clinic.id} patientId={selected.patientId} context={initial.context} />
+              </details> : <SelectedPatientContextCards
                 tenantId={initial.clinic.id}
                 patientId={selected.patientId}
                 context={initial.context}
@@ -874,7 +886,7 @@ function ConversationWorkspace({
           </section>
         )}
       </section>
-      {selected && (
+      {selected && !isDoctorConversation && (
         <aside className="conversation-context" aria-label="Contexto do paciente">
           <div className="conversation-context-patient">
             <span className="conversation-context-avatar" aria-hidden="true">

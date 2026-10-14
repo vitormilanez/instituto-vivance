@@ -1,0 +1,67 @@
+/* The conversation leads; patient facts are available without crowding it. */
+.dv-modern.dv-area-mensagens .dv-main { padding: 28px clamp(20px,3vw,48px) calc(118px + env(safe-area-inset-bottom)); }
+.dv-modern.dv-area-mensagens .dv-main > .page-heading { display: flex; margin-bottom: 24px; }
+.dv-modern.dv-area-mensagens .page-heading h1 { font-size: 32px; letter-spacing: -.03em; }
+.dv-modern.dv-area-mensagens .page-heading p { font-size: 15px; margin-top: 8px; }
+.dv-modern.dv-area-mensagens .conversation-workspace-staff { grid-template-columns: minmax(240px,.8fr) minmax(0,2.2fr); height: max(580px,calc(100dvh - 310px)); min-height: 0; border: 0; border-top: 1px solid var(--dv-line); border-bottom: 1px solid var(--dv-line); border-radius: 0; overflow: visible; box-shadow: none; }
+.dv-modern .conversation-workspace-staff .conversation-directory { padding: 20px 20px 20px 0; background: #fff; }
+.dv-modern .conversation-workspace-staff .conversation-directory > h2 { font-size: 20px; padding: 0; }
+.dv-modern .conversation-workspace-staff .conversation-directory > p { border: 0; padding: 0; margin: 6px 0 16px; font-size: 13px; }
+.dv-modern .conversation-search { margin-bottom: 16px; }
+.dv-modern .conversation-search label { display: block; color: var(--dv-muted); font-size: 13px; margin-bottom: 6px; }
+.dv-modern .conversation-search input { margin: 0; min-height: 44px; padding: 10px 12px; border: 1px solid var(--dv-line); border-radius: 10px; background: #f8fafc; caret-color: var(--blue); }
+.dv-modern .conversation-workspace-staff .conversation-recipient { padding: 16px 12px 16px 60px; margin: 4px 0; border: 0; border-radius: 10px; min-height: 84px; background: #fff; }
+.dv-modern .conversation-workspace-staff .conversation-recipient-avatar { left: 12px; top: 20px; width: 36px; height: 36px; background: #e9f0f9; color: #244973; font-size: 12px; }
+.dv-modern .conversation-workspace-staff .conversation-recipient strong { font-size: 15px; padding: 0; overflow-wrap: anywhere; }
+.dv-modern .conversation-workspace-staff .conversation-recipient small { font-size: 12px; white-space: normal; line-height: 1.5; }
+.dv-modern .conversation-workspace-staff .conversation-recipient:hover { background: #f5f8fc; }
+.dv-modern .conversation-workspace-staff .conversation-recipient[aria-current="page"] { background: var(--blue-soft); color: var(--blue); }
+.dv-modern .conversation-workspace-staff .conversation-unread { position: static; justify-self: start; padding: 3px 8px; margin-block: 4px; border-radius: 6px; }
+.dv-modern .conversation-search-empty button { display: block; margin-top: 8px; min-height: 44px; }
+.dv-modern .conversation-workspace-staff .conversation-detail { background: #fff; min-width: 0; }
+.dv-modern .conversation-workspace-staff .conversation-detail-heading { padding: 20px 24px; align-items: center; gap: 16px; flex-shrink: 0; }
+.dv-modern .conversation-workspace-staff .conversation-detail-heading > div { display: flex; flex-direction: column; min-width: 0; }
+.dv-modern .conversation-workspace-staff .conversation-detail-heading h2 { order: -1; font-size: 22px; line-height: 1.25; overflow-wrap: anywhere; }
+.dv-modern .conversation-workspace-staff .conversation-return-link { display: inline-flex; align-self: flex-start; align-items: center; min-height: 44px; color: var(--blue); font-size: 13px; }
+.dv-modern .conversation-workspace-staff .quiet-label { padding: 6px 10px; border-radius: 6px; background: #f3f6fa; font-size: 12px; white-space: normal; text-align: center; }
+.dv-modern .conversation-patient-summary { position: relative; border-bottom: 1px solid var(--dv-line); flex-shrink: 0; }
+.dv-modern .conversation-patient-summary > summary { min-height: 48px; padding: 12px 24px; color: var(--blue); font-size: 14px; cursor: pointer; }
+.dv-modern .conversation-patient-summary > summary > span { margin-left: 12px; color: var(--dv-muted); font-size: 12px; }
+.dv-modern .conversation-patient-summary .message-context-cards { grid-template-columns: repeat(3,minmax(0,1fr)); margin: 0; padding: 16px 24px; max-height: 240px; overflow-y: auto; background: #fff; border-bottom: 1px solid var(--dv-line); box-shadow: 0 10px 24px #0a1a3314; }
+.dv-modern .conversation-patient-summary[open] .message-context-cards { position: absolute; z-index: 4; top: 100%; left: 0; right: 0; }
+.dv-modern .conversation-patient-summary .message-context-card, .dv-modern .conversation-patient-summary .message-context-prescriptions { background: #fff; border: 0; border-radius: 0; padding: 8px; }
+.dv-modern .conversation-patient-summary .message-context-prescriptions summary { padding: 0; }
+.dv-modern .conversation-workspace-staff .conversation-messages { min-height: 180px; padding: 24px; gap: 16px; background: #f8fafc; scrollbar-width: thin; scrollbar-color: #bac9dc #f8fafc; }
+.dv-modern .conversation-workspace-staff .conversation-message { max-width: min(82%,620px); padding: 14px 16px; border: 1px solid var(--dv-line); border-radius: 12px 12px 12px 4px; }
+.dv-modern .conversation-workspace-staff .conversation-message p { font-size: 15px; line-height: 1.55; }
+.dv-modern .conversation-workspace-staff .conversation-message small { font-size: 12px; }
+.dv-modern .conversation-workspace-staff .conversation-message.outgoing { background: #eaf2fc; border-color: transparent; border-radius: 12px 12px 4px; }
+.dv-modern .conversation-workspace-staff .agenda-actions:not(.agenda-view-controls) { background: #f8fafc; padding-inline: 24px; }
+.dv-modern .conversation-workspace-staff .agenda-actions:empty { display: none; }
+.dv-modern .conversation-workspace-staff .conversation-empty { flex: 1; min-height: 180px; display: flex; flex-direction: column; justify-content: center; padding: 24px; background: #f8fafc; }
+.dv-modern .conversation-workspace-staff .conversation-composer { padding: 16px 24px; flex-shrink: 0; position: relative; }
+.dv-modern .conversation-workspace-staff .conversation-composer textarea { min-height: 68px; max-height: 180px; border-color: #adbed1; background: #fff; font-size: 16px; caret-color: var(--blue); }
+.dv-modern .conversation-workspace-staff .conversation-composer > div:last-child { font-size: 12px; gap: 12px; }
+.dv-modern .conversation-workspace-staff .conversation-composer button:not(.secondary) { padding: 10px 20px; border-radius: 10px; }
+.dv-modern .conversation-workspace-staff .conversation-reference-picker > summary { padding-inline: 0; font-size: 13px; }
+@media (max-width: 760px) {
+  .dv-modern.dv-area-mensagens .dv-main { padding: 24px 18px calc(110px + env(safe-area-inset-bottom)); }
+  .dv-modern.dv-area-mensagens .page-heading h1 { font-size: 28px; }
+  .dv-modern.dv-area-mensagens .conversation-workspace-staff { display: block; height: auto; }
+  .dv-modern .conversation-workspace-staff .conversation-directory { padding: 20px 0; border: 0; border-bottom: 1px solid var(--dv-line); }
+  .dv-modern .conversation-workspace-staff .conversation-recipient-list { display: block; max-height: 180px; overflow-y: auto; }
+  .dv-modern .conversation-workspace-staff .conversation-recipient { min-width: 0; }
+  .dv-modern .conversation-workspace-staff .conversation-detail { min-height: 0; }
+  .dv-modern .conversation-workspace-staff .conversation-detail-heading { padding: 20px 0; flex-wrap: wrap; gap: 4px; }
+  .dv-modern .conversation-workspace-staff .conversation-detail-heading h2 { font-size: 20px; }
+  .dv-modern .conversation-workspace-staff .quiet-label { align-self: flex-start; }
+  .dv-modern .conversation-patient-summary > summary { padding-inline: 0; }
+  .dv-modern .conversation-patient-summary > summary > span { display: block; margin: 4px 0 0 16px; }
+  .dv-modern .conversation-patient-summary .message-context-cards { grid-template-columns: minmax(0,1fr); padding: 12px 0; box-shadow: none; max-height: 320px; }
+  .dv-modern .conversation-patient-summary[open] .message-context-cards { position: static; }
+  .dv-modern .conversation-workspace-staff .conversation-messages { min-height: 220px; max-height: 50dvh; padding: 16px 12px; }
+  .dv-modern .conversation-workspace-staff .conversation-message { max-width: 94%; padding: 12px; }
+  .dv-modern .conversation-workspace-staff .conversation-composer { padding: 16px 0; }
+  .dv-modern .conversation-workspace-staff .conversation-composer > div:last-child { flex-wrap: wrap; }
+  .dv-modern .conversation-workspace-staff .conversation-composer button:not(.secondary) { margin-left: auto; }
+}

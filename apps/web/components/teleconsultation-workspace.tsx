@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Video, ArrowLeft } from "lucide-react";
+import { Video, ArrowLeft, FileText } from "lucide-react";
 import { TeleconsultationCallAccess } from "./teleconsultation-call-access";
+import { BrowserTranscriptPanel } from "./browser-transcript-panel";
+import "@/app/doctor-teleconsultation.css";
 
 export function TeleconsultationWorkspace({
   tenantId,
@@ -14,6 +16,7 @@ export function TeleconsultationWorkspace({
   audit,
   editable,
   unavailable,
+  canTranscribe = false,
   children,
   context,
 }: {
@@ -27,6 +30,7 @@ export function TeleconsultationWorkspace({
   audit: { updated_at: string; updated_by: string; updated_by_name?: string | null } | null;
   editable: boolean;
   unavailable?: boolean;
+  canTranscribe?: boolean;
   children: ReactNode;
   context: ReactNode;
 }) {
@@ -97,7 +101,7 @@ export function TeleconsultationWorkspace({
           </section>
           {context}
         </aside>
-        <div className="teleconsultation-record">{children}</div>
+        <div className="teleconsultation-record">{canTranscribe && <details className="meet-encounter-transcript"><summary data-transcript-toggle><FileText size={18} aria-hidden="true" />Transcrição gratuita da consulta</summary><BrowserTranscriptPanel tenantId={tenantId} appointmentId={appointmentId} /></details>}{children}</div>
       </div>
     </div>
   );

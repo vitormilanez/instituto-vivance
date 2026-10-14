@@ -80,6 +80,24 @@ components:
 
 # Sistema visual da aplicação autenticada VIVANCE
 
+## Continuidade médica — 14/10/2026
+
+Na área do médico, a decisão mais recente substitui o tratamento de sidebar e
+widgets grandes: base branca, Figtree existente, azul/navy atual, uma navegação
+principal inferior e conteúdo orientado à tarefa. As áreas dos outros papéis não
+recebem automaticamente este tratamento. Referência viva: `doctor-workspace.css`.
+
+Agenda mantém calendário e modos, com ações junto ao horário; Pacientes mantém
+lista/busca como foco e convite separado; Mensagens prioriza a conversa, busca de
+destinatários e contexto recolhível. Abas internas da ficha são secundárias, não
+outra navegação global. Divisores discretos, superfícies selecionadas azul-claro,
+controles de pelo menos44px de altura e sem movimento decorativo. Mensagens não
+ganha carrossel: o carrossel manual pertence ao estado vazio da Hoje.
+
+Implementação restrita a `.dv-modern`; detalhes e gates de publicação em
+`docs/ENTREGA_HOJE_2026-10-14.md` na raiz. Seções históricas abaixo permanecem
+referência para outras superfícies; esta direção prevalece nas áreas médicas.
+
 ## Overview
 
 **Creative North Star: "Clareza para cuidar".**
@@ -265,3 +283,32 @@ Na troca de áreas, a navegação aguarda o destino preservando a tela atual e
 mostra atividade no link acionado. O compositor das mensagens deixa referências
 opcionais recolhidas; no desktop, a lista aberta flutua sobre a conversa para
 manter o histórico e o envio visíveis. No celular, as opções expandem no fluxo.
+
+### Teleconsulta preparada — 14/10/2026
+
+Teleconsulta permanece uma superfície **Operate** do workspace médico: branco,
+navy, Figtree e uma única navegação inferior. O cabeçalho, paciente, horário,
+estado e ação seguinte ficam no mesmo fluxo; ações de abrir o Meet, preparar a
+sala, abrir atendimento e acessar a transcrição ficam junto da consulta. Foco
+visível, alvos de pelo menos 44 px e foco no formulário respeitam teclado e
+`prefers-reduced-motion`.
+
+Estados não são misturados: `unconfiguredGoogle`/indisponibilidade técnica,
+conexão individual, autorização específica, texto original imutável e revisão
+médica têm cópia e ações próprias. O fallback manual permanece claro. A
+transcrição é literal e somente leitura; revisão não publica ao paciente nem
+preenche o registro. Não adicionar captura automática, gravador, texto ao vivo,
+IA ou síntese nesta superfície.
+
+O `BrowserTranscriptPanel` é a opção gratuita e manual preparada para desktop:
+captura por microfone ou por aba + microfone em Chrome/Edge 135+, sempre depois
+do consentimento, salvando o original e a revisão separadamente. Recursos são
+encerrados ao finalizar e o retry fica congelado; o provider de voz real não
+foi exercitado. O caminho `NativeMeet` permanece preparado, mas desativado por
+flag.
+
+Revisão visual desktop aceita o escopo preparado (`ship at prepared scope`).
+CSS mobile a partir de 320 px foi validado sem overflow; abaixo de 400 px, o
+dock usa os rótulos visuais **Vídeo** e **Chat**, mantendo `aria-label` completo.
+Estados conectado/importado e o provider de voz real permanecem pendentes de
+exercício técnico, conforme [o contrato da Teleconsulta](../docs/TELECONSULTA_GOOGLE_MEET.md).

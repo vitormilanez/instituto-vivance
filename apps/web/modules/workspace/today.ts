@@ -96,7 +96,9 @@ export async function todayWorkspace(id: string, requestedFocus?: string | null)
   // Contexto só de quem aparece aberto: a consulta aberta e, se for de outro
   // dia, a próxima. Cada bloco usa o contexto do PRÓPRIO paciente — nunca o
   // de outra linha.
-  const shown = [open, next && !nextToday ? next : null].filter(
+  // Doctor Hoje is operational. Clinical context/weights/exam brief are loaded
+  // only inside the selected patient's record, not eagerly on every home visit.
+  const shown = (clinic.role === "doctor" ? [] : [open, next && !nextToday ? next : null]).filter(
     (item, index, list): item is NonNullable<typeof item> =>
       Boolean(item) && list.findIndex((other) => other?.id === item?.id) === index,
   );
