@@ -59,5 +59,23 @@ manual. Não migrar fixtures locais para registros reais.
 
 ## Publicação
 
-Em preparação. Registrar PR/SHA, execução efetiva das migrações, deployment,
-domínios e percurso autenticado após concluir; não inferir sucesso de READY.
+Publicado pelo PR143, integrado em 5df63e0be445c8e10e679589948f512cd3042650.
+CI da PR 38802142520: instalação, 627 testes, lint, tipos e build passaram.
+Release 38802469515: verify passou; migrate/promote terminaram verdes mas as
+operações internas foram skipped. Banco foi aplicado e conferido manualmente,
+com permissões RPC anon/authenticated=false e service_role=true; frontend
+assumiu domínio pela integração Git/auto-assignment.
+
+Deployment dpl_GJ4TsU5iShgN5DmrjBvew2yWY9wr,
+instituto-vivance-mus3d76um-vtr-consulting.vercel.app, production/READY,
+gitSource.sha=5df63e0 e projeto correto confirmados na API autenticada.
+Ambos os domínios resolveram ao mesmo ID. Três requisições ao login principal:
+200, TTFB 0,177–0,251 s; secundário:307 para o principal, TTFB 0,043–0,124 s.
+
+Sessão médica existente conferiu /clinicas indo direto ao workspace, grade
+compacta/slot com Agendar ou Bloquear sem salvar, Teleconsulta e consulta
+sintética antiga sem iniciar captura, e ficha com novo histórico em estado
+vazio, sem erro. Nenhum registro clínico, consentimento ou áudio foi criado
+no remoto nesta conferência; a amostra de 15 minutos continua apenas local.
+Geração de IA pela aplicação publicada e captura real ainda não exercitadas.
+Capturas privadas em output/teleconsulta-20261015/{ficha,agenda}-publicada.jpg.

@@ -1,5 +1,17 @@
 # Checkpoints das entregas
 
+## Consulta integrada, ficha e agenda — 15/10/2026
+
+- [x] PR143/main 5df63e0; 627 testes/CI, tipos/build e lint sem erros.
+- [x] Três migrações aplicadas no dev sintético, sem seeds/roles/Vault; advisors sem erros.
+- [x] Credencial Anthropic reutilizada na Vercel e flag de geração habilitada após autorização expressa.
+- [x] Deployment production/READY, SHA e dois domínios conferidos; principal200 e secundário307.
+- [x] Sessão médica: entrada direta, horários clicáveis, opções Agendar/Bloquear e histórico vazio na ficha.
+- [ ] Geração na aplicação publicada, captura real das duas pontas, aceite clínico e Gate P.
+- [ ] Meet pessoal conectado e criação real da sala conforme permissões do próprio médico.
+
+[Evidências e limites](ENTREGA_CONSULTA_INTEGRADA_2026-10-15.md).
+
 **14/10/2026.** Checklist corrente, sem repetir logs de cada release.
 Estado e evidências em [STATUS_ATUAL](STATUS_ATUAL.md); versões anteriores e
 marcos em [histórico](historico/EVOLUCAO_ATE_2026-10-14.md).

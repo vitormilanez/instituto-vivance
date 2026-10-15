@@ -1,6 +1,6 @@
 # Estado atual do Vivance
 
-## Consulta integrada e resumo na ficha — publicação autorizada em 15/10/2026
+## Consulta integrada e resumo na ficha — publicada em 15/10/2026
 
 Usuário autorizou publicar Agenda compacta/bloqueio, entrada direta,
 consentimento do paciente, consulta assistida e resumo privado no histórico
@@ -8,7 +8,13 @@ da ficha com data/horário/modalidade/médico/status. Reutilização da credenci
 Anthropic na Vercel autorizada expressamente; geração habilitada para o novo
 deployment. Lote isolado sobre d0c80bd; 627 testes, tipos/build e lint sem
 erros. Três migrações aplicadas no dev sintético após dry-run; advisors sem
-erros. Deployment em preparação; Gate P e aceite clínico separados.
+erros. PR143/main 5df63e0 publicado no deployment
+dpl_GJ4TsU5iShgN5DmrjBvew2yWY9wr, SHA e dois domínios conferidos.
+Release verify passou, mas migrate/promote estavam skipped; aplicação do banco
+manual e auto-assignment da Vercel foram comprovados separadamente. Sessão
+médica confirmou entrada direta, slots, Teleconsulta e histórico vazio sem
+erro na ficha. Amostra permanece local; geração na aplicação publicada,
+captura real, Gate P e aceite clínico permanecem separados.
 [Escopo, evidências e limites](ENTREGA_CONSULTA_INTEGRADA_2026-10-15.md).
 
 ## Virada 90 — publicação autorizada em 15/10/2026
