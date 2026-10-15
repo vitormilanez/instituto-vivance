@@ -492,6 +492,42 @@ export type Database = {
           },
         ];
       };
+      agenda_blocks: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doctor_id: string;
+          doctor_display_name: string;
+          starts_at: string;
+          ends_at: string;
+          status: "active" | "cancelled";
+          version: number;
+          expected_version: number | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+          cancelled_at: string | null;
+        };
+        Insert: {
+          tenant_id: string;
+          doctor_id: string;
+          starts_at: string;
+          ends_at: string;
+        };
+        Update: {
+          status?: "cancelled";
+          expected_version?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "agenda_blocks_tenant_id_doctor_id_fkey";
+            columns: ["tenant_id", "doctor_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["tenant_id", "user_id"];
+          },
+        ];
+      };
       appointments: {
         Row: {
           id: string;

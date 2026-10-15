@@ -5,7 +5,7 @@ import { Header } from "@/components/header";
 import { PatientInvitations } from "@/components/patient-invitations";
 import { getPatientOnboarding, OnboardingError, listMyPatientInvitations } from "@/modules/onboarding/service";
 import { ClinicInvitations } from "@/components/clinic-invitations";
-import { singlePatientDestination } from "@/modules/identity/entry";
+import { entryDestination } from "@/modules/identity/entry";
 export const dynamic = "force-dynamic";
 export default async function Clinics({ searchParams }: { searchParams: Promise<{ gerenciar?: string }> }) {
   const context = await clinics().catch((error) => {
@@ -13,13 +13,14 @@ export default async function Clinics({ searchParams }: { searchParams: Promise<
     throw error;
   });
   const { gerenciar } = await searchParams;
-  const destination = singlePatientDestination(context.clinics);
+  const destination = entryDestination(context.clinics);
   if (destination && gerenciar !== "1") {
+    if (context.clinics[0].role !== "patient") redirect(destination);
     const onboarding = await getPatientOnboarding(context.clinics[0].id).catch(error => {
       if (error instanceof OnboardingError && error.status === 404) return null;
       throw error;
     });
-    redirect(onboarding?.status === "draft" ? `/clinicas/${context.clinics[0].id}/primeiros-passos` : destination);
+    redirect(entryDestination(context.clinics, onboarding?.status) ?? "/clinicas");
   }
   const patientInvitations = await listMyPatientInvitations();
   return (

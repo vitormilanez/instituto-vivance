@@ -97,7 +97,7 @@ export async function agendaOptions(id: string) {
 function databaseError(error: { code?: string }) {
   if (error.code === "23P01")
     throw new AgendaError(
-      "O médico ou o paciente já tem um agendamento nesse horário. Escolha outro horário.",
+      "Este horário está ocupado ou bloqueado para o médico ou paciente. Escolha outro horário.",
       409,
     );
   if (error.code === "40001")

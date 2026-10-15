@@ -5,7 +5,9 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createPatient } from "@/modules/patients/service";
 import { InputError } from "@/lib/validation";
-import { AccessError } from "@/modules/identity/service";
+import { AccessError, clinics } from "@/modules/identity/service";
+import { getPatientOnboarding, OnboardingError } from "@/modules/onboarding/service";
+import { entryDestination } from "@/modules/identity/entry";
 export type FormState = { error: string };
 
 export async function login(
@@ -23,6 +25,7 @@ export async function login(
   ) {
     return { error: "Informe seu e-mail e sua senha." };
   }
+  let destination: string | null = null;
   try {
     const client = await createClient();
     const { error } = await client.auth.signInWithPassword({
@@ -39,6 +42,27 @@ export async function login(
   }
   const cookieStore = await cookies();
   cookieStore.delete("vivance-invitation-login");
+
+  // Resolve the unambiguous patient entry before rendering the clinic
+  // selector. Any ambiguous or unavailable context keeps the existing
+  // selector fallback; this does not grant access or alter memberships.
+  try {
+    const context = await clinics();
+    const patientClinic = context.clinics.length === 1 && context.clinics[0].role === "patient"
+      ? context.clinics[0]
+      : null;
+    const onboarding = patientClinic
+      ? await getPatientOnboarding(patientClinic.id).catch((error) => {
+          if (error instanceof OnboardingError && error.status === 404) return null;
+          throw error;
+        })
+      : null;
+    destination = entryDestination(context.clinics, onboarding?.status);
+  } catch {
+    // Keep the established selector fallback if membership or onboarding
+    // lookup is temporarily unavailable after authentication.
+  }
+  if (destination) redirect(destination);
   redirect("/clinicas");
 }
 

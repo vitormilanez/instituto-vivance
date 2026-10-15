@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
-import { CalendarPlus, ChevronLeft, ChevronRight, MoreHorizontal, RefreshCw, Video } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, LockKeyhole, MoreHorizontal, RefreshCw, Video } from "lucide-react";
 import type { Appointment, AgendaOptions } from "@/modules/agenda/service";
 import { clinicDate, localToInstant } from "@/modules/agenda/validation";
 import { focusedAppointment } from "@/modules/agenda/focus";
@@ -16,9 +16,13 @@ import { useAgendaClock } from "./use-agenda-clock";
 import { MedicalSelector } from "@/components/medical-selector";
 import { MedicalPageHeader } from "@/components/medical-page-header";
 import "@/app/doctor-agenda.css";
+import { AgendaSlotEditor } from "./agenda-slot-editor";
+import { agendaClock, daySlots, slotOccupied } from "@/modules/agenda/slots";
+import type { AgendaBlock } from "@/modules/agenda/blocks";
 
 export function AppointmentList({
   showDate = true,
+  compact = false,
   appointments,
   currentTime,
   nextId,
@@ -30,6 +34,7 @@ export function AppointmentList({
   onTeleconsultation,
   preparationStates = {},
   patientRecordBase,
+  consentBase,
 }: {
   appointments: Appointment[];
   currentTime: string;
@@ -44,9 +49,11 @@ export function AppointmentList({
   // Na agenda de um dia escolhido a data já está no título da lista; ela só
   // acompanha cada linha quando a lista mistura dias (próximos retornos).
   showDate?: boolean;
+  compact?: boolean;
   // Only the staff Agenda passes this; a patient viewing their own
   // consultations should never see a link to a "ficha".
   patientRecordBase?: string;
+  consentBase?: string;
 }) {
   if (!appointments.length)
     return (
@@ -56,7 +63,7 @@ export function AppointmentList({
       </div>
     );
   return (
-    <ul className="list appointment-list">
+    <ul className={`list appointment-list${compact ? " is-compact" : ""}`}>
       {appointments.map((a) => {
         const presentation = appointmentPresentation(a, currentTime, Boolean(patientRecordBase));
         const overdue = Boolean(patientRecordBase) && needsAppointmentOutcome(a, currentTime);
@@ -66,7 +73,7 @@ export function AppointmentList({
           id={`consulta-${a.id}`}
           key={a.id}
         >
-          <div className="appointment-time">
+          {!compact && <div className="appointment-time">
             <strong>
               {new Date(a.starts_at).toLocaleTimeString("pt-BR", {
                 timeZone: "America/Sao_Paulo",
@@ -83,9 +90,9 @@ export function AppointmentList({
                 })}
               </span>
             )}
-          </div>
+          </div>}
           <div className="appointment-patient">
-            <span className="patient-avatar" aria-hidden="true">
+            {!compact && <span className="patient-avatar" aria-hidden="true">
               {(a.patients?.display_name ?? "Consulta")
                 .split(/\s+/)
                 .filter(Boolean)
@@ -93,9 +100,9 @@ export function AppointmentList({
                 .map((part) => part[0])
                 .join("")
                 .toUpperCase()}
-            </span>
+            </span>}
             <div>
-              <strong>{a.patients?.display_name ?? "Consulta"}</strong>
+              {!compact && <><strong>{a.patients?.display_name ?? "Consulta"}</strong>
               <small>
                 {a.kind === "return" ? "Retorno" : "Consulta"} ·{" "}
                 {new Date(a.starts_at).toLocaleTimeString("pt-BR", {
@@ -109,27 +116,28 @@ export function AppointmentList({
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
-              </small>
-              <small>{a.doctor_display_name}</small>
-              {a.teleconsultation?.delivery_mode === "video" && <span className="teleconsultation-row-mode">Teleconsulta · Google Meet</span>}
+              </small></>}
+              <small className="appointment-doctor-context">{compact ? `${a.kind === "return" ? "Retorno" : "Consulta"} · ` : ""}{a.doctor_display_name}</small>
+              {!compact && a.teleconsultation?.delivery_mode === "video" && <span className="teleconsultation-row-mode">Teleconsulta · Google Meet</span>}
               {!patientRecordBase && a.teleconsultation?.join_url && ["scheduled", "in_progress"].includes(a.status) && <TeleconsultationLink url={a.teleconsultation.join_url} compact />}
-              {onTeleconsultation && ["scheduled", "in_progress"].includes(a.status) && <button type="button" className="secondary quiet" onClick={() => onTeleconsultation(a)}>{a.teleconsultation?.delivery_mode === "video" ? "Ver teleconsulta" : "Modalidade / teleconsulta"}</button>}
+              {consentBase && ["scheduled", "in_progress"].includes(a.status) && <Link className="button secondary" href={`${consentBase}/${a.id}`}>Minha escolha para o resumo da consulta</Link>}
+              {onTeleconsultation && ["scheduled", "in_progress"].includes(a.status) && <button type="button" className="secondary quiet" onClick={() => onTeleconsultation(a)}>{a.teleconsultation?.delivery_mode === "video" ? "Ver teleconsulta" : compact ? "Modalidade" : "Modalidade / teleconsulta"}</button>}
               {patientRecordBase && (
                 <Link
                   className="appointment-patient-link"
                   href={`${patientRecordBase}/${a.patient_id}`}
                 >
-                  Ver ficha do paciente
+                  {compact ? "Ficha do paciente" : "Ver ficha do paciente"}
                 </Link>
               )}
-              {overdue && <small className="appointment-outcome-note">O horário terminou. Registre o atendimento ou confirme a falta.</small>}
+              {overdue && !compact && <small className="appointment-outcome-note">O horário terminou. Registre o atendimento ou confirme a falta.</small>}
             </div>
           </div>
-          <span
+          {!compact && <span
             className={`badge appointment-status ${presentation.className}`}
           >
             {presentation.label}
-          </span>
+          </span>}
           {patientRecordBase && a.encounter && ["in_progress", "completed"].includes(a.status) && (
             <div className="appointment-actions">
               <Link className="button" href={`${patientRecordBase.replace(/\/pacientes$/, "")}/atendimentos/${a.encounter.id}${a.encounter.status === "draft" && a.teleconsultation?.delivery_mode === "video" ? "?modo=teleconsulta&etapa=consulta" : ""}`}>
@@ -145,7 +153,7 @@ export function AppointmentList({
                 {onStart && (
                   <button onClick={() => onStart(a)}>{overdue ? "Registrar atendimento" : "Abrir atendimento"}</button>
                 )}
-                {overdue && onNoShow && <button className="secondary" onClick={() => onNoShow(a)}>Registrar falta</button>}
+                {overdue && onNoShow && !compact && <button className="secondary" onClick={() => onNoShow(a)}>Registrar falta</button>}
                 {onPrepare && a.starts_at > currentTime && (
                   <button
                     className="secondary"
@@ -161,6 +169,7 @@ export function AppointmentList({
                     Editar
                   </button>
                 )}
+                {compact && overdue && onNoShow && <button className="secondary quiet" onClick={() => onNoShow(a)}>Registrar falta</button>}
                 {!overdue && onNoShow && a.starts_at <= currentTime && (
                   <button className="secondary quiet" onClick={() => onNoShow(a)}>
                     Registrar falta
@@ -211,6 +220,7 @@ export function Agenda({
   canStart = false,
   canManage = false,
   preparationStates = {},
+  blocks = [],
 }: {
   tenantId: string;
   date: string;
@@ -222,6 +232,7 @@ export function Agenda({
   canStart?: boolean;
   canManage?: boolean;
   preparationStates?: Record<string, string>;
+  blocks?: AgendaBlock[];
 }) {
   const router = useRouter();
   const currentTime = useAgendaClock(serverTime);
@@ -240,18 +251,24 @@ export function Agenda({
   const [accepted, setAccepted] = useState(false);
   const [teleconsultation, setTeleconsultation] = useState<Appointment | null>(null);
   const [preparing, setPreparing] = useState<Appointment | null>(null);
+  const [slot, setSlot] = useState<{ date: string; time: string } | null>(null);
+  const [slotBusy, setSlotBusy] = useState(false);
+  const [showPastSlots, setShowPastSlots] = useState(false);
+  const [expandedAppointment, setExpandedAppointment] = useState<string | null>(null);
+  const [unblocking, setUnblocking] = useState<AgendaBlock | null>(null);
+  const slotTrigger = useRef<HTMLButtonElement | null>(null);
   const startPanel = useRef<HTMLElement>(null);
   const activePanel = useRef<HTMLElement>(null);
   useEffect(() => {
     // Refresh status from other tabs without interrupting an open form.
-    if (editing || closing || starting || preparing || teleconsultation || pending) return;
+    if (editing || closing || starting || preparing || teleconsultation || slot || pending) return;
     const refresh = () => {
       if (document.visibilityState === "visible") startTransition(() => router.refresh());
     };
     const timer = window.setInterval(refresh, 30_000);
     window.addEventListener("focus", refresh);
     return () => { window.clearInterval(timer); window.removeEventListener("focus", refresh); };
-  }, [router, editing, closing, starting, preparing, teleconsultation, pending]);
+  }, [router, editing, closing, starting, preparing, teleconsultation, slot, pending]);
   useEffect(() => {
     if (starting) {
       startPanel.current?.focus({ preventScroll: true });
@@ -318,6 +335,10 @@ export function Agenda({
         a.starts_at > currentTime
       : clinicDate(new Date(a.starts_at)) === date,
   );
+  const dayEnd = new Date(`${date}T12:00:00Z`);
+  dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+  const chosenBlocks = blocks.filter(block => block.status === "active" && block.starts_at < localToInstant(dayEnd.toISOString().slice(0, 10), "00:00") && block.ends_at > localToInstant(date, "00:00"));
+  const times = daySlots(date, [...chosen, ...chosenBlocks]);
   const selectedDay = new Date(`${date}T12:00:00Z`);
   const selectedDayOffset = (selectedDay.getUTCDay() + 6) % 7;
   const weekDays = Array.from({ length: 7 }, (_, index) => {
@@ -354,6 +375,10 @@ export function Agenda({
   const nextAppointment = focusedAppointment(appointments, currentTime, date);
   const edit = editing && editing !== "new" ? editing : null;
   function selectDate(next: string) {
+    if (slotBusy) return;
+    setSlot(null);
+    setShowPastSlots(false);
+    setExpandedAppointment(null);
     startTransition(() =>
       router.push(`/clinicas/${tenantId}/agenda?data=${next}`, { scroll: false }),
     );
@@ -366,11 +391,35 @@ export function Agenda({
     );
   }
   function open(value: Appointment | "new") {
+    if (slotBusy) return;
+    setSlot(null);
     setTeleconsultation(null);
     setEditing(value);
     setClosing(null);
     setError("");
     setNotice("");
+  }
+  function closeSlot() {
+    setSlot(null);
+    slotTrigger.current?.focus({ preventScroll: true });
+  }
+  function openSlot(time: string, trigger?: HTMLButtonElement) {
+    if (slotBusy) return;
+    slotTrigger.current = trigger ?? null;
+    setSlot({ date, time });
+    setEditing(null); setTeleconsultation(null); setStarting(null); setClosing(null);
+    setUnblocking(null); setError(""); setNotice(""); setReturns(false); setScheduleView("day");
+  }
+  async function unblock(block: AgendaBlock) {
+    if (pending) return;
+    setPending(true); setError("");
+    try {
+      const response = await fetch(`/api/v1/clinics/${tenantId}/agenda-blocks/${block.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: block.version, status: "cancelled" }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Não foi possível desbloquear o horário.");
+      setNotice("Horário desbloqueado."); setUnblocking(null); router.refresh();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível desbloquear o horário."); }
+    finally { setPending(false); }
   }
   async function mutate(body: unknown, appointment?: Appointment) {
     const response = await fetch(
@@ -462,7 +511,7 @@ export function Agenda({
             >
               <Video size={18} aria-hidden="true" />Nova teleconsulta
             </Link>
-            <button onClick={() => open("new")}><CalendarPlus size={18} aria-hidden="true" />Novo agendamento</button>
+            <button disabled={slotBusy} onClick={event => canStart ? openSlot(times.find(time => localToInstant(date, time) > currentTime && !slotOccupied(date, time, options.doctors[0]?.user_id ?? "", [...chosen, ...chosenBlocks])) ?? "09:00", event.currentTarget) : open("new")}><CalendarPlus size={18} aria-hidden="true" />Novo agendamento</button>
           </div>
         )} />
       {nextAppointment && !returns && !isDoctorView && (
@@ -869,7 +918,7 @@ export function Agenda({
                   aria-pressed={date === d}
                   aria-current={d === today ? "date" : undefined}
                   aria-label={`${new Date(`${d}T12:00:00Z`).toLocaleDateString("pt-BR", { dateStyle: "full", timeZone: "UTC" })}${count ? `, ${count} agendamentos` : ""}`}
-                  onClick={() => selectDate(d)}
+                  onClick={() => { setReturns(false); setScheduleView("day"); selectDate(d); }}
                 >
                   {i + 1}
                   {count > 0 && (
@@ -893,6 +942,7 @@ export function Agenda({
             {scheduleAppointments.length === 1 ? "agendamento" : "agendamentos"}
             {hasPartialWeek ? " no mês carregado" : ""}
           </p>
+          {isDoctorView && !returns && scheduleView === "day" && <p className="agenda-slot-help">Escolha um horário para agendar, bloquear ou ver a consulta.</p>}
           {hasPartialWeek && (
             <p className="agenda-week-coverage" role="status">
               Esta semana inclui outro mês. Abra o dia para consultar seus horários.
@@ -900,6 +950,50 @@ export function Agenda({
           )}
           {navigating ? (
             <p role="status">Carregando horários…</p>
+          ) : isDoctorView && !returns && scheduleView === "day" ? (
+            <div className={`agenda-day-workspace${slot ? " has-slot-editor" : ""}`}>
+              <div className="agenda-day-overview">
+                <div className="agenda-hours-heading"><h3>Horários</h3>{date <= today && <button type="button" className="secondary quiet" disabled={slotBusy} aria-pressed={showPastSlots} onClick={() => setShowPastSlots(value => !value)}>{showPastSlots ? "Ocultar anteriores" : "Ver anteriores"}</button>}</div>
+                <div className="agenda-hour-grid" aria-label="Horários do dia">
+                {times.filter(time => showPastSlots || localToInstant(date, time) > currentTime).map(time => {
+                  const selectedDoctor = options.doctors.length === 1 ? options.doctors[0].user_id : "";
+                  const instant = localToInstant(date, time);
+                  const appointment = chosen.find(item => (!selectedDoctor || item.doctor_id === selectedDoctor) && !["cancelled", "no_show"].includes(item.status) && item.starts_at <= instant && item.ends_at > instant);
+                  const block = chosenBlocks.find(item => (!selectedDoctor || item.doctor_id === selectedDoctor) && item.starts_at <= instant && item.ends_at > instant);
+                  const past = localToInstant(date, time) <= currentTime;
+                  const label = block ? "Bloqueado" : appointment ? "Consulta" : past ? "Encerrado" : "Agendar";
+                  const selected = slot?.time === time && slot.date === date;
+                  return <button key={time} type="button" className={`agenda-hour-button${block ? " is-blocked" : appointment ? " is-booked" : ""}`} disabled={slotBusy || !canManage && !appointment && !block || past && !appointment && !block} aria-pressed={selected || Boolean(appointment && expandedAppointment === appointment.id)} aria-label={`${time} · ${label}${!appointment && !block && !past ? " ou bloquear" : ""}`} onClick={event => {
+                    if (appointment) { setExpandedAppointment(value => value === appointment.id ? null : appointment.id); setUnblocking(null); setSlot(null); }
+                    else if (block) { setUnblocking(block); setSlot(null); setError(""); }
+                    else openSlot(time, event.currentTarget);
+                  }}><strong>{time}</strong><span>{label}</span></button>;
+                })}
+                </div>
+                {!showPastSlots && !times.some(time => localToInstant(date, time) > currentTime) && <p className="agenda-slot-help">Os horários deste dia já passaram.</p>}
+                <div className="agenda-day-bookings" aria-label="Consultas e bloqueios do dia">
+                  {chosen.length > 0 && <h3>Consultas do dia</h3>}
+                  {chosen.map(appointment => <div className="agenda-compact-appointment" key={appointment.id}>
+                    <button type="button" className="agenda-booking-summary" disabled={slotBusy} aria-expanded={expandedAppointment === appointment.id} aria-controls={`agenda-detail-${appointment.id}`} onClick={() => { setExpandedAppointment(value => value === appointment.id ? null : appointment.id); }}>
+                      <strong className="agenda-booking-time">{agendaClock(appointment.starts_at)}</strong><span className="agenda-booking-person"><strong>{appointment.patients?.display_name ?? "Consulta"}</strong><small>{agendaClock(appointment.starts_at)}–{agendaClock(appointment.ends_at)} · {appointment.teleconsultation?.delivery_mode === "video" ? "Online" : "Presencial"}</small></span><span className={`appointment-status ${appointmentPresentation(appointment, currentTime, true).className}`}>{appointmentPresentation(appointment, currentTime, true).label}</span><ChevronRight size={16} aria-hidden="true" />
+                    </button>
+                    {expandedAppointment === appointment.id && <div id={`agenda-detail-${appointment.id}`} className="agenda-booking-detail"><AppointmentList compact appointments={[appointment]} currentTime={currentTime} showDate={false} nextId={nextAppointment?.id} patientRecordBase={`/clinicas/${tenantId}/pacientes`} preparationStates={preparationStates}
+                        onStart={canStart ? appointment => { setSlot(null); setStarting(appointment); setAccepted(false); setError(""); } : undefined}
+                        onEdit={canManage ? open : undefined}
+                        onTeleconsultation={canManage ? appointment => { setSlot(null); setTeleconsultation(appointment); } : undefined}
+                        onPrepare={canStart ? setPreparing : undefined}
+                        onNoShow={canManage ? appointment => { setSlot(null); setClosing({ appointment, status: "no_show" }); setError(""); } : undefined}
+                        onCancel={canManage ? appointment => { setSlot(null); setClosing({ appointment, status: "cancelled" }); setError(""); } : undefined}
+                      /></div>}
+                  </div>)}
+                  {chosenBlocks.map(block => <div className="agenda-block-row" key={block.id}><LockKeyhole size={17} aria-hidden="true" /><div><strong>Horário bloqueado</strong><span>{clinicDate(new Date(block.starts_at)) !== date ? `${new Date(block.starts_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" })} ` : ""}{agendaClock(block.starts_at)}–{clinicDate(new Date(block.ends_at)) !== date ? `${new Date(block.ends_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" })} ` : ""}{agendaClock(block.ends_at)} · {block.doctor_display_name}</span></div>{canManage && <button type="button" className="secondary" disabled={pending || slotBusy} onClick={() => { setUnblocking(block); setError(""); }}>Desbloquear</button>}
+                        {unblocking?.id === block.id && <div className="agenda-unblock-confirm"><p>Liberar este período para novos agendamentos?</p><button type="button" disabled={pending} onClick={() => void unblock(block)}>Confirmar desbloqueio</button><button type="button" className="secondary" disabled={pending} onClick={() => setUnblocking(null)}>Manter bloqueio</button>{error && <p role="alert">{error}</p>}</div>}
+                  </div>)}
+                  {!chosen.length && !chosenBlocks.length && <p className="agenda-slot-help">Nenhuma consulta ou bloqueio neste dia.</p>}
+                </div>
+              </div>
+              {slot && <AgendaSlotEditor key={`${slot.date}:${slot.time}`} tenantId={tenantId} date={slot.date} time={slot.time} today={today} options={options} isDoctor={canStart} onClose={closeSlot} onSaved={() => router.refresh()} onBusyChange={setSlotBusy} />}
+            </div>
           ) : isDoctorView && !returns && scheduleView === "week" ? (
             <div className="agenda-week-grid" aria-label="Agenda semanal">
               {weekDays.map((weekDay) => {
@@ -911,7 +1005,7 @@ export function Agenda({
                   <section className="agenda-week-day" key={weekDay}>
                     <button
                       className="agenda-week-day-heading"
-                      onClick={() => selectDate(weekDay)}
+                      onClick={() => { setScheduleView("day"); selectDate(weekDay); }}
                     >
                       <span>{new Date(`${weekDay}T12:00:00Z`).toLocaleDateString("pt-BR", { weekday: "short", timeZone: "UTC" })}</span>
                       <strong>{new Date(`${weekDay}T12:00:00Z`).toLocaleDateString("pt-BR", { day: "2-digit", timeZone: "UTC" })}</strong>

@@ -353,6 +353,7 @@ export default async function PatientAreaPage({
             <AppointmentList
               appointments={appointments.appointments}
               currentTime={currentTime}
+              consentBase={`/clinicas/${tenantId}/meu-cuidado/consultas`}
             />
             <p className="module-footnote">
               {clinicInfo.clinicPhone ? (

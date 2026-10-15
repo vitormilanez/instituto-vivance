@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Link2, RefreshCw, ShieldCheck, Unplug } from "lucide-react";
+import { Check, Link2, RefreshCw, Unplug } from "lucide-react";
 
 export type MeetConnectionState = {
   configured: boolean;
@@ -71,7 +71,6 @@ export function GoogleMeetConnection({ tenantId, onChange }: {
         <button type="button" disabled={busy || !status?.configured || !status?.available} onClick={() => void changeConnection("connect")}><Link2 size={17} aria-hidden="true" />{busy ? "Conectando…" : "Conectar Google"}</button>}
     </div>
     {status && (!status.configured || !status.available) && <p className="meet-connection-note" role="status">Integração aguardando configuração técnica. Você pode continuar usando uma sala criada no Meet.</p>}
-    <p className="meet-connection-note"><ShieldCheck size={16} aria-hidden="true" />Transcrição nativa do Meet desativada. A opção gratuita pelo navegador está disponível na consulta, com início manual.</p>
     {confirmDisconnect && <div className="meet-inline-confirm">
       <p>Desconectar interrompe novas importações. Os registros já importados continuam sujeitos às regras de acesso e retenção do Vivance.</p>
       <div className="meet-actions"><button type="button" disabled={busy} onClick={() => void changeConnection("disconnect")}>Confirmar desconexão</button><button type="button" className="secondary" disabled={busy} onClick={() => setConfirmDisconnect(false)}>Manter conexão</button></div>
