@@ -1,5 +1,19 @@
 # Estado atual do Vivance
 
+## Virada 90 — publicação autorizada em 15/10/2026
+
+Usuário aprovou publicar agenda de preferência, fotos reais e parcelas em
+destaque. Confirmou segunda a sexta às 08h, 09h, 10h, 14h, 15h e 16h para
+presencial/online. Datas futuras nos próximos 30 dias, fuso Brasília; equipe
+confirma disponibilidade no WhatsApp. Seleção pode começar pelo horário e a
+primeira escolha de modalidade o preserva; mudança posterior limpa horário.
+Nenhuma reserva automática ou alteração de banco. Publicação em preparação
+isolada sobre `origin/main=32d948f`, preservando trabalho local de outras áreas.
+[Conteúdo, fotos e aceite](virada90/CONTEUDO_E_IMAGENS.md).
+
+Pré-integração: 596 testes, typecheck e build de produção passaram com Node24;
+lint sem erros e um aviso preexistente de variável não usada no onboarding.
+
 **Fotografia reconciliada em 14/10/2026 (São Paulo).** Este documento resume o
 estado vigente; a [linha do tempo](historico/EVOLUCAO_ATE_2026-10-14.md) guarda
 os marcos anteriores. Não usar um SHA ou total antigo como inventário atual.

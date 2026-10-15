@@ -179,3 +179,48 @@ Format preference is selected within each pricing column, without repeating the 
 ## Comprehension before conversion — 07/10/2026
 
 Presencial measurements and online clinical assessment/exams are differentiated in the opening of both surfaces. All eight landing discovery labels read “Conhecer o Virada 90”. The guided goal choices sit inside an optional native disclosure; plan and ongoing review use two summaries with their eight original detail items retained. Interactive targets are at least 44px and functional metadata at least 12px. These refinements reduce first-read effort; they do not claim measured commercial improvement or introduce scarcity.
+
+## Local consultation extension — 15/10/2026
+
+The approved local-only extension retains the established Virada 90 palette and
+the five stages, offers, and prices. The consultation surface adds a responsive
+clinic sidebar/scheduler, with CSS-cropped real-doctor diptychs alongside the
+imagegen clinic-facade treatment. At desktop the context and scheduler share one
+ruled frame; at mobile the clinic context compresses above the scheduler for
+readable 390px and 320px layouts.
+
+Consultation modality uses native radio controls for Presencial and Online.
+Future preference windows are shown in four-day groups with navy selected days
+and teal selected time buttons; the optional “Prefiro combinar com a equipe”
+path remains available without choosing a time. On `localhost` and
+`127.0.0.1`, the fixture notice explicitly identifies the displayed times as
+demonstration data. The WhatsApp action is a manual, editable handoff for the
+team to confirm availability.
+
+This is not a reservation flow: no live availability is read, no slot is held,
+and the existing no-reservation boundary remains. The local review shipped at
+`http://127.0.0.1:4177/virada90/conhecer#consulta`, with screenshots at
+`output/playwright/virada90-preview/agenda-1440`, `agenda-390`, and
+`agenda-320`; 16 tests and targeted ESLint passed. Independent reviewer
+disposition: Ship locally.
+
+## Ajuste local de interação — 15/10/2026
+
+Horários podem ser selecionados antes da modalidade. Ao clicar, a seleção
+permanece visível e o foco orienta a escolha Presencial/Online; essa primeira
+escolha preserva o horário. WhatsApp não abre enquanto uma seleção de horário
+estiver sem modalidade. Troca posterior de modalidade limpa o horário.
+
+## Configuração pública aprovada — 15/10/2026
+
+Publicação autorizada após a revisão local. Preferências de segunda a sexta
+às 08h, 09h, 10h, 14h, 15h e 16h nas duas modalidades, nos próximos 30 dias.
+Removido aviso de demonstração: a configuração agora é pública e permanece
+explicitamente sujeita à confirmação da equipe no WhatsApp, sem reserva.
+Parcelas em destaque: R$ 1.000 presencial e aproximadamente R$ 541,67 online,
+ambas em 12 parcelas, totais visíveis e acompanhamento por três meses.
+
+Retrato interno público usa derivado `medico-consultorio-sem-registros.jpg`:
+remoção localizada das linhas CRM/RQE divergentes do letreiro por image_gen,
+preservando a composição e os originais fornecidos. Origem/prompt no JPEG.
+Handoff incompleto não propaga evento de conversão; teste dirigido cobre isso.

@@ -145,16 +145,22 @@ test('a blocked Google loader does not throw or produce a false conversion', () 
 test('the guided handoff keeps health choices in memory and opens WhatsApp without relying on Google', () => {
   const listeners = new Map<string, (event: unknown) => void>();
   const makeControl = (key: string) => ({
-    textContent: '', href: 'https://wa.me/5518997551234?text=generic', dataset: { title: 'Topic' }, hidden: false,
+    textContent: '', firstChild: { textContent: '' }, href: 'https://wa.me/5518997551234?text=generic', dataset: { title: 'Topic' }, hidden: false,
     classList: { toggle() {} }, style: {}, setAttribute() {},
     addEventListener(type: string, fn: (event: unknown) => void) { listeners.set(key + ':' + type, fn); },
-    querySelector() { return null; }
+    querySelector() { return null; }, focus() {}
   });
   const controls = new Map<string, ReturnType<typeof makeControl>>();
   const steps = Array.from({ length: 5 }, (_, n) => makeControl('step' + n));
   const form = { ...makeControl('form'), querySelectorAll: () => steps };
   const opened: string[] = [];
-  vm.runInNewContext(readFileSync(new URL('../public/virada90/guided.js', import.meta.url), 'utf8'), {
+  let schedulerReady = true;
+  // Date and scheduling rules have their own tests; isolate the existing attribution handoff.
+  const guidedSource = readFileSync(new URL('../public/virada90/guided.js', import.meta.url), 'utf8')
+    .replace(/^import \{ initScheduling, buildSchedulingMessage \} from '\.\/scheduling\.js';\n/, '');
+  vm.runInNewContext(guidedSource, {
+    initScheduling: () => ({ getPreference: () => null, refresh() {}, clear() {}, ensureReady: () => schedulerReady }),
+    buildSchedulingMessage: () => '',
     document: {
       querySelector(key: string) {
         if (key === '#guided-form') return form;
@@ -165,7 +171,7 @@ test('the guided handoff keeps health choices in memory and opens WhatsApp witho
     },
     FormData: class { get(name: string) { return name === 'goal' ? 'private-health-answer' : 'Online'; } },
     CustomEvent: class {}, window: {
-      requestAnimationFrame() {}, open(url: string) { opened.push(url); },
+      requestAnimationFrame() {}, addEventListener() {}, location: { hash: '' }, open(url: string) { opened.push(url); },
       virada90SourceHandoff(url: string) { return whatsappWithSource(url, 'https://institutovivance.app/virada90/conhecer?gclid=click_123'); }
     }
   });
@@ -179,6 +185,12 @@ test('the guided handoff keeps health choices in memory and opens WhatsApp witho
   assert.equal(controls.get('#jump-values')?.hidden, false);
   listeners.get('#topic-select:change')?.({ target: { value: '5' } });
   assert.equal(controls.get('#talk-team')?.href, generic);
+  schedulerReady = false;
+  let stopped = false;
+  listeners.get('#talk-team:click')?.({ preventDefault() {}, stopPropagation() { stopped = true; } });
+  assert.equal(opened.length, 0);
+  assert.equal(stopped, true, 'incomplete scheduling must not bubble a WhatsApp conversion');
+  schedulerReady = true;
   listeners.get('#talk-team:click')?.({ preventDefault() {} });
   assert.equal(opened.length, 1);
   assert.match(decodeURIComponent(opened[0]), /private-health-answer/);

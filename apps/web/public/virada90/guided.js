@@ -1,3 +1,5 @@
+import { initScheduling, buildSchedulingMessage } from './scheduling.js';
+
 (() => {
   const form = document.querySelector('#guided-form');
   const steps = [...form.querySelectorAll('.step')];
@@ -14,6 +16,7 @@
   const jumpValues = document.querySelector('#jump-values');
   const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   const total = steps.length;
+  let scheduler = null;
   let direction = 1;
   let current = 1;
   let handoffUrl = 'https://wa.me/5518997551234?text=Ol%C3%A1%21%20Quero%20saber%20mais%20sobre%20o%20Virada%2090%20do%20Dr.%20Guilherme%20Martins.';
@@ -28,11 +31,12 @@
       modality ? `Formato de interesse: ${modality}` : ''
     ].filter(Boolean);
 
-    interestSummary.textContent = preferences.length
+    const appointment = scheduler?.getPreference();
+    interestSummary.textContent = preferences.length && !appointment
       ? `Sua conversa pode começar por: ${preferences.join(' · ')}.`
-      : 'Você pode conversar com a equipe sem definir objetivo ou formato agora.';
+      : '';
 
-    const message = [
+    const message = appointment ? buildSchedulingMessage(appointment) : [
       'Olá! Quero saber mais sobre o Virada 90 do Dr. Guilherme Martins.',
       goal ? `Meu objetivo: ${goal}.` : '',
       modality ? `Meu formato de interesse: ${modality}.` : ''
@@ -41,6 +45,11 @@
     // A mensagem fica fora do DOM: a medição automática não recebe o objetivo.
     // O botão só abre a mensagem na ação explícita da pessoa.
     handoffUrl = `https://wa.me/5518997551234?text=${encodeURIComponent(message)}`;
+    talkTeam.firstChild.textContent = appointment ? 'Solicitar pelo WhatsApp ' : 'Conversar pelo WhatsApp ';
+    const online = modality === 'Online';
+    document.querySelector('#consultation-place').textContent = online ? 'O Vivance, onde você estiver.' : 'Esperamos você no Vivance.';
+    document.querySelector('#consultation-address').textContent = online ? 'Consulta por videochamada · atendimento online' : 'Rua Vicente Furlanetto, 65 · Presidente Prudente, SP';
+    document.querySelector('#consultation-place-note').textContent = online ? 'Escolha um lugar tranquilo. A equipe orienta o acesso à consulta após a confirmação.' : 'Atendimento presencial na clínica. A equipe orienta os detalhes da sua primeira visita.';
   };
 
   const keepToolsVisible = () => {
@@ -104,13 +113,19 @@
   topicSelect.addEventListener('change', event => goTo(event.target.value));
   talkTeam.addEventListener('click', event => {
     event.preventDefault();
+    scheduler?.refresh();
+    if (scheduler && !scheduler.ensureReady()) {
+      event.stopPropagation();
+      return;
+    }
+    updateHandoff();
     const destination = window.virada90SourceHandoff?.(handoffUrl) || handoffUrl;
     window.open(destination, '_blank', 'noopener,noreferrer');
   });
 
   document.addEventListener('keydown', event => {
     const target = event.target;
-    const editingControl = target.matches('input, select, summary, a, button');
+    const editingControl = target.closest('input, select, textarea, summary, a, button, [contenteditable]');
     if (editingControl || event.altKey || event.ctrlKey || event.metaKey) return;
     if (event.key === 'ArrowRight' && current < total) {
       event.preventDefault();
@@ -122,5 +137,20 @@
     }
   });
 
+  scheduler = initScheduling({ onChange: updateHandoff });
+  const openConsultation = () => {
+    if (window.location.hash !== '#consulta') return;
+    current = total;
+    render({ moveFocus: false });
+    window.requestAnimationFrame(() => {
+      document.querySelector('#consulta').scrollIntoView({ behavior: 'instant', block: 'start' });
+      document.querySelector('#consultation-title').focus({ preventScroll: true });
+    });
+  };
+  window.addEventListener('hashchange', openConsultation);
+  document.querySelector('#schedule-without-time').addEventListener('click', () => {
+    talkTeam.focus({ preventScroll: true });
+  });
   render({ moveFocus: false });
+  openConsultation();
 })();
