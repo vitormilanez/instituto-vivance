@@ -43,5 +43,14 @@ Isso não autoriza apagar novas cópias locais ou mudanças de outras tarefas.
 
 A afirmação antiga “IA2 na branch PR78” era a fotografia de 08/10; hoje a
 implementação posterior está na main, conforme [Status](../STATUS_ATUAL.md).
-O PR40 continua aberto e exige reconciliação própria; não fechar/integrar nesta limpeza.
+Na [triagem de 14/10](../STATUS_ATUAL.md#prs-antigos-que-não-são-a-base-atual),
+as PRs94/78/40 foram encerradas sem merge; PRs79/64 permaneceram draft por
+conterem trabalho relevante. As branches foram preservadas. O fechamento da
+PR40 não aplicou sua limpeza ou suas regras gerais de ignore.
 Releases comerciais permanecem em `docs/virada90/releases/`.
+
+Em15/10, a preparação do merge documental removeu somente a cópia Markdown
+`app-components-doctor-dashboard-vivanse-tsx 3.md` de `.impeccable/surfaces/`.
+O blob era idêntico ao arquivo sem sufixo, que foi preservado, e não havia
+referências à cópia. O arquivo removido permanece recuperável pelo Git;
+nenhum registro histórico único foi excluído.
