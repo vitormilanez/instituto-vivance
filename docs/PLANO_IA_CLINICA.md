@@ -1,6 +1,9 @@
 # IA clínica controlada — plano separado
 
-Direção clínica de 28/09/2026 apresentada por Dr. Guilherme Martins; estado técnico atualizado em 10/10/2026. Este plano rege capacidades futuras. O piloto sintético IA2 não autoriza análise clínica ou dados reais. A prioridade atual está em [Direção e slices](DIRECAO_E_SLICES.md).
+Direção clínica de 28/09/2026 apresentada por Dr. Guilherme Martins; estado
+reconciliado em 14/10/2026. Este plano rege capacidades e seus gates: ter código
+implementado não significa uso clínico autorizado. A prioridade está em
+[Direção e slices](DIRECAO_E_SLICES.md).
 
 ## Estado da implementação
 
@@ -9,18 +12,16 @@ com cota/liberação, revisão/conferência, seleção IA de fatos/trechos autor
 verificação por origem, cache e publicação factual. Biblioteca tem cadastro e
 aprovação médica por versão, sem diretrizes aprovadas automaticamente.
 Esta fase não habilita hipóteses livres; curadoria, avaliação clínica e gates
-permanecem próprios. [Registro da entrega](ENTREGA_EXAMES_2026-10-11.md).
+permanecem próprios. [Registro da entrega](historico/entregas/EXAMES_2026-10-11.md).
 
-O [piloto IA2](IA2_EXAMES.md) de texto por página, fila/Cron e itens revisáveis
-foi integrado à main pelo PR #95 e validado com PDF inteiramente fictício no
-dev sintético. Extração estruturada com Claude Haiku 5.5 e fallback Sonnet 5.5
-foi integrada pelo PR #106 e publicada tecnicamente no dev sintético, com
-cobertura parcial; PR #107 também foi integrado e publicado tecnicamente no dev sintético. Não houve Preview nem aceite clínico desta rodada. OCR genérico, biblioteca clínica, interpretação
-e uso de dados reais continuam fora do piloto. O
-[briefing integrado](BRIEFING_CONSULTA_2026-10-07.md) tem fallback
-determinístico e a nova leitura de exames limita-se a até três fatos
-**revisados** da próxima consulta, conferida no #106 publicado. Consulte o [status](STATUS_ATUAL.md)
-para evidência atual e não leia este plano como inventário de deploy.
+O [pipeline IA2](IA2_EXAMES.md) já inclui texto por página, fila/Cron, extração
+estruturada, retomada e revisão. A fase de 11/10 acrescentou conferência, cota,
+resumo factual com cache e biblioteca versionada. Biblioteca implementada não
+é biblioteca curada/aprovada; análise clínica e dados reais continuam sujeitos
+aos gates. O [contrato da ficha](FICHA_PACIENTE.md) separa contexto, adapter
+opcional de briefing e resumo de exames. Não usar o recorte de três fatos do
+briefing antigo como limite da análise atual. Estado de deploy pertence ao
+[Status](STATUS_ATUAL.md), não a este plano.
 
 ## Objetivo e limite
 
@@ -76,6 +77,14 @@ O piloto começa com poucos exames. A proposta de 80–120 exames e diversos dom
 
 ## Governança e liberação
 
-O [Gate P](GATE_P.md) continua obrigatório antes de dados de saúde reais. IA requer ainda avaliação da finalidade pretendida e possível enquadramento como SaMD, supervisão médica, informação ao paciente quando o uso for relevante, registro e auditoria. A [Resolução CFM nº 2.454/2026](https://sistemas.cfm.org.br/normas/visualizar/resolucoes/BR/2026/2454) está vigente; a [orientação da Anvisa sobre RDC 657/2022](https://www.gov.br/anvisa/pt-br/centraisdeconteudo/publicacoes/produtos-para-a-saude/manuais/software-como-dispositivo-medico-perguntas-e-respostas) vincula o enquadramento à finalidade de uso. O parecer específico do Vivance deve anteceder promessa comercial ou habilitação clínica.
+O [Gate P](GATE_P.md) continua obrigatório antes de dados de saúde reais. IA
+requer avaliação da finalidade e possível enquadramento como SaMD, supervisão,
+informação ao paciente, registro e auditoria. Referências para o parecer:
+[registro CFM 2.454/2026](https://sistemas.cfm.org.br/normas/visualizar/resolucoes/BR/2026/2454)
+e [perguntas/respostas Anvisa sobre RDC 657/2022](https://www.gov.br/anvisa/pt-br/centraisdeconteudo/publicacoes/produtos-para-a-saude/manuais/software-como-dispositivo-medico-perguntas-e-respostas).
+Na organização de 14/10 a Anvisa disponibilizou a página; o link CFM retornou
+apenas o visualizador, sem texto normativo legível. Não se reconfirmou conteúdo,
+vigência ou aplicabilidade jurídica específica por esse acesso. Parecer médico/
+regulatório atualizado deve anteceder promessa comercial ou habilitação clínica.
 
 Dados de demonstração exercitam telas e permissões; não medem desempenho clínico. O piloto exige casos anonimizados e respostas previamente revisadas por médicos.

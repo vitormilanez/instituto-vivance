@@ -1,5 +1,9 @@
 # C1 — base operacional
 
+> Histórico: preserva o que foi observado nessa etapa, inclusive pendências depois
+> superadas. Não define o estado atual. Consulte `docs/README.md`,
+> `docs/STATUS_ATUAL.md` e o contrato vigente na raiz do repositório.
+
 Auditoria inicial de 29/09/2026. Referência de código: `origin/main` no commit
 `5a64be9`. Este registro não altera banco, ambiente ou dados.
 

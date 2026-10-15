@@ -1,13 +1,15 @@
 # Exames: recebimento controlado e análise longitudinal para o médico
 
-**Plano aprovado para execução em 11/10/2026 (São Paulo); implementação e QA em andamento.**
+**Contrato aprovado e fase técnica implementada/publicada em 11/10/2026;
+estado reconciliado em 14/10.** Qualidade/curadoria e aceite clínico continuam
+pendentes; o diagnóstico inicial abaixo é histórico, não inventário corrente.
 Pedido: validar todos os exames recebidos, limitar a 15 uploads diferentes com
 desbloqueio médico, tornar resultados/referências intuitivos e preparar um resumo
 de passado e presente com possibilidades para avaliação médica, economizando IA.
 Após o planejamento, o usuário autorizou implementação completa, testes e
 publicação com execução GPT-6.1 e revisão Astra. Confirmou que as contas e
 documentos envolvidos são de teste e pediu reaproveitar os PDFs existentes.
-Evidências e limites da entrega estão no [registro da fase](ENTREGA_EXAMES_2026-10-11.md).
+Evidências e limites da entrega estão no [registro da fase](historico/entregas/EXAMES_2026-10-11.md).
 
 ## 1. Decisão solicitada e premissas propostas
 
@@ -30,7 +32,11 @@ quatro PDFs existentes da sua conta. A habilitação ocorre por sessão médica,
 com declaração sintética e auditoria; originais permanecem preservados.
 [Gate P](GATE_P.md) e [IA1–IA6](PLANO_IA_CLINICA.md) seguem aplicáveis antes de dados reais.
 
-## 2. Diagnóstico e reaproveitamento
+## 2. Diagnóstico inicial e reaproveitamento — fotografia anterior à execução
+
+As lacunas desta seção foram a base da implementação de 11/10. Não reabrir
+cota, deduplicação ou publicação como se ainda faltasse código; conferir
+[Status](STATUS_ATUAL.md) e o registro da fase antes de propor trabalho.
 
 Base de código consultada: árvore de aplicação do worktree de release em
 `6440b28`, equivalente à `main` observada `2f93b70` (#133). O checkout canônico
@@ -319,27 +325,18 @@ Reversão: desabilitar novas concessões/gerações por feature flag, preservar
 originais, revisões e versões, manter leitura/manual disponíveis; não desfazer
 histórico nem retirar proteção de acesso para recuperar serviço.
 
-## 10. Preparação para Git e execução
+## 10. Manutenção e evolução após a entrega
 
-Este documento é a fonte única do novo fluxo; direção/status/IA2/plano clínico e
-checkpoints contêm somente links e decisões resumidas. O primeiro trabalho após
-aprovar as premissas é **IA2.a**, não o gerador de hipóteses.
+Este documento mantém o contrato do fluxo. IA2.a/conferência/resumo/publicação
+já foram implementados; não reconstruir a cota como próximo slice. O trabalho
+restante é avaliação médica de qualidade, curadoria, métricas e gates descritos
+na direção/checkpoints. As partes condicionais de hipóteses/uso real continuam
+dependentes dos aceites, não liberadas só porque existe código.
 
-Pacote local: este plano, `DIRECAO_E_SLICES.md`, `STATUS_ATUAL.md`,
-`CHECKPOINTS_ENTREGAS.md`, `IA2_EXAMES.md`, `PLANO_IA_CLINICA.md` e `README.md`
-do diretório `docs/`. Na fase de implementação, acrescentar código, migrations,
-testes e registro específico da entrega. Preparar revisão por caminhos explícitos;
-não incluir arquivos ` 2`, credenciais, outputs ou mudanças de outras entregas.
-Ao integrar, reaplicar este patch sobre a main atualizada e reconciliar os
-registros recentes de publicação, sem substituí-los pelo histórico mais antigo
-da branch local. O pedido posterior autoriza commit, integração e publicação
-após revisão e verificação; consultar o registro da fase antes de operar.
-
-Handoff para o quadro de execução, quando autorizado a sincronizar: **IA2.a —
-cota de 15 exames distintos, liberação médica auditada e estados de recebimento**;
-subtarefas de contrato/RLS e concorrência, deduplicação/reserva, jornada
-paciente/médico e QA sintético. Vincular a este plano e manter aceite clínico
-separado. O registro da fase distingue a atualização do Asana do planejamento local anterior.
+Ao alterar contrato, preparar diff dirigido sobre a main atual, testes de risco
+e registro da entrega; não incluir cópias ` 2`, credenciais ou trabalho alheio.
+Decisão e tarefa de execução devem refletir o estado real. Autorização passada
+de uma publicação não libera novos fornecedores, finalidade clínica ou dados reais.
 
 ## 11. Fontes técnicas consultadas
 

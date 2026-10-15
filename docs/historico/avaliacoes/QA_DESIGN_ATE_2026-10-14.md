@@ -1,5 +1,9 @@
 # QA — fechamento publicado e transcrição gratuita (14/10/2026)
 
+> Histórico: preserva o que foi observado nessa etapa, inclusive pendências depois
+> superadas. Não define o estado atual. Consulte `docs/README.md`,
+> `docs/STATUS_ATUAL.md` e o contrato vigente na raiz do repositório.
+
 Final result: **passed** para a entrega técnica sintética publicada no PR137,
 aplicação `a1d2153`, deployment `dpl_5g2yuAvA3yMAH2S8yzY4CFk9JDHD`.
 O gate remoto de outreach foi resolvido: migration aplicada e uma mensagem QA
@@ -20,7 +24,7 @@ Não representa aceite clínico ou teste de áudio real.
   `doctor-home.css` já haviam sido removidos. Divisórias neutras de1px mantidas.
 - Áudio do fornecedor, aparelho físico e chamada real com dois participantes
   não validados; testes determinísticos não comprovam precisão da transcrição.
-  [Registro final](docs/ENTREGA_WORKSPACE_E_TRANSCRICAO_2026-10-14.md).
+  [Registro final](../entregas/WORKSPACE_E_TRANSCRICAO_2026-10-14.md).
 
 ---
 
@@ -32,17 +36,17 @@ usuário separado. O gate remoto de envio coletivo da entrega anterior continua
 
 ## Comparação e evidência
 
-Fonte: [Hoje aprovada implementada](output/hoje-redesign/hoje-auth-desktop.jpg).
+Fonte: Hoje aprovada implementada (artefato local não versionado: `output/hoje-redesign/hoje-auth-desktop.jpg`).
 Comparada às capturas renderizadas, não a um protótipo inexistente das três áreas.
 Adaptação funcional intencional: calendário, lista e conversa mantêm suas tarefas.
 
-- [Agenda desktop](output/hoje-redesign/agenda-modern-desktop.png),
-  [mobile](output/hoje-redesign/agenda-modern-mobile.png),
-  [semana tablet](output/hoje-redesign/agenda-modern-tablet.png).
-- [Pacientes desktop](output/hoje-redesign/pacientes-modern-desktop.png),
-  [mobile](output/hoje-redesign/pacientes-modern-mobile.png).
-- [Mensagens desktop](output/hoje-redesign/mensagens-modern-desktop.png),
-  [mobile](output/hoje-redesign/mensagens-modern-mobile.png).
+- Agenda desktop (artefato local não versionado: `output/hoje-redesign/agenda-modern-desktop.png`),
+  mobile (artefato local não versionado: `output/hoje-redesign/agenda-modern-mobile.png`),
+  semana tablet (artefato local não versionado: `output/hoje-redesign/agenda-modern-tablet.png`).
+- Pacientes desktop (artefato local não versionado: `output/hoje-redesign/pacientes-modern-desktop.png`),
+  mobile (artefato local não versionado: `output/hoje-redesign/pacientes-modern-mobile.png`).
+- Mensagens desktop (artefato local não versionado: `output/hoje-redesign/mensagens-modern-desktop.png`),
+  mobile (artefato local não versionado: `output/hoje-redesign/mensagens-modern-mobile.png`).
 
 ## Rodada agrupada e confirmação
 
@@ -81,11 +85,11 @@ visual e navegação local descritas abaixo passaram. Publicação não realizad
   hierarquia, identidade e estados; não comparação pixel a pixel. Referências
   1536×1024, desktop CSS aferido em 1535×1024; navegador preserva zoom existente
   (DPR 0,9), capturas raster podem conter margem. Captura final em largura CSS1422.
-- Evidências: [Hoje autenticado](output/hoje-redesign/hoje-auth-desktop.jpg),
-  [paciente desktop](output/hoje-redesign/paciente-auth-desktop.jpg),
-  [paciente 320px](output/hoje-redesign/paciente-320.jpg),
-  [dia vazio completo](output/hoje-redesign/hoje-vazio-final.jpg),
-  [carrossel 320px](output/hoje-redesign/hoje-vazio-320.jpg).
+- Evidências: Hoje autenticado (artefato local não versionado: `output/hoje-redesign/hoje-auth-desktop.jpg`),
+  paciente desktop (artefato local não versionado: `output/hoje-redesign/paciente-auth-desktop.jpg`),
+  paciente 320px (artefato local não versionado: `output/hoje-redesign/paciente-320.jpg`),
+  dia vazio completo (artefato local não versionado: `output/hoje-redesign/hoje-vazio-final.jpg`),
+  carrossel 320px (artefato local não versionado: `output/hoje-redesign/hoje-vazio-320.jpg`).
 
 ## Resultado da rodada agrupada
 
@@ -118,7 +122,7 @@ visual e navegação local descritas abaixo passaram. Publicação não realizad
 Suite limpa567/567, tipos/build finais passaram e lint zero erros/um aviso anterior;
 testes SQL de outreach locais. Duplicados anteriores ` 2.sql`
 quebram o bootstrap do checkout; cópia limpa evita duplicação sem apagar arquivos.
-Ver [registro da entrega](docs/ENTREGA_HOJE_2026-10-14.md) para escopo e limitações.
+Ver [registro da entrega](../entregas/HOJE_2026-10-14.md) para escopo e limitações.
 Falta aplicar contrato no ambiente confirmado e verificar entrega/recebimento
 sintéticos antes da publicação. Aceite do usuário e Gate P continuam separados.
 
@@ -147,8 +151,8 @@ e compositor vazio; menu móvel fechou ao abrir o convite. Sem envios nesta roda
 
 Widgets, Pacientes e Mensagens sem overflow em 1440/320px; screenshots com
 viewport CSS aferido em DOM e devicePixelRatio1:
-[desktop](output/widgets-fluidez-20261011/site-publicado-desktop.png),
-[320px](output/widgets-fluidez-20261011/site-publicado-320.png).
+[desktop](../../../output/widgets-fluidez-20261011/site-publicado-desktop.png),
+[320px](../../../output/widgets-fluidez-20261011/site-publicado-320.png).
 Console não registrou erros; consulta limitada a10min de erros do deployment
 retornou zero entradas. Envio/paginação com conversa preenchida não testados.
 A tentativa de conferir guarda de rascunho foi inconclusiva pela interação do
@@ -159,8 +163,8 @@ As seções abaixo preservam as evidências da implementação local anterior.
 ## Referência e evidência
 
 - Fonte aprovada: `/Users/vitormilanez/.codex/generated_images/01a12ce7-3b52-7400-9d4f-7a71bf83f09f/exec-38013fc2-5bd3-424d-872d-bc14825ca3ca.png` (1659 × 948).
-- Implementação: [Hoje autenticado](output/widgets-fluidez-20261011/hoje-final.png), viewport DOM 1440 × 900.
-- Responsivo: [Hoje em 320 px](output/widgets-fluidez-20261011/widgets-320.png), captura de página inteira.
+- Implementação: Hoje autenticado (artefato local não versionado: `output/widgets-fluidez-20261011/hoje-final.png`), viewport DOM 1440 × 900.
+- Responsivo: Hoje em 320 px (artefato local não versionado: `output/widgets-fluidez-20261011/widgets-320.png`), captura de página inteira.
 - Fonte e captura foram inspecionadas juntas. Comparação de hierarquia,
   proporções dos módulos e identidade; não foi feita diferença pixel a pixel.
   A referência e o app usam dimensões diferentes, e o navegador mantém seu zoom
@@ -227,4 +231,4 @@ migration, Edge Function, ampliação de permissão ou mudança em IA clínica.
   Controle de viewport não alterou a aba isolada; captura foi corretamente
   identificada como desktop, sem alegação de teste móvel.
 - Evidência: `output/teleconsulta-meet-20261014/teleconsulta-desktop.png`.
-- [Ativação e limites](docs/TELECONSULTA_GOOGLE_MEET.md).
+- [Ativação e limites](../../TELECONSULTA_GOOGLE_MEET.md).

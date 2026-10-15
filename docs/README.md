@@ -1,76 +1,78 @@
 # Documentação do Vivance
 
-Atualizada em 11/10/2026. Comece pelos documentos vigentes abaixo; evidências
-com data e material de protótipos ficam identificados como histórico.
+Reconciliada em **14/10/2026** com `origin/main`, código e verificações técnicas
+identificadas no [estado atual](STATUS_ATUAL.md). Documentos abaixo têm funções
+distintas; relatórios antigos não são novas instruções de execução.
 
-## Comece aqui
+## Entrada única
 
-| Documento | Pergunta que responde |
+| Documento | Responsabilidade |
 | --- | --- |
-| [Workspace e transcrição gratuita](ENTREGA_WORKSPACE_E_TRANSCRICAO_2026-10-14.md) | O que foi validado/publicado e quais são os limites da transcrição? |
-| [Direção e slices](DIRECAO_E_SLICES.md) | O que estamos construindo e em que ordem? |
-| [Estado atual](STATUS_ATUAL.md) | O que existe, qual evidência o sustenta e o que falta? |
-| [Checkpoints das entregas](CHECKPOINTS_ENTREGAS.md) | Qual item executar agora e o que falta para marcar cada slice? |
-| [Onboarding paciente](ONBOARDING_PACIENTE.md) | Como o paciente começa e completa alimentação, fotos e exames? |
-| [Avaliação Paciente × Médico × IA](AVALIACAO_JORNADA.md) | Quais lacunas de UX/dados foram encontradas e qual sequência está proposta? |
-| [Handoff dos exames IA2](IA2_EXAMES.md) | Qual é a base integrada, o contrato Claude sintético e seus limites? |
-| [Fluxo de exames e análise longitudinal](FLUXO_EXAMES_E_ANALISE_LONGITUDINAL.md) | Qual é o contrato de 15 uploads, liberação, conferência, resumo e economia de IA? |
-| [Entrega dos exames em 11/10](ENTREGA_EXAMES_2026-10-11.md) | O que foi implementado/testado e qual é o estado da publicação e do aceite? |
-| [Conta permanente de QA](CONTA_TESTE.md) | Como preparar a identidade sintética sem registrar credenciais no Git? |
-| [Consolidação dos checkouts](CONSOLIDACAO_REPOSITORIO.md) | Qual é o único checkout canônico e o que foi consolidado? |
-| [Retomada do desenvolvimento](RETOMADA_DESENVOLVIMENTO.md) | Como preparar a próxima proposta e desenvolver/testar por slice? |
-| [Funcionalidades](FUNCIONALIDADES.md) | Quais contratos funcionais a aplicação preserva? |
-| [Plano de IA clínica](PLANO_IA_CLINICA.md) | Quais capacidades são futuras e quais gates exigem? |
-| [Gate P](GATE_P.md) | O que precisa estar aceito antes de dados clínicos reais? |
+| [Estado atual](STATUS_ATUAL.md) | O que está implementado/publicado e o que não foi validado. |
+| [Direção e slices](DIRECAO_E_SLICES.md) | Decisões de produto, limites e ordem do trabalho restante. |
+| [Checkpoints](CHECKPOINTS_ENTREGAS.md) | Pendências reais de execução e aceite; não um log de comandos. |
+| [Método de desenvolvimento](RETOMADA_DESENVOLVIMENTO.md) | Investigar, propor, implementar e testar proporcionalmente. |
+| [Funcionalidades](FUNCIONALIDADES.md) | Catálogo funcional vigente, sem confundir código com serviço clínico liberado. |
 
-## Implementação e operação
+## Contratos do produto
 
-- [Aplicação atual](../apps/web/README.md): entrada para `apps/web`.
-- [Guia operacional Codex](GUIA_OPERACIONAL_CODEX.md): localizar áreas, conferir
-  destinos, publicar, verificar e recuperar uma versão.
-- [Pipeline de publicação](PIPELINE_PUBLICACAO.md): contrato de código, banco e Vercel.
-- [Teleconsulta](TELECONSULTA.md): contrato do link externo e evidência datada.
-- [Briefing da consulta e peso](BRIEFING_CONSULTA_2026-10-07.md): contrato e evidências
-  dos PRs #82/#84; limites da conferência autenticada.
+- [Produto](../PRODUCT.md) e [sistema visual canônico](../apps/web/DESIGN.md).
+- [Onboarding do paciente](ONBOARDING_PACIENTE.md).
+- [Ficha e briefing do paciente](FICHA_PACIENTE.md): fontes, medidas, histórico e IA opcional.
+- [Exames IA2](IA2_EXAMES.md): pipeline e manutenção.
+- [Recebimento e resumo longitudinal de exames](FLUXO_EXAMES_E_ANALISE_LONGITUDINAL.md):
+  cota de 15, liberação, conferência, cache, aprovação e publicação.
+- [Teleconsulta](TELECONSULTA.md): agendamento/link externo e registro.
+- [Google Meet e transcrição](TELECONSULTA_GOOGLE_MEET.md): manual disponível,
+  nativa preparada/OFF, autorização e segurança.
+- [Consentimento e pós-consulta](CONSENTIMENTO_E_POS_CONSULTA.md):
+  pedido ainda não implementado, com dependências e aceites.
+- [Plano de IA clínica](PLANO_IA_CLINICA.md) e [Gate P](GATE_P.md):
+  governança/curadoria/aceite antes de dados reais.
 
-## Virada 90 — frente comercial
+## Engenharia e operação
 
-- [Jornada](VIRADA90_JORNADA.md), [conteúdo](virada90/CONTEUDO_E_IMAGENS.md) e
-  [design](virada90/DESIGN.md).
-- [Funil](virada90/FUNIL_COMERCIAL_LEVE.md), [medição Google](virada90/MEDICAO_GOOGLE.md)
-  e [acompanhamento no CRM](virada90/MODELO_ACOMPANHAMENTO.md).
-- [Último release registrado](virada90/releases/2026-10-07-conversion-refinement/README.md).
-  Os demais registros permanecem em `virada90/releases/`, por data.
+- [Aplicação atual](../apps/web/README.md), [guia operacional](GUIA_OPERACIONAL_CODEX.md)
+  e [pipeline de publicação](PIPELINE_PUBLICACAO.md).
+- [Checkout canônico](CONSOLIDACAO_REPOSITORIO.md), [credenciais sem valores](../CREDENCIAIS.md)
+  e [contas de teste](CONTA_TESTE.md).
+- [Convites e arquivamento](../OPERACAO_LIMPEZA_E_CONVITES.md) e
+  [SMTP/entrega de e-mail](../OPERACAO_SUPABASE_EMAIL.md). Operações passadas
+  não autorizam repetir limpeza, envio ou reset.
 
-## Histórico e evidências
+## Frente comercial separada
 
-- [Histórico útil](historico/README.md): decisões únicas e evidências de regressão;
-  cópias redundantes foram removidas, com recuperação pelo Git.
-- [C1 em 29/09](C1_BASE_OPERACIONAL_2026-09-29.md): inventário operacional daquela data.
-- [Plano de convite/atendimento de 25/09](historico/PLANO_CONVITE_E_ATENDIMENTO_2026-09-25.md)
-  e [entrega local correspondente](historico/ENTREGA_LOCAL_REFINAMENTOS_2026-09-25.md).
-- [QA da continuidade do paciente](qa/patient-continuity/README.md) e
-  [proposta de não visto](propostas/2026-09-22-nao-visto/README.md).
+[Virada90](VIRADA90_JORNADA.md): [conteúdo](virada90/CONTEUDO_E_IMAGENS.md),
+[design](virada90/DESIGN.md), [funil](virada90/FUNIL_COMERCIAL_LEVE.md),
+[medição](virada90/MEDICAO_GOOGLE.md) e [acompanhamento](virada90/MODELO_ACOMPANHAMENTO.md).
+Registros de publicação ficam em `virada90/releases/`; números de campanhas,
+metas e integrações são fotografias datadas, não auditoria atual dessas contas.
 
-## Referências na raiz
+## Histórico e material não vigente
 
-[README](../README.md) · [Produto](../PRODUCT.md) · [Design](../DESIGN.md) ·
-[AGENTS](../AGENTS.md). `app/`, `db/` e `drizzle/` são legado; a aplicação atual
-fica em `apps/web/`.
+- [Índice do histórico](historico/README.md): releases, avaliações e planos antigos.
+- [Linha do tempo até 14/10](historico/EVOLUCAO_ATE_2026-10-14.md):
+  marcos e acesso às versões integrais anteriores pelo Git.
+- [QA auxiliar](qa/patient-continuity/README.md) e
+  [proposta de 22/09](propostas/2026-09-22-nao-visto/README.md): material de referência,
+  não roteiro autorizado nem funcionalidade entregue.
 
-## Como manter
+## Política de manutenção
 
-- **Direção** guarda objetivos, decisões e sequência; **status** guarda o resumo
-  datado das evidências e pendências. Logs extensos e IDs de release ficam nos
-  registros específicos, com links a partir desses dois documentos.
-- Código, migrations e evidência viva sustentam afirmações de implementação.
-  Conversas autorizadas e direção aprovada sustentam escopo; uma não substitui a outra.
-- Distinguir `proposto`, `implementado`, `validado localmente`, `validado em Preview`,
-  `publicado tecnicamente` e `aceito clinicamente`. Não promover um estado por inferência.
-- Atualizar a seção correspondente, em vez de colar o mesmo relatório em vários MDs.
-  Usar links relativos e nomes sem sufixos de cópia, como ` 2.md`.
-- Após decisões de produto, reconciliar direção/status e a tarefa existente do Asana.
-  Um card pode estar atrasado; não comprova entrega. Esta organização documental
-  não altera tarefas nem declara um novo aceite.
-- Ao retomar um histórico, conferir novamente branch, PR, ambiente e permissões.
-  `READY`, HTTP 200 e uma captura não provam a jornada completa nem o Gate P.
+1. Alterar a seção vigente em vez de acrescentar outro relatório no topo.
+   Direção guarda decisões; status, uma fotografia datada; checkpoints, trabalho restante.
+2. Guardar IDs, logs e capturas por entrega no histórico. Não copiar o mesmo
+   resultado em vários contratos; ligar ao registro original.
+3. Distinguir **proposto → implementado → validado local/Preview → publicado
+   tecnicamente → aceito operacional/clinicamente**. Uma etapa não prova a outra.
+4. Código/migrations comprovam implementação; ambientes e jornada autenticada
+   comprovam somente o que foi observado. Asana acompanha execução, não substitui evidência.
+5. Arquivar com aviso de não vigência, corrigir links e preservar contratos únicos.
+   Versões substituídas de status/direção/checkpoints são recuperáveis pelo Git;
+   não manter cópias integrais só para mover a bagunça.
+6. Não versionar senhas, tokens, sessões, exports OAuth, dados clínicos ou
+   sufixos locais ` 2.md`. Arquivos locais não versionados de outros trabalhos
+   não são lixo autorizado para exclusão.
+7. Mudança só documental exige revisão de coerência, links e diff. A integração
+   Git da Vercel pode construir a `main` até em um merge documental; não
+   confundir organização de docs com autorização de nova operação remota.

@@ -1,6 +1,7 @@
 # Credenciais do Vivance
 
-Atualizado em 11/10/2026. Este documento contém somente nomes e caminhos; nenhum valor secreto.
+Inventário documental atualizado em 14/10/2026. Somente nomes e caminhos,
+nunca valores secretos; disponibilidade/rotação remota exigem verificação própria.
 
 ## Arquivo central local
 
@@ -31,12 +32,21 @@ modo `0600` restringe leitura ao usuário do computador.
 | Worker de exames | `EXAM_WORKER_CRON_SECRET`, recuperado do Vault do projeto confirmado e conferido pelo digest Edge |
 | QA | E-mail e senha de médico/paciente sintéticos, sob `VIVANCE_TEST_*` |
 | Configuração operacional | `PATIENT_INVITE_REDIRECT_URL`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` |
+| Google Meet de teste | `GOOGLE_MEET_CLIENT_ID`, `GOOGLE_MEET_CLIENT_SECRET`, `GOOGLE_MEET_REDIRECT_URI`, `GOOGLE_MEET_TOKEN_ENCRYPTION_KEY` e `GOOGLE_MEET_TRANSCRIPTION_ENABLED=false` |
 
 O projeto Supabase é `oxuwrdjojsmgxoljqkuk`, temporário para testes sintéticos.
 A aplicação pública permanece em `vtr-consulting/instituto-vivance`.
 Somente as duas variáveis `NEXT_PUBLIC_*` são públicas; jamais renomear uma
 chave secreta com esse prefixo. Os valores anteriores foram preservados e os
 quatro caminhos de compatibilidade resolveram para o arquivo central.
+
+As quatro credenciais Google foram preparadas como Secrets de servidor na
+Production da Vercel, e a flag nativa como Config `false`. Export OAuth local
+fica em `.codex_tmp/google-meet-oauth-test-client.json`, ignorado e0600; não anexar,
+imprimir ou versionar. Não regenerar a chave de criptografia para repetir setup.
+Projeto Google Testing/conta e concessão pessoal pendente no
+[contrato Meet](docs/TELECONSULTA_GOOGLE_MEET.md). Não há callback local/Preview
+registrado por essa preparação.
 
 ## O que ainda falta
 
@@ -50,7 +60,7 @@ e `VERCEL_TOKEN`. As CLIs estão autenticadas pelos cofres próprios do
 computador e permitem as operações manuais atuais; esses acessos globais não
 foram exportados como tokens de CI.
 
-A leitura de metadados do GitHub confirmou zero secrets/variables tanto no
+A leitura de metadados de 11/10 confirmou zero secrets/variables tanto no
 repositório quanto no environment `production`. Para habilitar a publicação
 automática de banco/Edge/promoção, ainda são necessários os três secrets acima
 e as variáveis `SUPABASE_PROJECT_ID`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`.
@@ -64,9 +74,10 @@ substituídos. Uma chave existir remotamente não significa haver backup local.
 Nenhuma chave adicional é necessária para o WhatsApp manual: o produto abre
 `wa.me` com texto e link, e a equipe confirma o envio no aplicativo.
 
-## Publicação e WhatsApp
+## Publicação histórica e WhatsApp
 
-Em 11/10, o domínio oficial foi reconferido no deployment
+O deployment abaixo é histórico; para a publicação vigente, consultar
+[Status](docs/STATUS_ATUAL.md). Em11/10, o domínio foi reconferido no deployment
 `dpl_7k8WpipTjZuJKRYrhjkNn7u3xCfx`, código `18a6a188`; `/login` e `/convite`
 responderam HTTP 200. As três Edge Functions de convite estão ACTIVE
 (`invite-patient` v10, claim v9, staff v9). SMTP e template Auth foram

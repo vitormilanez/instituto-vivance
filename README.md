@@ -1,19 +1,40 @@
 # Instituto Vivance
 
-Plataforma de cuidado longitudinal com decisão e publicação sob responsabilidade do médico. A aplicação Next.js está em [`apps/web`](apps/web/README.md); banco, migrations e Edge Functions estão em [`supabase`](supabase).
+Plataforma de cuidado longitudinal supervisionado pelo médico. A aplicação atual
+é [apps/web](apps/web/README.md); migrations e Edge Functions ficam em
+[supabase](supabase). `app/`, `db/` e `drizzle/` na raiz são legado, não o deploy.
 
-## Ponto de partida
+## Comece aqui
 
-O checkout Git consolidado é `/Users/vitormilanez/Desktop/Codes/vivance`. Confirme `git status`, branch, remoto e SHA antes de trabalhar. Os sete checkouts antigos foram removidos após [consolidação](docs/CONSOLIDACAO_REPOSITORIO.md). Leia [AGENTS](AGENTS.md), [direção](docs/DIRECAO_E_SLICES.md), [estado atual](docs/STATUS_ATUAL.md) e [checkpoints](docs/CHECKPOINTS_ENTREGAS.md). O [índice](docs/README.md) aponta aos contratos e evidências.
+1. [Índice da documentação](docs/README.md).
+2. [Estado atual](docs/STATUS_ATUAL.md): implementação, publicação e limites.
+3. [Direção](docs/DIRECAO_E_SLICES.md) e [checkpoints](docs/CHECKPOINTS_ENTREGAS.md):
+   decisões vigentes e pendências, sem misturar o histórico.
+4. [AGENTS](AGENTS.md), [método por slices](docs/RETOMADA_DESENVOLVIMENTO.md) e
+   [guia operacional](docs/GUIA_OPERACIONAL_CODEX.md) antes de atuar.
 
-A frente atual organiza resultados de exames sintéticos em campos estruturados com arquivo, página e trecho verificáveis, revisão médica por item e leitura progressiva na ficha. Claude Haiku 5.5, com Sonnet 5.5 como fallback, foi integrado pelo PR #106 e publicado tecnicamente no dev sintético. O PR #107 está integrado e publicado tecnicamente no domínio sintético; médico autenticado conferiu o novo rótulo e a persistência após recarga. Consulte o [handoff IA2](docs/IA2_EXAMES.md) para cobertura parcial e próximo slice. Publicação técnica e aceite clínico seguem marcos separados.
+O workspace médico, o fluxo de exames com cota/revisão/resumo factual e a
+transcrição manual do navegador estão publicados tecnicamente para testes
+sintéticos. Google Meet está preparado, com conexão pessoal pendente e
+transcrição nativa desligada. Consentimento direto do paciente e automação
+pós-consulta ainda não estão implementados. Consulte os contratos no índice.
 
-## Rodar e verificar
+## Desenvolvimento
 
-Requer Node.js 24. Em `apps/web`, execute `npm ci` e `npm run dev`. Para o slice alterado, rode testes dirigidos; antes da integração, cumpra os checks exigidos pelo lote/CI: `npm test`, `npm run lint`, `npm run typecheck` e `npm run build`.
+Node.js 24. Em `apps/web`: `npm ci`, `npm run dev`. Testes proporcionais ao
+lote; antes de integrar código, cumprir os checks pertinentes de teste, lint,
+tipos e build. Para documentação, conferir links, estados e `git diff --check`;
+não executar E2E só por Markdown.
 
-Segredos e credenciais locais ficam em arquivos `.env*` ignorados pelo Git. A [conta sintética permanente de QA](docs/CONTA_TESTE.md) tem local de credenciais e escopo registrados sem senha neste repositório.
+O checkout canônico é `/Users/vitormilanez/Desktop/Codes/vivance`. Confira
+Git/branch/remoto antes de editar e preserve mudanças locais. Credenciais ficam
+no [cofre local ignorado](CREDENCIAIS.md), nunca em commits.
 
 ## Limites
 
-O projeto `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`) é o destino único temporário para testes sintéticos. O domínio público ainda usa esse ambiente; isso não torna o banco apto a dados reais. Antes de uso clínico, separar produção e cumprir o [Gate P](docs/GATE_P.md). IA pode extrair e organizar fatos com origem; não diagnostica, prescreve, determina urgência nem publica orientação sozinha. Aprovação médica e publicação ao paciente são ações distintas.
+O domínio público usa temporariamente `instituto-vivance-dev`
+(`oxuwrdjojsmgxoljqkuk`) exclusivamente para testes sintéticos. Publicação
+técnica não autoriza dados reais: separar produção e cumprir o
+[Gate P](docs/GATE_P.md). IA organiza fatos com fonte; não diagnostica,
+prescreve, determina urgência ou publica orientação sozinha. Aprovar e publicar
+são ações médicas distintas.

@@ -43,7 +43,7 @@ O produto não tenta substituir o prontuário ou automatizar decisões médicas.
 ## Brand Commitments
 
 - Nome público: VIVANCE.
-- Identidade: azul-marinho, branco, azul-claro em pontos de orientação e dourado restrito ao logo.
+- Identidade: azul-marinho, branco, azul-claro em pontos de orientação e dourado pontual nos elementos de identidade existentes, sem classificar gravidade clínica.
 - Menus e barras podem usar transparência semelhante a vidro quando isso ajuda a separar navegação e conteúdo; o restante permanece claro e simples.
 - A interface profissional deve parecer confiável, elegante e funcional; expressão visual não pode competir com tarefa, estado ou evidência.
 
@@ -56,7 +56,7 @@ O produto não tenta substituir o prontuário ou automatizar decisões médicas.
 
 ## Product Principles
 
-1. A pessoa selecionada aparece antes da coorte e o contexto precede a ferramenta.
+1. Na ficha/consulta, a pessoa selecionada e seu contexto precedem a ferramenta. Hoje é operacional: consultas do dia, indicadores reais e pendências, com acesso à ficha para aprofundar.
 2. Toda síntese volta à fonte; nenhuma inferência substitui a evidência original.
 3. A IA prepara e organiza, o profissional interpreta e decide.
 4. Ausência, conflito e baixa completude são estados visíveis, nunca preenchidos artificialmente.

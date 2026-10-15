@@ -1,5 +1,9 @@
 # Workspace médico e transcrição gratuita — 14/10/2026
 
+> Histórico: preserva o que foi observado nessa etapa, inclusive pendências depois
+> superadas. Não define o estado atual. Consulte `docs/README.md`,
+> `docs/STATUS_ATUAL.md` e o contrato vigente na raiz do repositório.
+
 ## Configuração Google de teste publicada — 14/10/2026
 
 Pedido **“Se estiver tudo certo, pode publicr”**: configuração publicada no
@@ -149,4 +153,4 @@ enviar áudio ao serviço Google; disponibilidade depende do navegador e da rede
 O texto fictício testa persistência/revisão, não precisão de fala ou aceite clínico.
 Entrega técnica sintética não fecha Gate P para dados reais.
 
-[Contrato de transcrição/configuração](TELECONSULTA_GOOGLE_MEET.md).
+[Contrato de transcrição/configuração](../../TELECONSULTA_GOOGLE_MEET.md).

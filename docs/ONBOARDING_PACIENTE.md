@@ -1,10 +1,10 @@
 # Onboarding do paciente
 
-Decisão do usuário em **09/10/2026**: priorizar o começo do paciente antes de ampliar
-C3/IA2. Implementação no pacote `codex/vivance-package-20261009`, PR #95.
-Superfície em modo **Operate**, com identidade paciente existente: Figtree,
-fundo quente, azul-marinho e dourado. Um grupo de perguntas por tela, escolhas
-com área de toque confortável e animação breve na conclusão.
+Contrato funcional reconciliado em **14/10/2026**. A sequência iniciada pelo
+PR95 e refinada pelos PR97/103/104 está integrada/publicada para testes sintéticos;
+não é uma branch futura. Superfície em modo **Operate**, preservando a identidade
+do paciente e o [Design canônico](../apps/web/DESIGN.md). Um grupo de perguntas
+por tela, escolhas confortáveis e animação breve na conclusão.
 
 ## Sequência e checkpoints
 
@@ -56,7 +56,10 @@ saúde. Ao editar pela revisão, Continuar retorna à conferência.
   A migration `20261010011422_patient_profile_context.sql` foi aplicada somente
   ao dev sintético em 09/10, após comparar o histórico local/remoto.
 
-## Evidência e próxima execução
+## Evidência histórica de 09–10/10 e limite de aceite
+
+Os itens abaixo descrevem cada rodada, não pendências de implementação ou
+inventário corrente. Estado publicado em [Status](STATUS_ATUAL.md).
 
 - [x] Wizard inicial percorrido no navegador local com fixture explícita e
   respostas de API interceptadas: início → dados → saúde → família → objetivo
@@ -121,7 +124,9 @@ alterações. Medidas aceitam vírgula ou ponto; altura em metros converte para
 
 Convite confirmado oferece entrada com o próprio e-mail: uma sessão de outra
 pessoa é encerrada localmente antes do login. O e-mail pré-preenchido é apenas
-uma sugestão, nunca concede acesso. Conta existente não recebe novo e-mail.
+uma sugestão, nunca concede acesso. A regra posterior distingue conta confirmada
+(entrada sem novo e-mail) de não ativada (novo e-mail de ativação solicitado).
+Conta existente não significa conta confirmada.
 Convite removido, consumido ou expirado retorna 410 com pedido de novo link;
 falha recuperável de envio retorna 503 e restaura o token para tentar novamente.
 
@@ -130,8 +135,9 @@ QA existente confirma e-mail; troca de sessão; login; aceite; todas as etapas
 do cadastro, edição de medidas pela revisão, envio e conclusão animada; Hoje
 apresenta alimentação; alimentação salva e retomada, três PNGs sintéticos e PDF
 fictício compartilhados. Banco confirmou 175 cm, 76,10 kg, data 10/10 e as
-três submissões complementares. Vitor permanece em `draft/profile`, medidas
-vazias: seu cadastro não foi preenchido pelo teste. 468 testes, typecheck, lint
+três submissões complementares. Naquela rodada, Vitor estava em `draft/profile`,
+medidas vazias: seu cadastro não foi preenchido pelo teste. Isso não descreve
+seu estado posterior. 468 testes, typecheck, lint
 (zero erros, aviso preexistente) e build passaram. Impeccable 4.5: revisão
 funcional e visual em 390/1440 px; corrigidos e-mail longo e validação ao voltar.
 Entrega real de e-mail para uma conta inexistente não foi comprovada; Google
