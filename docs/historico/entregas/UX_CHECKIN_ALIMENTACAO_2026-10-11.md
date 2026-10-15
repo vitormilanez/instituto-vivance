@@ -1,5 +1,9 @@
 # Check-in e alimentação — 11/10/2026
 
+> Histórico: preserva o que foi observado nessa etapa, inclusive pendências depois
+> superadas. Não define o estado atual. Consulte `docs/README.md`,
+> `docs/STATUS_ATUAL.md` e o contrato vigente na raiz do repositório.
+
 ## Direção implementada
 
 Energia → Sono → Fome → Banheiro → recado opcional. Cada resposta avança por
@@ -26,7 +30,7 @@ futura por IA continua identificada como indisponível.
 Product Design, sem Impeccable. Revisão independente com **GPT-6 Astra, high**,
 conforme escolha do usuário pelo modelo mais potente. Seis ilustrações originais
 geradas por ImageGen: energia esgotada/super-herói, sono, fome, banheiro e chef.
-Prompts em [README das ilustrações](../apps/web/public/illustrations/daily-moments/README.md).
+Prompts em [README das ilustrações](../../../apps/web/public/illustrations/daily-moments/README.md).
 
 A revisão encontrou dois P2 anteriores nos campos adicionais, corrigidos:
 motivo de tratamento oculto não acompanha adesão ausente/Sim; peso preenchido
@@ -85,9 +89,9 @@ literais. Inspeção direta das capturas finais em 390/320 px:
 | Ativos | Mascote original coerente nas etapas; duas expressões na energia. Imagens decorativas, texto anuncia a resposta. |
 | Conteúdo | Energia/Sono/Fome/Banheiro e recado; escolhas literais, horários editados explícitos, exemplos públicos sem envio. |
 
-Capturas versionadas: [check-in](images/daily-moments/checkin-390.png),
-[refeição](images/daily-moments/meal-390.png) e
-[demonstração a 320 px](images/daily-moments/landing-320.png).
+Capturas versionadas: [check-in](../../images/daily-moments/checkin-390.png),
+[refeição](../../images/daily-moments/meal-390.png) e
+[demonstração a 320 px](../../images/daily-moments/landing-320.png).
 Evidências completas locais: `output/playwright/daily-moments/`, ignoradas no
 Git, incluindo relatórios JSON, recibos e percurso médico. Credenciais e estados
 de sessão são locais, ignorados e não acompanham o PR.

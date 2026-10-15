@@ -45,4 +45,4 @@ um build que dependa de migration ainda não aplicada no ambiente de destino.
 Segredos e dados clínicos nunca devem ser gravados no repositório. A transcrição
 gratuita pelo navegador exige início/autorização e revisão médica explícitos;
 não grava áudio. Nativa do Meet preparada e desativada.
-[Entrega e limites](../../docs/ENTREGA_WORKSPACE_E_TRANSCRICAO_2026-10-14.md).
+[Entrega e limites](../../docs/historico/entregas/WORKSPACE_E_TRANSCRICAO_2026-10-14.md).

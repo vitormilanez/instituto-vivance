@@ -1,267 +1,92 @@
 # Direção do Vivance e próximos slices
 
-## Conta Google para teste — confirmação de 14/10/2026
+**Decisões vigentes reconciliadas em 14/10/2026.** Estado de publicação em
+[STATUS_ATUAL](STATUS_ATUAL.md), execução em [CHECKPOINTS](CHECKPOINTS_ENTREGAS.md)
+e decisões substituídas no [histórico](historico/EVOLUCAO_ATE_2026-10-14.md).
+Esta organização não autoriza iniciar um novo slice nem altera regras clínicas.
 
-Usuário autorizou sua conta `vtrconsultingbr@gmail.com` para teste sintético
-da integração. Autenticação e consentimento Google são pessoais; não reutilizar
-senha do Vivance, contratar plano ou habilitar captura em outras reuniões.
-Configuração OAuth/licença e chamada real não decorrem dessa autorização.
-Login conferido no perfil VTR; preparação usa o projeto separado
-`vivance-meet-teste`, sem mexer no AI Video Creator ou vincular faturamento.
-API/cliente Web, escopos e servidor preparados/publicados após a autorização
-de publicação. Google Auth fica **Testing**, somente essa conta de teste, e
-transcrição nativa explicitamente `false`. Grant pessoal continua pendente:
-`meetings.space.settings` abrange configurações de todas as chamadas, apesar do
-adapter restrito a salas próprias; obter ciência/autorização antes da concessão.
-Não confundir preparação técnica com conexão, licença ou chamada validada.
-[Estado da conexão](TELECONSULTA_GOOGLE_MEET.md).
+## Produto e fronteiras
 
-## Pedido pós-publicação — consentimento e pós-call, 14/10/2026
+Cuidado longitudinal supervisionado:
+**convite → contexto inicial → preparação → consulta → registro médico →
+acompanhamento → retorno**. O médico interpreta e decide. Relato literal,
+extração, cálculo, revisão, aprovação e publicação têm origens/estados distintos.
 
-Paciente deve receber e decidir sobre transcrição antes de entrar, sem cancelar
-o atendimento quando recusar. Médico precisa de estado claro e entrada simples;
-após a reunião, resumo e texto original ficam juntos na mesma consulta/ficha,
-privados e com revisão médica/publicação separadas. Preferir notas nativas do
-Google quando disponíveis, sem segunda chamada de IA ou fornecedor novo implícito.
-[Fluxo proposto e limites](TELECONSULTA_GOOGLE_MEET.md).
-Não implementado/ativado nesta rodada: OAuth preparado, mas conta não conectada,
-licença ainda desconhecida e automação exige contrato próprio de consentimento/
-background. Primeiro slice recomendado: aceite/recusa/retirada e entrada da consulta.
+O domínio público usa temporariamente o dev sintético `oxuwrdjojsmgxoljqkuk`.
+Dados reais exigem produção separada e [Gate P](GATE_P.md). Preservar registros
+de origem incerta; não repetir limpezas ou resets narrados no histórico.
 
-## Transcrição gratuita/publicação — atualização de 14/10/2026
+## Experiência aprovada e implementada
 
-Usuário autorizou validação mobile e publicação e esclareceu que deseja a
-transcrição gratuita iniciada pelo médico no navegador. Implementada com
-microfone ou aba+microfone compatível, autorização, original privado e revisão.
-Nativa do Meet continua preparada/desativada por flag server-side. Captura pode
-ser parcial e não interpreta/prescreve/preenche prontuário. Esta decisão autoriza
-áudio apenas durante o reconhecimento do navegador; não armazenamento de áudio
-ou IA clínica. [Contrato e evidências](TELECONSULTA_GOOGLE_MEET.md).
+- **Hoje:** visão operacional das consultas do dia e pendências de maior impacto.
+  Indicadores usam dados existentes; não simular tendências. Contexto clínico
+  detalhado pertence à ficha. Próxima consulta não domina a página principal.
+- **Navegação:** uma navegação principal inferior para o médico, branco/azul/navy,
+  com destinos secundários em Mais. Preservar os oito destinos/ações existentes;
+  a antiga grade gigante de widgets e o menu superior/lateral não são o layout vigente.
+  Outros papéis mantêm suas jornadas próprias.
+- **Sem consultas:** ação Agendar consulta → Agenda; carrossel manual de incentivo.
+  Texto e destinatários elegíveis são revisados antes do envio; nunca disparar
+  mensagens automaticamente nem presumir WhatsApp/e-mail.
+- **Pacientes:** lista, busca e acesso à ficha primeiro. Convite, histórico de
+  convites e cadastro sem app são tarefas locais separadas, com ações próximas.
+- **Agenda/Mensagens:** preservar calendário, modos, dados e rascunhos; priorizar
+  ação do horário e conversa. Contexto secundário sob expansão.
+- **Fluidez:** minimizar saltos, manter posição/rascunho quando aplicável, foco
+  acessível e movimento reduzido. Transição visual não prova salvamento.
 
-Publicação técnica concluída no PR137: 591 testes/CI, três migrations aplicadas
-no dev sintético e dois domínios no deployment final conferido. Reconhecimento
-real de voz e aceite clínico não decorrem desses testes.
-[Registro final](ENTREGA_WORKSPACE_E_TRANSCRICAO_2026-10-14.md).
+Contratos: [Design](../apps/web/DESIGN.md), [Ficha](FICHA_PACIENTE.md),
+[Onboarding](ONBOARDING_PACIENTE.md) e [Funcionalidades](FUNCIONALIDADES.md).
 
-## Teleconsulta nativa do Meet — decisão de 14/10/2026
+## Exames e IA
 
-Implementar conexão individual do médico e importar a transcrição nativa,
-com autorização específica registrada, original imutável e revisão sem
-publicação automática. Sem gravador próprio ou IA de síntese neste slice.
-Usuário desconhece a assinatura Google e autorizou **deixar preparada**;
-schema/configuração publicados; grant, licença e jornada nativa permanecem pendentes. UI segue branco/azul,
-navegação inferior e ações junto à consulta. [Contrato](TELECONSULTA_GOOGLE_MEET.md).
+Recebimento em ciclos de 15 arquivos distintos por paciente/clínica; novo ciclo
+somente pelo médico responsável, com motivo, versão e auditoria. Deduplicação
+não consome outra vaga nem chama IA novamente. Conferência dos itens, resolução
+de pendências documentais e aprovação do resumo são atos diferentes.
 
-## Decisão de interface — 14/10/2026
+A extração factual e o resumo sob solicitação com manifesto/cache já existem.
+Não planejar novamente a aprovação/publicação como se faltasse código: o fluxo
+foi publicado tecnicamente em 11/10. O próximo gate é qualidade/curadoria/aceite,
+não um gerador livre de hipóteses. Possibilidades só com fontes autorizadas e
+aplicáveis, revisão médica e gates do [plano clínico](PLANO_IA_CLINICA.md).
 
-Extensão aprovada para Agenda, Pacientes e Mensagens: mesma base branca/azul e
-navegação inferior única. Agenda preserva calendário e modos existentes; lista
-de pacientes é o foco, com convites separados; conversa prioriza mensagens e
-mantém contexto clínico sob expansão. Sem novas regras de banco ou envio.
+Usar regras determinísticas para datas, medidas e comparações inequívocas.
+Modelo só para organizar informação autorizada com qualidade, custo e fonte
+verificáveis. Não chamar IA ao abrir a ficha. RAG exige biblioteca curada;
+MCP não substitui autorização, proveniência ou revisão.
 
-Hoje é uma visão operacional de consultas do dia e pendências; contexto clínico
-detalhado fica no paciente. Manter branco/azul existente e apenas uma navegação
-principal inferior, preservando oito destinos no menu. Sem consultas, oferecer
-Agendar consulta e mensagens de incentivo em carrossel manual. Disparo interno
-somente após revisão do texto e confirmação dos destinatários elegíveis do
-médico; nunca automático. [Implementação local e gate remoto](ENTREGA_HOJE_2026-10-14.md).
+## Teleconsulta: direção atual
 
-## Exames: direção executada em 11/10
+- **Disponível:** link manual de sala externa e transcrição gratuita do
+  navegador, iniciada pelo médico. Captura pode ser parcial; sem áudio armazenado.
+- **Preparado:** conexão individual Google e sala exclusiva do agendamento.
+  Projeto de teste separado, API/cliente/configuração de servidor publicados.
+  Google Auth Testing somente para `vtrconsultingbr@gmail.com`; grant pessoal
+  pendente e transcrição nativa `false`.
+- Escopo `meetings.space.settings` abrange configurações de todas as chamadas,
+  embora o adapter só opere salas próprias. Obter ciência na concessão; não
+  remover o OFF dos artefatos para esconder esse alcance.
+- **Pedido ainda não implementado:** paciente decide antes de entrar; recusar
+  não cancela atendimento; médico vê estado curto; resumo e original ficam na
+  mesma consulta após o provedor concluir. Preferir notas Google quando elegíveis,
+  sem fornecedor/chamada de IA adicional implícitos.
 
-Usuário autorizou implementação integral e publicação do [plano de exames](FLUXO_EXAMES_E_ANALISE_LONGITUDINAL.md),
-com GPT-6.1 na execução/Astra nos contratos críticos, usando as contas e PDFs
-explicitamente declarados de teste. Adotados 15 arquivos distintos por
-paciente/clínica/ciclo, liberação médica auditada e deduplicação. Extração,
-conferência documental, fatos revisados, resumo com snapshot/cache, aprovação
-e publicação são ações rastreáveis. Fontes clínicas têm cadastro/curadoria e
-retirada explícitos; possibilidades só com fontes aplicáveis autorizadas.
-O [registro da fase](ENTREGA_EXAMES_2026-10-11.md) distingue QA/publicação técnica
-de aceite clínico. Após a entrega técnica, prioridade é curadoria e avaliação
-médica de qualidade/utilidade, mantendo IA1/IA6 e Gate P antes de dados reais.
+Contratos: [Teleconsulta](TELECONSULTA.md),
+[Google e navegador](TELECONSULTA_GOOGLE_MEET.md) e
+[consentimento/pós-consulta](CONSENTIMENTO_E_POS_CONSULTA.md).
 
-**Refinamento de 11/10 — foco em Pacientes:** a lista, busca e fichas devem
-abrir primeiro. Convite e histórico são tarefas separadas, acessíveis por
-“Convidar paciente” e “Ver convites” junto à lista. Envio permanece junto aos
-campos; cancelar/excluir permanece junto ao convite correspondente. Cadastro
-sem app continua acessível pelo fluxo de inclusão. Trocas locais preservam
-campos e resultados; atalhos existentes e regras de acesso permanecem.
+## Ordem do trabalho restante
 
-**Decisão de 11/10 — limpeza e convites:** usuário pediu manter somente médico
-e conta permanente QA e convidar os demais novamente. Reset operacional
-executado com dados QA preservados; não recriar contas antecipadamente.
-A tela médica passa a oferecer “Excluir da lista” com confirmação, ocultação
-auditável e revogação atômica do pendente. Não usar essa ação para excluir
-paciente/conta/prontuário; aceite e histórico clínico permanecem separados.
-[Escopo e verificação](../OPERACAO_LIMPEZA_E_CONVITES.md).
-
-**Decisão de 11/10 — publicação automática do site:** por pedido explícito do
-usuário, ativado `autoAssignCustomDomains=true` na Vercel
-`vtr-consulting/instituto-vivance`, branch de produção `main`. Builds de
-produção bem-sucedidos passam a assumir os domínios oficiais automaticamente.
-Isso não automatiza migrations, Edge Functions ou configuração Auth do
-Supabase. Antes de integrar mudanças dependentes de banco/Edge, alinhar o
-backend compatível; testes e revisão antes de merge continuam necessários.
-Nenhuma proteção ou gate clínico foi alterado.
-
-**Decisão de 11/10 — credenciais:** centralizar as disponíveis na raiz em
-`.env.vivance.local`, ignorado e modo `0600`, com atalhos dos quatro caminhos
-anteriores. Inventário sem segredos em [CREDENCIAIS](../CREDENCIAIS.md).
-Tokens/senha para CI ainda faltam; não criar nem configurar automação de
-publicação como consequência desta organização. O WhatsApp manual já inicia
-o convite por link; o layout médico é entregue no e-mail de ativação.
-
-**Envio de convites — 11/10, 16h55:** Resend Free configurado como SMTP do Auth
-no projeto sintético, com `auth.institutovivance.app` verificado. Template
-médico ativo e recebido em teste Gmail; o Resend marcou Delivered, mas o Gmail
-o colocou inicialmente em Spam. A autenticação de domínio aparece no Gmail.
-Tratar entrega na caixa de entrada, ativação e aceite do paciente como
-**pendentes de validação**; não prometer que convites reais chegarão à entrada.
-Supabase permanece Free; avaliar Pro por disponibilidade/backups no piloto,
-não apenas pelo e-mail. Identidade Auth sintética usada no teste removida.
-[Detalhes operacionais](../OPERACAO_SUPABASE_EMAIL.md).
-
-**Pedido adicional de 11/10:** conferir SMTP pelo CLI e registrar informações
-operacionais na raiz, sem credenciais. A ausência de SMTP era a fotografia
-anterior; Resend agora está configurado, sem contratação ou upgrade. Índice:
-[OPERACAO_SUPABASE_EMAIL](../OPERACAO_SUPABASE_EMAIL.md).
-
-**Publicação autorizada e conferida em 11/10, tarde:** #121 e #122 estão no
-domínio principal. Colisão email/WhatsApp não deve consumir token nem apresentar
-retry genérico; link revogado orienta recuperação pelo e-mail/novo convite.
-Template médico agora aplicado ao Auth via SMTP próprio no Free; o teste Gmail
-revelou classificação inicial como Spam. PRs antigos substituídos não voltam ao produto;
-Pulse e governança IA seguem os gates/documentação, sem publicação automática.
-
-**Decisão de 11/10/2026 — convites:** diferenciar conta confirmada de cadastro
-pendente de ativação. Ao convidar uma identidade não confirmada, solicitar
-novo e-mail de ativação e informar claramente o resultado; somente conta
-confirmada recebe orientação de entrar em Minhas clínicas sem novo e-mail.
-O usuário autorizou excluir especificamente a conta antiga de
-`vtrconsultingbr@gmail.com` para teste do zero. Limpeza conferida; implementação
-e publicação têm estados separados no [status](STATUS_ATUAL.md). Não recriar
-essa identidade antes do convite manual do usuário.
-
-**Convite por e-mail (11/10):** preparar apresentação acolhedora em português,
-com identidade Vivance, Dr. Guilherme Martins e CRM-SP 182364 informado pelo
-usuário, sem CPF, dados clínicos ou promessas de resultado. Atribuição médica
-somente para seu convite de paciente; outros usam fallback institucional.
-Template e remetente SMTP são configurações distintas da publicação do código.
-
-**Decisão vigente em 11/10/2026:** cuidado longitudinal supervisionado: convite → contexto inicial → preparação → consulta → registro médico → acompanhamento → retorno. O médico interpreta e decide. Relato literal, dado extraído, cálculo, revisão, aprovação e publicação têm origem e estados separados. O [status](STATUS_ATUAL.md) distingue implementação, teste e publicação.
-
-## Widgets e continuidade da navegação — 11/10
-
-Usuário aprovou o protótipo de widgets inspirado na Apple: oito ações rápidas
-independentes, tamanhos variados, Agenda proeminente, superfícies claras e
-próximo passo compacto. Autorizou melhorias adjacentes em Pacientes, Agenda e
-Mensagens, priorizando navegação fluida, qualidade visual e modernidade.
-Evitar saltos de layout, rolagem automática desnecessária e animação decorativa;
-preservar rascunhos, acessibilidade, destinos existentes e regras clínicas.
-Implementação integrada pelo PR #131 e publicação técnica de `5251384`
-conferida no domínio oficial em 11/10, 19h. QA local e publicado registrado
-no [status](STATUS_ATUAL.md) e [design-qa](../design-qa.md).
-Aceite de usabilidade permanece separado da verificação técnica.
-
-## Prioridade de UX do paciente — 11/10
-
-Pedido aprovado: check-in intuitivo e poucas escolhas, com desenhos expressivos,
-também na alimentação. Implementado Energia → Sono → Fome → Banheiro → recado
-opcional; dados adicionais recolhidos, aplicação condicionada à habilitação
-médica. Alimentação aceita foto, texto ou ambos em escolhas diretas. Landing
-e aplicativo compartilham apresentação, sem confundir exemplo com registro.
-GPT-6 Astra fez revisão independente conforme escolha explícita do usuário;
-Product Design, sem Impeccable. Escalas, armazenamento, fontes, histórico e
-permissões existentes preservados, sem mudança de banco ou extração.
-526 testes e percurso sintético paciente → persistência → médico passaram
-localmente. Entrega em PR/Preview; publicação e aceites separados. Ver
-[evidências](UX_CHECKIN_ALIMENTACAO_2026-10-11.md).
-
-## Prioridade atual — validar qualidade e publicação médica (10/10)
-
-Pedido vigente: exames extensos no formato PDF/foto devem preservar o texto por
-página antes da extração. [PR #114](https://github.com/vitormilanez/instituto-vivance/pull/114)
-publicado tecnicamente: formatação literal de PDF, validação de payload e
-checkpoints por lote para evitar pagar novamente pelos concluídos. A verificação
-remota revelou referências descartadas e duplicatas; o [PR #115](https://github.com/vitormilanez/instituto-vivance/pull/115)
-corrigiu esses achados e também foi publicado. O [PR #117](https://github.com/vitormilanez/instituto-vivance/pull/117)
-integrou e publicou tecnicamente a continuação entre leases, a retomada médica
-de job esgotado e o destaque de valores acima/abaixo/dentro da referência do
-próprio laudo. Haiku 5.5 inicial + Sonnet 5.5 seletivo; sem interpretação clínica.
-A retomada do PDF reportado foi acionada pela sessão médica no domínio publicado;
-o mesmo job/run concluiu a recuperação técnica com texto/original preservados,
-65 itens e 13 checkpoints. A interface publicada mostrou 65 resultados para
-conferir, sem estado de falha; a fonte de Eritrócitos abriu na página 1 com
-valor/unidade/referência/data. **Qualidade e completude ainda exigem avaliação
-médica**; as notas de qualidade sinalizam possíveis ausências.
-Próxima entrega separada: aprovação médica e publicação explícita ao paciente.
-Estado de publicação e evidência em [STATUS_ATUAL](STATUS_ATUAL.md);
-contrato, limites e política econômica em [IA2_EXAMES](IA2_EXAMES.md).
-
-## IA2 sintética publicada — próxima entrega separada
-
-Os [PRs #106/#107](https://github.com/vitormilanez/instituto-vivance/pull/107) estabeleceram extração sintética com fonte e revisão por item; o [#109](https://github.com/vitormilanez/instituto-vivance/pull/109) integrou correções de unidade, referência e data. O [#110](https://github.com/vitormilanez/instituto-vivance/pull/110) integrou a deduplicação e foi publicado tecnicamente na aplicação `91970c0`, Edge v11 e deployment `dpl_DH5etxpExwKTLPDU5d6qj6LttkwU`, anteriores ao refinamento de UX #112. Consulte o [status](STATUS_ATUAL.md) para o frontend vigente. A migration `20261010220240` era a última nessa rodada histórica (68 no dev); o #114 aplicou `20261010234104` (69 no dev). A interface médica autenticada confirmou cinco medidas na run atual, histórico preservado e Glicose v5 após recarga. O isolamento do paciente foi testado em rodada anterior, sem novo teste no #110; não há aceite clínico.
-
-A deduplicação .4 resolveu no piloto a representação de número/unidade juntos ou separados: a run .3 tinha dez itens de cinco resultados, enquanto a run .4 trouxe cinco itens em primeira tentativa do Cron. CI e release #110 passaram 504 testes; a verificação autenticada no domínio principal confirmou 25 resultados, 24 pendentes. A avaliação privada offline final fundamentou 81 itens com zero offsets inválidos, sem comprovar completude clínica. O HEAD documental pode diferir do SHA da aplicação por commits somente de documentação.
-
-Após a recuperação operacional, validar com médico os resultados e fontes; então publicar explicitamente ao paciente somente fatos aprovados, com resumo enxuto e acesso ao original. Revisão de transcrição não equivale a aprovação/publicação. Ampliar o corpus de qualidade por tipo e medir estabilidade com gabarito médico antes de IA3/interpretação; a avaliação privada não é gabarito clínico.
-
-## Sequência e dependências
-
-| Frente | Decisão |
+| Frente | Próxima conclusão verificável |
 | --- | --- |
-| Onboarding/convites | [PRs #103/#104](STATUS_ATUAL.md) publicados tecnicamente e jornada real testada; Vitor repetirá manualmente com convite novo. Usabilidade dele permanece pendente. QR coletivo exige contrato de aprovação médica; Google Sign-In exige OAuth real. |
-| C2/C3 operacional | Validar continuidade paciente → pedido/resposta → revisão → recibo → consulta/retorno, inclusive outros papéis/vínculos e persistência. Código do PR #95 não fecha aceite operacional. Não forjar assinatura/conduta médica. |
-| IA1 — governança | Decidir finalidade, fornecedor, dados permitidos, privacidade, rastreabilidade e revisão antes de ampliar além do piloto sintético. [PR #64](https://github.com/vitormilanez/instituto-vivance/pull/64) é rascunho, sem aprovação inferida. |
-| IA2 — extração | #114/#115 estabeleceram texto/páginas, checkpoints e correção literal; #117 publicou tecnicamente continuação, retomada e referências no dev sintético. Recuperação técnica do PDF concluída; conferir qualidade/fontes com médico, depois entregar aprovação e publicação explícita ao paciente. Estabilidade geral e aceite médico seguem pendentes. |
-| IA3–IA6 | Biblioteca aprovada/versionada, interpretação com evidência, verificação, validação médica e operação somente após gates do [plano de IA](PLANO_IA_CLINICA.md). |
-| C1/Gate P | `instituto-vivance-dev` (`oxuwrdjojsmgxoljqkuk`) é destino temporário único para testes sintéticos. Separar produção e cumprir [Gate P](GATE_P.md) antes de dados reais; preservar registros de origem incerta. |
+| Consentimento por consulta | Implementar decisão pelo paciente autenticado, recusa/retirada versionadas e estado de entrada/médico; preservar consulta sem transcrição. |
+| Conexão e chamada Google | Grant pessoal no mesmo navegador da sessão médica; testar sala/conta elegível. Conectar não ativa transcrição nem prova licença. |
+| Pós-consulta | Só após contrato de consentimento/background, vincular artefatos finais e notas privadas à consulta, com retries, origem e revisão. |
+| Exames IA2/IA3–IA6 | Gabarito/qualidade, curadoria versionada, aplicabilidade, métricas e aceite médico antes de ampliar análise. |
+| C2/C3 operacional | Jornada paciente → pedido/resposta → revisão/recibo → consulta/retorno, papéis/vínculos e persistência, sem forjar assinatura ou conduta. |
+| C1/Gate P | Produção separada, restauração, segurança/privacidade/retenção e aceite explícito antes de dados reais. |
+| Convites | Validar ativação/aceite/entregabilidade externa sem prometer caixa de entrada nem recriar contas antecipadamente. |
 
-## Experiência médica
-
-**Padronização UX integrada e publicada tecnicamente (10/10/2026):** aplicar, via Product
-Design e sem Impeccable, a ordem cabeçalho de contexto → seletores retangulares
-→ conteúdo nas superfícies médicas. Hoje usa quatro abas — Resumo, Exames e
-documentos, Evolução, Solicitações — sem “Preparar”. Exames têm filtros
-independentes de comparação com a referência do laudo e de estado da revisão;
-o formulário de revisão aparece abaixo da linha factual. Cores servem à
-comparação documentada, sem inferência clínica. Preservar URL, permissões por
-papel/vínculo, paginação, formulários e rascunhos. Não criar banco ou funções
-clínicas. [PR #119](https://github.com/vitormilanez/instituto-vivance/pull/119)
-integrado à `main` no SHA `e05cb4c`; publicação técnica confirmada em
-[institutovivance.app](https://institutovivance.app). Preview autenticado,
-525 testes e release da `main` aprovados. Não houve migration ou Edge Function
-neste lote; #117 e #118 permanecem históricos. A publicação não constitui
-aceite médico. [Guia visual](../apps/web/DESIGN.md) e
-[checkpoints](CHECKPOINTS_ENTREGAS.md).
-
-Refinamento do Resumo: cards brancos/neutros no lugar do bloco azul contínuo;
-objetivo e pendências em um terço e relatos em dois terços no desktop, com
-fatos em grid; uma coluna no celular. Rótulos derivam da fonte. Tipos de
-18/14/16/13 px para card/rótulo/conteúdo/fonte e espaços de 16/20/24 px.
-Responsividade, teclado, preservação de edição e build final foram conferidos;
-login real do paciente sintético passou localmente e no novo Preview.
-Login médico real com Guilherme passou localmente e no novo Preview: sessão,
-fonte/histórico, filtros, links diretos, voltar e edição preservados. O
-enquadramento limita o Hoje a 1440 px, compacta contexto e faixas, e mantém
-conteúdo em 16 px e alvos de 44 px. Cards começam em 262 px na composição
-desktop de 1330×625; mobile 320 px sem corte horizontal. Aceite de usabilidade
-desta UX permanece pendente após a publicação técnica. Links e SHA no
-[status](STATUS_ATUAL.md) e [evidências](UX_MEDICA_PADRAO_2026-10-10.md).
-Uma resposta API **simulada** para o valor 99 no limite
-superior validou cor verde e preservação da fonte/histórico, sem mutação remota.
-
-**Prioridade solicitada em 10/10, entregue pelo #112:** briefing da Home com
-objetivo destacado, exames/revisão consolidados, originais recolhidos e peso
-único compacto. Publicado tecnicamente em `7e3b849`, com revisão GPT-6 Sol Ultra
-e sessão médica sintética conferida. Esse refinamento precedeu a próxima entrega
-de publicação ao paciente; os gates e a ausência de interpretação clínica
-permanecem. Aceite de usabilidade do médico pendente, tarefa Asana
-`1219378497566919`; evidências nos [checkpoints](CHECKPOINTS_ENTREGAS.md).
-
-Manter menu superior, lista de pacientes, Agenda e oito ações rápidas. Em Hoje, mostrar agenda e pendências operacionais; na ficha, identificação, objetivos, medidas, histórico informado, evolução e documentos com original. Ausência de dado não é zero e ausência de registro não prova baixa adesão. Mostrar rapidamente apenas o necessário, com detalhe progressivo; cada campo exige coleta/persistência real. Preservar identidade Vivance e o briefing já entregue. Consulta, aprovação e publicação não se confundem.
-
-## Como escolher IA
-
-Dados estruturados e regras determinísticas cobrem idade, IMC, unidades, variações, cronologia e estados. Modelo de linguagem só organiza informação autorizada quando isso agrega valor e passa avaliação de qualidade, custo, latência, privacidade e rastreabilidade. OCR entra quando texto embutido falha. RAG exige biblioteca clínica curada e vigente; MCP não substitui contrato de dados ou revisão médica. Não habilitar dados reais ou interpretação clínica por causa de um resultado sintético.
-
-A frente comercial Virada 90 segue separada nos [documentos próprios](virada90/). Decisões novas devem atualizar direção, status e tarefa Asana após confronto com Git e ambiente.
+Asana acompanha execução e pode estar atrasado; reconciliar após decisões novas.
+Virada90 e conversões comerciais seguem em [frente separada](VIRADA90_JORNADA.md).

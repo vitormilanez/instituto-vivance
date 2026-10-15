@@ -1,5 +1,9 @@
 # Exames consolidados para o médico — contrato de produto
 
+> Histórico: preserva o que foi observado nessa etapa, inclusive pendências depois
+> superadas. Não define o estado atual. Consulte `docs/README.md`,
+> `docs/STATUS_ATUAL.md` e o contrato vigente na raiz do repositório.
+
 **Estado:** direção de produto proposta pelo usuário em 03/10/2026; análise de formatos concluída; migration IA2 aplicada no projeto de teste em 04/10; código do primeiro corte em revisão no PR #78; aceite pendente. Este contrato não libera análise clínica por IA nem uso de dados reais em modelos.
 
 ## Resultado esperado

@@ -1,12 +1,16 @@
 # Briefing da consulta e gráfico de peso
 
+> Histórico: preserva o que foi observado nessa etapa, inclusive pendências depois
+> superadas. Não define o estado atual. Consulte `docs/README.md`,
+> `docs/STATUS_ATUAL.md` e o contrato vigente na raiz do repositório.
+
 ## Refinamento vigente — 10/10/2026
 
 Checkout único: `/Users/vitormilanez/Desktop/Codes/vivance`. Implementação integrada
 pelo [PR #112](https://github.com/vitormilanez/instituto-vivance/pull/112), SHA
 `7e3b849e3e068509ac35f619999ee54fa1efc45e`. Publicação técnica e identificadores vigentes
-devem ser consultados no [status](STATUS_ATUAL.md) e nos
-[checkpoints](CHECKPOINTS_ENTREGAS.md); os registros abaixo de 07/10 são históricos.
+devem ser consultados no [status](../../STATUS_ATUAL.md) e nos
+[checkpoints](../../CHECKPOINTS_ENTREGAS.md); os registros abaixo de 07/10 são históricos.
 
 - Objetivo estruturado aparece antes dos relatos. Quando ausente, o objetivo
   literal do cadastro inicial recebe destaque e fonte, sem repetição na lista.
@@ -38,7 +42,7 @@ da Glicose, peso compacto, Agenda e oito atalhos. O texto pequeno mais claro do
 bloco principal mediu contraste 5,47:1 sobre a superfície computada publicada;
 links e títulos também passaram AA. A conferência autenticada não incluiu
 mutations clínicas nem reprocessamento. Preview separado e aceite de usabilidade
-do médico permanecem pendentes; identificadores e limites no [status](STATUS_ATUAL.md).
+do médico permanecem pendentes; identificadores e limites no [status](../../STATUS_ATUAL.md).
 
 ## Histórico — 07/10/2026
 

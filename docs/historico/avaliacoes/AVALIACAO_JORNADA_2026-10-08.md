@@ -1,5 +1,9 @@
 # Avaliação Paciente × Médico × IA
 
+> Histórico: preserva o que foi observado nessa etapa, inclusive pendências depois
+> superadas. Não define o estado atual. Consulte `docs/README.md`,
+> `docs/STATUS_ATUAL.md` e o contrato vigente na raiz do repositório.
+
 08/10/2026 — avaliação que fundamenta a primeira entrega C3, aceita como
 ponto de partida no mesmo dia. Base: checkout
 `vivance-atual`, código de `origin/main` `ebadaab8` e organização documental
@@ -33,18 +37,18 @@ execução; não há resultado automatizado de design.
 provável; **não validado** exige cenário sintético. Não foram revalidados banco
 remoto, sessão do paciente, mobile, isolamento entre papéis ou jornada completa.
 Não houve aceite operacional de C3 ou fechamento do Gate P. A implementação
-local e as verificações novas estão resumidas em [Status atual](STATUS_ATUAL.md).
+local e as verificações novas estão resumidas em [Status atual](../../STATUS_ATUAL.md).
 
 ## Jornada e atritos
 
 | Etapa / objetivo | Estado observado | Atrito e consequência inferida |
 | --- | --- | --- |
-| Convite e contexto inicial / entrar e contar sua história | Onboarding salva rascunho, trata conflito e permite revisão/consentimento. | Retoma a etapa, mas `questionIndex` reinicia em zero; a pessoa pode rever perguntas já respondidas. [Fonte](../apps/web/components/onboarding-workspace.tsx). |
-| Hoje do paciente / saber o próximo passo | Ação prioritária, solicitações, próxima consulta e últimos envios. | Depois do envio, predomina “Enviado”; falta acompanhar revisão e eventual complemento. [Home](../apps/web/components/patient-home.tsx), [recibo](../apps/web/components/patient/receipt.tsx). |
-| Resposta / comprovar atendimento ao pedido | Pré-consulta tem vínculo específico; metas usam versão. | Exames/medidas podem concluir pedido por tipo, sem associação à resposta concreta. Não prova que o pedido específico foi atendido. [Triggers](../supabase/migrations/20260922190000_patient_care_requests.sql), [função vigente](../supabase/migrations/20260924174942_bind_care_requests_to_patient_responses.sql). |
-| Hoje médico / preparar e revisar | Briefing separa relatos, lacunas, documentos e trabalho médico. | Documento com qualquer revisão sai da fila de não revisados; não identifiquei fila própria para `needs_follow_up`. [Seleção](../apps/web/modules/workspace/open-work.ts), [fila](../apps/web/modules/workspace/open-work-items.ts). |
-| Ficha / entender a pessoa e continuar | Identificação, contexto, abas, documentos e evolução existem. | Contexto fica distribuído; Agenda e Atendimentos abrem destinos gerais. O médico precisa localizar novamente o paciente. [Ficha](../apps/web/app/clinicas/[tenantId]/pacientes/[patientId]/page.tsx). |
-| Orientação e retorno / saber o que fazer | Plano aprovado é separado de publicação; “Li estas orientações” registra leitura. | Esse bom contrato ainda não fecha a experiência dos outros envios. Preservar leitura ≠ adesão. [Publicação](../apps/web/components/published-plans.tsx). |
+| Convite e contexto inicial / entrar e contar sua história | Onboarding salva rascunho, trata conflito e permite revisão/consentimento. | Retoma a etapa, mas `questionIndex` reinicia em zero; a pessoa pode rever perguntas já respondidas. [Fonte](../../../apps/web/components/onboarding-workspace.tsx). |
+| Hoje do paciente / saber o próximo passo | Ação prioritária, solicitações, próxima consulta e últimos envios. | Depois do envio, predomina “Enviado”; falta acompanhar revisão e eventual complemento. [Home](../../../apps/web/components/patient-home.tsx), [recibo](../../../apps/web/components/patient/receipt.tsx). |
+| Resposta / comprovar atendimento ao pedido | Pré-consulta tem vínculo específico; metas usam versão. | Exames/medidas podem concluir pedido por tipo, sem associação à resposta concreta. Não prova que o pedido específico foi atendido. [Triggers](../../../supabase/migrations/20260922190000_patient_care_requests.sql), [função vigente](../../../supabase/migrations/20260924174942_bind_care_requests_to_patient_responses.sql). |
+| Hoje médico / preparar e revisar | Briefing separa relatos, lacunas, documentos e trabalho médico. | Documento com qualquer revisão sai da fila de não revisados; não identifiquei fila própria para `needs_follow_up`. [Seleção](../../../apps/web/modules/workspace/open-work.ts), [fila](../../../apps/web/modules/workspace/open-work-items.ts). |
+| Ficha / entender a pessoa e continuar | Identificação, contexto, abas, documentos e evolução existem. | Contexto fica distribuído; Agenda e Atendimentos abrem destinos gerais. O médico precisa localizar novamente o paciente. [Ficha](../../../apps/web/app/clinicas/%5BtenantId%5D/pacientes/%5BpatientId%5D/page.tsx). |
+| Orientação e retorno / saber o que fazer | Plano aprovado é separado de publicação; “Li estas orientações” registra leitura. | Esse bom contrato ainda não fecha a experiência dos outros envios. Preservar leitura ≠ adesão. [Publicação](../../../apps/web/components/published-plans.tsx). |
 
 ## Melhorias priorizadas
 
@@ -55,9 +59,9 @@ Não foi confirmado incidente em produção que justifique classificar algum ite
 | --- | --- | --- | --- |
 | P1 · observado: conclusão de exames/medidas por tipo | Associar pedido à resposta concreta e preservar autoria; evitar conclusão indevida. | Contrato versionado; registro assistido deve continuar possível, com origem explícita. | Registro avulso ou de outro pedido não conclui a solicitação; associação correta persiste após recarga. |
 | P1 · observado: recibo sem ciclo de revisão; acompanhamento fora da fila de não revisados | Recibo operacional e continuidade médica: recebido, aguardando revisão, revisão registrada; complemento somente quando solicitado explicitamente. | Projeção autorizada para paciente, sem expor nota interna ou transformar revisão em orientação. | Paciente vê apenas seu estado; acompanhamento continua acionável até resolução registrada. |
-| P1 · observado: fontes diferentes na leitura do contexto | Usar origem explícita e contexto vigente. Documentos de qualquer autor entram em “O que o paciente trouxe”; o resumo usa objetivo inicial como fallback, embora consulte intake atualizado. | Não apagar snapshot inicial; definir precedência entre assunto da consulta e objetivo longitudinal. | Documento da equipe não aparece como relato do paciente; meta atual e histórica permanecem distinguíveis. [Feed](../apps/web/components/doctor-consultation-briefing.tsx), [consulta](../apps/web/modules/workspace/today.ts), [brief](../apps/web/modules/ai/consultation-brief-data.ts). |
-| P2 · observado: recuperação incompleta | Retomar pergunta exata; preservar paciente ao navegar; mostrar erro parcial sem ocultar todos os comprovantes. | Estado de navegação e falhas por fonte. | Interromper/retomar preserva posição; falha de uma fonte mantém demais envios visíveis. [Envios](../apps/web/modules/workspace/patient-sent.ts). |
-| P2 · observado: promessa offline mais ampla que mecanismo | Explicar quando o envio ocorrerá e manter pendência visível. | Fila local sincroniza com app aberto/retomado; não foi identificado envio em background no service worker. | Sem rede, mostrar “salvo neste aparelho”; recebido somente após confirmação do servidor. [Mensagem](../apps/web/components/patient/check-in-flow.tsx), [sincronização](../apps/web/components/patient/connection-status.tsx), [worker](../apps/web/public/sw.js). |
+| P1 · observado: fontes diferentes na leitura do contexto | Usar origem explícita e contexto vigente. Documentos de qualquer autor entram em “O que o paciente trouxe”; o resumo usa objetivo inicial como fallback, embora consulte intake atualizado. | Não apagar snapshot inicial; definir precedência entre assunto da consulta e objetivo longitudinal. | Documento da equipe não aparece como relato do paciente; meta atual e histórica permanecem distinguíveis. [Feed](../../../apps/web/components/doctor-consultation-briefing.tsx), [consulta](../../../apps/web/modules/workspace/today.ts), [brief](../../../apps/web/modules/ai/consultation-brief-data.ts). |
+| P2 · observado: recuperação incompleta | Retomar pergunta exata; preservar paciente ao navegar; mostrar erro parcial sem ocultar todos os comprovantes. | Estado de navegação e falhas por fonte. | Interromper/retomar preserva posição; falha de uma fonte mantém demais envios visíveis. [Envios](../../../apps/web/modules/workspace/patient-sent.ts). |
+| P2 · observado: promessa offline mais ampla que mecanismo | Explicar quando o envio ocorrerá e manter pendência visível. | Fila local sincroniza com app aberto/retomado; não foi identificado envio em background no service worker. | Sem rede, mostrar “salvo neste aparelho”; recebido somente após confirmação do servidor. [Mensagem](../../../apps/web/components/patient/check-in-flow.tsx), [sincronização](../../../apps/web/components/patient/connection-status.tsx), [worker](../../../apps/web/public/sw.js). |
 
 ## Hoje e Pacientes: proposta de uso
 
@@ -137,7 +141,7 @@ Suite ampla somente por impacto transversal ou evidência de regressão.
 Nesta avaliação foram feitas leituras e verificação documental, sem alterar
 aplicação, banco ou ambiente e sem rodar suite de produto. Implementação, Preview,
 publicação técnica e aceite clínico continuam marcos separados. Seguir o
-[método de retomada](RETOMADA_DESENVOLVIMENTO.md) e o [Gate P](GATE_P.md).
+[método de retomada](../../RETOMADA_DESENVOLVIMENTO.md) e o [Gate P](../../GATE_P.md).
 
 ## Reavaliação paralela de UX — Impeccable 4.5.0
 

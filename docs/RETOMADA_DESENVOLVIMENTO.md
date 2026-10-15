@@ -24,7 +24,9 @@ permitir entender rapidamente quem é a pessoa, o que busca, contexto de saúde
 declarado, evolução disponível, pendências e documentos. Usar somente dados
 realmente coletados, com hierarquia e acesso progressivo ao histórico/original.
 Os [critérios de produto](DIRECAO_E_SLICES.md) e o
-[briefing entregue](BRIEFING_CONSULTA_2026-10-07.md) são o ponto de partida.
+[contrato vigente da ficha](FICHA_PACIENTE.md) são o ponto de partida. O
+[briefing anterior](historico/entregas/BRIEFING_CONSULTA_2026-10-07.md) conserva
+evidência histórica, não a composição atual da Hoje.
 
 Para IA, avaliar estruturação de respostas abertas, organização/extração documental,
 resumos factuais, mudanças entre check-ins, visão longitudinal e localização de

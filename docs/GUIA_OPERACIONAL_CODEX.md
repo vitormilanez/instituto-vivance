@@ -42,8 +42,12 @@ completo como trabalho separado, sem presumir que esse toggle os fornece.
 2. Confira `git status --short`, `git fetch origin main`, o commit de
    `origin/main`, o PR e os checks. Preserve alterações locais de outras pessoas.
    Publique somente um commit integrado à `main`, nunca uma branch de trabalho.
-3. Execute os testes proporcionais à mudança em `apps/web` com Node 24:
-   `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`. Confira também
+3. Execute os testes proporcionais à mudança em `apps/web` com Node 24. Para
+   código, conforme o lote: `npm test`, `npm run lint`, `npm run typecheck`,
+   `npm run build`. Para documentação apenas, conferir links/coerência/diff;
+   não executar aplicação/E2E nem repetir suíte completa manual só por Markdown.
+   Os checks automáticos/obrigatórios dos caminhos alterados continuam valendo.
+   Confira também
    `git diff --check`. O workflow `web-foundation.yml` faz a verificação em CI.
 4. Classifique o lote: só código, migration, Edge Function, ou combinação.
    Identifique dependências de schema e mantenha o banco compatível com o código
@@ -63,7 +67,11 @@ do **mesmo SHA** com `gh run list --workflow release.yml` e `gh run view <RUN_ID
 - Uma PR verde, um run verde ou um deployment `READY` não provam que o domínio
   passou a apontar para o novo código.
 - Mudança apenas em `docs/` não dispara automaticamente esse workflow. Não
-  faça deploy da aplicação apenas para publicar documentação.
+  faça deploy manual da aplicação apenas para publicar documentação. A
+  integração Git da Vercel ainda pode construir/assumir a main em um merge só
+  documental; filtros do GitHub não são filtros de deploy da Vercel.
+- Markdown em `apps/web/**` casa o filtro e dispara Foundation/release. Não
+  confundir extensão documental com exclusão automática de CI/publicação.
 
 Se as etapas realmente executaram, ainda confirme deployment e domínio pelos
 passos 4 e 5. Se foram ignoradas ou não existe deployment do mesmo commit,
@@ -182,9 +190,10 @@ por nova migration, sem editar histórico aplicado.
 
 Em qualquer área, siga [Funcionalidades](FUNCIONALIDADES.md) e
 [Produto](../PRODUCT.md), mas confira o código e os testes da `main` antes de
-afirmar que algo está ativo. Os arquivos `docs/STATUS_ATUAL.md` e
-`docs/TELECONSULTA.md` contêm fotografias históricas: valide seus IDs e
-pendências novamente. Não converta relato em diagnóstico, prescrição,
+afirmar que algo está ativo. `docs/STATUS_ATUAL.md` resume a última fotografia
+verificada; `docs/TELECONSULTA.md` é contrato vigente. Relatos antigos ficam em
+`docs/historico/`; não reutilize IDs/pendências como atuais sem nova conferência.
+Não converta relato em diagnóstico, prescrição,
 classificação de risco ou publicação clínica automática. IA, quando usada,
 organiza material para decisão e aprovação humana.
 
