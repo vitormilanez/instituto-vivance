@@ -99,6 +99,15 @@ Fechamentos têm justificativa registrada nas próprias PRs e podem ser revertid
 Não retomar uma branch antiga apenas por permanecer aberta; contrato atual,
 conteúdo exclusivo e gates devem ser conferidos antes de qualquer integração.
 
+### Limpeza documental de 15/10
+
+Na preparação do merge da PR142, foi removida somente a cópia Markdown
+`.impeccable/surfaces/app-components-doctor-dashboard-vivanse-tsx 3.md`:
+blob idêntico ao original sem sufixo e sem referências à cópia. O original e
+os registros históricos úteis foram preservados. O índice histórico teve a
+nota antiga sobre a PR40 corrigida; não foram aplicadas regras amplas de ignore,
+excluídas imagens ou apagados arquivos locais de outros trabalhos.
+
 Próxima execução: seguir [direção](DIRECAO_E_SLICES.md) e
 [checkpoints](CHECKPOINTS_ENTREGAS.md). Evidência técnica, aceite do usuário,
 aprovação médica e publicação ao paciente não se confundem.
