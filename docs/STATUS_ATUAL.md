@@ -22,8 +22,8 @@ os marcos anteriores. Não usar um SHA ou total antigo como inventário atual.
 
 | Item | Estado conferido |
 | --- | --- |
-| Código de referência | `origin/main=a86c99400505d7bfa125baa7aacd9980987a0cee`, PR139 integrado. |
-| Aplicação | `apps/web`, Next.js/Node 24. Árvore de aplicação/banco sem diferença para o release PR137/`a1d2153`. |
+| Código de referência | `origin/main=ee5864b657c006200432bfe9d455c7b884b0879c`, PR141 integrado. Envio documental reconciliado em 15/10; triagem de 14/10 comparada com `32d948f`, após PR140 documental. |
+| Aplicação | `apps/web`, Next.js/Node 24. Workspace/exames/transcrição na base do release PR137/`a1d2153`; PR141 acrescentou agenda de preferência e fotos à Virada 90, sem migrations. |
 | Vercel | `vtr-consulting/instituto-vivance`, projeto `prj_ligeZuFRycRXA21u5rRzaLAORTrI`, Root Directory `apps/web`. |
 | Domínio publicado | `institutovivance.app`; secundário `instituto-vivance.vercel.app` redireciona para ele. Último deployment conferido `dpl_DdWrMiR7JynVD6XpnjDdK1sAD2sd`, production/READY, SHA `a86c994`. |
 | Dados | Único destino temporário autorizado: dev sintético `oxuwrdjojsmgxoljqkuk`. Não é banco liberado para uso clínico real. |
@@ -78,10 +78,26 @@ troca de credenciais ou exclusão de dados. Reconferir os IDs na próxima opera�
 
 ## PRs antigos que não são a base atual
 
-Consulta GitHub desta rodada: PR94 (contexto), PR79 (Pulse), PR78 (piloto IA2)
-e PR64 (governança IA1) continuam **draft**; PR40 (cópias iCloud) continua aberto.
-Não integrar nem fechar por inferência. Partes foram superadas por entregas da
-main, mas cada restante exige comparação específica. Nenhum PR alheio foi alterado.
+**Triagem autorizada pelo mantenedor em 14/10/2026**, comparada com a main
+`32d948f`. Cinco PRs foram revistas; três encerradas e duas preservadas como
+draft. Estado e heads foram reconferidos antes do fechamento, e as três branches
+encerradas continuam no remoto. Não houve merge, exclusão de branch/arquivo,
+migration ou publicação da aplicação nesta triagem.
+
+Estados das cinco PRs reconfirmados em 15/10 para este envio documental, sem
+novos fechamentos nem alteração das decisões abaixo.
+
+| PR | Decisão e evidência |
+| --- | --- |
+| [94 — objetivo declarado](https://github.com/vitormilanez/instituto-vivance/pull/94) | **Fechada, superada.** Componente, módulo e testes de objetivo estão idênticos na main. Ficha/briefing preservam origem, autoria, data e acesso ao acolhimento; continuidade mantém próxima/última consulta e ausência explícita de registro. Aceite operacional/clínico não é declarado concluído. |
+| [78 — piloto IA2](https://github.com/vitormilanez/instituto-vivance/pull/78) | **Fechada, superada.** As três migrations originais, módulos de texto/piloto/overview e testes correspondentes já estão na main. Pipeline Cron/Edge posterior substituiu o worker ligado à aba. Contrato e evidências preservados no [histórico IA2](historico/planos/IA2_CONTRATO_E_PILOTO_2026-10-04.md); qualidade clínica e Gate P continuam pendentes. |
+| [40 — cópias iCloud](https://github.com/vitormilanez/instituto-vivance/pull/40) | **Fechada, manutenção antiga sem conteúdo exclusivo.** As 29 exclusões remanescentes são cópias de hash idêntico ao original; os dois Markdown duplicados já estavam ausentes. A limpeza e as regras gerais de ignore propostas **não foram integralmente aplicadas**. Uma limpeza futura exige alvos explícitos e preservação de cópias divergentes. |
+| [79 — atribuição Pulse](https://github.com/vitormilanez/instituto-vivance/pull/79) | **Mantida draft: trabalho único útil.** Módulos de atribuição/Firestore/OIDC/HTTP, testes e contrato ainda não existem na main. Runtime permanece inativo; contrato real do provedor, segurança, deduplicação e recebimento da conversão precisam de validação. Retomar sobre a main atual, sem integrar versões antigas de proxy/dependências/status diretamente. |
+| [64 — governança IA1](https://github.com/vitormilanez/instituto-vivance/pull/64) | **Mantida draft: decisões relevantes pendentes.** Preserva matriz de responsáveis/decisões, critérios de aceite e registro de aprovação ainda não incorporados integralmente ao plano atual. Reconciliar afirmações de implementação antigas com a main antes de integrar; não constitui aprovação clínica, jurídica ou de fornecedor. |
+
+Fechamentos têm justificativa registrada nas próprias PRs e podem ser revertidos.
+Não retomar uma branch antiga apenas por permanecer aberta; contrato atual,
+conteúdo exclusivo e gates devem ser conferidos antes de qualquer integração.
 
 Próxima execução: seguir [direção](DIRECAO_E_SLICES.md) e
 [checkpoints](CHECKPOINTS_ENTREGAS.md). Evidência técnica, aceite do usuário,
