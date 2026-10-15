@@ -8,7 +8,6 @@ import type { Appointment, AgendaOptions } from "@/modules/agenda/service";
 import { localToInstant } from "@/modules/agenda/validation";
 import { meetNewRoomUrl } from "@/modules/teleconsultations/meet-account";
 import { GoogleMeetConnection, type MeetConnectionState } from "./google-meet-connection";
-import { BrowserTranscriptPanel } from "./browser-transcript-panel";
 import "@/app/doctor-teleconsultation.css";
 import { normalizeMeetUrl } from "@/modules/teleconsultations/validation";
 import { whatsappShareUrl } from "@/modules/teleconsultations/share";
@@ -68,7 +67,6 @@ export function TeleconsultationHub({
     formHeading.current?.focus({ preventScroll: true });
     formHeading.current?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   }, [showForm]);
-  const [transcriptAppointment, setTranscriptAppointment] = useState<string | null>(null);
   const [mode, setMode] = useState<"now" | "scheduled">(
     isDoctor ? "now" : "scheduled",
   );
@@ -110,8 +108,6 @@ export function TeleconsultationHub({
   const [created, setCreated] = useState<{ name: string; url: string } | null>(
     null,
   );
-  const [opening, setOpening] = useState<string | null>(null);
-  const [openAccepted, setOpenAccepted] = useState(false);
   const [listError, setListError] = useState("");
   const [copied, setCopied] = useState("");
   const [preparing, setPreparing] = useState<string | null>(null);
@@ -205,33 +201,6 @@ export function TeleconsultationHub({
       );
       if (mode === "now") router.refresh();
     } finally {
-      setPending(false);
-    }
-  }
-
-  async function openEncounter(appointment: Appointment) {
-    setPending(true);
-    setListError("");
-    try {
-      const response = await fetch(`/api/v1/clinics/${tenantId}/encounters`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          appointment_id: appointment.id,
-          appointment_version: appointment.version,
-          accept_care: true,
-        }),
-      });
-      const result = await response.json();
-      if (!response.ok)
-        throw new Error(result.error ?? "Não foi possível abrir o atendimento.");
-      router.push(
-        `/clinicas/${tenantId}/atendimentos/${result.id}?modo=teleconsulta&etapa=consulta`,
-      );
-    } catch (e) {
-      setListError(
-        e instanceof Error ? e.message : "Não foi possível abrir o atendimento.",
-      );
       setPending(false);
     }
   }
@@ -365,28 +334,7 @@ export function TeleconsultationHub({
                       </a>
                     </>
                   )}
-                  {isDoctor && a.status === "in_progress" && (
-                    <button
-                      type="button"
-                      disabled={pending}
-                      onClick={() => void openEncounter(a)}
-                    >
-                      Voltar ao atendimento
-                    </button>
-                  )}
-                  {isDoctor && a.status === "scheduled" && opening !== a.id && (
-                    <button
-                      type="button"
-                      disabled={pending}
-                      onClick={() => {
-                        setOpening(a.id);
-                        setOpenAccepted(false);
-                        setListError("");
-                      }}
-                    >
-                      Abrir atendimento
-                    </button>
-                  )}
+                  {isDoctor && <Link className="button" href={`/clinicas/${tenantId}/teleconsulta/${a.id}`}>{a.status === "in_progress" ? "Retomar consulta" : "Iniciar consulta"}</Link>}
                   {!isDoctor && (
                     <Link
                       href={`/clinicas/${tenantId}/agenda?data=${new Date(
@@ -398,45 +346,14 @@ export function TeleconsultationHub({
                       Ver na agenda
                     </Link>
                   )}
-                  {isDoctor && <button data-transcript-toggle className="secondary quiet" type="button" aria-expanded={transcriptAppointment === a.id} onClick={() => setTranscriptAppointment(transcriptAppointment === a.id ? null : a.id)}><FileText size={16} aria-hidden="true" />Transcrição gratuita</button>}
                 </div>
-                {isDoctor && transcriptAppointment === a.id && <BrowserTranscriptPanel tenantId={tenantId} appointmentId={a.id} />}
-                {opening === a.id && (
-                  <div className="tele-hub-confirm">
-                    <label className="care-accept">
-                      <input
-                        type="checkbox"
-                        checked={openAccepted}
-                        onChange={(e) => setOpenAccepted(e.target.checked)}
-                      />
-                      Confirmo que sou responsável por este atendimento.
-                    </label>
-                    <div className="agenda-actions">
-                      <button
-                        type="button"
-                        disabled={pending || !openAccepted}
-                        onClick={() => void openEncounter(a)}
-                      >
-                        {pending ? "Abrindo…" : "Confirmar e abrir"}
-                      </button>
-                      <button
-                        type="button"
-                        className="secondary"
-                        disabled={pending}
-                        onClick={() => setOpening(null)}
-                      >
-                        Voltar
-                      </button>
-                    </div>
-                  </div>
-                )}
               </li>
   );
 
   return (
     <div className={`teleconsultation-hub${isDoctor ? " tele-modern" : ""}`}>
       <MedicalPageHeader className="page-heading" title="Teleconsulta" description="Sua chamada no Meet. O cuidado e o registro, aqui." actions={<div className="meet-actions"><Link className="button secondary" href={`/clinicas/${tenantId}/agenda`}><CalendarDays size={17} aria-hidden="true" />Ver agenda</Link><button type="button" aria-expanded={showForm} aria-controls="tele-create-panel" onClick={() => setShowForm(!showForm)}>{showForm ? <X size={17} aria-hidden="true" /> : <Plus size={17} aria-hidden="true" />}{showForm ? "Recolher formulário" : "Nova teleconsulta"}</button></div>} />
-      {isDoctor && <GoogleMeetConnection key={tenantId} tenantId={tenantId} onChange={setConnection} />}
+      {isDoctor && <details className="tele-google-settings"><summary>Configurar minha conta Google Meet</summary><GoogleMeetConnection key={tenantId} tenantId={tenantId} onChange={setConnection} /></details>}
       {truncated && <p className="notice" role="status">Há mais consultas neste período. Use a Agenda para consultar a lista completa.</p>}
 
       {!todays.length && <section className="tele-empty-today" aria-labelledby="tele-today-empty"><Video size={24} aria-hidden="true" /><div><h2 id="tele-today-empty">Nenhuma teleconsulta pronta para hoje</h2><p>Prepare a sala de um horário já agendado ou marque uma nova consulta.</p></div><Link className="button secondary" href={`/clinicas/${tenantId}/agenda`}>Agendar consulta</Link></section>}
@@ -554,10 +471,9 @@ export function TeleconsultationHub({
                     >
                       Ver na agenda
                     </Link>
-                    {isDoctor && <button data-transcript-toggle type="button" className="secondary" aria-expanded={transcriptAppointment === appointment.id} onClick={() => setTranscriptAppointment(transcriptAppointment === appointment.id ? null : appointment.id)}>Transcrição gratuita</button>}
+                    {isDoctor && <Link className="button secondary" href={`/clinicas/${tenantId}/teleconsulta/${appointment.id}`}>Abrir consulta</Link>}
                   </div>
                 )}
-                {isDoctor && transcriptAppointment === appointment.id && <BrowserTranscriptPanel tenantId={tenantId} appointmentId={appointment.id} />}
               </li>
             ))}
           </ul>
@@ -887,8 +803,8 @@ export function TeleconsultationHub({
         )}
       </section>
 
-      {isDoctor && <section className="tele-recent" aria-labelledby="tele-recent-title"><div className="tele-section-heading"><div><h2 id="tele-recent-title">Transcrições de consultas recentes</h2><p>Últimos 30 dias · confira os textos captados pelo navegador na consulta correspondente.</p></div><FileText size={22} aria-hidden="true" /></div>
-        {recentAppointments.length ? <ul className="list tele-hub-list">{recentAppointments.map(a => <li key={a.id}><div className="tele-hub-item"><div><strong>{a.patients?.display_name ?? "Paciente"}</strong><small>{when(a.starts_at)}</small></div><button data-transcript-toggle type="button" className="secondary" aria-expanded={transcriptAppointment === a.id} onClick={() => setTranscriptAppointment(transcriptAppointment === a.id ? null : a.id)}>Consultar transcrição</button></div>{transcriptAppointment === a.id && <BrowserTranscriptPanel tenantId={tenantId} appointmentId={a.id} />}</li>)}</ul> : <p className="tele-empty-inline">Nenhuma teleconsulta anterior neste período. Quando houver uma consulta, você poderá conferir a transcrição aqui.</p>}
+      {isDoctor && <section className="tele-recent" aria-labelledby="tele-recent-title"><div className="tele-section-heading"><div><h2 id="tele-recent-title">Consultas recentes</h2><p>Últimos 30 dias · reveja a conversa, o resumo e o registro de cada consulta.</p></div><FileText size={22} aria-hidden="true" /></div>
+        {recentAppointments.length ? <ul className="list tele-hub-list">{recentAppointments.map(a => <li key={a.id}><div className="tele-hub-item"><div><strong>{a.patients?.display_name ?? "Paciente"}</strong><small>{when(a.starts_at)}</small></div><Link className="button secondary" href={`/clinicas/${tenantId}/teleconsulta/${a.id}`}>Ver consulta e resumo</Link></div></li>)}</ul> : <p className="tele-empty-inline">Nenhuma consulta anterior neste período. As próximas conversas e resumos ficarão disponíveis aqui.</p>}
       </section>}
 
       {later.length > 0 && <section className="panel" aria-labelledby="tele-next">

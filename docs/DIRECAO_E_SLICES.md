@@ -1,5 +1,15 @@
 # Direção do Vivance e próximos slices
 
+## Consulta integrada e ficha — decisão de publicação, 15/10/2026
+
+Usuário aprovou publicar o fluxo local, inclusive resumo privado no histórico
+da ficha: data/horário da consulta separados da criação/revisão do resumo,
+modalidade e médico. Consentimento é do próprio paciente; revisão não publica
+ao paciente nem finaliza atendimento. Reutilização da credencial Anthropic
+na Vercel autorizada; uso continua sintético até Gate P. Agenda por horário,
+agendar/bloquear e entrada direta pertencem ao mesmo lote aprovado.
+[Entrega e limitações](ENTREGA_CONSULTA_INTEGRADA_2026-10-15.md).
+
 ## Virada 90 — decisão de publicação, 15/10/2026
 
 Usuário autorizou publicar a versão revisada e confirmou preferências de

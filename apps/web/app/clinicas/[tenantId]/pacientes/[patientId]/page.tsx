@@ -37,6 +37,7 @@ import { ExamUploadQuota } from "@/components/exam-upload-quota";
 import { ExamClinicalLibrary } from "@/components/exam-clinical-library";
 import { DoctorPatientHeader, DoctorPatientOverview } from "@/components/doctor-patient-overview";
 import { ModuleTabs } from "@/components/module-ui";
+import { PatientConsultationHistoryPanel } from "@/components/patient-consultation-history";
 export const dynamic = "force-dynamic";
 
 export default async function Patient({
@@ -223,9 +224,11 @@ export default async function Patient({
           recordBase={recordBase}
           patientId={patientId}
         />}
+        {doctorView && active === "Linha do tempo" && <PatientConsultationHistoryPanel key={`${tenantId}:${patientId}`} tenantId={tenantId} patientId={patientId} />}
         {active === "Visão geral" ? (
           <div>
             {doctorView && care && <DoctorPatientOverview care={care} documents={overviewDocuments} weight={recentWeight} recordBase={recordBase} tenantId={tenantId} awaitingPatient={intake?.awaitingPatient ?? false} summary={<ExamLongitudinalSummary tenantId={tenantId} patientId={patientId} />} />}
+            {doctorView && <PatientConsultationHistoryPanel key={`${tenantId}:${patientId}`} tenantId={tenantId} patientId={patientId} />}
             <div>
             {doctorView && careOverview && <details className="panel dv-record-disclosure" id="patient-context-details" open={query.contexto === "ver"}><summary>Contexto do cuidado e solicitações</summary>{careOverview}</details>}
             {doctorView && !care && <ExamLongitudinalSummary tenantId={tenantId} patientId={patientId} />}

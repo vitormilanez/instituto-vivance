@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Video, ArrowLeft, FileText } from "lucide-react";
+import { Video, ArrowLeft } from "lucide-react";
 import { TeleconsultationCallAccess } from "./teleconsultation-call-access";
-import { BrowserTranscriptPanel } from "./browser-transcript-panel";
+import { ConsultationSession } from "./consultation-session";
 import "@/app/doctor-teleconsultation.css";
 
 export function TeleconsultationWorkspace({
@@ -101,7 +101,7 @@ export function TeleconsultationWorkspace({
           </section>
           {context}
         </aside>
-        <div className="teleconsultation-record">{canTranscribe && <details className="meet-encounter-transcript"><summary data-transcript-toggle><FileText size={18} aria-hidden="true" />Transcrição gratuita da consulta</summary><BrowserTranscriptPanel tenantId={tenantId} appointmentId={appointmentId} /></details>}{children}</div>
+        <div className="teleconsultation-record">{canTranscribe && <ConsultationSession tenantId={tenantId} appointmentId={appointmentId} patientName={patientName} joinUrl={url} encounterId={encounterId} />}{children}</div>
       </div>
     </div>
   );

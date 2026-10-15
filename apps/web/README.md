@@ -1,5 +1,16 @@
 # Vivance Web
 
+## Consulta assistida e histórico — 15/10/2026
+
+Migrações 20261015185506, 20261015192136 e 20261015200227 adicionam bloqueio
+de agenda e fluxo privado assistido. VIVANCE_AI_CONSULTATION_SUMMARY=on e a
+credencial Anthropic de servidor habilitam o rascunho; sem ambos há fallback
+extrativo identificado. GET da ficha não gera IA. Consentimento versionado
+pertence ao paciente; médico revisa/corrige/rejeita, sem publicação automática.
+Histórico mostra consultas assistidas do próprio médico com vínculo ativo,
+limitadas a 20 recentes. Não inclui liberação clínica nem captura real validada.
+Ver docs/ENTREGA_CONSULTA_INTEGRADA_2026-10-15.md.
+
 Aplicação Next.js publicada pela Vercel. Esta é a implementação atual do
 Vivance; o protótipo existente na raiz do repositório não é importado por ela.
 

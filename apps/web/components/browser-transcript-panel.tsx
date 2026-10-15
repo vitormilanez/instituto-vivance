@@ -12,11 +12,11 @@ function supportSnapshot() {
   return 4 | (available ? 1 : 0) | (available && supportsTabAudio(navigator.userAgent) && !!navigator.mediaDevices?.getDisplayMedia ? 2 : 0);
 }
 
-export function BrowserTranscriptPanel(props: { tenantId: string; appointmentId: string }) {
+export function BrowserTranscriptPanel(props: { tenantId: string; appointmentId: string; readOnly?: boolean }) {
   return <TranscriptPanel key={`${props.tenantId}:${props.appointmentId}`} {...props} />;
 }
 
-function TranscriptPanel({ tenantId, appointmentId }: { tenantId: string; appointmentId: string }) {
+function TranscriptPanel({ tenantId, appointmentId, readOnly = false }: { tenantId: string; appointmentId: string; readOnly?: boolean }) {
   const base = `/api/v1/clinics/${tenantId}/browser-transcripts/appointments/${appointmentId}`;
   const controller = useRef<BrowserRecognitionCapture | null>(null);
   const draft = useRef({ id: "", startedAt: "", endedAt: "", segments: [] as CapturedSegment[] });
@@ -106,8 +106,8 @@ function TranscriptPanel({ tenantId, appointmentId }: { tenantId: string; appoin
   function discard() { controller.current?.destroy(); controller.current = null; draft.current = { id: "", startedAt: "", endedAt: "", segments: [] }; pendingSave.current = null; setSaveAttempted(false); setSegments([]); setInterim(""); setState("idle"); setDraftLocked(false); setSaved(false); setNotice(""); setAllowed(false); setPermissionNote(""); setConfirmDiscard(false); }
 
   return <section className="meet-transcripts browser-transcript" aria-label="Transcrição gratuita pelo navegador" aria-busy={busy}>
-    <div className="meet-transcript-heading"><Mic size={20} aria-hidden="true" /><h3>Transcrição gratuita</h3><span className="meet-review-state">Pelo navegador</span></div>
-    <p className="meet-helper">Inicie e pare quando precisar. O navegador pode enviar áudio ao seu fornecedor para reconhecimento; no Chrome, esse processamento é do Google. O Vivance salva apenas o texto quando você solicitar.</p>
+    <div className="meet-transcript-heading"><Mic size={20} aria-hidden="true" /><h3>{readOnly ? "Texto original de registros anteriores" : "Transcrição gratuita"}</h3>{!readOnly && <span className="meet-review-state">Pelo navegador</span>}</div>
+    {!readOnly && <><p className="meet-helper">Inicie e pare quando precisar. O navegador pode enviar áudio ao seu fornecedor para reconhecimento; no Chrome, esse processamento é do Google. O Vivance salva apenas o texto quando você solicitar.</p>
     {support.checked && !support.available ? <p className="notice">Este navegador não oferece reconhecimento de fala. Use Chrome/Edge ou Safari compatível, em HTTPS. O registro manual continua disponível.</p> : <>
       <label htmlFor={`capture-source-${appointmentId}`}>Áudio para transcrever</label>
       <select id={`capture-source-${appointmentId}`} value={mode} disabled={active || busy || draftLocked || saved} onChange={e => setMode(e.target.value as CaptureMode)}><option value="microphone">Meu microfone</option>{support.tab && <option value="tab_and_microphone">Aba do Meet + meu microfone</option>}</select>
@@ -121,7 +121,7 @@ function TranscriptPanel({ tenantId, appointmentId }: { tenantId: string; appoin
         <span role="status" className="browser-capture-status">{state === "listening" ? "Captando áudio agora" : state === "starting" ? "Aguardando permissão e início" : state === "stopping" ? "Finalizando trechos" : "Captura parada"}</span>
         {!active && draftLocked && !segments.length && <button type="button" className="secondary" disabled={busy} onClick={discard}>Cancelar preparo</button>}
       </div>
-    </>}
+    </>}</>}
     {notice && <p className="notice" role="status">{notice}</p>}{error && <p className="feedback" role="alert">{error}</p>}
     {(segments.length > 0 || interim) && !saved && <div className="browser-transcript-draft">
       <h4>Texto captado · ainda não salvo</h4><div className="meet-transcript-text" tabIndex={0} role="region" aria-label="Trechos captados">{segments.map((segment, index) => <p key={index}><span>{new Date(segment.capturedAt).toLocaleTimeString("pt-BR")}</span>{segment.text}</p>)}{interim && <p className="meet-helper">{interim} <span>· trecho provisório</span></p>}</div>
@@ -132,11 +132,12 @@ function TranscriptPanel({ tenantId, appointmentId }: { tenantId: string; appoin
     {saved && <button type="button" className="secondary" disabled={busy} onClick={discard}>Iniciar outro texto</button>}
     {confirmDiscard && <div className="meet-inline-confirm"><p>Descartar remove somente o rascunho não salvo desta tela.</p><div className="meet-actions"><button type="button" onClick={discard}>Confirmar descarte</button><button type="button" className="secondary" onClick={() => setConfirmDiscard(false)}>Manter texto</button></div></div>}
     {!loaded && <p role="status">Consultando textos salvos…</p>}
+    {loaded && readOnly && !imports.length && !error && <p>Nenhum texto anterior salvo nesta consulta.</p>}
     {imports.map(item => <article key={item.id} className="meet-transcript-document">
       <div className="meet-transcript-document-heading"><h4>Texto do navegador · {new Date(item.importedAt).toLocaleDateString("pt-BR")}</h4><span className="meet-review-state">{item.review?.decision === "reviewed" ? "Conferido pelo médico" : item.review?.decision === "rejected" ? "Não utilizar" : "Aguardando revisão"}</span></div>
       <p className="meet-helper">{item.captureMode === "microphone" ? "Fonte: microfone; a fala remota pode estar ausente." : "Fonte: áudio combinado da aba e microfone; falantes não identificados."}</p>
       <details><summary>Ler texto original · {item.segments.length} {item.segments.length === 1 ? "trecho" : "trechos"}</summary><div className="meet-transcript-text" tabIndex={0} role="region" aria-label="Original salvo"><p>{item.originalText}</p></div></details>
-      {item.review ? <p className="meet-helper">{item.review.note}</p> : <div className="meet-transcript-review"><label htmlFor={`browser-review-${item.id}`}>Nota da revisão</label><textarea id={`browser-review-${item.id}`} maxLength={2000} value={notes[item.id] ?? ""} onChange={e => setNotes({ ...notes, [item.id]: e.target.value })} disabled={busy || active} placeholder="Registre conferência, erros e trechos ausentes." /><div className="meet-actions"><button type="button" disabled={busy || active || !notes[item.id]?.trim()} onClick={() => void post(`${base}/${item.id}/review`, { decision: "reviewed", note: notes[item.id] })}>Marcar como conferido</button><button type="button" className="secondary" disabled={busy || active || !notes[item.id]?.trim()} onClick={() => void post(`${base}/${item.id}/review`, { decision: "rejected", note: notes[item.id] })}>Não utilizar</button></div></div>}
+      {item.review ? <p className="meet-helper">{item.review.note}</p> : !readOnly && <div className="meet-transcript-review"><label htmlFor={`browser-review-${item.id}`}>Nota da revisão</label><textarea id={`browser-review-${item.id}`} maxLength={2000} value={notes[item.id] ?? ""} onChange={e => setNotes({ ...notes, [item.id]: e.target.value })} disabled={busy || active} placeholder="Registre conferência, erros e trechos ausentes." /><div className="meet-actions"><button type="button" disabled={busy || active || !notes[item.id]?.trim()} onClick={() => void post(`${base}/${item.id}/review`, { decision: "reviewed", note: notes[item.id] })}>Marcar como conferido</button><button type="button" className="secondary" disabled={busy || active || !notes[item.id]?.trim()} onClick={() => void post(`${base}/${item.id}/review`, { decision: "rejected", note: notes[item.id] })}>Não utilizar</button></div></div>}
     </article>)}
   </section>;
 }
