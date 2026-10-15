@@ -74,6 +74,6 @@ Quando o modelo principal já for adequado e não houver trabalho independente, 
 - Não usar Max/Ultra por padrão. Preferências explícitas posteriores do usuário prevalecem.
 - Escolha de modelo não autoriza iniciar slices ainda não solicitados, migrar banco, publicar, contratar serviços ou alterar regras clínicas.
 - Preservar os oito destinos/ações da equipe e a Agenda existente; para o médico, a decisão de 14/10 substitui os widgets grandes por Hoje operacional, ficha organizada e navegação inferior única. Aprovação e publicação continuam separadas.
-- Transcrição manual do navegador foi autorizada/publicada em 14/10, sem arquivo de áudio. Nativa do Meet permanece preparada/OFF; consentimento direto do paciente e resumo automático pós-call ainda não implementados. Não tratar o antigo adiamento de áudio como bloqueio da opção manual já entregue nem como autorização para novas capturas. IA clínica segue seus gates.
+- Transcrição manual do navegador foi autorizada/publicada em 14/10, sem arquivo de áudio. Em 15/10 o usuário autorizou e publicou consulta integrada, consentimento direto do próprio paciente e resumo privado no histórico da ficha (PR143). Nativa do Meet permanece preparada/OFF; captura real das duas pontas, qualidade clínica e Gate P continuam pendentes. Não inferir autorização para capturar áudio real da mera publicação. IA clínica segue seus gates.
 
 Referências de capacidade: https://learn.chatgpt.com/docs/models e https://learn.chatgpt.com/docs/agent-configuration/subagents . Política definida em 12/09/2026.
