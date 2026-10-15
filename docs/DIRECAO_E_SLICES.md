@@ -1,5 +1,33 @@
 # Direção do Vivance e próximos slices
 
+## Conta Google para teste — confirmação de 14/10/2026
+
+Usuário autorizou sua conta `vtrconsultingbr@gmail.com` para teste sintético
+da integração. Autenticação e consentimento Google são pessoais; não reutilizar
+senha do Vivance, contratar plano ou habilitar captura em outras reuniões.
+Configuração OAuth/licença e chamada real não decorrem dessa autorização.
+Login conferido no perfil VTR; preparação usa o projeto separado
+`vivance-meet-teste`, sem mexer no AI Video Creator ou vincular faturamento.
+API/cliente Web, escopos e servidor preparados/publicados após a autorização
+de publicação. Google Auth fica **Testing**, somente essa conta de teste, e
+transcrição nativa explicitamente `false`. Grant pessoal continua pendente:
+`meetings.space.settings` abrange configurações de todas as chamadas, apesar do
+adapter restrito a salas próprias; obter ciência/autorização antes da concessão.
+Não confundir preparação técnica com conexão, licença ou chamada validada.
+[Estado da conexão](TELECONSULTA_GOOGLE_MEET.md).
+
+## Pedido pós-publicação — consentimento e pós-call, 14/10/2026
+
+Paciente deve receber e decidir sobre transcrição antes de entrar, sem cancelar
+o atendimento quando recusar. Médico precisa de estado claro e entrada simples;
+após a reunião, resumo e texto original ficam juntos na mesma consulta/ficha,
+privados e com revisão médica/publicação separadas. Preferir notas nativas do
+Google quando disponíveis, sem segunda chamada de IA ou fornecedor novo implícito.
+[Fluxo proposto e limites](TELECONSULTA_GOOGLE_MEET.md).
+Não implementado/ativado nesta rodada: OAuth preparado, mas conta não conectada,
+licença ainda desconhecida e automação exige contrato próprio de consentimento/
+background. Primeiro slice recomendado: aceite/recusa/retirada e entrada da consulta.
+
 ## Transcrição gratuita/publicação — atualização de 14/10/2026
 
 Usuário autorizou validação mobile e publicação e esclareceu que deseja a
@@ -21,7 +49,7 @@ Implementar conexão individual do médico e importar a transcrição nativa,
 com autorização específica registrada, original imutável e revisão sem
 publicação automática. Sem gravador próprio ou IA de síntese neste slice.
 Usuário desconhece a assinatura Google e autorizou **deixar preparada**;
-schema publicado; OAuth, licença e jornada nativa permanecem pendentes. UI segue branco/azul,
+schema/configuração publicados; grant, licença e jornada nativa permanecem pendentes. UI segue branco/azul,
 navegação inferior e ações junto à consulta. [Contrato](TELECONSULTA_GOOGLE_MEET.md).
 
 ## Decisão de interface — 14/10/2026

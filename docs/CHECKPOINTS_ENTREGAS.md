@@ -1,5 +1,24 @@
 # Checkpoints das entregas
 
+## Configuração Google de teste — publicada em14/10/2026
+
+- [x] Projeto separado, Meet REST API, cliente Web/callback e quatro escopos; External/Testing somente `vtrconsultingbr@gmail.com`.
+- [x] Credenciais de servidor e criptografia em Production/cofre ignorado; transcrição nativa explicitamente `false`, sem plano pago.
+- [x] 21 testes focados/build; SHA/projeto e dois domínios conferidos no deployment `dpl_9bhpsMoXtJ7fv5TvhoX8JM8UdmF4`.
+- [x] Site autenticado: status médico200/configurado, paciente403, nativa409 e original/revisão existentes preservados200; botão Conectar Google habilitado.
+- [ ] Grant pessoal Google (status atual `connected=false`), licença e chamada real. Não publicar o app OAuth amplamente nem ativar captura por esta preparação.
+- [ ] Consentimento pelo paciente, resumo/arquivo pós-call e background continuam escopo não implementado. [Registro](ENTREGA_WORKSPACE_E_TRANSCRICAO_2026-10-14.md#configuração-google-de-teste-publicada--14102026).
+
+## Consentimento paciente e arquivo pós-consulta — pedido de14/10
+
+- [x] Fluxo proposto registrado; revisão crítica Astra e ausência inicial de configuração conferidas, depois preparação técnica publicada separadamente acima.
+- [x] Titular confirmou `vtrconsultingbr@gmail.com`; login no perfil VTR e projeto separado `vivance-meet-teste` conferidos, sem grant/captura ou faturamento vinculado.
+- [ ] Confirmar o brief de UX; implementar aceite/recusa/retirada por consulta e entrada integrada.
+- [ ] Conceder acesso Google/licença e permissões mínimas dos artefatos; implementar background autorizado.
+- [ ] Guardar original final e notas/resumo privados, com versão/origem e revisão médica.
+- [ ] Validar paciente/médico, recarga, revogação concorrente e retries; publicação separada.
+- [ ] Gate P, retenção e aceite clínico antes de dados reais. [Contrato](TELECONSULTA_GOOGLE_MEET.md).
+
 ## Transcrição gratuita e release — 14/10/2026
 
 - [x] Usuário confirmou navegador grátis/manual e publicação após validação.
@@ -17,7 +36,8 @@
 - [x] 21 testes focados, lint e build/tipos; fixes críticos Astra confirmados.
 - [x] UI local desktop, estado não configurado e formulário manual conferidos.
 - [x] Tela publicada/320px e migration remota; nativa permanece desativada.
-- [ ] Configuração Google e estados conectados/importados em uma chamada nativa.
+- [x] Configuração Google de teste publicada, sem conexão pessoal ou captura.
+- [ ] Estados conectados/importados em uma chamada nativa e licença.
 - [ ] Gate P e aceite clínico antes de dados reais. [Detalhes](TELECONSULTA_GOOGLE_MEET.md).
 
 ## Extensão visual às áreas médicas — 14/10/2026

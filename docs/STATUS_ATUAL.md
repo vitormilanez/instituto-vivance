@@ -1,5 +1,30 @@
 # Estado atual do Vivance
 
+## Conta Google de teste — configuração publicada; grant pendente, 14/10/2026
+
+`vtrconsultingbr@gmail.com` confirmada pelo titular para o teste sintético.
+Login confirmado no perfil Chrome **Vitor (VTR - Consulting)**. Projeto
+`vivance-meet-teste` separado do AI Video Creator: Meet API/cliente Web e quatro
+escopos configurados, External/Testing apenas para essa conta, sem faturamento.
+Credenciais server-side e flag nativa `false` publicadas em Production.
+Deployment `dpl_9bhpsMoXtJ7fv5TvhoX8JM8UdmF4`, SHA `ceaf477`, dois domínios
+conferidos. 21 testes focados e build passaram; status médico200/configurado,
+paciente403/nativa409 e fonte/revisão existentes preservadas200. **Conta ainda
+não conectada (`connected=false`)**; licença e chamada real não validadas.
+Escopo de settings abrange todas as chamadas; concessão pessoal ainda pendente.
+Consentimento pré-entrada e arquivo pós-call continuam definidos, não implementados.
+[Detalhes e próximos gates](TELECONSULTA_GOOGLE_MEET.md).
+
+## Novo fluxo de consentimento e pós-consulta — definido, não implementado
+
+Pedido de14/10 registrado: consentimento do paciente antes de entrar, operação
+simples para médico e resumo + transcrição original junto à consulta após o
+provedor finalizar. Impeccable orientou a jornada; Astra revisou link direto,
+retirada, background, completude e finalidade. Configuração técnica Google
+publicada separadamente; grant pessoal e licença continuam pendentes. Nenhuma
+mensagem, captura, chamada de IA ou migration decorre desta definição.
+[Contrato proposto, dependências e aceites](TELECONSULTA_GOOGLE_MEET.md).
+
 ## Workspace médico e transcrição gratuita — publicados em 14/10/2026
 
 Hoje, ficha, Agenda, Pacientes, Mensagens e Teleconsulta publicados pelo PR137,
@@ -11,8 +36,9 @@ dois domínios conferidos; configuração privada alinhada após503 pós-deploy.
 Mobile320/navegação autenticada e persistência/revisão/original imutável passaram;
 paciente403/nativa409. Incentivo enviado/repetido sem duplicar para uma única
 conta QA autorizada, com recebimento confirmado. Nativa do Meet preparada/OFF;
-OAuth não configurado. Áudio real/precisão do fornecedor, assinatura Google,
-aceites do usuário/clínico e Gate P continuam separados.
+OAuth ausente naquela publicação, preparado posteriormente acima. Áudio real/
+precisão do fornecedor, assinatura Google, aceites do usuário/clínico e Gate P
+continuam separados.
 [Registro completo e recuperação](ENTREGA_WORKSPACE_E_TRANSCRICAO_2026-10-14.md).
 
 ## Histórico local — Teleconsulta + Google Meet preparada, 14/10/2026

@@ -1,5 +1,59 @@
 # Workspace médico e transcrição gratuita — 14/10/2026
 
+## Configuração Google de teste publicada — 14/10/2026
+
+Pedido **“Se estiver tudo certo, pode publicr”**: configuração publicada no
+Vivance, sem publicar o app Google OAuth amplamente ou ativar captura nativa.
+Conta Google autorizada pelo titular: `vtrconsultingbr@gmail.com`.
+
+- Projeto `vivance-meet-teste`, organização `vtrconsultingbr-org`, Meet REST API
+  habilitada e cliente Web **Vivance Meet Teste Web**. Projeto do AI Video Creator
+  preservado. Sem faturamento, assinatura ou outro serviço contratado.
+- Google Auth **External / Testing**; somente a conta acima na lista de teste.
+  Redirect único `https://institutovivance.app/api/integrations/google-meet/callback`.
+  Escopos `openid`, `userinfo.email`, `meetings.space.created` e
+  `meetings.space.settings` (prefixo Google Auth para os três últimos). Sem
+  Drive/Calendar/restricted scopes. Settings permite configurações de todas as
+  chamadas; restrição do adapter a salas próprias não estreita o grant Google.
+- Production na equipe `vtr-consulting`, projeto `prj_ligeZuFRycRXA21u5rRzaLAORTrI`:
+  `GOOGLE_MEET_CLIENT_ID`, `GOOGLE_MEET_CLIENT_SECRET`, `GOOGLE_MEET_REDIRECT_URI`
+  e `GOOGLE_MEET_TOKEN_ENCRYPTION_KEY` como Secrets server-side;
+  `GOOGLE_MEET_TRANSCRIPTION_ENABLED=false` como Config. Cofre/export privados,
+  ignorados e modo0600. Sem valores de segredos na documentação/Git ou credenciais
+  de servidor no cliente. Astra revisou o provisionamento delimitado.
+- Build READY/Production **`dpl_9bhpsMoXtJ7fv5TvhoX8JM8UdmF4`**,
+  [`instituto-vivance-315okv0of-vtr-consulting.vercel.app`](https://instituto-vivance-315okv0of-vtr-consulting.vercel.app).
+  API Vercel confirmou projeto e SHA **`ceaf477ef351b2ad599140694771261eae4957b3`**.
+  Código de `apps/web` e `supabase` idêntico ao release `a1d2153`; sem migrations,
+  Edge Functions ou mudança de código da aplicação nesta preparação.
+- **21 testes focados** Meet/SQL/Teleconsulta passaram e build/tipos do novo
+  artefato passou. CI da aplicação já publicada reconfirmado, sem repetir toda
+  a suíte para uma alteração exclusiva de configuração.
+- Artefato protegido antes da promoção: login200 e verificação autenticada200,
+  sem remover proteção. Após promoção, domínio principal `/login`200 e secundário
+  307 para o principal; inspeção dos dois aliases no mesmo deployment.
+- API no domínio oficial: médico200, `configured=true`, `available=true`,
+  **`connected=false`**; paciente403, nativa409. Leitura da fixture200 preserva
+  original/revisão. A sessão médica da interface mostra **Conectar Google**
+  habilitado e aviso de nativa desativada. Sem criar sala ou capturar áudio.
+
+**Pendente:** grant pessoal Google no mesmo navegador da sessão médica; licença,
+chamada real e qualidade do áudio não foram testados. Consentimento pré-entrada
+pelo paciente, resumo pós-call e sincronização em background são um fluxo
+documentado, ainda não implementado. O consentimento manual atual do médico
+não equivale ao novo aceite pelo paciente. Não afirmar o contrário nem ativar
+a flag por consequência desta publicação. Gate P/aceite clínico seguem separados.
+
+Recuperação técnica anterior: `dpl_5uaRCcGLVGn3PQKhgvaredChbqw3`,
+`instituto-vivance-ojftpcxlt-vtr-consulting.vercel.app`. Voltar o frontend não apaga
+configuração nem revoga grant; a flag permanece `false`. Não regenerar a chave
+de criptografia ou substituir segredos para repetir o provisionamento.
+Capturas locais: `output/teleconsulta-meet-20261014/release/google-preparado-publicado.png`
+e `output/teleconsulta-meet-20261014/google-escopos-configurados-teste.png`.
+
+Os blocos abaixo registram a publicação inicial do workspace, anterior a esta
+preparação Google. IDs e ausência de OAuth neles são evidências históricas.
+
 ## Escopo autorizado
 
 Publicar Hoje, ficha, Agenda, Pacientes, Mensagens e Teleconsulta no conceito
