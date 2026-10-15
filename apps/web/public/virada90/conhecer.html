@@ -9,7 +9,8 @@
   <link rel="icon" href="/virada90/assets/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="/virada90/assets/manrope.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="/virada90/guided.css">
-  <script src="/virada90/guided.js" defer></script>
+  <link rel="stylesheet" href="/virada90/consultation.css">
+  <script type="module" src="/virada90/guided.js"></script>
   <link rel="stylesheet" href="/virada90/measurement.css">
   <script type="module" src="/virada90/measurement.js"></script>
 </head>
@@ -42,7 +43,7 @@
           <option value="2">2. Avaliação e cuidado individual</option>
           <option value="3">3. Plano e acompanhamento</option>
           <option value="4">4. Continuidade e dúvidas</option>
-          <option value="5">5. Formatos e valores</option>
+          <option value="5">5. Valores e minha consulta</option>
         </select>
       </label>
     </div>
@@ -52,6 +53,7 @@
         <section class="step active" data-step="1" data-title="O programa">
           <h1 tabindex="-1">Uma nova relação com sua rotina.</h1>
           <p class="lead">O Virada 90 é um acompanhamento médico individual com o Dr. Guilherme Martins para cuidar do emagrecimento de forma sustentável ao longo de três meses.</p>
+          <div class="physician-intro"><span class="portrait-crop portrait-crop--left"><img src="/virada90/assets/real/medico-consultorio.jpg" alt="Dr. Guilherme Martins no Instituto Vivance" width="1448" height="1086"></span><p><strong>Dr. Guilherme Martins</strong><span>Um acompanhamento que começa por conhecer você.</span></p></div>
           <p>O plano começa pela sua história, rotina e desafios. A partir daí, vocês constroem mudanças possíveis, sem extremismos, pensando na saúde e na preservação muscular — além do número na balança.</p>
           <p class="clinical-note">No presencial, a avaliação pode incluir medições e bioimpedância, quando indicadas. No online, o ponto de partida é a avaliação à distância e os exames pertinentes ao seu contexto.</p>
           <h2 class="chapter-title">Quatro pilares que trabalham juntos.</h2>
@@ -82,9 +84,9 @@
           <ol class="phase-line" aria-label="Fases do acompanhamento">
             <li><span>1</span>Avaliação</li><li><span>2</span>Plano</li><li><span>3</span>Acompanhamento</li><li><span>4</span>Manutenção</li>
           </ol>
-          <figure class="editorial-figure">
-            <img src="/virada90/assets/journey/avaliacao.jpg" width="1200" height="800" alt="Pessoa em conversa de avaliação individual com um profissional de saúde">
-            <figcaption>Imagem ilustrativa. Cada avaliação considera o contexto individual.</figcaption>
+          <figure class="doctor-editorial">
+            <span class="portrait-crop portrait-crop--right"><img src="/virada90/assets/real/medico-consultorio.jpg" width="1448" height="1086" alt="Dr. Guilherme Martins sentado à mesa de seu consultório" loading="lazy"></span>
+            <figcaption><h2>O cuidado começa com uma boa conversa.</h2><p>Sua história, sua rotina e o que você espera do acompanhamento orientam a avaliação inicial.</p><span>Dr. Guilherme Martins · Instituto Vivance</span></figcaption>
           </figure>
           <div class="detail-list">
             <article><h2>História e exame clínico</h2><p>Queixas, histórico familiar, medicamentos usados anteriormente e outros aspectos relevantes para compreender o ponto de partida.</p></article>
@@ -130,6 +132,7 @@
             </section>
             <section class="care-stage" aria-labelledby="followup-title">
               <h2 id="followup-title">Depois, acompanhar e ajustar.</h2>
+              <div class="physician-intro physician-intro--outdoor"><span class="portrait-crop portrait-crop--right"><img src="/virada90/assets/real/medico-clinica.jpg" alt="Dr. Guilherme Martins na entrada do Instituto Vivance" width="1536" height="1024" loading="lazy"></span><p><strong>O mesmo médico, ao longo da jornada.</strong><span>Presencial ou online, o cuidado considera sua evolução.</span></p></div>
               <p>Ao longo dos três meses, consultas periódicas permitem revisar a adaptação, a resposta do corpo e as dificuldades. Plano e metas podem mudar conforme a evolução individual.</p>
               <details>
                 <summary>Como o acompanhamento continua</summary>
@@ -166,7 +169,7 @@
           </div>
         </section>
 
-        <section class="step final-step" data-step="5" data-title="Formatos e valores" hidden>
+        <section class="step final-step" data-step="5" data-title="Valores e minha consulta" hidden>
           <h1 tabindex="-1">Seu próximo passo começa com uma conversa.</h1>
           <p class="lead">Escolha o cuidado que combina com sua rotina. Os dois formatos têm três meses de acompanhamento com o Dr. Guilherme Martins.</p>
           <fieldset class="format-choice">
@@ -175,14 +178,14 @@
             <article class="offer-presencial">
               <div class="offer-heading"><h2>Presencial</h2><span>Na clínica</span></div>
               <p>Presidente Prudente · três meses</p>
-              <p class="price"><span>Investimento total</span><strong>R$ 12.000</strong><span>Em 12 parcelas de R$ 1.000</span></p>
+              <p class="price"><span>12 parcelas de</span><strong>R$ 1.000</strong><span>Investimento total: R$ 12.000</span></p>
               <ul class="offer-includes"><li>Acompanhamento médico presencial</li><li>Aplicações e medições quando houver indicação clínica</li><li>Cuidado adaptado à sua rotina e evolução</li></ul>
               <label class="offer-pick"><input type="radio" name="modality" value="Presencial em Presidente Prudente"><span>Tenho interesse no presencial</span></label>
             </article>
             <article class="offer-online">
               <div class="offer-heading"><h2>Online</h2><span>À distância</span></div>
               <p>Atendimento online · três meses</p>
-              <p class="price"><span>Investimento total</span><strong>R$ 6.500</strong><span>Em 12 parcelas</span></p>
+              <p class="price"><span>12 parcelas de aproximadamente</span><strong>R$ 541,67</strong><span>Investimento total: R$ 6.500</span></p>
               <ul class="offer-includes"><li>Acompanhamento médico online</li><li>Plano alimentar individualizado</li><li>Cuidado adaptado à sua rotina e evolução</li></ul>
               <label class="offer-pick"><input type="radio" name="modality" value="Online"><span>Tenho interesse no online</span></label>
             </article>
@@ -190,13 +193,35 @@
           <label class="choice undecided"><input type="radio" name="modality" value="Ainda estou decidindo"><span>Ainda estou decidindo</span></label>
           </fieldset>
           <p class="payment-note">O parcelamento não altera a duração: ambos os programas têm três meses. A equipe esclarece as condições de pagamento antes de você decidir.</p>
-          <div class="contact-panel">
-            <h2>Vamos encontrar o melhor caminho para você?</h2>
-            <p>A equipe pode tirar suas dúvidas sobre a avaliação, os formatos e os próximos passos. Você não precisa decidir tudo agora.</p>
-            <div class="interest-summary" id="interest-summary" aria-live="polite"></div>
-            <button id="talk-team" class="team-action" type="button">Conversar pelo WhatsApp <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-            <p class="handoff-note">Você revisa e envia a mensagem no WhatsApp. Este botão não realiza cobrança nem reserva.</p>
-          </div>
+          <section class="consultation" id="consulta" aria-labelledby="consultation-title">
+            <div class="consultation-heading"><h2 id="consultation-title" tabindex="-1">Um primeiro encontro.<br>Um cuidado só seu.</h2><p>Escolha como prefere ser atendido e sugira um horário para sua consulta inicial.</p></div>
+            <div class="consultation-layout" id="consultation-scheduler">
+              <aside class="consultation-context">
+                <img class="clinic-photo" src="/virada90/assets/real/clinica-fachada.jpg" alt="Fachada do Instituto Vivance, com jardim e rampa de acesso" width="1448" height="1086" loading="lazy">
+                <div class="consultation-context-copy"><h3 id="consultation-place">Esperamos você no Vivance.</h3><p id="consultation-address">Rua Vicente Furlanetto, 65<br>Presidente Prudente · SP</p><p id="consultation-place-note">Atendimento presencial na clínica ou online, de onde você estiver.</p></div>
+                <div class="consultation-doctor"><span class="portrait-crop portrait-crop--left"><img src="/virada90/assets/real/medico-consultorio.jpg" alt="" width="1448" height="1086" loading="lazy"></span><p><strong>Dr. Guilherme Martins</strong><span>CRM-SP 182364 ·<br>RQE 73549 · Clínica Médica</span></p></div>
+              </aside>
+              <div class="schedule-panel">
+                <fieldset class="schedule-modalities"><legend>Como você prefere sua consulta?</legend><div>
+                  <label><input type="radio" name="schedule-modality" value="Presencial em Presidente Prudente"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 21V4h16v17M2 21h20M9 21v-5h6v5M8 8h2m4 0h2M8 12h2m4 0h2"/></svg>Presencial</span></label>
+                  <label><input type="radio" name="schedule-modality" value="Online"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="6" width="12" height="12" rx="2"/><path d="m15 10 6-3v10l-6-3"/></svg>Online</span></label>
+                </div></fieldset>
+                <div class="schedule-title"><h3>Seu dia, seu horário.</h3><span>Horário de Brasília</span></div>
+                <div class="schedule-calendar-head"><strong id="schedule-period"></strong><div><button id="schedule-prev" type="button" aria-label="Dias anteriores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><button id="schedule-next" type="button" aria-label="Próximos dias"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></div></div>
+                <div id="schedule-days" class="schedule-days" role="group" aria-label="Escolha o dia de preferência"></div>
+                <h4 id="schedule-heading-date">Horários de preferência</h4>
+                <div id="schedule-times" class="schedule-times" role="group" aria-label="Escolha o horário de preferência"></div>
+                <button id="schedule-more" class="schedule-more" type="button">Mais horários <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+                <p class="schedule-confirmation">Sua escolha é uma preferência. A equipe confirma a disponibilidade pelo WhatsApp.</p>
+                <div id="schedule-selected" class="schedule-selected" aria-live="polite"></div>
+                <div class="interest-summary" id="interest-summary" aria-live="polite"></div>
+                <button id="talk-team" class="team-action" type="button">Conversar pelo WhatsApp <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+                <button id="schedule-without-time" class="schedule-without-time" type="button">Prefiro combinar com a equipe</button>
+                <p class="handoff-note">Você revisa e envia a mensagem no WhatsApp. Este botão não realiza cobrança nem reserva.</p>
+                <noscript><p>Ative o JavaScript para escolher uma preferência ou fale com a equipe pelo (18) 99755-1234.</p></noscript>
+              </div>
+            </div>
+          </section>
         </section>
 
         <div class="actions">

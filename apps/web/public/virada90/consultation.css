@@ -1,0 +1,107 @@
+/* Extends the established Virada 90 palette. Selection is a preference, never a reservation. */
+.portrait-crop{position:relative;display:block;overflow:hidden;isolation:isolate;background:#252722}
+.portrait-crop img{position:absolute;top:0;height:100%;width:200%;max-width:none;object-fit:cover}
+.portrait-crop--left img{left:0;object-position:left center}
+.portrait-crop--right img{right:0;object-position:right center}
+.hero-portrait--real>.portrait-crop{aspect-ratio:2/3;width:100%}
+.hero-portrait--real>.portrait-crop img{height:100%;width:200%;max-width:none}
+.physician-intro{display:flex;align-items:center;gap:20px;margin:26px 0 32px;padding:20px 0;border-block:1px solid var(--line)}
+.physician-intro .portrait-crop{width:88px;height:110px;border-radius:6px;flex:none}
+.physician-intro p{margin:0;max-width:40ch;font-size:15px;line-height:1.65}
+.physician-intro strong,.physician-intro p>span{display:block}
+.physician-intro p>span{margin-top:6px;color:var(--muted)}
+.physician-intro--outdoor .portrait-crop{width:100px;height:132px}
+.doctor-editorial{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1fr);background:var(--navy);color:var(--paper);margin:32px 0;overflow:hidden;border-radius:6px}
+.doctor-editorial>.portrait-crop{min-height:350px;aspect-ratio:2/3}
+.doctor-editorial figcaption{align-self:center;padding:32px}
+.doctor-editorial h2{font-size:30px;line-height:1.2;letter-spacing:-.03em;color:var(--paper)}
+.doctor-editorial p{font-size:15px;line-height:1.8;margin:20px 0;color:#e0e7ed}
+.doctor-editorial figcaption>span{display:block;font-size:12px;color:#dbbd86}
+.clinic-invitation{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:64px;align-items:center;padding-block:24px 100px}
+.clinic-invitation figure{margin:0}
+.clinic-invitation img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:6px}
+.clinic-invitation h2{font-size:clamp(30px,3vw,44px)}
+.clinic-invitation p{margin:22px 0 0;color:var(--muted);font-size:16px;line-height:1.8}
+.clinic-invitation address{font-style:normal;border-top:1px solid var(--line);padding-top:20px;margin-top:22px;font-size:15px}
+.clinic-invitation .primary{margin-top:24px}
+.clinic-invitation .clinic-alternative{font-size:13px;margin-top:16px}
+.consultation{padding-top:64px;scroll-margin-top:170px}
+.consultation-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:40px;margin-bottom:30px}
+.consultation-heading h2{font-size:clamp(32px,3.5vw,44px);line-height:1.15;letter-spacing:-.035em;margin:0}
+.consultation-heading p{max-width:32ch;font-size:15px;line-height:1.75;color:var(--muted);margin:0}
+.consultation-layout{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.25fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--paper)}
+.consultation-context{background:#efeee6;display:flex;flex-direction:column;min-width:0}
+.consultation-context .clinic-photo{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}
+.consultation-context-copy{padding:28px 28px 24px}
+.consultation-context-copy h3{font-size:26px;line-height:1.2;font-weight:600;letter-spacing:-.025em;margin:0 0 18px}
+.consultation-context-copy p{font-size:14px;line-height:1.75;margin:0}
+.consultation-context-copy p+p{margin-top:14px;color:var(--muted);font-size:13px}
+.consultation-doctor{display:flex;align-items:center;gap:14px;margin:auto 28px 0;padding:24px 0;border-top:1px solid #d3d2c9}
+.consultation-doctor .portrait-crop{width:64px;height:80px;flex:none;border-radius:4px}
+.consultation-doctor p{margin:0;font-size:13px;line-height:1.55}
+.consultation-doctor strong,.consultation-doctor p>span{display:block}
+.consultation-doctor p>span{font-size:12px;color:var(--muted);margin-top:6px}
+.schedule-panel{padding:30px;min-width:0}
+.schedule-modalities{margin:0 0 24px;padding:0;border:0;min-width:0}
+.schedule-modalities legend{font-size:13px;font-weight:600;padding:0;margin-bottom:12px}
+.schedule-modalities>div{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.schedule-modalities label{position:relative;cursor:pointer}
+.schedule-modalities label>span{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-weight:600;color:var(--ink)}
+.schedule-modalities input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.schedule-modalities input:checked+span{background:var(--navy);color:var(--paper);border-color:var(--navy)}
+.schedule-modalities input:focus-visible+span{outline:3px solid var(--gold-ink);outline-offset:3px}
+.schedule-modalities svg,.schedule-panel button svg{width:20px;height:20px;flex:none}
+.schedule-title{display:flex;justify-content:space-between;align-items:baseline;gap:14px;margin-top:28px}
+.schedule-title h3{margin:0;font-size:24px;line-height:1.2;font-weight:600;letter-spacing:-.025em}
+.schedule-title>span{font-size:12px;color:var(--muted)}
+.schedule-calendar-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:20px 0 14px}
+.schedule-calendar-head>strong{font-size:14px;text-transform:capitalize}
+.schedule-calendar-head>div{display:flex;gap:6px}
+.schedule-calendar-head button{display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ink);cursor:pointer}
+.schedule-calendar-head button:disabled{opacity:.35;cursor:default}
+.schedule-days{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.schedule-day{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:92px;padding:10px 4px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ink);font:inherit;cursor:pointer}
+.schedule-day-name,.schedule-day-month{font-size:12px;text-transform:capitalize}
+.schedule-day-number{font-size:25px;font-weight:600;line-height:1.3;font-variant-numeric:tabular-nums}
+.schedule-day[aria-pressed="true"]{background:var(--navy);color:var(--paper);border-color:var(--navy)}
+.schedule-panel h4{font-size:13px;font-weight:600;margin:24px 0 12px;line-height:1.6}
+.schedule-times{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.schedule-time{min-height:48px;border:1px solid #c7ceca;border-radius:6px;background:#edf1ec;color:#264d42;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer}
+.schedule-time[aria-pressed="true"]{background:#285b54;border-color:#285b54;color:#fff}
+.schedule-time:disabled{background:#f2f2ed;color:#75796f;border-color:#e3e4dc;cursor:default}
+.schedule-day:hover,.schedule-time:not(:disabled):hover,.schedule-calendar-head button:not(:disabled):hover{border-color:var(--gold-ink)}
+.schedule-empty{grid-column:1/-1;font-size:14px;color:var(--muted);margin:0}
+.schedule-more{display:flex;justify-content:center;align-items:center;gap:8px;min-height:44px;width:100%;border:0;background:transparent;color:var(--gold-ink);font-size:13px;font-weight:600;cursor:pointer;margin-top:6px}
+.schedule-more[hidden]{display:none}
+.schedule-confirmation{font-size:12px;line-height:1.7;color:var(--muted);margin:18px 0 0}
+.schedule-selected{margin-top:20px;padding:16px 0;border-block:1px solid var(--line);font-size:13px;line-height:1.7;color:var(--ink)}
+.schedule-selected:empty{display:none}
+.schedule-panel .interest-summary{font-size:12px;margin-top:12px;padding:10px 12px}
+.schedule-panel .team-action{display:flex;gap:12px;width:100%;margin-top:20px;min-height:54px;justify-content:center;color:var(--navy)}
+.schedule-without-time{display:block;width:100%;border:0;background:transparent;color:var(--muted);min-height:44px;margin:8px 0 0;font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+.schedule-panel .handoff-note{margin-top:8px;font-size:12px;color:var(--muted)}
+.schedule-panel button:focus-visible{outline:3px solid var(--gold-ink);outline-offset:3px}
+.schedule-panel button{transition:background-color .16s,border-color .16s}
+@media(max-width:900px){.consultation-layout{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}.schedule-panel{padding:24px}.schedule-title{display:block}.schedule-title>span{display:block;margin-top:6px}.consultation-context-copy{padding:24px}.consultation-doctor{margin-inline:24px}.clinic-invitation{gap:32px}}
+@media(max-width:760px){
+ .hero-portrait--real>.portrait-crop{height:270px;aspect-ratio:auto}
+ .hero-portrait--real>.portrait-crop img{width:200%;object-fit:cover}
+ .clinic-invitation{grid-template-columns:1fr;padding-block:12px 60px;gap:26px}
+ .clinic-invitation .primary{width:100%;font-size:14px}
+ .clinic-invitation p{font-size:15px;margin-top:16px}
+ .doctor-editorial{grid-template-columns:minmax(0,.85fr) minmax(0,1fr)}
+ .doctor-editorial>.portrait-crop{min-height:230px;aspect-ratio:auto}
+ .doctor-editorial figcaption{padding:20px}.doctor-editorial h2{font-size:23px}.doctor-editorial p{font-size:13px;margin:14px 0}.doctor-editorial figcaption>span{font-size:12px}
+ .consultation{padding-top:40px;scroll-margin-top:180px}
+ .consultation-heading{display:block;margin-bottom:24px}.consultation-heading h2{font-size:32px}.consultation-heading p{margin-top:16px;max-width:40ch}
+ .consultation-layout{grid-template-columns:1fr}
+ .consultation-context{display:grid;grid-template-columns:120px 1fr}
+ .consultation-context .clinic-photo{height:100%;min-height:162px;aspect-ratio:auto;object-position:center}
+ .consultation-context-copy{padding:18px}.consultation-context-copy h3{font-size:20px;margin-bottom:10px}.consultation-context-copy p{font-size:12px}.consultation-context-copy p+p{display:none}
+ .consultation-doctor{grid-column:1/-1;margin:0 20px;padding:16px 0;gap:12px}.consultation-doctor .portrait-crop{width:44px;height:54px}.consultation-doctor p>span br{display:none}.consultation-doctor p>span{margin-top:3px;font-size:12px}
+ .schedule-panel{padding:22px 20px}.schedule-title{display:flex;align-items:baseline}.schedule-title h3{font-size:21px}.schedule-title>span{margin:0;font-size:12px}
+ .schedule-day{min-height:88px}.schedule-times{grid-template-columns:repeat(3,minmax(0,1fr))}.schedule-time{min-height:48px}
+ .physician-intro{gap:16px}.physician-intro p{font-size:14px}
+}
+@media(max-width:380px){.schedule-panel{padding:20px 16px}.schedule-title{display:block}.schedule-title>span{margin-top:6px}.schedule-days{gap:5px}.schedule-modalities label>span{gap:7px;font-size:13px}.consultation-context{grid-template-columns:100px 1fr}.consultation-context-copy{padding:16px 12px}.doctor-editorial{grid-template-columns:1fr}.doctor-editorial>.portrait-crop{height:300px;aspect-ratio:auto}.doctor-editorial figcaption{padding:24px}.doctor-editorial>.portrait-crop img{object-position:right 30%}}
+@media(prefers-reduced-motion:reduce){.schedule-panel button{transition:none}}

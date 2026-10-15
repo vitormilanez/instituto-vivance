@@ -1,5 +1,15 @@
 # Direção do Vivance e próximos slices
 
+## Virada 90 — decisão de publicação, 15/10/2026
+
+Usuário autorizou publicar a versão revisada e confirmou preferências de
+segunda a sexta às 08h, 09h, 10h, 14h, 15h e 16h, nas duas modalidades.
+Agenda pública prepara solicitação no WhatsApp sujeita à confirmação da
+equipe. Manter cinco etapas, fotos reais e parcelas em destaque com total
+visível. Horizonte de 30 dias e fuso Brasília preservados da prévia aprovada.
+Não representa consulta confirmada nem disponibilidade integrada.
+[Estado da publicação](STATUS_ATUAL.md).
+
 **Decisões vigentes reconciliadas em 14/10/2026.** Estado de publicação em
 [STATUS_ATUAL](STATUS_ATUAL.md), execução em [CHECKPOINTS](CHECKPOINTS_ENTREGAS.md)
 e decisões substituídas no [histórico](historico/EVOLUCAO_ATE_2026-10-14.md).
