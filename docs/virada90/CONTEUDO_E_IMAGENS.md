@@ -10,6 +10,18 @@ Aviso de confirmação pela equipe e alternativa sem horário permanecem.
 Sem integração com agenda interna ou reserva automática. As seções de prévia
 abaixo registram a sequência anterior, não a configuração pública vigente.
 
+Revisão pré-publicação identificou CRM/RQE divergentes no letreiro do retrato
+interno fornecido. A versão pública usa
+`assets/real/medico-consultorio-sem-registros.jpg`, derivada por image_gen
+built-in para remover somente essas duas linhas do fundo nas duas metades.
+Prompt integral incorporado ao JPEG. Fonte gerada:
+`/Users/vitormilanez/.codex/generated_images/01a14093-3691-7c40-a48d-b3fccb4745a2/exec-9fe6a91e-acde-4055-a2c8-c9e656ce17c6.png`.
+Original fornecido preservado fora do lote público. Conferência visual e scan
+de proveniência: três assets, zero sem origem/prompt.
+
+Quando há horário sem modalidade, o CTA orienta a completar a escolha sem
+abrir WhatsApp nem propagar uma conversão de clique para medição.
+
 ## Planejamento — agenda de preferência e fotos reais, 15/10/2026
 
 **Estado atualizado:** após o plano, usuário autorizou aplicar localmente e mostrar. Implementação local concluída, sem publicação; preferência de horário + confirmação pelo WhatsApp preservada. Começar pela Virada 90; extensão à landing institucional é posterior. O plano original segue abaixo.

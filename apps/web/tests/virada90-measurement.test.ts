@@ -154,11 +154,12 @@ test('the guided handoff keeps health choices in memory and opens WhatsApp witho
   const steps = Array.from({ length: 5 }, (_, n) => makeControl('step' + n));
   const form = { ...makeControl('form'), querySelectorAll: () => steps };
   const opened: string[] = [];
+  let schedulerReady = true;
   // Date and scheduling rules have their own tests; isolate the existing attribution handoff.
   const guidedSource = readFileSync(new URL('../public/virada90/guided.js', import.meta.url), 'utf8')
     .replace(/^import \{ initScheduling, buildSchedulingMessage \} from '\.\/scheduling\.js';\n/, '');
   vm.runInNewContext(guidedSource, {
-    initScheduling: () => ({ getPreference: () => null, refresh() {}, clear() {}, ensureReady: () => true }),
+    initScheduling: () => ({ getPreference: () => null, refresh() {}, clear() {}, ensureReady: () => schedulerReady }),
     buildSchedulingMessage: () => '',
     document: {
       querySelector(key: string) {
@@ -184,6 +185,12 @@ test('the guided handoff keeps health choices in memory and opens WhatsApp witho
   assert.equal(controls.get('#jump-values')?.hidden, false);
   listeners.get('#topic-select:change')?.({ target: { value: '5' } });
   assert.equal(controls.get('#talk-team')?.href, generic);
+  schedulerReady = false;
+  let stopped = false;
+  listeners.get('#talk-team:click')?.({ preventDefault() {}, stopPropagation() { stopped = true; } });
+  assert.equal(opened.length, 0);
+  assert.equal(stopped, true, 'incomplete scheduling must not bubble a WhatsApp conversion');
+  schedulerReady = true;
   listeners.get('#talk-team:click')?.({ preventDefault() {} });
   assert.equal(opened.length, 1);
   assert.match(decodeURIComponent(opened[0]), /private-health-answer/);

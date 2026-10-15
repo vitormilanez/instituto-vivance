@@ -219,3 +219,8 @@ Removido aviso de demonstração: a configuração agora é pública e permanece
 explicitamente sujeita à confirmação da equipe no WhatsApp, sem reserva.
 Parcelas em destaque: R$ 1.000 presencial e aproximadamente R$ 541,67 online,
 ambas em 12 parcelas, totais visíveis e acompanhamento por três meses.
+
+Retrato interno público usa derivado `medico-consultorio-sem-registros.jpg`:
+remoção localizada das linhas CRM/RQE divergentes do letreiro por image_gen,
+preservando a composição e os originais fornecidos. Origem/prompt no JPEG.
+Handoff incompleto não propaga evento de conversão; teste dirigido cobre isso.

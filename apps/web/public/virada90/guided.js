@@ -114,7 +114,10 @@ import { initScheduling, buildSchedulingMessage } from './scheduling.js';
   talkTeam.addEventListener('click', event => {
     event.preventDefault();
     scheduler?.refresh();
-    if (scheduler && !scheduler.ensureReady()) return;
+    if (scheduler && !scheduler.ensureReady()) {
+      event.stopPropagation();
+      return;
+    }
     updateHandoff();
     const destination = window.virada90SourceHandoff?.(handoffUrl) || handoffUrl;
     window.open(destination, '_blank', 'noopener,noreferrer');
